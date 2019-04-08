@@ -1,0 +1,424 @@
+1;trnsport;A Transportation Problem;LP;Dantzig, G B;Management Science and OR
+2;blend;Blending Problem I;LP;Dantzig, G B;Management Science and OR
+3;prodmix;A Production Mix Problem;LP;Dantzig, G B;Management Science and OR
+4;whouse;Simple Warehouse Problem;LP;Dantzig, G B;Management Science and OR
+5;jobt;On-the-Job Training;LP;Dantzig, G B;Management Science and OR
+6;sroute;The Shortest Route Problem;LP;Dantzig, G B;Management Science and OR
+7;diet;Stigler's Nutrition Model;LP;Dantzig, G B;Micro Economics
+8;aircraft;Aircraft Allocation Under Uncertain Demand;LP;Dantzig, G B;Management Science and OR
+9;prodsch;APEX - Production Scheduling Model;MIP;CDC;Management Science and OR
+10;pdi;ARCNET - Production Distribution and Inventory;LP;ARCNET;Management Science and OR
+11;uimp;UIMP - Production Scheduling Problem;LP;Ellison, E F D;Management Science and OR
+12;magic;Magic Power Scheduling Problem;MIP;Garver, L L;Management Science and OR
+13;ferts;Egypt - Static Fertilizer Model;LP;Choksi, A M;Micro Economics
+14;fertd;Egypt - Dynamic Fertilizer Model;MIP;Choksi, A M;Micro Economics
+15;mexss;Mexico Steel - Small Static;LP;Kendrick, D;Micro Economics
+16;mexsd;Mexico Steel - Small Dynamic;MIP;Kendrick, D;Micro Economics
+17;mexls;Mexico Steel - Large Static;LP;Kendrick, D;Micro Economics
+18;weapons;Weapons Assignment;NLP;Bracken, J;Management Science and OR
+19;bid;Bid Evaluation;MIP;Bracken, J;Micro Economics
+20;process;Alkylation Process Optimization;NLP;Bracken, J;Chemical Engineering
+21;chem;Chemical Equilibrium Problem;NLP;Bracken, J;Chemical Engineering
+22;ship;Structural Optimization;NLP;Bracken, J;Engineering
+23;linear;Linear Regression with Various Criteria;DNLP;Bracken, J;Econometrics
+24;least;Nonlinear Regression Problem;NLP;Bracken, J;Econometrics
+25;like;Maximum Likelihood Estimation;NLP;Bracken, J;Econometrics
+26;chance;Chance Constrained Feed Mix Problem;NLP;Bracken, J;Agricultural Economics
+27;sample;Stratified Sample Design;NLP;Bracken, J;Statistics
+28;pindyck;Optimal Pricing and Extraction for OPEC;NLP;Pindyck, R S;Energy Economics
+29;zloof;Relational Database Example;GAMS;Zloof, M M;Management Science and OR
+30;vietman;Vietoriscz Manne Fertilizer Model 1961;MIP;Manne, A S;Micro Economics
+31;alum;World Aluminum Model;MIP;Brown, M;International Trade
+32;marco;Mini Oil Refining Model;LP;Aronofsky, J S;Micro Economics
+33;chenery;Substitution and Structural Change;NLP;Chenery, H B;Economic Development
+34;pak;Optimal Patterns of Growth and Aid;LP;Chenery, H B;Economic Development
+35;dinam;DINAMICO A Dynamic Multi-Sectoral Multi-Skill Model;LP;Manne, A S;Economic Development
+36;himmel16;Area of Hexagon Test Problem;NLP;Himmelblau, D M;Mathematics
+37;robert;Elementary Production and Inventory Model;LP;Fourer, R;Management Science and OR
+38;rdata;Sample Database of the US Economy;MIP;Kendrick, D;Micro Economics
+39;mine;Opencast Mining;LP;Williams, H P;Management Science and OR
+40;orani;A Miniature Version of Orani 78;LP;Kendrick, D;Macro Economics
+41;prolog;Market Equilibrium and Activity Analysis;NLP;Norton, R D;Economic Development
+42;cube;Three-Dimensional Noughts and Crosses;MIP;Williams, H P;Mathematics
+43;chakra;Optimal Growth Model;NLP;Chakravarty, S;Macro Economics
+44;andean;Andean Fertilizer Model;MIP;Mennes, L B M;Micro Economics
+45;copper;Modeling Investment in the World Copper Industry;MIP;Dammert, A;International Trade
+46;shale;Investment Planning in the Oil Shale Industry;LP;Melton, J W;Energy Economics
+47;otpop;OPEC Trade and Production;NLP;Blitzer, C;Energy Economics
+48;korpet;Investment Planning in the Korean Oil-Petro Industry;MIP;Suh, J S;Energy Economics
+49;sarf;Farm Credit and Income Distribution Model;LP;Husain, T;Agricultural Economics
+50;port;Simple Portfolio Model;LP;CDC;Finance
+51;yemcem;Yemen Cement Model;MIP;World Bank;Micro Economics
+52;srcpm;Single-Region Contingency Planning Model;NLP;Manne, A S;Energy Economics
+53;gtm;International Gas Trade Model;NLP;Manne, A S;Energy Economics
+54;turkpow;Turkey Power Planning Model;LP;Turvey, R;Energy Economics
+55;paklive;Pakistan Punjab Livestock Model;LP;World Bank;Agricultural Economics
+56;china;Organic Fertilizer Use in Intensive Farming;LP;Wiens, T B;Agricultural Economics
+57;tabora;Tabora Rural Development - Fuelwood Production;LP;World Bank;Energy Economics
+58;westmip;Economies of Scale and Investment over Time;MIP;Chenery, H B;Micro Economics
+59;imsl;Piecewise Linear Approximation;LP;IMSL Inc;Mathematics
+60;ajax;Ajax Paper Company Production Schedule;LP;CDC;Management Science and OR
+61;tforss;Antalya Forestry Model - Steady State;LP;Bergendorff, H;Forestry
+62;tfordy;Antalya Forestry Model - Dynamic;LP;Bergendorff, H;Forestry
+63;ramsey;Savings Model by Ramsey;NLP;Murtagh, B A;Economic Development
+64;abel;Linear Quadratic Control Problem;NLP;Kendrick, D;Macro Economics
+65;fawley;Platoform Example Refinery;LP;Palmer, K H;Management Science and OR
+66;msm;Morocco Fertilizer Distribution - Mode Selection;LP;Meeraus, A;Micro Economics
+67;crazy;Examples of Extended Arithmetic;GAMS;GAMS Development Corporation;Mathematics
+68;water;Design of a Water Distribution Network;DNLP;Brooke, A;Engineering
+69;hhfair;Household Optimization Problem by Fair;NLP;Fair, R C;Macro Economics
+70;pivot;Simple Gaussian Elimination;GAMS;GAMS Development Corporation;Mathematics
+71;gauss;Matrix Inversion with Full Pivoting;GAMS;GAMS Development Corporation;Mathematics
+72;repay;Repayment Factors for Loans;GAMS;GAMS Development Corporation;Finance
+73;great;Great Circle Distances;GAMS;Brooke, A;Mathematics
+74;ampl;AMPL Sample Problem;LP;Fourer, R;Management Science and OR
+75;egypt;Egypt Agricultural Model;LP;Kutcher, G P;Agricultural Economics
+76;wall;Chemical Equilibrium Problem;NLP;Wall, T W;Chemical Engineering
+77;sambal;Social Accounting Matrix Balancing Problem;NLP;Zenios, S A;Statistics
+78;phosdis;Sea Distances for World Phosphate Model;LP;Meeraus, A;Micro Economics
+79;ibm1;Aluminum Alloy Smelter Sample Problem;LP;IBM;Management Science and OR
+80;etamac;ETA-MACRO Energy Model for the USA;NLP;Manne, A S;Energy Economics
+81;camcge;Cameroon General Equilibrium Model Using NLP;NLP;Condon, T;Applied General Equilibrium
+82;markov;Strategic Petroleum Reserve;LP;Teisberg, T J;Energy Economics
+83;rbrock;Rosenbrock Test Function;NLP;Rosenbrock, H H;Mathematics
+84;mhw4d;Nonlinear Test Problem;NLP;Wright, M H;Mathematics
+85;harker;Models of Spatial Competition;NLP;Harker, P T;Micro Economics
+86;turkey;Turkey Agricultural Model with Risk;NLP;Le-Si, V;Agricultural Economics
+87;nebrazil;North-East Brazil Regional Agricultural Model;LP;Kutcher, G P;Agricultural Economics
+88;agreste;Agricultural Farm Level Model of NE Brazil;LP;Kutcher, G P;Agricultural Economics
+89;iswnm;Indus Surface Water Network Submodule;LP;Duloy, J H;Agricultural Economics
+90;indus;Indus Agricultural Model;LP;Duloy, J H;Agricultural Economics
+91;demo1;Simple Farm Level Model;LP;Kutcher, G P;Agricultural Economics
+92;demo7;Nonlinear Simple Agricultural Sector Model;NLP;Kutcher, G P;Agricultural Economics
+93;sroutex;Shortest Route Algorithm;GAMS;Dantzig, G B;Management Science and OR
+94;mst;Minimum Spanning Tree;GAMS;Hillier, F S;Management Science and OR
+95;himmel11;Himmelblau Test Problem Number 11;QCP;Himmelblau, D M;Mathematics
+96;pollut;Industrial Pollution Control;NLP;Mangasarian, O L;Energy Economics
+97;ganges;Macroeconomic Framework for India;NLP;Mitra, P K;Applied General Equilibrium
+98;thai;Thai Navy Problem;MIP;Choypeng, P;Management Science and OR
+99;house;House Plan Design;NLP;Borland;Mathematics
+100;korcge;General Equilibrium Model for Korea - NLP;NLP;Lewis, J;Applied General Equilibrium
+101;gamsrep;The GAMS Model Library;GAMS;GAMS Development Corporation;Management Science and OR
+102;paperco;Vertically Integrated Company;LP;Thompson, G;Management Science and OR
+103;queens;Maximum Queens Chess Problem;MIP;Beauvais, J;Management Science and OR
+104;mpstrans;MPS file for transportation problem;GAMS;Dantzig, G B;Management Science and OR
+105;thaix;Thai Navy Problem Extended;MIP;Choypeng, P;Management Science and OR
+106;senstran;Sensitivity analysis using LOOPS;LP;Dantzig, G B;Management Science and OR
+107;gangesx;Economic Framework for India - Tracking;NLP;Mitra, P;Applied General Equilibrium
+108;sparta;Military Manpower Planning from Wagner;LP;Wagner, H M;Management Science and OR
+109;prodschx;Production Scheduling Model using SOS1 and SOS2;MIP;CDC;Management Science and OR
+110;immun;Financial Optimization: Risk Management;QCP;Dahl, H;Finance
+111;worst;Financial Optimization: Risk Management;NLP;Dahl, H;Finance
+112;meanvar;Financial Optimization: Risk Management;NLP;Dahl, H;Finance
+113;meanvarx;Financial Optimization: Risk Management;MINLP;Dahl, H;Finance
+114;cmo;Financial Optimization: Financial Engineering;MIP;Dahl, H;Finance
+115;tba;Financial Optimization: Financial Engineering;MIP;Dahl, H;Finance
+116;procsel;Structural Optimization of Process Flowsheets;MINLP;Kocis, G R;Chemical Engineering
+117;synheat;Simultaneous Optimization for Hen Synthesis;MINLP;Yee, T F;Chemical Engineering
+118;minlphi;Heat Integrated Distillation Sequences;NLP;Floudas, C A;Chemical Engineering
+119;batchdes;Optimal Design for Chemical Batch Processing;MINLP;Kocis, G R;Chemical Engineering
+120;nonsharp;Synthesis of General Distillation Sequences;MIP;Aggarwal, A;Chemical Engineering
+121;reaction;Logical Inference for Reaction path synthesis;MIP;Raman, R;Chemical Engineering
+122;feedtray;Optimum Feed Plate Location;MINLP;Viswanathan, J;Chemical Engineering
+123;hda;Synthesis: Hydrodealkylation of Toluene;MINLP;Kocis, G R;Chemical Engineering
+124;alan;A Quadratic Programming Model for Portfolio Analysis;MINLP;Manne, A S;Finance
+125;waterx;Design of a Water Distribution Network (MINLP);MINLP;Brooke, A;Engineering
+126;transmcp;Transportation Model as Equilibrium Problem;MCP;Dantzig, G B;Management Science and OR
+127;wallmcp;Chemical Equilibrium Problem as MCP;MCP;Wall, T W;Chemical Engineering
+128;harkmcp;Models of Spatial Competition in MCP Form;MCP;Harker, P T;Management Science and OR
+129;cammcp;Cameroon General Equilibrium Model Using MCP;MCP;Condon, T;Applied General Equilibrium
+130;kormcp;General Equilibrium Model for Korea - MCP;MCP;Lewis, J;Applied General Equilibrium
+131;two3mcp;Simple 2 x 2 x 2 General Equilibrium Model;MCP;Shoven, J;Applied General Equilibrium
+132;scarfmcp;Scarf's Activity Analysis Example;MCP;Scarf, H;Applied General Equilibrium
+133;oligomcp;Oligopolistic Competition - Examples from MP;MCP;Harker, P T;Applied General Equilibrium
+134;mr5mcp;Multi-Region Growth Model Based on Global 2100;MCP;Manne, A S;Applied General Equilibrium
+135;hansmcp;Hansen's Activity Analysis Example - MCP;MCP;Scarf, H;Applied General Equilibrium
+136;vonthmcp;General Equilibrium Variant of the von Thunen Model;MCP;Rowse;Applied General Equilibrium
+137;gemmcp;GEMTAP: A general equilibrium model for tax policy;MCP;Rutherford, T F;Applied General Equilibrium
+138;ers82mcp;USDA-ERS CGE Model of the US;MCP;Robinson, S;Applied General Equilibrium
+139;cafemge;Corporate average fuel economy standards;MPSGE;Thorpe, S;Applied General Equilibrium
+140;cammge;Cameroon General Equilibrium Model Using MPSGE;MPSGE;Condon, T;Applied General Equilibrium
+141;cirimge;Increasing returns in intermediate inputs;MPSGE;Lopez de Silanes, F;Applied General Equilibrium
+142;co2mge;Carbon-related trade model (static);MPSGE;Perroni, C;International Trade
+143;dmcmge;Accounting for economic growth with new inputs;MPSGE;Feenstra, R C;Economic Development
+144;etamge;ETA-MACRO Energy Model for the USA - MPSGE Format;MPSGE;Manne, A S;Energy Economics
+145;finmge;A General Equilibrium Model for Finland;MPSGE;Torma, H;Applied General Equilibrium
+146;gemmge;GEMTAP: A general equilibrium model for tax policy;MPSGE;Balard, C L;Applied General Equilibrium
+147;hansmge;Hansen's Activity Analysis Example - MPSGE;MPSGE;Scarf, H;Applied General Equilibrium
+148;harmge;Increasing returns with average cost pricing;MPSGE;Kamiya, K;Applied General Equilibrium
+149;kehomge;Multiple equilibria in a simple GE model;MPSGE;Kehoe, T;Applied General Equilibrium
+150;nsmge;North-South trade and capital flows;MPSGE;Manne, A S;International Trade
+151;sammge;Carbon taxes with exemptions for heavy industry;MPSGE;Boehringer, C;Applied General Equilibrium
+152;scarfmge;Tax distortions in a small activity analysis model;MPSGE;Scarf, H;Applied General Equilibrium
+153;shovmge;The economic effects of UK membership in the EC;MPSGE;Miller, M H;Applied General Equilibrium
+154;threemge;Three Approaches to Differential Tax Policy Analysis;MPSGE;Rutherford, T F;Applied General Equilibrium
+155;unstmge;Globally Unstable Equilibria;MPSGE;Scarf, H;Applied General Equilibrium
+156;vonthmge;A General Equilibrium Version of the von Thunen Model;MPSGE;Mackinnon, J;Applied General Equilibrium
+157;prime;Prime Number Generation;GAMS;GAMS Development Corporation;Mathematics
+158;knights;Maximum Knights Problem;MIP;Dudeney, H E;Mathematics
+159;latin;The Orthogonal Latin-Square Problem;MIP;Dantzig, G B;Mathematics
+160;icut;Integer Cut Example;MIP;GAMS Development Corporation;Mathematics
+161;launch;Launch Vehicle Design and Costing;NLP;Bracken, J;Energy Economics
+162;pentium;Pentium Error Test;GAMS;House, B;Mathematics
+163;bidsos;Bid Evaluation with SOS2 Sets;MIP;Bracken, J;Micro Economics
+164;decomp;Decomposition Principle - Animated;LP;Dantzig, G B;Management Science and OR
+165;alkyl;Simplified Alkylation Process;NLP;Berna, T J;Chemical Engineering
+166;dispatch;Economic Load Dispatch Including Transmission Losses;NLP;Wood, A J;Engineering
+167;hydro;Hydrothermal Scheduling Problem;NLP;Wood, A J;Engineering
+168;fuel;Fuel Scheduling and Unit Commitment Problem;MINLP;Wood, A J;Engineering
+169;traffic;Traffic Equilibrium Problem;MCP;Ferris, M C;Management Science and OR
+170;alphamet;Alphametics - a Mathematical Puzzle;MIP;de Wetering, A V;Recreational Models
+171;qp1;Standard QP Model;NLP;Kalvelagen, E;Finance
+172;qp2;Standard QP Model - symmetry exploitations;NLP;Kalvelagen, E;Finance
+173;qp3;Standard QP Model - intermediate variables;NLP;Kalvelagen, E;Finance
+174;qp4;Standard QP Model - no covariance matrix;NLP;Kalvelagen, E;Finance
+175;qp5;Standard QP Model - linear approximation;LP;Kalvelagen, E;Finance
+176;dice;Non-transitive Dice Design;MIP;Bosch, R A;Mathematics
+177;tsp1;Traveling Salesman Problem - One;MIP;Kalvelagen, E;Recreational Models
+178;tsp2;Traveling Salesman Problem - Two;MIP;Kalvelagen, E;Recreational Models
+179;tsp3;Traveling Salesman Problem - Three;MIP;Kalvelagen, E;Recreational Models
+180;tsp4;Traveling Salesman Problem - Four;MIP;Kalvelagen, E;Recreational Models
+181;indus89;Indus Basin Water Resource Model;LP;Ahmad, M;Agricultural Economics
+182;gapmin;Lagrangian Relaxation of Assignment Problem;MIP;Guignard, M;Management Science and OR
+183;calendar;Calendar Function Examples;GAMS;GAMS Development Corporation;GAMS Language Features
+184;qp6;Standard QP Model - LCP formulation of QP4;MCP;Kalvelagen, E;Finance
+185;rotdk;Robust Optimization;MIP;Laguna, M;Management Science and OR
+186;prodsp;Stochastic Programming Example;LP;King, A J;Stochastic Programming
+187;kand;Stochastic Programming;LP;Kall, P;Stochastic Programming
+188;lands;Optimal Investment;LP;Louveaux, F V;Stochastic Programming
+189;airsp;Aircraft Allocation;LP;Dantzig, G B;Stochastic Programming
+190;gamsutil;Generates some useful files from the Model Library;GAMS;GAMS Development Corporation;GAMS Language Features
+191;cross;Alcuin's River Crossing;MIP;Borndoerfer, R;Recreational Models
+192;dea;Data Envelopment Analysis - DEA;LP;Dyson;Statistics
+193;marilyn;Numerical Puzzle;MIP;Savant, M;Recreational Models
+194;nemhaus;Scheduling to Minimize Interaction Cost;MIP;Carlson, R C;Management Science and OR
+195;gmstest;Test sript for library models;GAMS;GAMS Development Corporation;GAMS Language Features
+196;airsp2;Aircraft Allocation - stochastic optimization with DECIS;DECIS;Dantzig, G B;Stochastic Programming
+197;apl1p;Stochastic Programming Example for DECIS;DECIS;Infanger, G;Stochastic Programming
+198;apl1pca;Stochastic Programming Example for DECIS;DECIS;Infanger, G;Stochastic Programming
+199;farm;The Farmer's Problem formulated for DECIS;DECIS;Birge, J R;Stochastic Programming
+200;prodsp2;Stochastic Programming Example - reformulated for DECIS;DECIS;King, A J;Stochastic Programming
+201;circle;Circle Enclosing Points - SNOPT Example;NLP;Gill, P E;Mathematics
+202;bearing;Hydrostatic Thrust Bearing Design for a Turbogenerator;NLP;Coello Coello, C A;Engineering
+203;gear;Gear Train Design;MINLP;Deb, K;Engineering
+204;trimloss;Trim Loss Minimization;MINLP;Floudas, C A;Engineering
+205;pump;Pump Network Synthesis;MINLP;Floudas, C A;Engineering
+206;spring;Coil Compression String Design;MINLP;Sandgren, E;Engineering
+207;mrp2;Materials Requirement Planning (MRP) Formulations;MIP;Voss, S;Management Science and OR
+208;absmip;Discontinous functions abs() min() max() sign() as MIPs;MIP;GAMS Development Corporation;Mathematics
+209;camcns;Cameroon General Equilibrium Model Using CNS;CNS;Condon, T;Applied General Equilibrium
+210;gancns;Macro-Economic Framework for India - CNS;CNS;Mitra, P K;Applied General Equilibrium
+211;gancnsx;Macro-Economic Framework for India - Tracking CNS;CNS;Mitra, P;Applied General Equilibrium
+212;korcns;General Equilibrium Model for Korea - CNS;CNS;Lewis, J;Applied General Equilibrium
+213;tsp42;TSP solution with subtour elimination;MIP;Dantzig, G B;Recreational Models
+214;haverly;Haverly's pooling problem example;NLP;Adhya, N;Chemical Engineering
+215;gamshtm;HTML generation of model library;GAMS;GAMS Development Corporation;GAMS Language Features
+216;slvtest;Solver combination test;GAMS;GAMS Development Corporation;GAMS Language Features
+217;gastrans;Gas Transmission Problem - Belgium;NLP;de Wolf, D;Engineering
+218;coexx;Peacefully Coexisting Armies of Queens - tight;MIP;Bosch, R A;Recreational Models
+219;coex;Peacefully Coexisting Armies of Queens;MIP;Bosch, R A;Recreational Models
+220;railcirc;Minimum Circulation of Railway Stock;MIP;Schrijver, A;Management Science and OR
+221;lop;Line Optimization;MIP;Bussieck, M R;Management Science and OR
+222;csched;Cyclic Scheduling of Continuous Parallel Units;MINLP;And, V J;Chemical Engineering
+223;gasnet;Optimal Design of a Gas Transmission Network;MINLP;Edgar, T F;Engineering
+224;windfac;Winding Factor of Electrical Machines;MINLP;Michna, M;Engineering
+225;stockcc;Minimizing Total Average Cycle Stock;MIP;Silver, E A;Management Science and OR
+226;nsharpx;Synthesis of General Distillation Sequences;MINLP;Aggarwal, A;Chemical Engineering
+227;minlphix;Heat Integrated Distillation Sequences;MINLP;Floudas, C A;Chemical Engineering
+228;cesam;Cross Entropy SAM Estimation;MCP;Robinson, S;Micro Economics
+229;polygon;Largest small polygon COPS 2.0 #1;NLP;Dolan, E D;Mathematics
+230;elec;Distribution of electrons on a sphere COPS 2.0 #2;NLP;Dolan, E D;Engineering
+231;chain;Hanging Chain COPS 2.0 #3;NLP;Cesari, L;Engineering
+232;camshape;Shape optimization of a cam COPS 2.0 #4;NLP;Anitescu, M;Engineering
+233;pinene;Isometrization of alpha-pinene COPS 2.0 #5;NLP;Ascher, U M;Chemical Engineering
+234;popdynm;Marine population dynamics COPS 2.0 #6;NLP;Dolan, E D;Mathematics
+235;flowchan;Flow in a channel COPS 2.0 #7;NLP;Ascher, U M;Engineering
+236;robot;Robot arm COPS 2.0 #8;NLP;Dolan, E D;Engineering
+237;lnts;Particle steering COPS 2.0 #9;NLP;Betts, J;Engineering
+238;rocket;Goddard rocket COPS 2.0 #10;NLP;Bryson, A E;Engineering
+239;glider;Hang glider COPS 2.0 #11;NLP;Bulirsch, R;Engineering
+240;gasoil;Catalytic cracking of gas oil COPS 2.0 #12;NLP;Ascher, U M;Chemical Engineering
+241;methanol;Methanol to hydrocarbons COPS 2.0 #13;NLP;Ascher, U M;Chemical Engineering
+242;catmix;Catalyst Mixing COPS 2.0 #14;NLP;Dolan, E D;Chemical Engineering
+243;torsion;Elastic-plastic torsion COPS 2.0 #15;NLP;Averick, B M;Engineering
+244;jbearing;Journal bearing COPS 2.0 #16;NLP;Averick, B M;Engineering
+245;minsurf;Minimal surface with obstacle COPS 2.0 #17;NLP;Dolan, E D;Engineering
+246;qp1x;Standard QP Model with GDX data input;NLP;Kalvelagen, E;Finance
+247;tvcsched;Flow Formulation of the ISCI Rotator Problem;MIP;Bollapragada, S;Management Science and OR
+248;srkandw;Stochastic Programming Scenario Reduction;LP;Kall, P;Stochastic Programming
+249;clearlak;Scenario Reduction: ClearLake exercise;LP;Birge, J R;Stochastic Programming
+250;jit;Design of Just-in-Time Flowshops;MINLP;Gunasekaran, A;Management Science and OR
+251;lmp1;Linear Multiplicative Model - Type 1;NLP;Konno, H;Mathematics
+252;lmp2;Linear Multiplicative Model - Type 2;NLP;Tawarmalani, M;Mathematics
+253;lmp3;Linear Multiplicative Model - Type 3;NLP;Benson, H P;Mathematics
+254;pool;Pooling problem;NLP;Adhya, N;Chemical Engineering
+255;mathopt1;MathOptimizer Example 1;NLP;Mathematica;Mathematics
+256;mathopt2;MathOptimizer Example 2;NLP;Mathematica;Mathematics
+257;mathopt3;MathOptimizer Example 3;NLP;Mathematica;Mathematics
+258;mathopt4;MathOptimizer Example 4;NLP;Mathematica;Mathematics
+259;mathopt5;MathOptimizer Example 5;DNLP;Mathematica;Mathematics
+260;mathopt6;MathOptimizer Example 6;DNLP;Mathematica;Mathematics
+261;trig;Simple Trigonometric Example;NLP;Pinter, J D;Mathematics
+262;holiday;US Holiday and Leave Chart;GAMS;GAMS Development Corporation;GAMS Language Features
+263;maxmin;Max Min Location of Points in Unit Square;DNLP;Pinter, J D;Mathematics
+264;hs62;Hock - Schittkowski Problem 62;NLP;Hock, W;Mathematics
+265;fct;LGO Interface Example;DNLP;Pinter, J D;Mathematics
+266;t1000;LGO Test t1000_10;NLP;Pinter, J D;Mathematics
+267;mhw4dx;MHW4D with additional Tests;NLP;Wright, M H;Mathematics
+268;fiveleap;The Five Leaper Tour Problem;MIP;Chlond, M J;Management Science and OR
+269;nash;A non-cooperative game: Nash and Stackelberg versions;MPEC;Murphy, F H;Applied General Equilibrium
+270;kport;Product Portfolio Optimization;MINLP;Kallrath, J;Chemical Engineering
+271;qp7;Standard QP Model - conic programming formulation;QCP;Andersen, E;Finance
+272;dicex;Non-transitive Dice Design - Enhanced;MIP;Bosch, R A;Mathematics
+273;emfl;Existing Multi Facility Location Problem - Cone Format;QCP;Vanderbei, R;Management Science and OR
+274;hhmax;A Household Maximization Problem;NLP;Hosoe, N;Applied General Equilibrium
+275;splcge;A Simple CGE Model;NLP;Hosoe, N;Applied General Equilibrium
+276;stdcge;A Standard CGE Model;NLP;Hosoe, N;Applied General Equilibrium
+277;lrgcge;A Large Country CGE Model;NLP;Hosoe, N;Applied General Equilibrium
+278;twocge;A Two Country CGE Model;NLP;Hosoe, N;Applied General Equilibrium
+279;moncge;A Monopoly CGE Model;NLP;Hosoe, N;Applied General Equilibrium
+280;quocge;A CGE Model with Quotas;NLP;Hosoe, N;Applied General Equilibrium
+281;irscge;A CGE Model with Scale Economy;NLP;Hosoe, N;Applied General Equilibrium
+282;qalan;A Quadratic Programming Model for Portfolio Analysis QCP;MIQCP;Manne, A S;Finance
+283;qcp1;Standard QP Model QCP;QCP;Kalvelagen, E;Finance
+284;qdemo7;Nonlinear Simple Agricultural Sector Model QCP;QCP;Kutcher, G P;Agricultural Economics
+285;qsambal;Social Accounting Matrix Balancing Problem QCP;QCP;Zenios, S A;Statistics
+286;bchtlbas;Trim Loss Minimization with Heuristic using BCH Facility;MINLP;Floudas, C A;Branch and Cut and Heuristic
+287;bchfcnet;Fixed Cost Network Flow Problem with Cuts using BCH Facility;MIP;Bussieck, M R;Branch and Cut and Heuristic
+288;bchoil;Oil Pipeline Design Problem using BCH Facility;MIP;Brimberg, J;Branch and Cut and Heuristic
+289;bchmknap;Multi knapsack problem using BCH Facility;MIP;Beasley, J E;Branch and Cut and Heuristic
+290;badmip;Rounding Problems in MIPs;MIP;Neumaier, A;Management Science and OR
+291;qmeanvar;Financial Optimization: Risk Management using MIQCP;MIQCP;Dahl, H;Finance
+292;jdate;Julian date test;GAMS;GAMS Development Corporation;GAMS Language Features
+293;qabel;Linear Quadratic Control Problem;QCP;Kendrick, D;Macro Economics
+294;cutstock;Cutting Stock - A Column Generation Approach;MIP;Gilmore, P C;Management Science and OR
+295;mhw4dxx;MHW4DX with multiple solutions;NLP;Wright, M H;Mathematics
+296;awkqap;Input file generation with AWK for the Quadratic Assignment Problem;MIQCP;Burkard, R E;GAMS Tools
+297;seders;ERS Data Manipulations with SED;GAMS;Somwaru, A;GAMS Tools
+298;awktsp;Traveling Salesman Problem Instance prepared with AWK;MIP;Juenger, M;GAMS Tools
+299;mingamma;Minimal y of GAMMA(x);DNLP;Sloane, N J A;Statistics
+300;quantum;An application from quantum mechanics;DNLP;Ogura, A;Statistics
+301;procmean;Optimal Process Mean;NLP;Chen, C H;Statistics
+302;mlbeta;Fitting of beta distribution through maximum likelihood;NLP;Johnson, N L;Statistics
+303;mlgamma;Maximum Likelihood estimation of parameters of the gamma distribution;NLP;Cox, D R;Statistics
+304;decomphh;A Successive Recalibration Algorithm for GE Models with Many Households;MPSGE;Rutherford, T F;Applied General Equilibrium
+305;herves;Herves (Transposable Element) Activity Calculations;DNLP;Meeraus, W H;Engineering
+306;csp;Closest String Problem;MIP;Meneses, C N;Management Science and OR
+307;licememo;License Memorandum;GAMS;GAMS Development Corporation;GAMS Language Features
+308;deploy;GAMS Deployment Model;GAMS;GAMS Development Corporation;GAMS Language Features
+309;openpit;Dynamic open pit mining extraction;MIP;GAMS Development Corporation;Management Science and OR
+310;cta;Controlled Tabular Adjustments;MIP;Cox, L H;Management Science and OR
+311;gsolver;Compare the actual system with the original solver database;GAMS;GAMS Development Corporation;GAMS Language Features
+312;lrs;Linear Recursive Sequence Optimization Model;MIP;GAMS Development Corporation;Management Science and OR
+313;chartdat;Create an example GDX file for the IDE Charting facility;GAMS;GAMS Development Corporation;GAMS Language Features
+314;feasopt1;An Infeasible Transportation Problem analyzed with Cplex option FeasOpt;LP;Dantzig, G B;Management Science and OR
+315;trnsgrid;Grid Transportation Problem;LP;Ferris, M C;Management Science and OR
+316;dplytest;A Deployment Test Model;GAMS;GAMS Development Corporation;GAMS Language Features
+317;cefiles;Compressed Input Files;GAMS;GAMS Development Corporation;GAMS Language Features
+318;encrypt;Input file encyption demo;GAMS;GAMS Development Corporation;GAMS Language Features
+319;epscm;eps-Constraint Method for Multiobjective Optimization;LP;Mavrotas, G;Mathematics
+320;version1;How to test for a GAMS version;GAMS;GAMS Development Corporation;GAMS Language Features
+321;knp;Kissing Number Problem using Variable Neighborhood Search;NLP;Liberti, L;Mathematics
+322;schulz;Termination routine to ensure solvers stay with resource limit;GAMS;GAMS Development Corporation;GAMS Language Features
+323;netgen;Min Cost Flow with an Instance generated by NETGEN;LP;Clark, R H;GAMS Tools
+324;tsp2ltx;TSP tour plotting with LaTeX xy-pic environment;MIP;GAMS Development Corporation;GAMS Tools
+325;swath;Mission Planning for Synthetic Aperture Radar Surveillance;MIP;Panton, D M;Management Science and OR
+326;solnpool;Cplex Solution Pool for a Simple Facility Location Problem;MIP;ILOG;Management Science and OR
+327;qmeanvag;Portfolio Modeling with Parallel Solutions;MIQCP;Dahl, H;Finance
+328;danwolfe;Dantzig Wolfe Decomposition and Grid Computing;LP;Dantzig, G B;Management Science and OR
+329;jacobi;Asynchronous Jacobi Methods;MCP;Bertsekas, D P;Mathematics
+330;dicegrid;MIP Decomposition and Parallel Grid Submission - DICE Example;MIP;Bosch, R A;Management Science and OR
+331;mws;Computation of Horowitz's work-trip mode choice model estimates;MIP;Florios, K;Econometrics
+332;logmip1a;LogMIP User's Manual Example 1a - Job Scheduling;EMP;Raman, R;Disjunctive Programming
+333;logmip1b;LogMIP User's Manual Example 1b - Job Scheduling;EMP;Raman, R;Disjunctive Programming
+334;logmip1c;LogMIP User's Manual Example 1c - Job Scheduling;EMP;Raman, R;Disjunctive Programming
+335;logmip2;LogMIP User's Manual Example 2 - Example to illustrate disjunctions;EMP;Vecchietti, A;Disjunctive Programming
+336;logmip3;LogMIP User's Manual Example 3 - Synthesis of 8 Processes;EMP;Raman, R;Disjunctive Programming
+337;logmip4;LogMIP User's Manual Example 4 - Job Shop Scheduling;EMP;Raman, R;Disjunctive Programming
+338;maxcut;Goemans/Williamson Randomized Approximation Algorithm for MaxCut;MIP;Goemans M.X.;Mathematics
+339;gqapsdp;SDP Convexifications of the Generalized Quadratic Assignment Problem;RMIQCP;Guignard, M;Management Science and OR
+340;trnssdp;Solving the Transportation LP Problem using SDP;GAMS;Dantzig, G B;Management Science and OR
+341;two3mac;Simple 2 x 2 x 2 General Equilibrium Model Using Macros;MCP;Shoven, J;Applied General Equilibrium
+342;poutil;Portfolio Optimization for Electric Utilities;MIP;Rebennack, S;Energy Economics
+343;secure;Secure Work Files - Example 2;GAMS;GAMS Development Corporation;GAMS Language Features
+344;srpchase;Scenario Tree Construction Example;LP;H. Heitsch;Stochastic Programming
+345;tsp5;TSP solution with Miller et al subtour elimination;MIP;Miller, C E;Special Integer Models
+346;bilinear;Convexification of bilinear term binary times x;MINLP;Kallrath, J;Mathematics
+347;solveopt;Option solveopt explained;GAMS;GAMS Development Corporation;GAMS Language Features
+348;bchtsp;Traveling Salesman Problem Instance with BCH;MIP;Beasley, J E;Branch and Cut and Heuristic
+349;bchstock;Cutting Stock - A Column Generation Approach with BCH;MIP;Gilmore, P C;Branch and Cut and Heuristic
+350;tanksize;Tank Size Design Problem;MINLP;Rebennack, S;Chemical Engineering
+351;trnspwl;A Transportation Problem with discretized economies of scale;MIP;Dantzig, G B;Management Science and OR
+352;food;Food Manufacturing Problem - Blending of oils;MIP;Williams, H P;Management Science and OR
+353;relief;Relief Mission;MIP;Toczek, J;Recreational Models
+354;spatequ;Spatial Equilibrium;MCP;Hieu, P S;Applied General Equilibrium
+355;kqkpsdp;SDP Convexifications of the Cardinality constraint Quadratic Knapsack Problem;RMIQCP;Guignard, M;Management Science and OR
+356;prodplan;A Production Planning Example;MIP;Pochet, Y;Management Science and OR
+357;sddp;Multi-stage Stochastic Water Reservoir Model solved with SDDP;LP;Pereira, M V F;Management Science and OR
+358;ps2_f_s;Parts Supply Problem w/ 2 Types w/o and w/ Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+359;ps2_f;Parts Supply Problem w/ 2 Types w/o Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+360;ps2_f_eff;Parts Supply Problem w/ Efficient Type w/o Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+361;ps2_f_inf;Parts Supply Problem w/ Inefficient Type w/o Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+362;ps2_s;Parts Supply Problem w/ 2 Types w/ Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+363;ps3_f;Parts Supply Problem w/ 3 Types w/o Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+364;ps3_s;Parts Supply Problem w/ 3 Types w/ Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+365;ps3_s_gic;Parts Supply Problem w/ 3 Types w/ Global Incentive Comp. Const.;NLP;Hashimoto, H;Contract Theory
+366;ps3_s_mn;Parts Supply Problem w/ 3 Types w/ Monotonicity Constraint;NLP;Hashimoto, H;Contract Theory
+367;ps3_s_scp;Parts Supply Problem w/ 3 Types w/o and w/ SCP;NLP;Hashimoto, H;Contract Theory
+368;ps10_s;Parts Supply Problem w/ 10 Types and w/ Asymmetric Information;NLP;Hashimoto, H;Contract Theory
+369;ps10_s_mn;Parts Supply Problem w/ 10 Types w/ Random p(i);NLP;Hashimoto, H;Contract Theory
+370;ccoil;Oil Pipeline Design Problem using concurrent MIP solves;MIP;Brimberg, J;Management Science and OR
+371;cubesoln;Three-Dimensional Noughts and Crosses Multiple Solutions;MIP;Williams, H P;Mathematics
+372;sipres;Global optimization of semi-infinite programs via restriction of the right-hand side;NLP;Mitsos, A;Mathematics
+373;cclinpts;Finding Optimal Breakpoints when linearizing a power utility function;NLP;Rasmussen K.M.;Finance
+374;ptsp;Traveling Salesman Problem Instance solved with explicit Permutation Enumeration;GAMS;GAMS Development Corporation;GAMS Language Features
+375;pmelody;Choose notes for melodic lines and chords with permutations;GAMS;GAMS Development Corporation;GAMS Language Features
+376;flowshop;Flow shop scheduling;MIP;Gueret, C;Management Science and OR
+377;ps5_s_mn;Parts Supply Problem w/ 5 Types w/ Random p(i);NLP;Hashimoto, H;Contract Theory
+378;iobalance;Updating and Projecting Coefficients: The RAS Approach;NLP;Miller, R E;Statistics
+379;fdesign;Linear Phase Lowpass Filter Design;QCP;Lobo, M S;Engineering
+380;pmeanvar;Mean-Variance models with variable upper and lower bounds;MIQCP;Gunluk, O;Finance
+381;powerset;PowerSetLeft and PowerSetRight examples;GAMS;GAMS Development Corporation;GAMS Language Features
+382;linearne;Linearization techniques for extremal-Nash equilibria;EMP;Hesamzadeh, M R;Energy Economics
+383;saras;South African Regionalised Farm-level Resource Use and Output Supply Response (SARAS) model;NLP;Olubode-Awosola, O O;Agricultural Economics
+384;epscmmip;Improved version of eps-Constraint Method for Multiobjective Optimization;MIP;Mavrotas, G;Mathematics
+385;bidpwl;Bid Evaluation with Piecewise Linear Functions;MIP;Bracken, J;Management Science and OR
+386;trnspwlx;A Transportation Problem with Piecewise Linear Functions;MIP;Dantzig, G B;Management Science and OR
+387;cpack;Packing identical size circles in the unit circle;QCP;Pinter, J D;Mathematics
+388;trigx;Another Trigonometric Example;NLP;Pinter, J D;Mathematics
+389;stablem;Stable Marriage Problem;MIP;Weisstein, E W;Management Science and OR
+390;srtree;Simple Scenario Tree Construction Example;GAMS;H. Heitsch;Stochastic Programming
+391;tgridmix;Grid Transportation Problem with Single Submit and Collect Loop;LP;Dantzig, G B;Management Science and OR
+392;prisoner;Prisoners dilemma as EMP and MCP;EMP;Ferris, M C;Applied General Equilibrium
+393;cesam2;Cross Entropy SAM Estimation;NLP;Robinson, S;Micro Economics
+394;solmpool;Cplex Solution Pool for a Simple Facility Location Problem with Merged Solution File;MIP;ILOG;Management Science and OR
+395;tricp;Triangular Graph Circle Packing;QCP;Fuenfzig, C;Micro Economics
+396;allbases;Enumerate all Feasible Basic Solutions of the Transportation Problem;MIP;Dantzig, G B;Micro Economics
+397;clad;Computation of Fairs extramarital affairs model estimates;MIP;Florios, K;Statistics
+398;gussex1;Simple GUSS example;LP;Bussieck, M R;Management Science and OR
+399;gussrisk;Simple investment example with varying weight for risk using GUSS;NLP;GAMS Development Corporation;Management Science and OR
+400;gussgrid;Simple GUSS Grid example;LP;Bussieck, M R;Management Science and OR
+401;circpack;Pack circles in the smallest possible rectangle;NLP;Kallrath, J;Management Science and OR
+402;tablelayout;Configuring text layout in table cells to minimize table height;MIP;Bilauca, M;Engineering
+403;asyncjobs;Execute asynchronously several GAMS jobs and collect the fastest;GAMS;GAMS Development Corporation;GAMS Language Features
+404;partssupply;Parts Supply Problem;NLP;Hashimoto, H;Contract Theory
+405;qfilter;Audio filter design using quad-precision MINOS;GAMS;GAMS Development Corporation;GAMS Language Features
+406;derivtst;How to test derivatives of functions;GAMS;GAMS Development Corporation;GAMS Language Features
+407;carseq;Car Sequencing;MINLP;Dincbas, M;Management Science and OR
+408;pmedian;P-Median problem;MINLP;Beasley, J E;Management Science and OR
+409;sgolfer;Social Golfer Problem;MINLP;Smith, B;Management Science and OR
+410;dyncge;A Recursive-Dynamic Standard CGE Model;NLP;Hosoe, N;Applied General Equilibrium
+411;asyncloop;Transportation Problem with async loop body execution;LP;Dantzig, G B;GAMS Language Features
+412;trnsindic;Fixed Charge Transportation Problem with Indicator Constraints;MIP;Dantzig, G B;GAMS Language Features
+413;timesteps;Accessing previous (or next) time steps in an equation fast;GAMS;GAMS Development Corporation;GAMS Language Features
+414;dqq;Warm-starting quad-precision MINOS;GAMS;Ma, D;GAMS Language Features
+415;cbenders;Cplex Benders for a Simple Facility Location Problem;MIP;ILOG;Management Science and OR
+416;robustlp;Robust linear programming as an SOCP;QCP;Lobo, M S;Management Science and OR
+417;embmiex1;Simple Embedded Code ModelInstance example;LP;Dantzig, G B;Management Science and OR
+418;spbenders1;Stochastic Benders - Sequential GAMS Loop;LP;Dantzig, G B;Management Science and OR
+419;spbenders2;Stochastic Benders - Async Subsolve GAMS Loop;LP;Dantzig, G B;Management Science and OR
+420;spbenders3;Stochastic Benders - Sequential GamsModelInstance;LP;Dantzig, G B;Management Science and OR
+421;spbenders4;Stochastic Benders - Parallel MPI;LP;Dantzig, G B;Management Science and OR
+422;spbenders5;Stochastic Benders - Parallel MPI with GAMSModelInstance;LP;Dantzig, G B;Management Science and OR
+423;guss2dim;Two dimensional scenario GUSS Example;NLP;Bussieck, M R;Mathematics
+424;obstacle;An Obstacle Problem;MCP;Ciarlet, P G;Engineering

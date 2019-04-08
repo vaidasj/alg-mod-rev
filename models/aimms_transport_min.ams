@@ -1,0 +1,68 @@
+MAIN MODEL Main_Transport
+  DECLARATION SECTION 
+    QUANTITY:
+       identifier   :  QuantityLength
+       base unit    :  mile ;
+    QUANTITY:
+       identifier   :  QuantityCurrency
+       base unit    :  $ ;
+    SET:
+       identifier   :  Plants
+       index        :  p ;
+    SET:
+       identifier   :  Markets
+       index        :  m ;
+    PARAMETER:
+       identifier   :  Capacity
+       index domain :  p ;
+    PARAMETER:
+       identifier   :  Demand
+       index domain :  m ;
+    PARAMETER:
+       identifier   :  Distance
+       index domain :  (p,m)
+       unit         :  1000 * mile ;
+    PARAMETER:
+       identifier   :  Freight
+       unit         :  $/(1000 * mile) ;
+    PARAMETER:
+       identifier   :  TransportCost
+       index domain :  (p,m)
+       unit         :  1000 * $
+       definition   :  Freight * Distance(p,m) ;
+    VARIABLE:
+       identifier   :  Shipment
+       index domain :  (p,m)
+       range        :  nonnegative ;
+    CONSTRAINT:
+       identifier   :  SatisfyCapacity
+       index domain :  p
+       definition   :  sum(m, Shipment(p,m)) <= Capacity(p) ;
+    CONSTRAINT:
+       identifier   :  MeetDemand
+       index domain :  m
+       definition   :  sum(p, Shipment(p,m)) >= Demand(m) ;
+    VARIABLE:
+       identifier   :  TotalCost
+       unit         :  1000 * $
+       definition   :  sum((p,m), TransportCost(p,m)*Shipment(p,m)) ;
+    MATHEMATICAL PROGRAM:
+       identifier   :  TransportModel
+       objective    :  TotalCost
+       direction    :  minimize
+       constraints  :  AllConstraints
+       variables    :  AllVariables ;
+  ENDSECTION  ;
+  PROCEDURE
+    identifier :  MainInitialization
+    body       :  
+      Plants := data { seattle, san-diego };
+      Markets := data { new-york, Chicago, topeka };
+      Capacity(p) := data { seattle : 350, san-diego : 600 };
+      Demand(m) := data { new-york : 325, Chicago : 300, topeka : 275 };
+      Distance(p,m) := data
+      { ( seattle, new-york ) :  2.5,  ( seattle, Chicago  ) :  1.7,  ( seattle, topeka   ) :  1.8,
+        ( san-diego, new-york ) :  2.5,  ( san-diego, Chicago  ) :  1.8,  ( san-diego, topeka   ) :  1.4 };
+      Freight := 90 [$/(1000*mile)];
+  ENDPROCEDURE  ;
+ENDMODEL Main_Transport ;
