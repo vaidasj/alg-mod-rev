@@ -1,6 +1,6 @@
 # Benchmark Tools
 
-## Model Libray Generation
+## Model Library Generation
 
 The optimization problems model library is built using sample models available in the [GAMS Model Library](https://www.gams.com/latest/gamslib_ml/libhtml/index.html). 
 Library will be built by using [GAMS CONVERT](https://www.gams.com/latest/docs/S_CONVERT.html) utility to convert GAMS native models to scalar models for **AMPL**, **GAMS** and **Pyomo** algebraic modeling languages. 

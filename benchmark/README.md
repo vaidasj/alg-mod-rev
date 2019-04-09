@@ -5,7 +5,7 @@ Three different algebraic modeling languages AMPL, GAMS and Pyomo were benchmark
 Two types of benchmarks were conducted:
 
 1. Model instance creation time benchmark - to measure how long it take to load a model instance in a specific algebraic modeling language.
-2. AMPL presolver benchmark - to analyze the efficienct of AMPL presolver.
+2. AMPL presolver benchmark - to analyze the efficient of AMPL presolver.
 
 ## Model Instance Creation Time Benchmark
 
