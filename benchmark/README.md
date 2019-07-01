@@ -46,7 +46,7 @@ Detailed benchmark results for each of the models can be found [here](model-load
 
 AMPL is the only of the benchmarked modeling language capable of performing model presolving before calling the solver. GAMS and Pyomo are only capable of using presolving functionality provided by the solvers themselves.
 
-### Results
+### Presolve Usage
 
 Full AMPL presolve usage statistics can be found [here](ampl-presolve-stats.md).
 
@@ -71,3 +71,17 @@ AMPL presolver simplified model instances in **52.8%** of the cases, out of whic
 | QCP       | 10      | 6         | 60.00%        | 0            | 7.10%              | 2.55%             |
 | RMIQCP    | 2       | 0         | 0.00%         | 0            | 0.00%              | 0.00%             |
 | **Total** | **286** | **151**   | **52.80%**    | **5**        | **18.42%**         | **10.73%**        |
+
+### Presolve impact on solving
+
+In order to evaluate if AMPL presolving has a positive impact on problem solving an additional benchmark was conducted. The benchmark included 146 models to which AMPL has applied presolve in the mode loading benchmark. All models were solved using MINOS (a default AMPL solver) with presolving turn on and off. The summary of finding can be seen in the table bellow. 
+
+| Characteristic            | Count |
+| ------------------------- | ----- |
+| Solution found mismatch   | 12    |
+| Objective result mismatch | 27    |
+| Presolve negative impact  | 43    |
+| Presolve positive impact  | 57    |
+| Presolve none impact      | 46    |
+
+Detailed AMPL presolve impact on solving benchmark can be found [here](ampl-solving-times.md) and [here](ampl-solving-times.xlsx).
