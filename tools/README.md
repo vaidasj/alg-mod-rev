@@ -93,7 +93,7 @@ sh gamslib-convert.sh MODEL_NAME MODEL_TYPE
 
 2. Created model will be placed under `gamslib` directory.
 
-## Model Library Benchmark
+## Model Library Loading Benchmark
 
 ### Running the Benchmark
 
@@ -145,3 +145,23 @@ Pyomo convert to NL command is used:
 ```
 pyomo convert --format=nl --output=pyomo.nl MODEL.py
 ```
+## Model Library Solving Benchmark
+
+### Running the Benchmark
+
+- Solve single model, where `solver`: _baron, cplex, gurobi, minos_
+
+```
+solve-benchmark.sh [solver] [modelname] 
+```
+- Solves all models isted in the csv file (see `presolved_models.csv` for example):
+
+```
+solve-benchmark.sh [file name]
+```
+
+### Model Solving Principles
+
+1. Solves model using one of the solvers (baron, cplex, gurobi, minos)
+2. Gathers solver output statistics and reports number of iterations, solve time and objective
+3. Writes report to markdown or stdout

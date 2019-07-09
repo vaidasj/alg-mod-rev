@@ -53,7 +53,7 @@ Full AMPL presolve usage statistics can be found [here](ampl-presolve-stats.md).
 AMPL presolver simplified model instances in **52.8%** of the cases, out of which:
 
 * determined 5 models to be not feasible
-* on avarage eliminated 18.42% of constraints and 10.73% of variables
+* on avarage eliminated **18.42%** of constraints and **10.73%** of variables
 
 **AMPL Presolver characteristics by model problem type**: 
 
@@ -74,14 +74,48 @@ AMPL presolver simplified model instances in **52.8%** of the cases, out of whic
 
 ### Presolve impact on solving
 
-In order to evaluate if AMPL presolving has a positive impact on problem solving an additional benchmark was conducted. The benchmark included 146 models to which AMPL has applied presolve in the mode loading benchmark. All models were solved using MINOS (a default AMPL solver) with presolving turn on and off. The summary of finding can be seen in the table bellow. 
+In order to evaluate if AMPL presolving has a positive impact on problem solving an additional benchmark was conducted. 
 
-| Characteristic            | Count |
-| ------------------------- | ----- |
-| Solution found mismatch   | 12    |
-| Objective result mismatch | 27    |
-| Presolve negative impact  | 43    |
-| Presolve positive impact  | 57    |
-| Presolve none impact      | 46    |
+The benchmark included 146 out of 151 models to which AMPL has applied presolve in the model loading benchmark. 5 models which AMPL presolve determined to be not feasible were excluded from the benchmark. 
 
-Detailed AMPL presolve impact on solving benchmark can be found [here](ampl-solving-times.md) and [here](ampl-solving-times.xlsx).
+Two attempts to solve each model were made. One with AMPL presolver turned on (default setting) and second one with AMPL presolver turned off. After each run solvers statistics including iterations count, solve time (pure solve time) and obective were gathered (MCP, CNS problems do not have objective function). 
+
+Models were solved using Gurobi and BARON solvers:
+
+* Gurobi Optimizer was chosen for solving LP, MIP, QCP and MIQCP type of problems
+* Baron global optimality solver was chosen for solving NLP, MINLP, MCP, MPEC, CNS and DNLP problems
+
+> CPU running time of Baron solver was constrained to 500 seconds
+
+Solver iterations were counted in the following manner:
+
+* for LP problems simplex iterations were counted
+* for MIP problems exploration and intbasis simplex iterations were counted
+* for QP barrier iterations were counted
+* for all problems solved using BARON solver node iterations were counted (BARON does not expose local solver's iterations count)
+
+#### Benchmark results
+
+1. **6 models** failed to be solved due to solver limitations:
+1.1. `himmel11`, `tricp` (QCP) problems failed to be solved due to Gurobi not being capable to handle quadratic equality constraints
+1.2. `lnts`, `polygon` (NLP) problems used *cos* and *sin* operations not supported by BARON solver
+1.3. `maxmin` (DNLP) failed to be solved since BARON cannot handle discontinuities
+1.4. `traffic` (MCP) problem was too compelex for BARON to handle in given CPU time
+2. **2 models** (dispatch, meanvarm) deemed to be infeasible
+3. **2 models** (hhmax, lrs) were solved during AMPL presolve phase 
+4. For **2 models** (hhfair, nash) optimal solution was indicated with a likelyhood of error due to numeric difficulties
+5. **41 models** were solved during solver's presolve phase
+6. For **6 models** mismatching objective was found with presolve turned on and off (mostly caused by the CPU time limitation imposed to the BARON solver)
+7. AMPL presolve had a positive impact in **26.43%** of cases iteration wise and **47.86%** time wise. However it had a negative impact in **20.71%** iteration wise and **23.57%** time wise.
+
+**Summary of presolve impact**
+
+|            | Iterations wise | Time wise | Iterations wise % | Time wise % |
+|------------|------|--------------|--------|--------|
+| Positive   | 37   | 67           | 26.43% | 47.86% |
+| Neutral   | 74   | 40           | 52.86% | 28.57% |
+| Negative   | 29   | 33           | 20.71% | 23.57% |
+
+> Table above summarizes the positive and negative impact AMPL presolve had on solving problems iteration and time wise
+
+Detailed AMPL presolve impact on solving can be found in [ampl-solving-times.md](ampl-solving-times.md) and [ampl-solving-times.xlsx](ampl-solving-times.xlsx) reports.
