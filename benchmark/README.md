@@ -97,10 +97,10 @@ Solver iterations were counted in the following manner:
 #### Benchmark results
 
 1. **6 models** failed to be solved due to solver limitations:
-1.1. `himmel11`, `tricp` (QCP) problems failed to be solved due to Gurobi not being capable to handle quadratic equality constraints
-1.2. `lnts`, `polygon` (NLP) problems used *cos* and *sin* operations not supported by BARON solver
-1.3. `maxmin` (DNLP) failed to be solved since BARON cannot handle discontinuities
-1.4. `traffic` (MCP) problem was too compelex for BARON to handle in given CPU time
+   1. `himmel11`, `tricp` (QCP) problems failed to be solved due to Gurobi not being capable to handle quadratic equality constraints
+   2. `lnts`, `polygon` (NLP) problems used *cos* and *sin* operations not supported by BARON solver
+   3. `maxmin` (DNLP) failed to be solved since BARON cannot handle discontinuities
+   4. `traffic` (MCP) problem was too compelex for BARON to handle in given CPU time
 2. **2 models** (dispatch, meanvarm) deemed to be infeasible
 3. **2 models** (hhmax, lrs) were solved during AMPL presolve phase 
 4. For **2 models** (hhfair, nash) optimal solution was indicated with a likelyhood of error due to numeric difficulties
