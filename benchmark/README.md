@@ -78,14 +78,14 @@ In order to evaluate if AMPL presolving has a positive impact on problem solving
 
 The benchmark included 146 out of 151 models to which AMPL has applied presolve in the model loading benchmark. 5 models which AMPL presolve determined to be not feasible were excluded from the benchmark. 
 
-Two attempts to solve each model were made. One with AMPL presolver turned on (default setting) and second one with AMPL presolver turned off. After each run solvers statistics including iterations count, solve time (pure solve time) and obective were gathered (MCP, CNS problems do not have objective function). 
+Two attempts to solve each model were made. One with AMPL presolver turned on (default setting) and second one with AMPL presolver turned off. After each run solvers statistics including iterations count, solve time (pure solve time) and objective were gathered (MCP, CNS problems do not have objective function). 
 
 Models were solved using Gurobi and BARON solvers:
 
 * Gurobi Optimizer was chosen for solving LP, MIP, QCP and MIQCP type of problems
-* Baron global optimality solver was chosen for solving NLP, MINLP, MCP, MPEC, CNS and DNLP problems
+* BARON global optimality solver was chosen for solving NLP, MINLP, MCP, MPEC, CNS and DNLP problems
 
-> CPU running time of Baron solver was constrained to 500 seconds
+> CPU running time of BARON solver was constrained to 500 seconds
 
 Solver iterations were counted in the following manner:
 
@@ -93,6 +93,8 @@ Solver iterations were counted in the following manner:
 * for MIP problems exploration and intbasis simplex iterations were counted
 * for QP barrier iterations were counted
 * for all problems solved using BARON solver node iterations were counted (BARON does not expose local solver's iterations count)
+
+It is important to note that both BARON and Gurobi solvers have their own presolve mechanisms so the provided model is simplified by the solver too. This might actually result in very similar models being solved by the solver in spite of the AMPL presolve being turned on or off. However, the focus was estimating AMPL presolve impact in real life situations, so full benchmark was executed without changing default solver behaviour. Later on an additional benchmark was made to estimate what is the impact of AMPL presolve once solver presolve functionality is turned off. 
 
 #### Benchmark results
 
@@ -118,4 +120,30 @@ Solver iterations were counted in the following manner:
 
 > Table above summarizes the positive and negative impact AMPL presolve had on solving problems iteration and time wise
 
-Detailed AMPL presolve impact on solving can be found in [ampl-solving-times.md](ampl-solving-times.md) and [ampl-solving-times.xlsx](ampl-solving-times.xlsx) reports.
+Detailed AMPL presolve impact on solving can be found in [ampl-solving-times.md](ampl-solving-times.md) report and [ampl-solving-times.xlsx](ampl-solving-times.xlsx) sheet *Benchmark 1*.
+
+#### Presolve impact on solving with solver presolve turned off
+
+As mentioned earlier both BARON and Gurobi solvers have their own presolve mechanisms. In order to test what would be an impact of AMPL pesolve if solver does not attempt to presolve a problem on its own an additional benchmark was made. Since only Gurobi allows to disable presolve functionality a subset of model was chosen for the benchmark. Detailed benchmark results can be seen in [ampl-solving-times.xlsx](ampl-solving-times.xlsx) sheet *Benchmark 2*.
+
+**AMPL presolve impact with Gurobi presolve ON**
+
+|          | Iterations wise | Time wise | Iterations wise % | Time wise % |
+| -------- | --------------- | --------- | ----------------- | ----------- |
+| Positive | 18              | 39        | 28.57%            | 61.90%      |
+| Neutral  | 34              | 0         | 53.97%            | 0.00%       |
+| Negative | 11              | 24        | 17.46%            | 38.10%      |
+
+**AMPL presolve impact with Gurobi presolve OFF**
+
+|          | Iterations wise | Time wise | Iterations wise % | Time wise % |
+| -------- | --------------- | --------- | ----------------- | ----------- |
+| Positive | 33              | 44        | 54.10%            | 72.13%      |
+| Neutral  | 10              | 0         | 16.39%            | 0.00%       |
+| Negative | 18              | 17        | 29.51%            | 27.87%      |
+
+**Results**
+
+1. AMPL presolve had a greater positive effect both iteration wise (+22.4%) and time wise (+10.2%) once Gurobi presolve was turned off. 
+2. AMPL presolve also had less neutral impact once solver presolving was off, thus leading to a conclusion that during first benchmark some models were simplified to a very similar ones before actual solving them.
+3. Gurobi was not capable to solve two MIP problems (`clad` and `mws`) in reasonable time once Gurobi presolve functionality was turned off. Those models were excluded from the benchmark.

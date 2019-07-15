@@ -269,7 +269,7 @@ load_ampl()
   # Configure solver
   OPTION=""
   if [[ "$SOLVER" = "gurobi" ]]; then
-    OPTIONS="option gurobi_options 'timing=1 logfile';"
+    OPTIONS="option gurobi_options 'timing=1 logfile';" # presolve=0  to disable Gurobi presolve
   elif [[ "$SOLVER" = "minos" ]]; then
     OPTIONS="option minos_options 'timing=1';"
   elif [[ "$SOLVER" = "cplex" ]]; then
