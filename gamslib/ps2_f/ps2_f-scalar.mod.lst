@@ -1,0 +1,122 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:38 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:38 Page 2
+Parts Supply Problem w/ 2 Types w/o Asymmetric Information (PS2_F,SEQ=359)
+C o m p i l a t i o n
+
+
+   3   
+   4  * Hideo Hashimoto, Kojun Hamada, and Nobuhiro Hosoe, "A Numerical Approach
+   5  *   to the Contract Theory: the Case of Adverse Selection", GRIPS Discussion
+   6  *   Paper 11-27, National Graduate Institute for Policy Studies, Tokyo, Japan,
+   7  *   March 2012.
+   8  *
+   9  *  http://r-center.grips.ac.jp/DiscussionPapersDetails/247/#
+  10   
+  11  Option limcol=0,limrow=0;
+  12   
+  13  * Definition of Set
+  14  Set     i       type of supplier        /eff, inf/;
+  15  Alias (i,j);
+  16  * Definition of Parameters
+  17  Parameter
+  18          theta(i)        efficiency      /eff    0.2
+  19                                          inf     0.3/
+  20          p(i)            probability of type
+  21                                          /eff    0.2
+  22                                          inf     0.8/;
+  23  Scalar  ru              reservation utility     /0/;
+  24   
+  25  * Definition of Primal/Dual Variables
+  26  Positive Variable
+  27          x(i)            quality
+  28          b(i)            maker's revenue
+  29          w(i)            price;
+  30  Variable
+  31          Util            maker's utility;
+  32  Equation
+  33          obj             maker's utility function
+  34          rev(i)          maker's revenue function
+  35          pc(i)           participation constraint;
+  36   
+  37  * Specification of Equations
+  38  obj..   Util =e= sum(i, p(i)*(b(i)-w(i)));
+  39  rev(i)..b(i) =e= x(i)**(0.5);
+  40  pc(i).. w(i)-theta(i)*x(i) =g= ru;
+  41   
+  42  * Setting Lower Bounds on Variables to Avoid Division by Zero
+  43  x.lo(i)=0.0001;
+  44   
+  45  * Defining and Solving the Model
+  46  Model FB1 /all/;
+  47  Solve FB1 maximizing Util using NLP;
+  48   
+  49  * End of Model
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:38 Page 3
+Parts Supply Problem w/ 2 Types w/o Asymmetric Information (PS2_F,SEQ=359)
+Model Statistics    SOLVE FB1 Using NLP From line 47
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES            7  2 projected
+NON ZERO ELEMENTS            13     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  12
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:38 Page 4
+Parts Supply Problem w/ 2 Types w/o Asymmetric Information (PS2_F,SEQ=359)
+Solution Report     SOLVE FB1 Using NLP From line 47
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   FB1                 OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  47
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps2_f/convert.opt"
+>>  ampl ps2_f-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps2_f/convert.opt"
+Ampl      : ps2_f-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ps2_f/ps2_f.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ps2_f/ps2_f-scalar.mod.lst

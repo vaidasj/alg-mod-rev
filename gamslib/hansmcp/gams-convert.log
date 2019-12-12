@@ -1,0 +1,30 @@
+--- Job hansmcp.gms Start 12/13/18 10:30:50 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- hansmcp.gms(184) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- hansmcp.gms(181) 4 Mb
+--- Generating MCP model hansen
+--- hansmcp.gms(183) 6 Mb
+---   44 rows  44 columns  367 non-zeroes
+---   144 nl-code  33 nl-non-zeroes
+--- hansmcp.gms(183) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/hansmcp/convert.opt"
+>>  gams hansmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/hansmcp/convert.opt"
+--- Writing Gams      : hansmcp-scalar.gms
+
+--- Restarting execution
+--- hansmcp.gms(183) 2 Mb
+--- Reading solution for model hansen
+*** Status: Normal completion
+--- Job hansmcp.gms Stop 12/13/18 10:30:50 elapsed 0:00:00.019

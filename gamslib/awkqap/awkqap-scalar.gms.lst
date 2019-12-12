@@ -1,0 +1,230 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIQCP=convert;
+   2  option MIQCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 2
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+C o m p i l a t i o n
+
+
+       
+      The model writes an AWK script on the fly to process the an input file
+      format defined by the maintainers of the QAPLib. More input instances
+      are available from
+       
+      http://www.opt.math.tu-graz.ac.at/qaplib/inst.html
+       
+       
+      Burkard, R E, Karisch, S E, and Rendl, F, QAPLIB - A Quadratic Assignment
+      Problem Library. Journal of Global Optimization 10 (1997), 391-403.
+       
+  17   
+  20   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/n.dat
+  25   
+  36   
+  37  set i / 1*7 /; alias (i,j,k,l);
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/data.dat
+  40  Table d(i,j)
+  41  0 1 2 3 4 5 6 7
+  42  1   0 71 11 29 82 82  6
+  43  2  71  0 74 30 89 76 76
+  44  3  11 74  0  1 50  4 36
+  45  4  29 30  1  0  1 15 11
+  46  5  82 89 50  1  0 21 61
+  47  6  82 76  4 15 21  0 76
+  48  7   6 76 36 11 61 76  0
+  49  ;
+  50  Table f(i,j)
+  51  0 1 2 3 4 5 6 7
+  52  1   0 21 95 82 56 41  6
+  53  2  21  0 63  6 44 40 75
+  54  3  95 63  0 35  9  1 85
+  55  4  82  6 35  0 26 91 11
+  56  5  56 44  9 26  0 69 56
+  57  6  41 40  1 91 69  0 59
+  58  7   6 75 85 11 56 59  0
+  59  ;
+  61   
+  62  * Let's do a trivial MIQCP model
+  63  BINARY VARIABLE x(i,j);
+  64  VARIABLE z;
+  65   
+  66  EQUATION defobj
+  67           assign1(i)
+  68           assign2(j);
+  69   
+  70  defobj..     z =e= sum((i,j,k,l)$(d(i,j)*f(k,l)), x(i,k)*d(i,j)*f(k,l)*x(j,l));
+  71   
+  72  assign1(i).. sum(j,x(i,j)) =e= 1;
+  73   
+  74  assign2(j).. sum(i,x(i,j)) =e= 1;
+  75   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 3
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+C o m p i l a t i o n
+
+
+  76  MODEL qap /all/;
+  77   
+  78  * Starting Point
+  79  x.l(i,j) = 1/sqr(card(i));
+  80   
+  81  option optcr=0,optca=0.99;
+  82  SOLVE qap MINIMIZING z USING MIQCP;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 4
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/awkqap/awkqap.gms
+     2       19 IF EXIST       1      19  /home/renigijus/gams/opt-mod-lib/gamslib/awkqap/tai7a.inc
+     3       22 CALL           1      22  head -n1 tai7a.inc   >> "/home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/n.dat"
+     4       23 INCLUDE        1      23  ./home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/n.dat
+     5       35 CALL           1      34  awk -f "/home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/awkscript.dat" tai7a.inc > "/home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/data.dat"
+     6       38 INCLUDE        1      37  ./home/renigijus/gams/opt-mod-lib/gamslib/awkqap/225a/data.dat
+
+
+COMPILATION TIME     =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 5
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+Equation Listing    SOLVE qap Using MIQCP From line 82
+
+
+---- defobj  =E=  
+
+defobj..  - (3452.28571428571)*x(1,1) - (2855.87755102041)*x(1,2) - (3303.18367346939)*x(1,3) - (2878.81632653061)*x(1,4) - (2982.04081632653)*x(1,5) - (3452.28571428571)*x(1,6) - (3349.0612244898)*x(1,7) - (5110.85714285714)*x(2,1)
+     
+      - (4227.91836734694)*x(2,2) - (4890.12244897959)*x(2,3) - (4261.87755102041)*x(2,4) - (4414.69387755102)*x(2,5) - (5110.85714285714)*x(2,6) - (4958.04081632653)*x(2,7) - (2162.28571428571)*x(3,1) - (1788.73469387755)*x(3,2)
+     
+      - (2068.89795918367)*x(3,3) - (1803.10204081633)*x(3,4) - (1867.75510204082)*x(3,5) - (2162.28571428571)*x(3,6) - (2097.63265306122)*x(3,7) - (1068.85714285714)*x(4,1) - (884.204081632653)*x(4,2) - (1022.69387755102)*x(4,3)
+     
+      - (891.306122448979)*x(4,4) - (923.265306122449)*x(4,5) - (1068.85714285714)*x(4,6) - (1036.89795918367)*x(4,7) - (3734.85714285714)*x(5,1) - (3089.63265306122)*x(5,2) - (3573.55102040816)*x(5,3) - (3114.44897959184)*x(5,4)
+     
+      - (3226.12244897959)*x(5,5) - (3734.85714285714)*x(5,6) - (3623.18367346939)*x(5,7) - (3366.28571428572)*x(6,1) - (2784.73469387755)*x(6,2) - (3220.89795918367)*x(6,3) - (2807.10204081633)*x(6,4) - (2907.75510204082)*x(6,5)
+     
+      - (3366.28571428572)*x(6,6) - (3265.63265306123)*x(6,7) - (3268)*x(7,1) - (2703.42857142857)*x(7,2) - (3126.85714285714)*x(7,3) - (2725.14285714286)*x(7,4) - (2822.85714285714)*x(7,5) - (3268)*x(7,6) - (3170.28571428571)*x(7,7) + z =E= 0 ;
+     
+      (LHS = -1459.12869637651, INFES = 1459.12869637651 ****)
+     
+
+---- assign1  =E=  
+
+assign1(1)..  x(1,1) + x(1,2) + x(1,3) + x(1,4) + x(1,5) + x(1,6) + x(1,7) =E= 1 ; (LHS = 0.142857142857143, INFES = 0.857142857142857 ****)
+     
+assign1(2)..  x(2,1) + x(2,2) + x(2,3) + x(2,4) + x(2,5) + x(2,6) + x(2,7) =E= 1 ; (LHS = 0.142857142857143, INFES = 0.857142857142857 ****)
+     
+assign1(3)..  x(3,1) + x(3,2) + x(3,3) + x(3,4) + x(3,5) + x(3,6) + x(3,7) =E= 1 ; (LHS = 0.142857142857143, INFES = 0.857142857142857 ****)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- assign2  =E=  
+
+assign2(1)..  x(1,1) + x(2,1) + x(3,1) + x(4,1) + x(5,1) + x(6,1) + x(7,1) =E= 1 ; (LHS = 0.142857142857143, INFES = 0.857142857142857 ****)
+     
+assign2(2)..  x(1,2) + x(2,2) + x(3,2) + x(4,2) + x(5,2) + x(6,2) + x(7,2) =E= 1 ; (LHS = 0.142857142857143, INFES = 0.857142857142857 ****)
+     
+assign2(3)..  x(1,3) + x(2,3) + x(3,3) + x(4,3) + x(5,3) + x(6,3) + x(7,3) =E= 1 ; (LHS = 0.142857142857143, INFES = 0.857142857142857 ****)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 6
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+Column Listing      SOLVE qap Using MIQCP From line 82
+
+
+---- x  
+
+x(1,1)
+                (.LO, .L, .UP, .M = 0, 0.0204081632653061, 1, 0)
+   (-3452.2857) defobj
+        1       assign1(1)
+        1       assign2(1)
+
+x(1,2)
+                (.LO, .L, .UP, .M = 0, 0.0204081632653061, 1, 0)
+   (-2855.8776) defobj
+        1       assign1(1)
+        1       assign2(2)
+
+x(1,3)
+                (.LO, .L, .UP, .M = 0, 0.0204081632653061, 1, 0)
+   (-3303.1837) defobj
+        1       assign1(1)
+        1       assign2(3)
+
+REMAINING 46 ENTRIES SKIPPED
+
+---- z  
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 7
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+Model Statistics    SOLVE qap Using MIQCP From line 82
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           15
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           50
+NON ZERO ELEMENTS           148     NON LINEAR N-Z             49
+DERIVATIVE POOL              20     CONSTANT POOL             299
+CODE LENGTH               7,050     DISCRETE VARIABLES         49
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 8
+Input file generation with AWK for the Quadratic Assignment Problem (AWKQAP,SEQ=296)
+Solution Report     SOLVE qap Using MIQCP From line 82
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   qap                 OBJECTIVE  z
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  82
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/awkqap/convert.opt"
+>>  gams awkqap-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/awkqap/convert.opt"
+Gams      : awkqap-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/awkqap/awkqap.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/awkqap/awkqap-scalar.gms.lst

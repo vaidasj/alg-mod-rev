@@ -1,0 +1,1257 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 2
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+C o m p i l a t i o n
+
+
+   4   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 3
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Set Definitions
+
+
+   6   
+       
+      A simple production and distribution model of the Egyptian fertilizer
+      sector for the year 1975. This model was mainly used for data and
+      model validation purposes.
+       
+       
+      Choksi, A M, Meeraus, A, and Stoutjesdijk, A, The Planning of Investment
+      Programs in the Fertilizer Industry. The John Hopkins University Press,
+      Baltimore and London, 1980.
+       
+  19   
+  20   
+  21   Set i          plant locations  /
+  22   
+  23                  aswan
+  24                  helwan
+  25                  assiout
+  26                  kafr-el-zt
+  27                  abu-zaabal      /
+  28   
+  29       j          demand regions    /
+  30   
+  31                  alexandria      alexandria
+  32                  behera          damanhur
+  33                  gharbia         tanta
+  34                  kafr-el-sh      kare el-sheikh
+  35                  dakahlia        el mansura
+  36   
+  37                  damietta        damietta
+  38                  sharkia         zagazig
+  39                  ismailia        ismailia
+  40                  suez            suez
+  41                  menoufia        shibin el kom
+  42   
+  43                  kalubia         benha
+  44                  giza            giza
+  45                  beni-suef       beni-suef
+  46                  fayoum          el-fayoum
+  47                  minia           el-minia
+  48   
+  49                  assiout         assoiut
+  50                  new-valley      el kharga
+  51                  sohag           sohag
+  52                  quena           quena
+  53                  aswan           aswan     /
+  54   
+  55       m          productive units          /
+  56   
+  57                  sulf-a-s    sulfuric acid: sulfur
+  58                  sulf-a-p    sulfuric acid: pyrites
+  59                  nitr-acid   nitric acid
+  60                  amm-elec    ammonia: water electrolysis
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 4
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Set Definitions
+
+
+  61                  amm-c-gas   ammonia: coke gas
+  62                  c-amm-nitr  calcium ammonium nitrate
+  63                  amm-sulf    ammonium sulfate
+  64                  ssp         single superphosphate      /
+  65   
+  66       p          processes       /
+  67   
+  68                  sulf-a-s    sulfuric acid: sulfur
+  69                  sulf-a-p    sulfuric acid: pyrites
+  70                  nitr-acid   nitric acid
+  71                  amm-elec    ammonia: water electrolysis
+  72                  amm-c-gas   ammonia: coke gas
+  73                  can-310     calcium ammonium nitrate: 31.0 %
+  74                  can-335     calcium ammonium nitrate: 33.5 %
+  75                  amm-sulf    ammonium sulfate
+  76                  ssp-155     single superphosphate: 15.5 %   /
+  77   
+  78       cq         nutrients        /
+  79   
+  80                  n           nitrogen
+  81                  p2o5        phosphorus /
+  82   
+  83       c          commodities /
+  84   
+  85                  urea
+  86                  can-260     calcium ammonium nitrate: 26.0 %
+  87                  can-310     calcium ammonium nitrate: 31.0 %
+  88                  can-335     calcium ammonium nitrate: 33.5 %
+  89                  amm-sulf    ammonium phosphate
+  90                  dap         diammonium phosphate
+  91                  ssp-155     single superphosphate: 15.5 %
+  92                  c-250-55    compound 25-5.5-0
+  93                  c-300-100   compound 30-10-0
+  94   
+  95                  ammonia
+  96                  nitr-acid   nitric acid
+  97                  sulf-acid   sulfuric acid
+  98                  el-aswan    electricity from aswan dam
+  99                  coke-gas    coke-oven gas
+ 100                  phos-rock   phosphate rock
+ 101   
+ 102                  limestone
+ 103                  el-sulfur   elemental sulfur
+ 104                  pyrites
+ 105                  electric    electricity
+ 106                  bf-gas      blast-furnace gas
+ 107                  water       cooling water
+ 108                  steam
+ 109                  bags                         /
+ 110   
+ 111       cf(c)      final product                / urea, can-260, can-310, can-335
+ 112                                                 dap, ssp-155, c-250-55, c-300-100, amm-sulf /
+ 113   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 5
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Set Definitions
+
+
+ 114       ci(c)      intermediate products        / ammonia, nitr-acid, sulf-acid /
+ 115   
+ 116       cs(c)      intermediates for shipment   / ammonia, sulf-acid /
+ 117   
+ 118       cr(c)      domestic raw materials and miscellaneous inputs   / el-aswan , coke-gas , phos-rock, limestone
+ 119                                                                      el-sulfur, pyrites  , electric , bf-gas
+ 120                                                                      water    , steam    , bags     , sulf-acid /
+ 121   
+ 122     Alias (i,ip);
+ 123   
+ 124   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 6
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Consumption and Demand Data
+
+
+ 126   
+ 127   Table cf75(j,c)    fertilizer consumption 1974-75 (1000 tpy)
+ 128   
+ 129                amm-sulf  urea  can-260  can-310  can-335  dap  ssp-155  c-250-55  c-300-100
+ 130   
+ 131    alexandria      3.0    1.0                       5.0           8.0
+ 132    behera         90.0   35.0     1.0              25.0    .1    64.0      1.0         .1
+ 133    gharbia        60.0   28.0                      17.0    .1    57.0      1.0         .2
+ 134    kafr-el-sh     45.0   22.0     1.0              10.0          25.0      2.0         .1
+ 135    dakahlia       60.0   20.0     1.0              26.0          52.0      1.0
+ 136    damietta       15.0    8.0                       2.0           5.0
+ 137    sharkia        50.0   28.0     1.0              31.0          43.0      1.0         .1
+ 138    ismailia        6.0    2.0                       4.0           4.0
+ 139    suez                                             1.0           1.0
+ 140    menoufia       21.0   30.0     1.0              24.0    .1    33.0      2.0         .1
+ 141    kalubia        16.0    7.0                      25.0    .1    22.0      1.0
+ 142    giza            6.0    2.0                      40.0          14.0      1.0         .1
+ 143    beni-suef       1.0   20.0     1.0              15.0          13.0      3.0
+ 144    fayoum          6.0   20.0     1.0              20.0          17.0      1.0
+ 145    minia           1.0   41.0     2.0     15.0     35.0    .1    50.0      3.0         .2
+ 146    assiout         1.0   27.0     1.0     20.0     26.0          35.0      5.0         .1
+ 147    new-valley             1.0                                     1.0
+ 148    sohag                  7.0             65.0      3.0          20.0      1.0
+ 149    quena                  3.0             95.0      2.0           8.0
+ 150    aswan                                  40.0                    8.0
+ 151   
+ 152   
+ 153   Table  alpha(c,cq)    nutrient content
+ 154   
+ 155                 n       p2o5
+ 156   
+ 157   urea         .46
+ 158   can-260      .26
+ 159   can-310      .31
+ 160   can-335      .335
+ 161   amm-sulf     .206
+ 162   dap          .18       .46
+ 163   ssp-155                .155
+ 164   c-250-55     .25       .055
+ 165   c-300-100    .30       .10
+ 166   
+ 167   Parameters cn75(*,cq)    consumption of nutrients 1974-75 (1000 tpy) ;
+ 168   
+ 169    cn75(j,cq)       = sum(cf, alpha(cf,cq)*cf75(j,cf));
+ 170    cn75("total",cq) = sum(j, cn75(j,cq));
+ 171   
+ 172   Display cn75;
+ 173   
+ 174   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 7
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Transportation Data
+
+
+ 176   
+ 177   Table road(j,*)  road distances (km)
+ 178   
+ 179                abu-kir  kafr-el-zt  talkha  abu-zaabal  helwan    assiout  aswan
+ 180   
+ 181    alexandria      16        119       187      210       244        607    1135
+ 182    behera          76         42       120       50       184        547    1065
+ 183    gharbia        150         20        55       65       122        485    1003
+ 184    kafr-el-sh     145         20        35      105       162        525    1043
+ 185    dakahlia       208         58         3      138       152        515    1033
+ 186    damietta       267        131        66      216       233        596    1114
+ 187    sharkia        240         78        58       60       110        473     991
+ 188    ismailia       365        241       146      142       173        536    1054
+ 189    suez           370        246       298      224       178        541    1059
+ 190    menoufia       157         33        90      154       109        472     990
+ 191    kalubia        190         66        81       97        76        439     957
+ 192    giza           287        133       146       48         9        372     890
+ 193    beni-suef      359        248       261      163       105        257     775
+ 194    fayoum         341        230       243      145        88        308     826
+ 195    minia          384        372       386      288       230        132     650
+ 196    assiout        616        504       518      420       362                518
+ 197    new-valley     815        703       717      619       561        199     519
+ 198    sohag          715        603       617      519       461         99     419
+ 199    quena          858        746       760      662       604        242     276
+ 200    aswan         1134       1022      1036      938       880        518
+ 201   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 8
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Transportation Data
+
+
+ 203   
+ 204   Table rail(i,i)   interplant rail distances (kms)
+ 205   
+ 206               kafr-el-zt  abu-zaabal  helwan  assiout  aswan
+ 207   abu-zaabal     85
+ 208   helwan        142            57
+ 209   assiout       504           420      362
+ 210   aswan        1022           938     880       518
+ 211   
+ 212   
+ 213   Table impd(i,*)  import distances (kms)
+ 214   
+ 215                 barge      road
+ 216   
+ 217   kafr-el-zt      104         6
+ 218   abu-zaabal      210        .1
+ 219   helwan          183
+ 220   assiout         583
+ 221   aswan          1087        10
+ 222   
+ 223   
+ 224   Parameters muf(i,j)   transport cost (le per ton): final products
+ 225              mufv(j)    transport cost (le per ton): imported final products
+ 226              mui(i,i)   transport cost (le per ton): interplant shipment
+ 227              mur(i)     transport cost (le per ton): imported raw materials ;
+ 228   
+ 229     rail(i,ip) = rail(i,ip) + rail(ip,i);
+ 230     road(j,"import-pts") = road (j,"abu-kir");
+ 231   
+ 232     muf(i,j)    = ( .5 + .0144*road(j,i)            )$road(j,i);
+ 233     mufv(j)     = ( .5 + .0144*road(j,"import-pts") )$road(j,"import-pts");
+ 234     mui(i,ip)   = (3.5 + .0300*rail(i,ip)           )$rail(i,ip);
+ 235     mur(i)      = (1.0 + .0030*impd(i,"barge")      )$impd(i,"barge")
+ 236                 + ( .5 + .0144*impd(i,"road" )      )$impd(i,"road ");
+ 237   
+ 238   Display muf,mufv,mui,mur;
+ 239   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 9
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+technology data
+
+
+ 241   
+ 242   Table a(c,p)  input-output coefficients
+ 243   
+ 244               sulf-a-s  sulf-a-p  nitr-acid  amm-elec  amm-c-gas
+ 245   
+ 246   el-aswan                                     -12.0
+ 247   coke-gas                                                -2.0
+ 248   pyrites                  -.826
+ 249   el-sulfur    -.334
+ 250   sulf-acid    1.0         1.0
+ 251   ammonia                            -.292      1.0       1.0
+ 252   nitr-acid                          1.0
+ 253   
+ 254   electric     -50         -75       -231                 -1960
+ 255   bf-gas                                                   -609
+ 256   water         -20        -60       -.6                   -700
+ 257   steam                                                      -4
+ 258   
+ 259      +       ssp-155  can-310  can-335  amm-sulf
+ 260   
+ 261   phos-rock    -.62
+ 262   sulf-acid    -.41                       -.76
+ 263   ammonia               -.20     -.21     -.26
+ 264   nitr-acid             -.71     -.76
+ 265   limestone             -.12     -.04
+ 266   ssp-155      1.0
+ 267   can-310               1.0
+ 268   can-335                        1.0
+ 269   amm-sulf                                 1.0
+ 270   
+ 271   bags       -22.      -23.    -23.      -22.
+ 272   water       -6.      -49.    -49.      -17.
+ 273   electric   -14.                        -19.
+ 274   steam                  -.4    -.4
+ 275   
+ 276   
+ 277   Table b(m,p)  capacity utilization coefficients
+ 278   
+ 279               sulf-a-s  sulf-a-p  nitr-acid  amm-elec  amm-c-gas   ssp-155  can-310  can-335  amm-sulf
+ 280   
+ 281   sulf-a-s        1
+ 282   sulf-a-p                  1
+ 283   nitr-acid                           1
+ 284   amm-elec                                       1
+ 285   amm-c-gas                                                 1
+ 286   ssp                                                                  1
+ 287   c-amm-nitr                                                                    1        1
+ 288   amm-sulf                                                                                       1
+ 289   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 10
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+prices
+
+
+ 291   
+ 292   Parameter pv(c)   import prices (cif us$ per ton 1975)   /
+ 293   
+ 294   pyrites       17.5
+ 295   el-sulfur     55
+ 296   
+ 297   urea         150
+ 298   can-260       75
+ 299   can-310       90
+ 300   can-335      100
+ 301   amm-sulf      75
+ 302   dap          175
+ 303   ssp-155       80
+ 304   c-250-55     100
+ 305   c-300-100    130
+ 306                                                            /
+ 307   
+ 308   Table pd(i,c)   domestic raw material prices
+ 309   
+ 310              limestone  coke-gas  el-aswan  phos-rock    sulf-acid
+ 311  *              le/ton  le/mncf     le/mwh     le/ton      le/ton
+ 312   
+ 313   kafr-el-zt                                      5.0
+ 314   abu-zaabal                                      4.0
+ 315   helwan           1.2       16                              3
+ 316   assiout                                         3.5
+ 317   aswan            1.2                 1
+ 318   
+ 319   
+ 320   Parameter pmisc(c)   miscellanous material costs   /
+ 321   
+                                                                                                                                                                                                                                            NEW MARGINS: 1 - 17
+ 323   electric  .007   le/kwh
+ 324   bf-gas    .0075  le/cm
+ 325   water     .031   le/cm
+ 326   steam    1.25    le/ton
+ 327   bags      .28    le/unit
+                                                                                                                                                                                                                                           NEW MARGINS: 1 - 120
+ 329                                               /;
+ 330   
+ 331   
+ 332    pd(i,cr)$pmisc(cr) = pmisc(cr);
+ 333   
+ 334   Display pd;
+ 335   
+ 336   Parameter nh3; nh3("ammonia","helwan") = 31;
+ 337   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 11
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+capacity data
+
+
+ 340   
+ 341   Table dcap(i,m) design capacity of plants (t per day)
+ 342   
+ 343               sulf-a-s  sulf-a-p  nitr-acid  amm-elec  amm-c-gas   ssp   c-amm-nitr  amm-sulf
+ 344   
+ 345   aswan                             800         450                         1100
+ 346   helwan                            282                   172                364        24
+ 347   kafr-el-zt    200        50                                      600
+ 348   assiout       250                                                600
+ 349   abu-zaabal    242       227                                      600
+ 350   
+ 351   
+ 352   Parameter k(m,i)  initial capacity (1000 tpy); k(m,i) = .33*dcap(i,m);
+ 353   
+ 354   Scalars er   exchange rate   / .4 /
+ 355           util utilization     / na /;
+ 356   
+ 357   Sets  mpos(m,i)     productive units possibilities
+ 358         ppos(p,i)     process possibilities
+ 359         cpos(c,i)     commodity possibilities
+ 360         cposp(c,i)    commodity production possibilities
+ 361         cposn(c,i)    commodity consumption possibilities
+ 362         cposi(c,i,i)  commodity consumption and production possibilities: interplant
+ 363         cposd(c,i)    domestic raw material purchase possibilities
+ 364         cposr(c,i)    imported input commidity possibilities;
+ 365   
+ 366      mpos (m,i)                = yes$k(m,i);
+ 367      ppos (p,i)                = yes$(sum(m$(not mpos(m,i)), b(m,p) ne 0) eq 0) ;
+ 368      ppos ("can-310","helwan") = no;
+ 369      ppos ("can-335","aswan")  = no;
+ 370      cposp(c,i)                = yes$sum(p$ppos(p,i), a(c,p) gt 0) ;
+ 371      cposn(c,i)                = yes$sum(p$ppos(p,i), a(c,p) lt 0) ;
+ 372      cposi(cs,i,ip)            = cposp(cs,i)*cposn(cs,ip);
+ 373      cposd(cr,i)               = yes$(cposn(cr,i)$pd(i,cr));
+ 374      cposr(cr,i)               = yes$(cposn(cr,i)$pv(cr));
+ 375      cpos(c,i)                 = cposp(c,i) + cposn(c,i) ;
+ 376   
+ 377   Display mpos, ppos, cposp, cposn, cpos , cposi, cposd, cposr;
+ 378   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 12
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+equations
+
+
+ 380   
+ 381   Variables  z(p,i)       process level                              (1000 tpy)
+ 382              xf(c,i,j)    domestic shipment activity: final products (1000 tpy)
+ 383              xi(c,i,i)    domestic shipment activity: intermediates  (1000 tpy)
+ 384              vf(c,j)      imports: final products                    (1000 tpy)
+ 385              vr(c,i)      imports: raw materials                     (1000 tpy)
+ 386              u(c,i)       domestic raw material purchases               (units)
+ 387   
+ 388              psi          discounted total cost                       (1000 le)
+ 389              psip         domestic recurrent cost            (1000 le per year)
+ 390              psil         transport cost                     (1000 le per year)
+ 391              psii         import cost                        (1000 le per year)
+ 392   
+ 393   Positive Variables      zl, xf, xi, vf, vr, u
+ 394   
+ 395   Equations  obj          objective function                   (1000 le discounted)
+ 396              mbd(cq,j)    material balance on demand: nutrient           (1000 tpy)
+ 397              mbdb(c,j)    material balance on demand: material           (1000 tpy)
+ 398              mb(c,i)      material balance                               (1000 tpy)
+ 399              cc(m,i)      capacity constraint                            (1000 tpy)
+ 400   
+ 401              ap           accounting: domestic recurrent cost    (1000 le per year)
+ 402              al           accounting: transport cost             (1000 le per year)
+ 403              ai           accounting: import cost                (1000 le per year);
+
+ 405   
+
+ 406   mbd(cq,j)..   sum(cf, alpha(cf,cq)*( sum(i$cposp(cf,i), xf(cf,i,j)) + vf(cf,j)$pv(cf))) =g= cn75(j,cq);
+
+ 407   
+
+ 408   mbdb(cf,j)$cf75(j,cf)..  sum(i$cposp(cf,i), xf(cf,i,j)) + vf(cf,j)$pv(cf) =g= cf75(j,cf);
+
+ 409   
+
+ 410   mb(c,i)..  sum(p$ppos(p,i), a(c,p)*z(p,i))
+
+ 411            + sum(ip, xi(c,ip,i)$cposi(c,ip,i) - xi(c,i,ip)$cposi(c,i,ip))
+
+ 412            + vr(c,i)$cposr(c,i) + u(c,i)$cposd(c,i)
+
+ 413            - sum(j$cposp(c,i), xf(c,i,j))$cf(c) =g= 0 ;
+
+ 414   
+
+ 415   cc(m,i)$mpos(m,i)..  sum(p$ppos(p,i), b(m,p)*z(p,i)) =l= util*k(m,i) ;
+
+ 416   
+
+ 417   obj.. psi =e= psip + psil + psii ;
+
+ 418   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 13
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+equations
+
+
+ 419   ap.. psip =e= sum((cr,i)$cposd(cr,i), pd(i,cr)*u(cr,i));
+
+ 420   
+
+ 421   al.. psil =e= sum(cf, sum((i,j)$cposp(cf,i), muf(i,j)*xf(cf,i,j)) + sum(j, mufv(j)*vf(cf,j)))
+
+ 422               + sum((cs,i,ip)$cposi(cs,i,ip), mui(i,ip)*xi(cs,i,ip))
+
+ 423               + sum((cr,i)$cposr(cr,i), mur(i)*vr(cr,i));
+
+ 424   
+
+ 425   ai.. psii/er  =e= sum((cf,j), pv(cf)*vf(cf,j)) + sum((cr,i)$cposr(cr,i), pv(cr)*vr(cr,i));
+
+ 426   
+ 428   
+ 429   Model stat2  / mbdb, mb, cc, obj, ap, al, ai /
+ 430         stat4  / mbd, mb, cc, obj, ap, al, ai / ;
+ 431   
+ 432  * define scenario for scenario 1 as stated in reference: no interplant shipments and capacity utilization of 85%
+ 433   
+ 434   xi.fx(cs,i,ip) = 0;
+ 435   util = .85;
+ 436   
+ 437   Solve stat2 minimizing psi using lp ;
+ 438   
+ 439   Parameters rxf(i,j,c)   domestic shipment activity : final products (1000 tpy)
+ 440              tds          total domestic supply : final products      (1000 tpy)
+ 441              tif          total import : final product                (1000 tpy)
+ 442              tl           transportation load                      (1000 ton_km) ;
+ 443   
+ 444     rxf(i,j,cf) = xf.l(cf,i,j) ;
+ 445             tds = sum((cf,i,j), xf.l(cf,i,j));
+ 446             tif = sum((cf,j), vf.l(cf,j));
+ 447     tl("rail")  = sum((cs,i,ip), rail(i,ip)*xi.l(cs,i,ip)) ;
+ 448     tl("road")  = sum((cr,i), vr.l(cr,i)*impd(i,"road"))
+ 449                 + sum((cf,i,j), xf.l(cf,i,j)*road(j,i))
+ 450                 + sum((cf,j), vf.l(cf,j)*road(j,"import-pts"));
+ 451     tl("barge") = sum((cr,i), vr.l(cr,i)*impd(i,"barge")) ;
+ 452   
+ 453   Display mbdb.lo, mbdb.m, mb.m, cc.up, cc.m, rxf, tds, tif, vf.l, z.l, vr.l, u.l, tl;
+ 454   
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 14
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+E x e c u t i o n
+
+
+----    172 PARAMETER cn75  consumption of nutrients 1974-75 (1000 tpy)
+
+                     n        p2o5
+
+aswan           12.400       1.240
+assiout         29.076       5.710
+alexandria       2.753       1.240
+behera          43.573      10.031
+gharbia         31.263       8.956
+kafr-el-sh      23.530       3.995
+dakahlia        30.780       8.115
+damietta         7.440       0.775
+sharkia         34.105       6.730
+ismailia         3.496       0.620
+suez             0.335       0.155
+menoufia        26.974       5.281
+kalubia         15.159       3.511
+giza            15.836       2.235
+beni-suef       15.441       2.180
+fayoum          17.646       2.690
+minia           36.789       7.981
+new-valley       0.460       0.155
+sohag           24.625       3.155
+quena           31.500       1.240
+total          403.181      75.995
+
+
+----    238 PARAMETER muf  transport cost (le per ton): final products
+
+                 aswan     assiout  alexandria      behera     gharbia  kafr-el-sh    dakahlia    damietta     sharkia    ismailia        suez    menoufia     kalubia        giza   beni-suef      fayoum       minia  new-valley       sohag       quena
+
+aswan                        7.959      16.844      15.836      14.943      15.519      15.375      16.542      14.770      15.678      15.750      14.756      14.281      13.316      11.660      12.394       9.860       7.974       6.534       4.474
+helwan          13.172       5.713       4.014       3.150       2.257       2.833       2.689       3.855       2.084       2.991       3.063       2.070       1.594       0.630       2.012       1.767       3.812       8.578       7.138       9.198
+assiout          7.959                   9.241       8.377       7.484       8.060       7.916       9.082       7.311       8.218       8.290       7.297       6.822       5.857       4.201       4.935       2.401       3.366       1.926       3.985
+kafr-el-zt      15.217       7.758       2.214       1.105       0.788       0.788       1.335       2.386       1.623       3.970       4.042       0.975       1.450       2.415       4.071       3.812       5.857      10.623       9.183      11.242
+abu-zaabal      14.007       6.548       3.524       1.220       1.436       2.012       2.487       3.610       1.364       2.545       3.726       2.718       1.897       1.191       2.847       2.588       4.647       9.414       7.974      10.033
+
+
+----    238 PARAMETER mufv  transport cost (le per ton): imported final products
+
+aswan      16.830,    assiout     9.370,    alexandria  0.730,    behera      1.594,    gharbia     2.660,    kafr-el-sh  2.588,    dakahlia    3.495,    damietta    4.345,    sharkia     3.956,    ismailia    5.756,    suez        5.828
+menoufia    2.761,    kalubia     3.236,    giza        4.633,    beni-suef   5.670,    fayoum      5.410,    minia       6.030,    new-valley 12.236,    sohag      10.796,    quena      12.855
+
+
+----    238 PARAMETER mui  transport cost (le per ton): interplant shipment
+
+                 aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+aswan                       29.900      19.040      34.160      31.640
+helwan          29.900                  14.360       7.760       5.210
+assiout         19.040      14.360                  18.620      16.100
+kafr-el-zt      34.160       7.760      18.620                   6.050
+abu-zaabal      31.640       5.210      16.100       6.050
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 15
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+E x e c u t i o n
+
+
+----    238 PARAMETER mur  transport cost (le per ton): imported raw materials
+
+aswan      4.905,    helwan     1.549,    assiout    2.749,    kafr-el-zt 1.898,    abu-zaabal 2.131
+
+
+----    334 PARAMETER pd  domestic raw material prices
+
+             sulf-acid    el-aswan    coke-gas   phos-rock   limestone    electric      bf-gas       water       steam        bags
+
+aswan                        1.000                               1.200       0.007       0.007       0.031       1.250       0.280
+helwan           3.000                  16.000                   1.200       0.007       0.007       0.031       1.250       0.280
+assiout                                              3.500                   0.007       0.007       0.031       1.250       0.280
+kafr-el-zt                                           5.000                   0.007       0.007       0.031       1.250       0.280
+abu-zaabal                                           4.000                   0.007       0.007       0.031       1.250       0.280
+
+
+----    377 SET mpos  productive units possibilities
+
+                 aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+sulf-a-s                                   YES         YES         YES
+sulf-a-p                                               YES         YES
+nitr-acid          YES         YES
+amm-elec           YES
+amm-c-gas                      YES
+c-amm-nitr         YES         YES
+amm-sulf                       YES
+ssp                                        YES         YES         YES
+
+
+----    377 SET ppos  process possibilities
+
+                aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+sulf-a-s                                  YES         YES         YES
+sulf-a-p                                              YES         YES
+nitr-acid         YES         YES
+amm-elec          YES
+amm-c-gas                     YES
+amm-sulf                      YES
+can-310           YES
+can-335                       YES
+ssp-155                                   YES         YES         YES
+
+
+----    377 SET cposp  commodity production possibilities
+
+                aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+nitr-acid         YES         YES
+amm-sulf                      YES
+can-310           YES
+can-335                       YES
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 16
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+E x e c u t i o n
+
+
+        377 SET cposp  commodity production possibilities
+
+                aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+ssp-155                                   YES         YES         YES
+ammonia           YES         YES
+sulf-acid                                 YES         YES         YES
+
+
+----    377 SET cposn  commodity consumption possibilities
+
+                aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+nitr-acid         YES         YES
+ammonia           YES         YES
+sulf-acid                     YES         YES         YES         YES
+el-aswan          YES
+coke-gas                      YES
+phos-rock                                 YES         YES         YES
+limestone         YES         YES
+el-sulfur                                 YES         YES         YES
+pyrites                                               YES         YES
+electric          YES         YES         YES         YES         YES
+bf-gas                        YES
+water             YES         YES         YES         YES         YES
+steam             YES         YES
+bags              YES         YES         YES         YES         YES
+
+
+----    377 SET cpos  commodity possibilities
+
+                aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+nitr-acid         YES         YES
+amm-sulf                      YES
+can-310           YES
+can-335                       YES
+ssp-155                                   YES         YES         YES
+ammonia           YES         YES
+sulf-acid                     YES         YES         YES         YES
+el-aswan          YES
+coke-gas                      YES
+phos-rock                                 YES         YES         YES
+limestone         YES         YES
+el-sulfur                                 YES         YES         YES
+pyrites                                               YES         YES
+electric          YES         YES         YES         YES         YES
+bf-gas                        YES
+water             YES         YES         YES         YES         YES
+steam             YES         YES
+bags              YES         YES         YES         YES         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 17
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+E x e c u t i o n
+
+
+----    377 SET cposi  commodity consumption and production possibilities: interplant
+
+                           aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+ammonia  .aswan              YES         YES
+ammonia  .helwan             YES         YES
+sulf-acid.assiout                        YES         YES         YES         YES
+sulf-acid.kafr-el-zt                     YES         YES         YES         YES
+sulf-acid.abu-zaabal                     YES         YES         YES         YES
+
+
+----    377 SET cposd  domestic raw material purchase possibilities
+
+                aswan      helwan     assiout  kafr-el-zt  abu-zaabal
+
+sulf-acid                     YES
+el-aswan          YES
+coke-gas                      YES
+phos-rock                                 YES         YES         YES
+limestone         YES         YES
+electric          YES         YES         YES         YES         YES
+bf-gas                        YES
+water             YES         YES         YES         YES         YES
+steam             YES         YES
+bags              YES         YES         YES         YES         YES
+
+
+----    377 SET cposr  imported input commidity possibilities
+
+              assiout  kafr-el-zt  abu-zaabal
+
+el-sulfur         YES         YES         YES
+pyrites                       YES         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 18
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Equation Listing    SOLVE stat2 Using LP From line 437
+
+
+---- mbdb  =G=  material balance on demand: material           (1000 tpy)
+
+mbdb(amm-sulf,assiout)..  xf(amm-sulf,helwan,assiout) + vf(amm-sulf,assiout) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+mbdb(amm-sulf,alexandria)..  xf(amm-sulf,helwan,alexandria) + vf(amm-sulf,alexandria) =G= 3 ; (LHS = 0, INFES = 3 ****)
+     
+mbdb(amm-sulf,behera)..  xf(amm-sulf,helwan,behera) + vf(amm-sulf,behera) =G= 90 ; (LHS = 0, INFES = 90 ****)
+     
+REMAINING 108 ENTRIES SKIPPED
+
+
+---- mb  =G=  material balance                               (1000 tpy)
+
+mb(nitr-acid,aswan)..  z(nitr-acid,aswan) - 0.71*z(can-310,aswan) =G= 0 ; (LHS = 0)
+     
+mb(nitr-acid,helwan)..  z(nitr-acid,helwan) - 0.76*z(can-335,helwan) =G= 0 ; (LHS = 0)
+     
+mb(amm-sulf,helwan)..  z(amm-sulf,helwan) - xf(amm-sulf,helwan,aswan) - xf(amm-sulf,helwan,assiout) - xf(amm-sulf,helwan,alexandria) - xf(amm-sulf,helwan,behera) - xf(amm-sulf,helwan,gharbia) - xf(amm-sulf,helwan,kafr-el-sh) - xf(amm-sulf,helwan,dakahlia)
+     
+      - xf(amm-sulf,helwan,damietta) - xf(amm-sulf,helwan,sharkia) - xf(amm-sulf,helwan,ismailia) - xf(amm-sulf,helwan,suez) - xf(amm-sulf,helwan,menoufia) - xf(amm-sulf,helwan,kalubia) - xf(amm-sulf,helwan,giza) - xf(amm-sulf,helwan,beni-suef)
+     
+      - xf(amm-sulf,helwan,fayoum) - xf(amm-sulf,helwan,minia) - xf(amm-sulf,helwan,new-valley) - xf(amm-sulf,helwan,sohag) - xf(amm-sulf,helwan,quena) =G= 0 ; (LHS = 0)
+     
+REMAINING 41 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraint                            (1000 tpy)
+
+cc(sulf-a-s,assiout)..  z(sulf-a-s,assiout) =L= 70.125 ; (LHS = 0)
+     
+cc(sulf-a-s,kafr-el-zt)..  z(sulf-a-s,kafr-el-zt) =L= 56.1 ; (LHS = 0)
+     
+cc(sulf-a-s,abu-zaabal)..  z(sulf-a-s,abu-zaabal) =L= 67.881 ; (LHS = 0)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+
+---- obj  =E=  objective function                   (1000 le discounted)
+
+obj..  psi - psip - psil - psii =E= 0 ; (LHS = 0)
+     
+
+---- ap  =E=  accounting: domestic recurrent cost    (1000 le per year)
+
+ap..  - 3*u(sulf-acid,helwan) - u(el-aswan,aswan) - 16*u(coke-gas,helwan) - 3.5*u(phos-rock,assiout) - 5*u(phos-rock,kafr-el-zt) - 4*u(phos-rock,abu-zaabal) - 1.2*u(limestone,aswan) - 1.2*u(limestone,helwan) - 0.007*u(electric,aswan)
+     
+      - 0.007*u(electric,helwan) - 0.007*u(electric,assiout) - 0.007*u(electric,kafr-el-zt) - 0.007*u(electric,abu-zaabal) - 0.0075*u(bf-gas,helwan) - 0.031*u(water,aswan) - 0.031*u(water,helwan) - 0.031*u(water,assiout) - 0.031*u(water,kafr-el-zt)
+     
+      - 0.031*u(water,abu-zaabal) - 1.25*u(steam,aswan) - 1.25*u(steam,helwan) - 0.28*u(bags,aswan) - 0.28*u(bags,helwan) - 0.28*u(bags,assiout) - 0.28*u(bags,kafr-el-zt) - 0.28*u(bags,abu-zaabal) + psip =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 19
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Equation Listing    SOLVE stat2 Using LP From line 437
+
+
+---- al  =E=  accounting: transport cost             (1000 le per year)
+
+al..  - 13.172*xf(amm-sulf,helwan,aswan) - 5.7128*xf(amm-sulf,helwan,assiout) - 4.0136*xf(amm-sulf,helwan,alexandria) - 3.1496*xf(amm-sulf,helwan,behera) - 2.2568*xf(amm-sulf,helwan,gharbia) - 2.8328*xf(amm-sulf,helwan,kafr-el-sh)
+     
+      - 2.6888*xf(amm-sulf,helwan,dakahlia) - 3.8552*xf(amm-sulf,helwan,damietta) - 2.084*xf(amm-sulf,helwan,sharkia) - 2.9912*xf(amm-sulf,helwan,ismailia) - 3.0632*xf(amm-sulf,helwan,suez) - 2.0696*xf(amm-sulf,helwan,menoufia)
+     
+      - 1.5944*xf(amm-sulf,helwan,kalubia) - 0.6296*xf(amm-sulf,helwan,giza) - 2.012*xf(amm-sulf,helwan,beni-suef) - 1.7672*xf(amm-sulf,helwan,fayoum) - 3.812*xf(amm-sulf,helwan,minia) - 8.5784*xf(amm-sulf,helwan,new-valley)
+     
+      - 7.1384*xf(amm-sulf,helwan,sohag) - 9.1976*xf(amm-sulf,helwan,quena) - 7.9592*xf(can-310,aswan,assiout) - 16.844*xf(can-310,aswan,alexandria) - 15.836*xf(can-310,aswan,behera) - 14.9432*xf(can-310,aswan,gharbia)
+     
+      - 15.5192*xf(can-310,aswan,kafr-el-sh) - 15.3752*xf(can-310,aswan,dakahlia) - 16.5416*xf(can-310,aswan,damietta) - 14.7704*xf(can-310,aswan,sharkia) - 15.6776*xf(can-310,aswan,ismailia) - 15.7496*xf(can-310,aswan,suez)
+     
+      - 14.756*xf(can-310,aswan,menoufia) - 14.2808*xf(can-310,aswan,kalubia) - 13.316*xf(can-310,aswan,giza) - 11.66*xf(can-310,aswan,beni-suef) - 12.3944*xf(can-310,aswan,fayoum) - 9.86*xf(can-310,aswan,minia) - 7.9736*xf(can-310,aswan,new-valley)
+     
+      - 6.5336*xf(can-310,aswan,sohag) - 4.4744*xf(can-310,aswan,quena) - 13.172*xf(can-335,helwan,aswan) - 5.7128*xf(can-335,helwan,assiout) - 4.0136*xf(can-335,helwan,alexandria) - 3.1496*xf(can-335,helwan,behera) - 2.2568*xf(can-335,helwan,gharbia)
+     
+      - 2.8328*xf(can-335,helwan,kafr-el-sh) - 2.6888*xf(can-335,helwan,dakahlia) - 3.8552*xf(can-335,helwan,damietta) - 2.084*xf(can-335,helwan,sharkia) - 2.9912*xf(can-335,helwan,ismailia) - 3.0632*xf(can-335,helwan,suez)
+     
+      - 2.0696*xf(can-335,helwan,menoufia) - 1.5944*xf(can-335,helwan,kalubia) - 0.6296*xf(can-335,helwan,giza) - 2.012*xf(can-335,helwan,beni-suef) - 1.7672*xf(can-335,helwan,fayoum) - 3.812*xf(can-335,helwan,minia) - 8.5784*xf(can-335,helwan,new-valley)
+     
+      - 7.1384*xf(can-335,helwan,sohag) - 9.1976*xf(can-335,helwan,quena) - 7.9592*xf(ssp-155,assiout,aswan) - 9.2408*xf(ssp-155,assiout,alexandria) - 8.3768*xf(ssp-155,assiout,behera) - 7.484*xf(ssp-155,assiout,gharbia)
+     
+      - 8.06*xf(ssp-155,assiout,kafr-el-sh) - 7.916*xf(ssp-155,assiout,dakahlia) - 9.0824*xf(ssp-155,assiout,damietta) - 7.3112*xf(ssp-155,assiout,sharkia) - 8.2184*xf(ssp-155,assiout,ismailia) - 8.2904*xf(ssp-155,assiout,suez)
+     
+      - 7.2968*xf(ssp-155,assiout,menoufia) - 6.8216*xf(ssp-155,assiout,kalubia) - 5.8568*xf(ssp-155,assiout,giza) - 4.2008*xf(ssp-155,assiout,beni-suef) - 4.9352*xf(ssp-155,assiout,fayoum) - 2.4008*xf(ssp-155,assiout,minia)
+     
+      - 3.3656*xf(ssp-155,assiout,new-valley) - 1.9256*xf(ssp-155,assiout,sohag) - 3.9848*xf(ssp-155,assiout,quena) - 15.2168*xf(ssp-155,kafr-el-zt,aswan) - 7.7576*xf(ssp-155,kafr-el-zt,assiout) - 2.2136*xf(ssp-155,kafr-el-zt,alexandria)
+     
+      - 1.1048*xf(ssp-155,kafr-el-zt,behera) - 0.788*xf(ssp-155,kafr-el-zt,gharbia) - 0.788*xf(ssp-155,kafr-el-zt,kafr-el-sh) - 1.3352*xf(ssp-155,kafr-el-zt,dakahlia) - 2.3864*xf(ssp-155,kafr-el-zt,damietta) - 1.6232*xf(ssp-155,kafr-el-zt,sharkia)
+     
+      - 3.9704*xf(ssp-155,kafr-el-zt,ismailia) - 4.0424*xf(ssp-155,kafr-el-zt,suez) - 0.9752*xf(ssp-155,kafr-el-zt,menoufia) - 1.4504*xf(ssp-155,kafr-el-zt,kalubia) - 2.4152*xf(ssp-155,kafr-el-zt,giza) - 4.0712*xf(ssp-155,kafr-el-zt,beni-suef)
+     
+      - 3.812*xf(ssp-155,kafr-el-zt,fayoum) - 5.8568*xf(ssp-155,kafr-el-zt,minia) - 10.6232*xf(ssp-155,kafr-el-zt,new-valley) - 9.1832*xf(ssp-155,kafr-el-zt,sohag) - 11.2424*xf(ssp-155,kafr-el-zt,quena) - 14.0072*xf(ssp-155,abu-zaabal,aswan)
+     
+      - 6.548*xf(ssp-155,abu-zaabal,assiout) - 3.524*xf(ssp-155,abu-zaabal,alexandria) - 1.22*xf(ssp-155,abu-zaabal,behera) - 1.436*xf(ssp-155,abu-zaabal,gharbia) - 2.012*xf(ssp-155,abu-zaabal,kafr-el-sh) - 2.4872*xf(ssp-155,abu-zaabal,dakahlia)
+     
+      - 3.6104*xf(ssp-155,abu-zaabal,damietta) - 1.364*xf(ssp-155,abu-zaabal,sharkia) - 2.5448*xf(ssp-155,abu-zaabal,ismailia) - 3.7256*xf(ssp-155,abu-zaabal,suez) - 2.7176*xf(ssp-155,abu-zaabal,menoufia) - 1.8968*xf(ssp-155,abu-zaabal,kalubia)
+     
+      - 1.1912*xf(ssp-155,abu-zaabal,giza) - 2.8472*xf(ssp-155,abu-zaabal,beni-suef) - 2.588*xf(ssp-155,abu-zaabal,fayoum) - 4.6472*xf(ssp-155,abu-zaabal,minia) - 9.4136*xf(ssp-155,abu-zaabal,new-valley) - 7.9736*xf(ssp-155,abu-zaabal,sohag)
+     
+      - 10.0328*xf(ssp-155,abu-zaabal,quena) - 29.9*xi(ammonia,aswan,helwan) - 29.9*xi(ammonia,helwan,aswan) - 14.36*xi(sulf-acid,assiout,helwan) - 18.62*xi(sulf-acid,assiout,kafr-el-zt) - 16.1*xi(sulf-acid,assiout,abu-zaabal)
+     
+      - 7.76*xi(sulf-acid,kafr-el-zt,helwan) - 18.62*xi(sulf-acid,kafr-el-zt,assiout) - 6.05*xi(sulf-acid,kafr-el-zt,abu-zaabal) - 5.21*xi(sulf-acid,abu-zaabal,helwan) - 16.1*xi(sulf-acid,abu-zaabal,assiout) - 6.05*xi(sulf-acid,abu-zaabal,kafr-el-zt)
+     
+      - 16.8296*vf(amm-sulf,aswan) - 9.3704*vf(amm-sulf,assiout) - 0.7304*vf(amm-sulf,alexandria) - 1.5944*vf(amm-sulf,behera) - 2.66*vf(amm-sulf,gharbia) - 2.588*vf(amm-sulf,kafr-el-sh) - 3.4952*vf(amm-sulf,dakahlia) - 4.3448*vf(amm-sulf,damietta)
+     
+      - 3.956*vf(amm-sulf,sharkia) - 5.756*vf(amm-sulf,ismailia) - 5.828*vf(amm-sulf,suez) - 2.7608*vf(amm-sulf,menoufia) - 3.236*vf(amm-sulf,kalubia) - 4.6328*vf(amm-sulf,giza) - 5.6696*vf(amm-sulf,beni-suef) - 5.4104*vf(amm-sulf,fayoum)
+     
+      - 6.0296*vf(amm-sulf,minia) - 12.236*vf(amm-sulf,new-valley) - 10.796*vf(amm-sulf,sohag) - 12.8552*vf(amm-sulf,quena) - 16.8296*vf(can-310,aswan) - 9.3704*vf(can-310,assiout) - 0.7304*vf(can-310,alexandria) - 1.5944*vf(can-310,behera)
+     
+      - 2.66*vf(can-310,gharbia) - 2.588*vf(can-310,kafr-el-sh) - 3.4952*vf(can-310,dakahlia) - 4.3448*vf(can-310,damietta) - 3.956*vf(can-310,sharkia) - 5.756*vf(can-310,ismailia) - 5.828*vf(can-310,suez) - 2.7608*vf(can-310,menoufia)
+     
+      - 3.236*vf(can-310,kalubia) - 4.6328*vf(can-310,giza) - 5.6696*vf(can-310,beni-suef) - 5.4104*vf(can-310,fayoum) - 6.0296*vf(can-310,minia) - 12.236*vf(can-310,new-valley) - 10.796*vf(can-310,sohag) - 12.8552*vf(can-310,quena)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 20
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Equation Listing    SOLVE stat2 Using LP From line 437
+
+
+     al  =E=  accounting: transport cost             (1000 le per year)     
+     
+      - 16.8296*vf(can-335,aswan) - 9.3704*vf(can-335,assiout) - 0.7304*vf(can-335,alexandria) - 1.5944*vf(can-335,behera) - 2.66*vf(can-335,gharbia) - 2.588*vf(can-335,kafr-el-sh) - 3.4952*vf(can-335,dakahlia) - 4.3448*vf(can-335,damietta)
+     
+      - 3.956*vf(can-335,sharkia) - 5.756*vf(can-335,ismailia) - 5.828*vf(can-335,suez) - 2.7608*vf(can-335,menoufia) - 3.236*vf(can-335,kalubia) - 4.6328*vf(can-335,giza) - 5.6696*vf(can-335,beni-suef) - 5.4104*vf(can-335,fayoum)
+     
+      - 6.0296*vf(can-335,minia) - 12.236*vf(can-335,new-valley) - 10.796*vf(can-335,sohag) - 12.8552*vf(can-335,quena) - 16.8296*vf(ssp-155,aswan) - 9.3704*vf(ssp-155,assiout) - 0.7304*vf(ssp-155,alexandria) - 1.5944*vf(ssp-155,behera)
+     
+      - 2.66*vf(ssp-155,gharbia) - 2.588*vf(ssp-155,kafr-el-sh) - 3.4952*vf(ssp-155,dakahlia) - 4.3448*vf(ssp-155,damietta) - 3.956*vf(ssp-155,sharkia) - 5.756*vf(ssp-155,ismailia) - 5.828*vf(ssp-155,suez) - 2.7608*vf(ssp-155,menoufia)
+     
+      - 3.236*vf(ssp-155,kalubia) - 4.6328*vf(ssp-155,giza) - 5.6696*vf(ssp-155,beni-suef) - 5.4104*vf(ssp-155,fayoum) - 6.0296*vf(ssp-155,minia) - 12.236*vf(ssp-155,new-valley) - 10.796*vf(ssp-155,sohag) - 12.8552*vf(ssp-155,quena)
+     
+      - 16.8296*vf(urea,aswan) - 9.3704*vf(urea,assiout) - 0.7304*vf(urea,alexandria) - 1.5944*vf(urea,behera) - 2.66*vf(urea,gharbia) - 2.588*vf(urea,kafr-el-sh) - 3.4952*vf(urea,dakahlia) - 4.3448*vf(urea,damietta) - 3.956*vf(urea,sharkia)
+     
+      - 5.756*vf(urea,ismailia) - 5.828*vf(urea,suez) - 2.7608*vf(urea,menoufia) - 3.236*vf(urea,kalubia) - 4.6328*vf(urea,giza) - 5.6696*vf(urea,beni-suef) - 5.4104*vf(urea,fayoum) - 6.0296*vf(urea,minia) - 12.236*vf(urea,new-valley)
+     
+      - 10.796*vf(urea,sohag) - 12.8552*vf(urea,quena) - 16.8296*vf(can-260,aswan) - 9.3704*vf(can-260,assiout) - 0.7304*vf(can-260,alexandria) - 1.5944*vf(can-260,behera) - 2.66*vf(can-260,gharbia) - 2.588*vf(can-260,kafr-el-sh)
+     
+      - 3.4952*vf(can-260,dakahlia) - 4.3448*vf(can-260,damietta) - 3.956*vf(can-260,sharkia) - 5.756*vf(can-260,ismailia) - 5.828*vf(can-260,suez) - 2.7608*vf(can-260,menoufia) - 3.236*vf(can-260,kalubia) - 4.6328*vf(can-260,giza)
+     
+      - 5.6696*vf(can-260,beni-suef) - 5.4104*vf(can-260,fayoum) - 6.0296*vf(can-260,minia) - 12.236*vf(can-260,new-valley) - 10.796*vf(can-260,sohag) - 12.8552*vf(can-260,quena) - 16.8296*vf(dap,aswan) - 9.3704*vf(dap,assiout) - 0.7304*vf(dap,alexandria)
+     
+      - 1.5944*vf(dap,behera) - 2.66*vf(dap,gharbia) - 2.588*vf(dap,kafr-el-sh) - 3.4952*vf(dap,dakahlia) - 4.3448*vf(dap,damietta) - 3.956*vf(dap,sharkia) - 5.756*vf(dap,ismailia) - 5.828*vf(dap,suez) - 2.7608*vf(dap,menoufia) - 3.236*vf(dap,kalubia)
+     
+      - 4.6328*vf(dap,giza) - 5.6696*vf(dap,beni-suef) - 5.4104*vf(dap,fayoum) - 6.0296*vf(dap,minia) - 12.236*vf(dap,new-valley) - 10.796*vf(dap,sohag) - 12.8552*vf(dap,quena) - 16.8296*vf(c-250-55,aswan) - 9.3704*vf(c-250-55,assiout)
+     
+      - 0.7304*vf(c-250-55,alexandria) - 1.5944*vf(c-250-55,behera) - 2.66*vf(c-250-55,gharbia) - 2.588*vf(c-250-55,kafr-el-sh) - 3.4952*vf(c-250-55,dakahlia) - 4.3448*vf(c-250-55,damietta) - 3.956*vf(c-250-55,sharkia) - 5.756*vf(c-250-55,ismailia)
+     
+      - 5.828*vf(c-250-55,suez) - 2.7608*vf(c-250-55,menoufia) - 3.236*vf(c-250-55,kalubia) - 4.6328*vf(c-250-55,giza) - 5.6696*vf(c-250-55,beni-suef) - 5.4104*vf(c-250-55,fayoum) - 6.0296*vf(c-250-55,minia) - 12.236*vf(c-250-55,new-valley)
+     
+      - 10.796*vf(c-250-55,sohag) - 12.8552*vf(c-250-55,quena) - 16.8296*vf(c-300-100,aswan) - 9.3704*vf(c-300-100,assiout) - 0.7304*vf(c-300-100,alexandria) - 1.5944*vf(c-300-100,behera) - 2.66*vf(c-300-100,gharbia) - 2.588*vf(c-300-100,kafr-el-sh)
+     
+      - 3.4952*vf(c-300-100,dakahlia) - 4.3448*vf(c-300-100,damietta) - 3.956*vf(c-300-100,sharkia) - 5.756*vf(c-300-100,ismailia) - 5.828*vf(c-300-100,suez) - 2.7608*vf(c-300-100,menoufia) - 3.236*vf(c-300-100,kalubia) - 4.6328*vf(c-300-100,giza)
+     
+      - 5.6696*vf(c-300-100,beni-suef) - 5.4104*vf(c-300-100,fayoum) - 6.0296*vf(c-300-100,minia) - 12.236*vf(c-300-100,new-valley) - 10.796*vf(c-300-100,sohag) - 12.8552*vf(c-300-100,quena) - 2.749*vr(el-sulfur,assiout) - 1.8984*vr(el-sulfur,kafr-el-zt)
+     
+      - 2.13144*vr(el-sulfur,abu-zaabal) - 1.8984*vr(pyrites,kafr-el-zt) - 2.13144*vr(pyrites,abu-zaabal) + psil =E= 0 ; (LHS = 0)
+     
+
+---- ai  =E=  accounting: import cost                (1000 le per year)
+
+ai..  - 75*vf(amm-sulf,aswan) - 75*vf(amm-sulf,assiout) - 75*vf(amm-sulf,alexandria) - 75*vf(amm-sulf,behera) - 75*vf(amm-sulf,gharbia) - 75*vf(amm-sulf,kafr-el-sh) - 75*vf(amm-sulf,dakahlia) - 75*vf(amm-sulf,damietta) - 75*vf(amm-sulf,sharkia)
+     
+      - 75*vf(amm-sulf,ismailia) - 75*vf(amm-sulf,suez) - 75*vf(amm-sulf,menoufia) - 75*vf(amm-sulf,kalubia) - 75*vf(amm-sulf,giza) - 75*vf(amm-sulf,beni-suef) - 75*vf(amm-sulf,fayoum) - 75*vf(amm-sulf,minia) - 75*vf(amm-sulf,new-valley)
+     
+      - 75*vf(amm-sulf,sohag) - 75*vf(amm-sulf,quena) - 90*vf(can-310,aswan) - 90*vf(can-310,assiout) - 90*vf(can-310,alexandria) - 90*vf(can-310,behera) - 90*vf(can-310,gharbia) - 90*vf(can-310,kafr-el-sh) - 90*vf(can-310,dakahlia)
+     
+      - 90*vf(can-310,damietta) - 90*vf(can-310,sharkia) - 90*vf(can-310,ismailia) - 90*vf(can-310,suez) - 90*vf(can-310,menoufia) - 90*vf(can-310,kalubia) - 90*vf(can-310,giza) - 90*vf(can-310,beni-suef) - 90*vf(can-310,fayoum) - 90*vf(can-310,minia)
+     
+      - 90*vf(can-310,new-valley) - 90*vf(can-310,sohag) - 90*vf(can-310,quena) - 100*vf(can-335,aswan) - 100*vf(can-335,assiout) - 100*vf(can-335,alexandria) - 100*vf(can-335,behera) - 100*vf(can-335,gharbia) - 100*vf(can-335,kafr-el-sh)
+     
+      - 100*vf(can-335,dakahlia) - 100*vf(can-335,damietta) - 100*vf(can-335,sharkia) - 100*vf(can-335,ismailia) - 100*vf(can-335,suez) - 100*vf(can-335,menoufia) - 100*vf(can-335,kalubia) - 100*vf(can-335,giza) - 100*vf(can-335,beni-suef)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 21
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Equation Listing    SOLVE stat2 Using LP From line 437
+
+
+     ai  =E=  accounting: import cost                (1000 le per year)     
+     
+      - 100*vf(can-335,fayoum) - 100*vf(can-335,minia) - 100*vf(can-335,new-valley) - 100*vf(can-335,sohag) - 100*vf(can-335,quena) - 80*vf(ssp-155,aswan) - 80*vf(ssp-155,assiout) - 80*vf(ssp-155,alexandria) - 80*vf(ssp-155,behera)
+     
+      - 80*vf(ssp-155,gharbia) - 80*vf(ssp-155,kafr-el-sh) - 80*vf(ssp-155,dakahlia) - 80*vf(ssp-155,damietta) - 80*vf(ssp-155,sharkia) - 80*vf(ssp-155,ismailia) - 80*vf(ssp-155,suez) - 80*vf(ssp-155,menoufia) - 80*vf(ssp-155,kalubia)
+     
+      - 80*vf(ssp-155,giza) - 80*vf(ssp-155,beni-suef) - 80*vf(ssp-155,fayoum) - 80*vf(ssp-155,minia) - 80*vf(ssp-155,new-valley) - 80*vf(ssp-155,sohag) - 80*vf(ssp-155,quena) - 150*vf(urea,aswan) - 150*vf(urea,assiout) - 150*vf(urea,alexandria)
+     
+      - 150*vf(urea,behera) - 150*vf(urea,gharbia) - 150*vf(urea,kafr-el-sh) - 150*vf(urea,dakahlia) - 150*vf(urea,damietta) - 150*vf(urea,sharkia) - 150*vf(urea,ismailia) - 150*vf(urea,suez) - 150*vf(urea,menoufia) - 150*vf(urea,kalubia)
+     
+      - 150*vf(urea,giza) - 150*vf(urea,beni-suef) - 150*vf(urea,fayoum) - 150*vf(urea,minia) - 150*vf(urea,new-valley) - 150*vf(urea,sohag) - 150*vf(urea,quena) - 75*vf(can-260,aswan) - 75*vf(can-260,assiout) - 75*vf(can-260,alexandria)
+     
+      - 75*vf(can-260,behera) - 75*vf(can-260,gharbia) - 75*vf(can-260,kafr-el-sh) - 75*vf(can-260,dakahlia) - 75*vf(can-260,damietta) - 75*vf(can-260,sharkia) - 75*vf(can-260,ismailia) - 75*vf(can-260,suez) - 75*vf(can-260,menoufia)
+     
+      - 75*vf(can-260,kalubia) - 75*vf(can-260,giza) - 75*vf(can-260,beni-suef) - 75*vf(can-260,fayoum) - 75*vf(can-260,minia) - 75*vf(can-260,new-valley) - 75*vf(can-260,sohag) - 75*vf(can-260,quena) - 175*vf(dap,aswan) - 175*vf(dap,assiout)
+     
+      - 175*vf(dap,alexandria) - 175*vf(dap,behera) - 175*vf(dap,gharbia) - 175*vf(dap,kafr-el-sh) - 175*vf(dap,dakahlia) - 175*vf(dap,damietta) - 175*vf(dap,sharkia) - 175*vf(dap,ismailia) - 175*vf(dap,suez) - 175*vf(dap,menoufia) - 175*vf(dap,kalubia)
+     
+      - 175*vf(dap,giza) - 175*vf(dap,beni-suef) - 175*vf(dap,fayoum) - 175*vf(dap,minia) - 175*vf(dap,new-valley) - 175*vf(dap,sohag) - 175*vf(dap,quena) - 100*vf(c-250-55,aswan) - 100*vf(c-250-55,assiout) - 100*vf(c-250-55,alexandria)
+     
+      - 100*vf(c-250-55,behera) - 100*vf(c-250-55,gharbia) - 100*vf(c-250-55,kafr-el-sh) - 100*vf(c-250-55,dakahlia) - 100*vf(c-250-55,damietta) - 100*vf(c-250-55,sharkia) - 100*vf(c-250-55,ismailia) - 100*vf(c-250-55,suez) - 100*vf(c-250-55,menoufia)
+     
+      - 100*vf(c-250-55,kalubia) - 100*vf(c-250-55,giza) - 100*vf(c-250-55,beni-suef) - 100*vf(c-250-55,fayoum) - 100*vf(c-250-55,minia) - 100*vf(c-250-55,new-valley) - 100*vf(c-250-55,sohag) - 100*vf(c-250-55,quena) - 130*vf(c-300-100,aswan)
+     
+      - 130*vf(c-300-100,assiout) - 130*vf(c-300-100,alexandria) - 130*vf(c-300-100,behera) - 130*vf(c-300-100,gharbia) - 130*vf(c-300-100,kafr-el-sh) - 130*vf(c-300-100,dakahlia) - 130*vf(c-300-100,damietta) - 130*vf(c-300-100,sharkia)
+     
+      - 130*vf(c-300-100,ismailia) - 130*vf(c-300-100,suez) - 130*vf(c-300-100,menoufia) - 130*vf(c-300-100,kalubia) - 130*vf(c-300-100,giza) - 130*vf(c-300-100,beni-suef) - 130*vf(c-300-100,fayoum) - 130*vf(c-300-100,minia) - 130*vf(c-300-100,new-valley)
+     
+      - 130*vf(c-300-100,sohag) - 130*vf(c-300-100,quena) - 55*vr(el-sulfur,assiout) - 55*vr(el-sulfur,kafr-el-zt) - 55*vr(el-sulfur,abu-zaabal) - 17.5*vr(pyrites,kafr-el-zt) - 17.5*vr(pyrites,abu-zaabal) + 2.5*psii =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 22
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Column Listing      SOLVE stat2 Using LP From line 437
+
+
+---- z  process level                              (1000 tpy)
+
+z(sulf-a-s,assiout)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mb(sulf-acid,assiout)
+       -0.334   mb(el-sulfur,assiout)
+      -50       mb(electric,assiout)
+      -20       mb(water,assiout)
+        1       cc(sulf-a-s,assiout)
+
+z(sulf-a-s,kafr-el-zt)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mb(sulf-acid,kafr-el-zt)
+       -0.334   mb(el-sulfur,kafr-el-zt)
+      -50       mb(electric,kafr-el-zt)
+      -20       mb(water,kafr-el-zt)
+        1       cc(sulf-a-s,kafr-el-zt)
+
+z(sulf-a-s,abu-zaabal)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mb(sulf-acid,abu-zaabal)
+       -0.334   mb(el-sulfur,abu-zaabal)
+      -50       mb(electric,abu-zaabal)
+      -20       mb(water,abu-zaabal)
+        1       cc(sulf-a-s,abu-zaabal)
+
+REMAINING 12 ENTRIES SKIPPED
+
+---- xf  domestic shipment activity: final products (1000 tpy)
+
+xf(amm-sulf,helwan,aswan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(amm-sulf,helwan)
+      -13.172   al
+
+xf(amm-sulf,helwan,assiout)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbdb(amm-sulf,assiout)
+       -1       mb(amm-sulf,helwan)
+       -5.7128  al
+
+xf(amm-sulf,helwan,alexandria)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbdb(amm-sulf,alexandria)
+       -1       mb(amm-sulf,helwan)
+       -4.0136  al
+
+REMAINING 117 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 23
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Column Listing      SOLVE stat2 Using LP From line 437
+
+
+---- xi  domestic shipment activity: intermediates  (1000 tpy)
+
+xi(ammonia,aswan,helwan)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       mb(ammonia,aswan)
+        1       mb(ammonia,helwan)
+      -29.9     al
+
+xi(ammonia,helwan,aswan)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+        1       mb(ammonia,aswan)
+       -1       mb(ammonia,helwan)
+      -29.9     al
+
+xi(sulf-acid,assiout,helwan)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+        1       mb(sulf-acid,helwan)
+       -1       mb(sulf-acid,assiout)
+      -14.36    al
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- vf  imports: final products                    (1000 tpy)
+
+vf(amm-sulf,aswan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -16.8296  al
+      -75       ai
+
+vf(amm-sulf,assiout)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbdb(amm-sulf,assiout)
+       -9.3704  al
+      -75       ai
+
+vf(amm-sulf,alexandria)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbdb(amm-sulf,alexandria)
+       -0.7304  al
+      -75       ai
+
+REMAINING 177 ENTRIES SKIPPED
+
+---- vr  imports: raw materials                     (1000 tpy)
+
+vr(el-sulfur,assiout)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(el-sulfur,assiout)
+       -2.749   al
+      -55       ai
+
+vr(el-sulfur,kafr-el-zt)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 24
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Column Listing      SOLVE stat2 Using LP From line 437
+
+
+     vr  imports: raw materials                     (1000 tpy)
+
+        1       mb(el-sulfur,kafr-el-zt)
+       -1.8984  al
+      -55       ai
+
+vr(el-sulfur,abu-zaabal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(el-sulfur,abu-zaabal)
+       -2.1314  al
+      -55       ai
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- u  domestic raw material purchases               (units)
+
+u(sulf-acid,helwan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(sulf-acid,helwan)
+       -3       ap
+
+u(el-aswan,aswan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(el-aswan,aswan)
+       -1       ap
+
+u(coke-gas,helwan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(coke-gas,helwan)
+      -16       ap
+
+REMAINING 23 ENTRIES SKIPPED
+
+---- psi  discounted total cost                       (1000 le)
+
+psi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- psip  domestic recurrent cost            (1000 le per year)
+
+psip
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       obj
+        1       ap
+
+
+---- psil  transport cost                     (1000 le per year)
+
+psil
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 25
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Column Listing      SOLVE stat2 Using LP From line 437
+
+
+     psil  transport cost                     (1000 le per year)
+
+        1       al
+
+
+---- psii  import cost                        (1000 le per year)
+
+psii
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       obj
+        2.5     ai
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 26
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Model Statistics    SOLVE stat2 Using LP From line 437
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS          174
+BLOCKS OF VARIABLES          10     SINGLE VARIABLES          361
+NON ZERO ELEMENTS         1,003
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 27
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+Solution Report     SOLVE stat2 Using LP From line 437
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   stat2               OBJECTIVE  psi
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  437
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ferts/convert.opt"
+>>  gams ferts-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ferts/convert.opt"
+Gams      : ferts-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 28
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+E x e c u t i o n
+
+
+----    453 EQUATION mbdb.Lo  material balance on demand: material           (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 EQUATION mbdb.M  material balance on demand: material           (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 EQUATION mb.M  material balance                               (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 EQUATION cc.Up  capacity constraint                            (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 EQUATION cc.M  capacity constraint                            (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 PARAMETER rxf  domestic shipment activity : final products (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 PARAMETER tds                  =        0.000  total domestic supply : final products      (1000 tpy)
+            PARAMETER tif                  =        0.000  total import : final product                (1000 tpy)
+
+----    453 VARIABLE vf.L  imports: final products                    (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 VARIABLE z.L  process level                              (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 VARIABLE vr.L  imports: raw materials                     (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    453 VARIABLE u.L  domestic raw material purchases               (units)
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 29
+EGYPT - Static Fertilizer Model  (FERTS,SEQ=13)
+E x e c u t i o n
+
+
+----    453 PARAMETER tl  transportation load                      (1000 ton_km)
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ferts/ferts.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ferts/ferts-scalar.gms.lst

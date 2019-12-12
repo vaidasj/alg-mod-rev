@@ -1,0 +1,333 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 2
+The shortest route problem (SROUTE,SEQ=6)
+C o m p i l a t i o n
+
+
+   4   
+       
+      The problem is to find the shortest route or lowest transport
+      cost from each city to all others.
+       
+       
+      Dantzig, G B, Chapter 17.3. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  15   
+  16   Set  i  cities  / boston, chicago, dallas, kansas-cty, losangeles
+  17                     memphis, portland, salt-lake, wash-dc           /
+  18        r(i,i) routes
+  19   
+  20   Alias(i,ip,ipp)
+  21   
+  22   Parameter uarc(i,ip) undirected arcs  /
+  23   
+  24      boston  .chicago      58,     kansas-cty .memphis       27
+  25      boston  .wash-dc      25,     kansas-cty .salt-lake     66
+  26      chicago .kansas-cty   29,     kansas-cty .wash-dc       62
+  27      chicago .memphis      32,     losangeles .portland      58
+  28      chicago .portland    130,     losangeles .salt-lake     43
+  29      chicago .salt-lake    85,     memphis    .wash-dc       53
+  30      dallas  .kansas-cty   29,     portland   .salt-lake     48
+  31      dallas  .losangeles   85
+  32      dallas  .memphis      28
+  33      dallas  .salt-lake    75    /
+  34   
+  35   Parameters darc(i,ip)  directed arcs
+  36              orig(i,i)   origin mapping ;
+  37   
+  38     darc(i,ip) = max(uarc(i,ip),uarc(ip,i));
+  39     r(i,ip)    = yes$darc(i,ip);
+  40     orig(i,i)  = 1 ;
+  41   
+  42   Display darc, orig;
+  43   
+  44   Variables x(i,ip,ipp)  arcs taken
+  45             cost         total cost or length
+  46   
+  47   Positive Variable x;
+  48   
+  49   Equations nb(i,ip)  node balance
+  50             cd        cost definition ;
+  51   
+  52  nb(i,ip)$(not orig(i,ip))..
+  53   
+  54   sum(ipp$darc(ipp,ip), x(i,ipp,ip)) =g= sum(ipp$darc(ip,ipp), x(i,ip,ipp)) + 1;
+  55   
+  56  cd.. cost =e= sum((i,ip,ipp), darc(ip,ipp)*x(i,ip,ipp));
+  57   
+  58  Model route shortest route / all /; Solve route minimizing cost using lp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 3
+The shortest route problem (SROUTE,SEQ=6)
+C o m p i l a t i o n
+
+
+  59   
+  60  Parameter sroute(i,ip); sroute(i,ip) = -nb.m(i,ip); display sroute;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 4
+The shortest route problem (SROUTE,SEQ=6)
+E x e c u t i o n
+
+
+----     42 PARAMETER darc  directed arcs
+
+                boston     chicago      dallas  kansas-cty  losangeles     memphis    portland   salt-lake     wash-dc
+
+boston                      58.000                                                                              25.000
+chicago         58.000                              29.000                  32.000     130.000      85.000
+dallas                                              29.000      85.000      28.000                  75.000
+kansas-cty                  29.000      29.000                              27.000                  66.000      62.000
+losangeles                              85.000                                          58.000      43.000
+memphis                     32.000      28.000      27.000                                                      53.000
+portland                   130.000                              58.000                              48.000
+salt-lake                   85.000      75.000      66.000      43.000                  48.000
+wash-dc         25.000                              62.000                  53.000
+
+
+----     42 PARAMETER orig  origin mapping
+
+                boston     chicago      dallas  kansas-cty  losangeles     memphis    portland   salt-lake     wash-dc
+
+boston           1.000
+chicago                      1.000
+dallas                                   1.000
+kansas-cty                                           1.000
+losangeles                                                       1.000
+memphis                                                                      1.000
+portland                                                                                 1.000
+salt-lake                                                                                            1.000
+wash-dc                                                                                                          1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 5
+The shortest route problem (SROUTE,SEQ=6)
+Equation Listing    SOLVE route Using LP From line 58
+
+
+---- nb  =G=  node balance
+
+nb(boston,chicago)..  x(boston,boston,chicago) - x(boston,chicago,boston) - x(boston,chicago,kansas-cty) - x(boston,chicago,memphis) - x(boston,chicago,portland) - x(boston,chicago,salt-lake) + x(boston,kansas-cty,chicago) + x(boston,memphis,chicago)
+     
+      + x(boston,portland,chicago) + x(boston,salt-lake,chicago) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+nb(boston,dallas)..  - x(boston,dallas,kansas-cty) - x(boston,dallas,losangeles) - x(boston,dallas,memphis) - x(boston,dallas,salt-lake) + x(boston,kansas-cty,dallas) + x(boston,losangeles,dallas) + x(boston,memphis,dallas) + x(boston,salt-lake,dallas)
+      =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+nb(boston,kansas-cty)..  x(boston,chicago,kansas-cty) + x(boston,dallas,kansas-cty) - x(boston,kansas-cty,chicago) - x(boston,kansas-cty,dallas) - x(boston,kansas-cty,memphis) - x(boston,kansas-cty,salt-lake) - x(boston,kansas-cty,wash-dc)
+     
+      + x(boston,memphis,kansas-cty) + x(boston,salt-lake,kansas-cty) + x(boston,wash-dc,kansas-cty) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 69 ENTRIES SKIPPED
+
+
+---- cd  =E=  cost definition
+
+cd..  - 58*x(boston,boston,chicago) - 25*x(boston,boston,wash-dc) - 58*x(boston,chicago,boston) - 29*x(boston,chicago,kansas-cty) - 32*x(boston,chicago,memphis) - 130*x(boston,chicago,portland) - 85*x(boston,chicago,salt-lake)
+     
+      - 29*x(boston,dallas,kansas-cty) - 85*x(boston,dallas,losangeles) - 28*x(boston,dallas,memphis) - 75*x(boston,dallas,salt-lake) - 29*x(boston,kansas-cty,chicago) - 29*x(boston,kansas-cty,dallas) - 27*x(boston,kansas-cty,memphis)
+     
+      - 66*x(boston,kansas-cty,salt-lake) - 62*x(boston,kansas-cty,wash-dc) - 85*x(boston,losangeles,dallas) - 58*x(boston,losangeles,portland) - 43*x(boston,losangeles,salt-lake) - 32*x(boston,memphis,chicago) - 28*x(boston,memphis,dallas)
+     
+      - 27*x(boston,memphis,kansas-cty) - 53*x(boston,memphis,wash-dc) - 130*x(boston,portland,chicago) - 58*x(boston,portland,losangeles) - 48*x(boston,portland,salt-lake) - 85*x(boston,salt-lake,chicago) - 75*x(boston,salt-lake,dallas)
+     
+      - 66*x(boston,salt-lake,kansas-cty) - 43*x(boston,salt-lake,losangeles) - 48*x(boston,salt-lake,portland) - 25*x(boston,wash-dc,boston) - 62*x(boston,wash-dc,kansas-cty) - 53*x(boston,wash-dc,memphis) - 58*x(chicago,boston,chicago)
+     
+      - 25*x(chicago,boston,wash-dc) - 58*x(chicago,chicago,boston) - 29*x(chicago,chicago,kansas-cty) - 32*x(chicago,chicago,memphis) - 130*x(chicago,chicago,portland) - 85*x(chicago,chicago,salt-lake) - 29*x(chicago,dallas,kansas-cty)
+     
+      - 85*x(chicago,dallas,losangeles) - 28*x(chicago,dallas,memphis) - 75*x(chicago,dallas,salt-lake) - 29*x(chicago,kansas-cty,chicago) - 29*x(chicago,kansas-cty,dallas) - 27*x(chicago,kansas-cty,memphis) - 66*x(chicago,kansas-cty,salt-lake)
+     
+      - 62*x(chicago,kansas-cty,wash-dc) - 85*x(chicago,losangeles,dallas) - 58*x(chicago,losangeles,portland) - 43*x(chicago,losangeles,salt-lake) - 32*x(chicago,memphis,chicago) - 28*x(chicago,memphis,dallas) - 27*x(chicago,memphis,kansas-cty)
+     
+      - 53*x(chicago,memphis,wash-dc) - 130*x(chicago,portland,chicago) - 58*x(chicago,portland,losangeles) - 48*x(chicago,portland,salt-lake) - 85*x(chicago,salt-lake,chicago) - 75*x(chicago,salt-lake,dallas) - 66*x(chicago,salt-lake,kansas-cty)
+     
+      - 43*x(chicago,salt-lake,losangeles) - 48*x(chicago,salt-lake,portland) - 25*x(chicago,wash-dc,boston) - 62*x(chicago,wash-dc,kansas-cty) - 53*x(chicago,wash-dc,memphis) - 58*x(dallas,boston,chicago) - 25*x(dallas,boston,wash-dc)
+     
+      - 58*x(dallas,chicago,boston) - 29*x(dallas,chicago,kansas-cty) - 32*x(dallas,chicago,memphis) - 130*x(dallas,chicago,portland) - 85*x(dallas,chicago,salt-lake) - 29*x(dallas,dallas,kansas-cty) - 85*x(dallas,dallas,losangeles)
+     
+      - 28*x(dallas,dallas,memphis) - 75*x(dallas,dallas,salt-lake) - 29*x(dallas,kansas-cty,chicago) - 29*x(dallas,kansas-cty,dallas) - 27*x(dallas,kansas-cty,memphis) - 66*x(dallas,kansas-cty,salt-lake) - 62*x(dallas,kansas-cty,wash-dc)
+     
+      - 85*x(dallas,losangeles,dallas) - 58*x(dallas,losangeles,portland) - 43*x(dallas,losangeles,salt-lake) - 32*x(dallas,memphis,chicago) - 28*x(dallas,memphis,dallas) - 27*x(dallas,memphis,kansas-cty) - 53*x(dallas,memphis,wash-dc)
+     
+      - 130*x(dallas,portland,chicago) - 58*x(dallas,portland,losangeles) - 48*x(dallas,portland,salt-lake) - 85*x(dallas,salt-lake,chicago) - 75*x(dallas,salt-lake,dallas) - 66*x(dallas,salt-lake,kansas-cty) - 43*x(dallas,salt-lake,losangeles)
+     
+      - 48*x(dallas,salt-lake,portland) - 25*x(dallas,wash-dc,boston) - 62*x(dallas,wash-dc,kansas-cty) - 53*x(dallas,wash-dc,memphis) - 58*x(kansas-cty,boston,chicago) - 25*x(kansas-cty,boston,wash-dc) - 58*x(kansas-cty,chicago,boston)
+     
+      - 29*x(kansas-cty,chicago,kansas-cty) - 32*x(kansas-cty,chicago,memphis) - 130*x(kansas-cty,chicago,portland) - 85*x(kansas-cty,chicago,salt-lake) - 29*x(kansas-cty,dallas,kansas-cty) - 85*x(kansas-cty,dallas,losangeles)
+     
+      - 28*x(kansas-cty,dallas,memphis) - 75*x(kansas-cty,dallas,salt-lake) - 29*x(kansas-cty,kansas-cty,chicago) - 29*x(kansas-cty,kansas-cty,dallas) - 27*x(kansas-cty,kansas-cty,memphis) - 66*x(kansas-cty,kansas-cty,salt-lake)
+     
+      - 62*x(kansas-cty,kansas-cty,wash-dc) - 85*x(kansas-cty,losangeles,dallas) - 58*x(kansas-cty,losangeles,portland) - 43*x(kansas-cty,losangeles,salt-lake) - 32*x(kansas-cty,memphis,chicago) - 28*x(kansas-cty,memphis,dallas)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 6
+The shortest route problem (SROUTE,SEQ=6)
+Equation Listing    SOLVE route Using LP From line 58
+
+
+     cd  =E=  cost definition     
+     
+      - 27*x(kansas-cty,memphis,kansas-cty) - 53*x(kansas-cty,memphis,wash-dc) - 130*x(kansas-cty,portland,chicago) - 58*x(kansas-cty,portland,losangeles) - 48*x(kansas-cty,portland,salt-lake) - 85*x(kansas-cty,salt-lake,chicago)
+     
+      - 75*x(kansas-cty,salt-lake,dallas) - 66*x(kansas-cty,salt-lake,kansas-cty) - 43*x(kansas-cty,salt-lake,losangeles) - 48*x(kansas-cty,salt-lake,portland) - 25*x(kansas-cty,wash-dc,boston) - 62*x(kansas-cty,wash-dc,kansas-cty)
+     
+      - 53*x(kansas-cty,wash-dc,memphis) - 58*x(losangeles,boston,chicago) - 25*x(losangeles,boston,wash-dc) - 58*x(losangeles,chicago,boston) - 29*x(losangeles,chicago,kansas-cty) - 32*x(losangeles,chicago,memphis) - 130*x(losangeles,chicago,portland)
+     
+      - 85*x(losangeles,chicago,salt-lake) - 29*x(losangeles,dallas,kansas-cty) - 85*x(losangeles,dallas,losangeles) - 28*x(losangeles,dallas,memphis) - 75*x(losangeles,dallas,salt-lake) - 29*x(losangeles,kansas-cty,chicago)
+     
+      - 29*x(losangeles,kansas-cty,dallas) - 27*x(losangeles,kansas-cty,memphis) - 66*x(losangeles,kansas-cty,salt-lake) - 62*x(losangeles,kansas-cty,wash-dc) - 85*x(losangeles,losangeles,dallas) - 58*x(losangeles,losangeles,portland)
+     
+      - 43*x(losangeles,losangeles,salt-lake) - 32*x(losangeles,memphis,chicago) - 28*x(losangeles,memphis,dallas) - 27*x(losangeles,memphis,kansas-cty) - 53*x(losangeles,memphis,wash-dc) - 130*x(losangeles,portland,chicago)
+     
+      - 58*x(losangeles,portland,losangeles) - 48*x(losangeles,portland,salt-lake) - 85*x(losangeles,salt-lake,chicago) - 75*x(losangeles,salt-lake,dallas) - 66*x(losangeles,salt-lake,kansas-cty) - 43*x(losangeles,salt-lake,losangeles)
+     
+      - 48*x(losangeles,salt-lake,portland) - 25*x(losangeles,wash-dc,boston) - 62*x(losangeles,wash-dc,kansas-cty) - 53*x(losangeles,wash-dc,memphis) - 58*x(memphis,boston,chicago) - 25*x(memphis,boston,wash-dc) - 58*x(memphis,chicago,boston)
+     
+      - 29*x(memphis,chicago,kansas-cty) - 32*x(memphis,chicago,memphis) - 130*x(memphis,chicago,portland) - 85*x(memphis,chicago,salt-lake) - 29*x(memphis,dallas,kansas-cty) - 85*x(memphis,dallas,losangeles) - 28*x(memphis,dallas,memphis)
+     
+      - 75*x(memphis,dallas,salt-lake) - 29*x(memphis,kansas-cty,chicago) - 29*x(memphis,kansas-cty,dallas) - 27*x(memphis,kansas-cty,memphis) - 66*x(memphis,kansas-cty,salt-lake) - 62*x(memphis,kansas-cty,wash-dc) - 85*x(memphis,losangeles,dallas)
+     
+      - 58*x(memphis,losangeles,portland) - 43*x(memphis,losangeles,salt-lake) - 32*x(memphis,memphis,chicago) - 28*x(memphis,memphis,dallas) - 27*x(memphis,memphis,kansas-cty) - 53*x(memphis,memphis,wash-dc) - 130*x(memphis,portland,chicago)
+     
+      - 58*x(memphis,portland,losangeles) - 48*x(memphis,portland,salt-lake) - 85*x(memphis,salt-lake,chicago) - 75*x(memphis,salt-lake,dallas) - 66*x(memphis,salt-lake,kansas-cty) - 43*x(memphis,salt-lake,losangeles) - 48*x(memphis,salt-lake,portland)
+     
+      - 25*x(memphis,wash-dc,boston) - 62*x(memphis,wash-dc,kansas-cty) - 53*x(memphis,wash-dc,memphis) - 58*x(portland,boston,chicago) - 25*x(portland,boston,wash-dc) - 58*x(portland,chicago,boston) - 29*x(portland,chicago,kansas-cty)
+     
+      - 32*x(portland,chicago,memphis) - 130*x(portland,chicago,portland) - 85*x(portland,chicago,salt-lake) - 29*x(portland,dallas,kansas-cty) - 85*x(portland,dallas,losangeles) - 28*x(portland,dallas,memphis) - 75*x(portland,dallas,salt-lake)
+     
+      - 29*x(portland,kansas-cty,chicago) - 29*x(portland,kansas-cty,dallas) - 27*x(portland,kansas-cty,memphis) - 66*x(portland,kansas-cty,salt-lake) - 62*x(portland,kansas-cty,wash-dc) - 85*x(portland,losangeles,dallas)
+     
+      - 58*x(portland,losangeles,portland) - 43*x(portland,losangeles,salt-lake) - 32*x(portland,memphis,chicago) - 28*x(portland,memphis,dallas) - 27*x(portland,memphis,kansas-cty) - 53*x(portland,memphis,wash-dc) - 130*x(portland,portland,chicago)
+     
+      - 58*x(portland,portland,losangeles) - 48*x(portland,portland,salt-lake) - 85*x(portland,salt-lake,chicago) - 75*x(portland,salt-lake,dallas) - 66*x(portland,salt-lake,kansas-cty) - 43*x(portland,salt-lake,losangeles)
+     
+      - 48*x(portland,salt-lake,portland) - 25*x(portland,wash-dc,boston) - 62*x(portland,wash-dc,kansas-cty) - 53*x(portland,wash-dc,memphis) - 58*x(salt-lake,boston,chicago) - 25*x(salt-lake,boston,wash-dc) - 58*x(salt-lake,chicago,boston)
+     
+      - 29*x(salt-lake,chicago,kansas-cty) - 32*x(salt-lake,chicago,memphis) - 130*x(salt-lake,chicago,portland) - 85*x(salt-lake,chicago,salt-lake) - 29*x(salt-lake,dallas,kansas-cty) - 85*x(salt-lake,dallas,losangeles) - 28*x(salt-lake,dallas,memphis)
+     
+      - 75*x(salt-lake,dallas,salt-lake) - 29*x(salt-lake,kansas-cty,chicago) - 29*x(salt-lake,kansas-cty,dallas) - 27*x(salt-lake,kansas-cty,memphis) - 66*x(salt-lake,kansas-cty,salt-lake) - 62*x(salt-lake,kansas-cty,wash-dc)
+     
+      - 85*x(salt-lake,losangeles,dallas) - 58*x(salt-lake,losangeles,portland) - 43*x(salt-lake,losangeles,salt-lake) - 32*x(salt-lake,memphis,chicago) - 28*x(salt-lake,memphis,dallas) - 27*x(salt-lake,memphis,kansas-cty)
+     
+      - 53*x(salt-lake,memphis,wash-dc) - 130*x(salt-lake,portland,chicago) - 58*x(salt-lake,portland,losangeles) - 48*x(salt-lake,portland,salt-lake) - 85*x(salt-lake,salt-lake,chicago) - 75*x(salt-lake,salt-lake,dallas)
+     
+      - 66*x(salt-lake,salt-lake,kansas-cty) - 43*x(salt-lake,salt-lake,losangeles) - 48*x(salt-lake,salt-lake,portland) - 25*x(salt-lake,wash-dc,boston) - 62*x(salt-lake,wash-dc,kansas-cty) - 53*x(salt-lake,wash-dc,memphis) - 58*x(wash-dc,boston,chicago)
+     
+      - 25*x(wash-dc,boston,wash-dc) - 58*x(wash-dc,chicago,boston) - 29*x(wash-dc,chicago,kansas-cty) - 32*x(wash-dc,chicago,memphis) - 130*x(wash-dc,chicago,portland) - 85*x(wash-dc,chicago,salt-lake) - 29*x(wash-dc,dallas,kansas-cty)
+     
+      - 85*x(wash-dc,dallas,losangeles) - 28*x(wash-dc,dallas,memphis) - 75*x(wash-dc,dallas,salt-lake) - 29*x(wash-dc,kansas-cty,chicago) - 29*x(wash-dc,kansas-cty,dallas) - 27*x(wash-dc,kansas-cty,memphis) - 66*x(wash-dc,kansas-cty,salt-lake)
+     
+      - 62*x(wash-dc,kansas-cty,wash-dc) - 85*x(wash-dc,losangeles,dallas) - 58*x(wash-dc,losangeles,portland) - 43*x(wash-dc,losangeles,salt-lake) - 32*x(wash-dc,memphis,chicago) - 28*x(wash-dc,memphis,dallas) - 27*x(wash-dc,memphis,kansas-cty)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 7
+The shortest route problem (SROUTE,SEQ=6)
+Equation Listing    SOLVE route Using LP From line 58
+
+
+     cd  =E=  cost definition     
+     
+      - 53*x(wash-dc,memphis,wash-dc) - 130*x(wash-dc,portland,chicago) - 58*x(wash-dc,portland,losangeles) - 48*x(wash-dc,portland,salt-lake) - 85*x(wash-dc,salt-lake,chicago) - 75*x(wash-dc,salt-lake,dallas) - 66*x(wash-dc,salt-lake,kansas-cty)
+     
+      - 43*x(wash-dc,salt-lake,losangeles) - 48*x(wash-dc,salt-lake,portland) - 25*x(wash-dc,wash-dc,boston) - 62*x(wash-dc,wash-dc,kansas-cty) - 53*x(wash-dc,wash-dc,memphis) + cost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 8
+The shortest route problem (SROUTE,SEQ=6)
+Column Listing      SOLVE route Using LP From line 58
+
+
+---- x  arcs taken
+
+x(boston,boston,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       nb(boston,chicago)
+      -58       cd
+
+x(boston,boston,wash-dc)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       nb(boston,wash-dc)
+      -25       cd
+
+x(boston,chicago,boston)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nb(boston,chicago)
+      -58       cd
+
+REMAINING 303 ENTRIES SKIPPED
+
+---- cost  total cost or length
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cd
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 9
+The shortest route problem (SROUTE,SEQ=6)
+Model Statistics    SOLVE route Using LP From line 58
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           73
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          307
+NON ZERO ELEMENTS           851
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:28 Page 10
+The shortest route problem (SROUTE,SEQ=6)
+Solution Report     SOLVE route Using LP From line 58
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   route               OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  58
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sroute/convert.opt"
+>>  gams sroute-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sroute/convert.opt"
+Gams      : sroute-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:28 Page 11
+The shortest route problem (SROUTE,SEQ=6)
+E x e c u t i o n
+
+
+----     60 PARAMETER sroute  
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/sroute/sroute.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/sroute/sroute-scalar.gms.lst

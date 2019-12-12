@@ -1,0 +1,31 @@
+--- Job fuel.gms Start 12/13/18 10:30:52 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- fuel.gms(64) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- fuel.gms(62) 4 Mb
+--- Generating MINLP model ucom
+--- fuel.gms(64) 6 Mb
+---   16 rows  16 columns  39 non-zeroes
+---   42 nl-code  6 nl-non-zeroes
+---   3 discrete-columns
+--- fuel.gms(64) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/fuel/convert.opt"
+>>  ampl fuel-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/fuel/convert.opt"
+--- Writing Ampl      : fuel-scalar.mod
+
+--- Restarting execution
+--- fuel.gms(64) 2 Mb
+--- Reading solution for model ucom
+*** Status: Normal completion
+--- Job fuel.gms Stop 12/13/18 10:30:52 elapsed 0:00:00.019

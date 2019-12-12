@@ -1,0 +1,186 @@
+--- Job meanvar.gms Start 12/13/18 10:24:51 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- meanvar.gms(169) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- meanvar.gms(88) 4 Mb
+--- Generating NLP model var1
+--- meanvar.gms(88) 6 Mb
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(88) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(88) 2 Mb
+--- Reading solution for model var1
+--- Generating NLP model var2
+--- meanvar.gms(103) 5 Mb
+---   2 rows  8 columns  15 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(103) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.016
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(103) 2 Mb
+--- Reading solution for model var2
+--- meanvar.gms(128) 3 Mb
+--- Generating NLP model sharpe
+--- meanvar.gms(130) 5 Mb
+---   4 rows  10 columns  26 non-zeroes
+---   203 nl-code  9 nl-non-zeroes
+--- meanvar.gms(130) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.029
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(130) 2 Mb
+--- Reading solution for model sharpe
+--- meanvar.gms(143) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(144) 5 Mb
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(144) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.042
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(144) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(151) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(152) 5 Mb
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(152) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.060
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(152) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(159) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(161) 5 Mb
+--- LOOPS pp = p1
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(161) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.078
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(161) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(159) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(161) 5 Mb
+--- LOOPS pp = p2
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(161) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.094
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(161) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(159) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(161) 5 Mb
+--- LOOPS pp = p3
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(161) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.105
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(161) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(159) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(161) 5 Mb
+--- LOOPS pp = p4
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(161) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.117
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  gams meanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Gams      : meanvar-scalar.gms
+
+--- Restarting execution
+--- meanvar.gms(161) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(167) 3 Mb
+*** Status: Normal completion
+--- Job meanvar.gms Stop 12/13/18 10:24:51 elapsed 0:00:00.128

@@ -1,0 +1,679 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 2
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+C o m p i l a t i o n
+
+
+       
+      This problem finds a least cost circulation of trainunits that meets
+      requirements of first and second class passenger demand on all timetable
+      trips. For a single traintype the MIP model always solves in the root,
+      for two and more traintypes it is a difficult MIP model.
+       
+       
+      Schrijver, A, Minimum Circulation of Railway Stock. CWI Quarterly 3
+      (1993), 205-217.
+       
+  16   
+  17   
+  20  Set    z trains in the timetable / z1*z36 /
+  21         t all minutes of the day /
+  22            0000*0059, 0100*0159, 0200*0259, 0300*0359,
+  23            0400*0459, 0500*0559, 0600*0659, 0700*0759,
+  24            0800*0859, 0900*0959, 1000*1059, 1100*1159,
+  25            1200*1259, 1300*1359, 1400*1459, 1500*1559,
+  26            1600*1659, 1700*1759, 1800*1859, 1900*1959,
+  27            2000*2059, 2100*2159, 2200*2259, 2300*2359
+  28           /
+  29         s stations /
+  30            Asd Amsterdam
+  31            Rtd Rotterdam
+  32            Rsd Roosendaal
+  33            Vl  Vlissingen
+  34           /
+  35         tu trainunit type / tu1*tu2 /
+  36         c service classes / First, Second /
+  37   
+  38  Table trainunitdata (tu,*) train unit type data
+  39           First       Second     NumberCars  Cost
+  40  tu1       38           163          3        4
+  41  tu2       65           218          4        5
+  42  ;
+  43   
+  44  Scalar maxcars maximum number of cars on a track / 15 /;
+  45   
+  46  Table timetable(z,s,t,s,t,*)
+  47     /* departure arrival */  First  Second
+  48     z1 .Rtd.0700.Rsd.0740        4      58
+  49     z1 .Rsd.0743.Vl .0838       14     328
+  50     z2 .Asd.0648.Rtd.0755       47     340
+  51     z2 .Rtd.0801.Rsd.0841       35     272
+  52     z2 .Rsd.0843.Vl .0938       19     181
+  53     z3 .Asd.0755.Rtd.0858      100     616
+  54     z3 .Rtd.0902.Rsd.0941       52     396
+  55     z3 .Rsd.0943.Vl .1038       27     270
+  56     z4 .Asd.0856.Rtd.0958       61     407
+  57     z4 .Rtd.1003.Rsd.1043       41     364
+  58     z4 .Rsd.1045.Vl .1138       26     237
+  59     z5 .Asd.0956.Rtd.1058       41     336
+  60     z5 .Rtd.1102.Rsd.1141       26     240
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 3
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+C o m p i l a t i o n
+
+
+  61     z5 .Rsd.1143.Vl .1238       24     208
+  62     z6 .Asd.1056.Rtd.1158       31     282
+  63     z6 .Rtd.1203.Rsd.1241       25     221
+  64     z6 .Rsd.1243.Vl .1338       32     188
+  65     z7 .Asd.1156.Rtd.1258       46     287
+  66     z7 .Rtd.1302.Rsd.1341       27     252
+  67     z7 .Rsd.1343.Vl .1438       15     180
+  68     z8 .Asd.1256.Rtd.1358       42     297
+  69     z8 .Rtd.1402.Rsd.1441       27     267
+  70     z8 .Rsd.1443.Vl .1538       21     195
+  71     z9 .Asd.1356.Rtd.1458       33     292
+  72     z9 .Rtd.1502.Rsd.1541       28     287
+  73     z9 .Rsd.1543.Vl .1638       23     290
+  74     z10.Asd.1456.Rtd.1558       39     378
+  75     z10.Rtd.1600.Rsd.1643       52     497
+  76     z10.Rsd.1645.Vl .1740       41     388
+  77     z11.Asd.1556.Rtd.1658       84     527
+  78     z11.Rtd.1701.Rsd.1743      113     749
+  79     z11.Rsd.1745.Vl .1840       76     504
+  80     z12.Asd.1656.Rtd.1758      109     616
+  81     z12.Rtd.1801.Rsd.1842       98     594
+  82     z12.Rsd.1844.Vl .1939       67     381
+  83     z13.Asd.1756.Rtd.1858       78     563
+  84     z13.Rtd.1902.Rsd.1941       51     395
+  85     z13.Rsd.1943.Vl .2038       43     276
+  86     z14.Asd.1856.Rtd.1958       44     320
+  87     z14.Rtd.2002.Rsd.2041       29     254
+  88     z14.Rsd.2043.Vl .2138       20     187
+  89     z15.Asd.1956.Rtd.2058       28     184
+  90     z15.Rtd.2102.Rsd.2141       22     165
+  91     z15.Rsd.2143.Vl .2238       15     136
+  92     z16.Asd.2056.Rtd.2158       21     161
+  93     z16.Rtd.2202.Rsd.2241       13     130
+  94     z17.Asd.2156.Rtd.2258       28     190
+  95     z17.Rtd.2302.Rsd.2354        8      77
+  96     z18.Asd.2256.Rtd.2358       10     123
+  97     z19.Rtd.0531.Asd.0639        7      61
+  98     z20.Rsd.0529.Rtd.0628       16     167
+  99     z20.Rtd.0629.Asd.0738       26     230
+ 100     z21.Vl .0530.Rsd.0635       28     138
+ 101     z21.Rsd.0643.Rtd.0726       88     449
+ 102     z21.Rtd.0732.Asd.0838      106     586
+ 103     z22.Vl .0654.Rsd.0748      100     448
+ 104     z22.Rsd.0752.Rtd.0832      134     628
+ 105     z22.Rtd.0835.Asd.0940      105     545
+ 106     z23.Vl .0756.Rsd.0850       48     449
+ 107     z23.Rsd.0853.Rtd.0932       57     397
+ 108     z23.Rtd.0934.Asd.1038       56     427
+ 109     z24.Vl .0856.Rsd.0950       57     436
+ 110     z24.Rsd.0953.Rtd.1032       71     521
+ 111     z24.Rtd.1034.Asd.1138       75     512
+ 112     z25.Vl .0956.Rsd.1050       24     224
+ 113     z25.Rsd.1053.Rtd.1132       34     281
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 4
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+C o m p i l a t i o n
+
+
+ 114     z25.Rtd.1134.Asd.1238       47     344
+ 115     z26.Vl .1056.Rsd.1150       19     177
+ 116     z26.Rsd.1153.Rtd.1232       26     214
+ 117     z26.Rtd.1234.Asd.1338       36     303
+ 118     z27.Vl .1156.Rsd.1250       19     184
+ 119     z27.Rsd.1253.Rtd.1332       22     218
+ 120     z27.Rtd.1335.Asd.1438       32     283
+ 121     z28.Vl .1256.Rsd.1350       17     181
+ 122     z28.Rsd.1353.Rtd.1432       21     174
+ 123     z28.Rtd.1435.Asd.1538       34     330
+ 124     z29.Vl .1356.Rsd.1450       19     165
+ 125     z29.Rsd.1453.Rtd.1532       25     206
+ 126     z29.Rtd.1534.Asd.1640       39     338
+ 127     z30.Vl .1456.Rsd.1550       22     225
+ 128     z30.Rsd.1553.Rtd.1632       35     298
+ 129     z30.Rtd.1634.Asd.1738       67     518
+ 130     z31.Vl .1556.Rsd.1650       39     332
+ 131     z31.Rsd.1653.Rtd.1733       51     422
+ 132     z31.Rtd.1735.Asd.1838       74     606
+ 133     z32.Vl .1656.Rsd.1750       30     309
+ 134     z32.Rsd.1753.Rtd.1832       32     313
+ 135     z32.Rtd.1834.Asd.1938       37     327
+ 136     z33.Vl .1756.Rsd.1850       19     164
+ 137     z33.Rsd.1853.Rtd.1932       20     156
+ 138     z33.Rtd.1934.Asd.2038       23     169
+ 139     z34.Vl .1856.Rsd.1950       15     142
+ 140     z34.Rsd.1953.Rtd.2032       14     155
+ 141     z34.Rtd.2035.Asd.2138       18     157
+ 142     z35.Vl .1955.Rsd.2049       11     121
+ 143     z35.Rsd.2052.Rtd.2130       14     130
+ 144     z35.Rtd.2132.Asd.2238       17     154
+ 145     z36.Rsd.2153.Rtd.2232        7      64
+ 146     z36.Rtd.2234.Asd.2338       11     143
+ 147  ;
+ 148   
+ 149  Set g(s,t,s,t) timetable graph
+ 150     is(s,t,s,t) in-service arcs
+ 151     on(s,t,s,t) overnight arcs
+ 152        ste(s,t) station timetable events
+ 153  first_ste(s,t) first station timetable event of the day
+ 154   last_ste(s,t) last station timetable event of the day
+ 155         tup(tu) subset of train units in the model
+ 156   
+ 157  Alias (t,tt), (s,ss);
+ 158   
+ 159  * Construct the timetable graph
+ 160   
+ 161  loop((z,s,t,ss,tt)$sum(c,timetable(z,s,t,ss,tt,c)),
+ 162    ste(s,t) = yes; ste(ss,tt) = yes;  // station timetable events
+ 163    is(s,t,ss,tt) = yes;               // in-service arcs
+ 164    g(s,t,ss,tt) = yes;
+ 165  );
+ 166   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 5
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+C o m p i l a t i o n
+
+
+ 167  loop(s,
+ 168  * The first station time event of the day
+ 169    first_ste(ss,tt) = no;
+ 170    loop(ste(s,t)$(not card(first_ste)), first_ste(ste) = yes);
+ 171   
+ 172  * All adjacent station time events are the in-station arcs
+ 173    last_ste(first_ste)  = yes;
+ 174    loop(ste(s,t)$(not first_ste(ste)),
+ 175      g(last_ste(s,tt),ste) = yes;
+ 176      last_ste(ss,tt) = no;
+ 177      last_ste(ste)   = yes;
+ 178    );
+ 179   
+ 180  * Don't forget the overnight arc
+ 181    on(last_ste,first_ste) = yes;
+ 182    g(on) = yes;
+ 183  );
+ 184   
+ 185   
+ 186  Variable  f(tu,s,t,s,t)         the flow of train units
+ 187            obj                   the objective variable
+ 188  Integer Variable f;
+ 189   
+ 190  Equations circulation(tu,s,t)   inflow is equal outflow at each node
+ 191            demand(s,t,s,t,c)     demand of first and second class seats
+ 192            defmaxcars(s,t,s,t)   maximum cars on in-service arcs
+ 193            defobj                objective function;
+ 194   
+ 195  circulation(tup,ste(s,t)).. sum(g(ss,tt,ste),f(tup,g)) =e=
+ 196                              sum(g(ste,ss,tt),f(tup,g));
+ 197   
+ 198  demand(is,c)..     sum(z,timetable(z,is,c)) =l=
+ 199                     sum(tup, f(tup,is)*trainunitdata(tup,c));
+ 200   
+ 201  defmaxcars(is)..   maxcars =g=
+ 202                     sum(tup, f(tup,is)*trainunitdata(tup,'NumberCars'));
+ 203   
+ 204  defobj..           obj =e= sum((tup,on), f(tup,on)*trainunitdata(tup,'Cost'));
+ 205   
+ 206  Model nscirc /all/ ;
+ 207  option optcr=0;
+ 208   
+ 209  * If we do one type of trainunit at a time, we can tighten the demand equation
+ 210  f.lo(tu,is) = smax(c,ceil(sum(z,timetable(z,is,c)/trainunitdata(tu,c))));
+ 211   
+ 212  Parameter rep solution report;
+ 213   
+ 214  * Now trainunit tu1
+ 215  tup('tu1') = yes; tup('tu2') = no;
+ 216  solve nscirc using mip minimizing obj;
+ 217   
+ 218  rep('tu1 only',tup) = sum(on, f.l(tup,on));
+ 219  rep('tu1 only','Total cost') = obj.l;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 6
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+C o m p i l a t i o n
+
+
+ 220  rep('tu1 only','maxcars') = maxcars;
+ 221   
+ 222  * Now trainunit tu2
+ 223  tup('tu1') = no; tup('tu2') = yes;
+ 224   
+ 225  * We have to reset maxcars to 16 because of service Rtd.1701 to Rsd.1743
+ 226  * which requires 4 trains units of type tu2 and therefore 16 cars.
+ 227  maxcars = 16;
+ 228  solve nscirc using mip minimizing obj;
+ 229   
+ 230  rep('tu2 only',tup) = sum(on, f.l(tup,on));
+ 231  rep('tu2 only','maxcars') = maxcars;
+ 232  rep('tu2 only','Total cost') = obj.l;
+ 233   
+ 234  * Now both trainunits
+ 235  tup('tu1') = yes; tup('tu2') = yes;
+ 236   
+ 237  * Undo the tightening and go back to the original maxcars
+ 238  maxcars = 15;
+ 239  f.lo(tu,is) = 0;
+ 240   
+ 241  * Take the 'tu1 only' single trainunit solution as a start
+ 242  f.l("tu2",g) = 0;
+ 243  nscirc.tryint = 0.1;
+ 244   
+ 245  solve nscirc using mip minimizing obj; // this is a real MIP
+ 246   
+ 247  rep('tu1+tu2 ',tup) = sum(on, f.l(tup,on));
+ 248  rep('tu1+tu2 ','maxcars') = maxcars;
+ 249  rep('tu1+tu2 ','Total cost') = obj.l;
+ 250   
+ 251  display rep;
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 7
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Equation Listing    SOLVE nscirc Using MIP From line 216
+
+
+---- circulation  =E=  inflow is equal outflow at each node
+
+circulation(tu1,Asd,0639)..  - f(tu1,Asd,0639,Asd,0648) + f(tu1,Asd,2338,Asd,0639) + f(tu1,Rtd,0531,Asd,0639) =E= 0 ; (LHS = 1, INFES = 1 ****)
+     
+circulation(tu1,Asd,0648)..  f(tu1,Asd,0639,Asd,0648) - f(tu1,Asd,0648,Asd,0738) - f(tu1,Asd,0648,Rtd,0755) =E= 0 ; (LHS = -3, INFES = 3 ****)
+     
+circulation(tu1,Asd,0738)..  f(tu1,Asd,0648,Asd,0738) - f(tu1,Asd,0738,Asd,0755) + f(tu1,Rtd,0629,Asd,0738) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+REMAINING 195 ENTRIES SKIPPED
+
+
+---- demand  =L=  demand of first and second class seats
+
+demand(Asd,0648,Rtd,0755,First)..  - 38*f(tu1,Asd,0648,Rtd,0755) =L= -47 ; (LHS = -114)
+     
+demand(Asd,0648,Rtd,0755,Second)..  - 163*f(tu1,Asd,0648,Rtd,0755) =L= -340 ; (LHS = -489)
+     
+demand(Asd,0755,Rtd,0858,First)..  - 38*f(tu1,Asd,0755,Rtd,0858) =L= -100 ; (LHS = -152)
+     
+REMAINING 195 ENTRIES SKIPPED
+
+
+---- defmaxcars  =G=  maximum cars on in-service arcs
+
+defmaxcars(Asd,0648,Rtd,0755)..  - 3*f(tu1,Asd,0648,Rtd,0755) =G= -15 ; (LHS = -9)
+     
+defmaxcars(Asd,0755,Rtd,0858)..  - 3*f(tu1,Asd,0755,Rtd,0858) =G= -15 ; (LHS = -12)
+     
+defmaxcars(Asd,0856,Rtd,0958)..  - 3*f(tu1,Asd,0856,Rtd,0958) =G= -15 ; (LHS = -9)
+     
+REMAINING 96 ENTRIES SKIPPED
+
+
+---- defobj  =E=  objective function
+
+defobj..  - 4*f(tu1,Asd,2338,Asd,0639) - 4*f(tu1,Rtd,2358,Rtd,0531) - 4*f(tu1,Rsd,2354,Rsd,0529) - 4*f(tu1,Vl,2238,Vl,0530) + obj =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 8
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Column Listing      SOLVE nscirc Using MIP From line 216
+
+
+---- f  the flow of train units
+
+f(tu1,Asd,0639,Asd,0648)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu1,Asd,0639)
+        1       circulation(tu1,Asd,0648)
+
+f(tu1,Asd,0648,Asd,0738)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu1,Asd,0648)
+        1       circulation(tu1,Asd,0738)
+
+f(tu1,Asd,0648,Rtd,0755)
+                (.LO, .L, .UP, .M = 3, 3, 100, 0)
+       -1       circulation(tu1,Asd,0648)
+        1       circulation(tu1,Rtd,0755)
+      -38       demand(Asd,0648,Rtd,0755,First)
+     -163       demand(Asd,0648,Rtd,0755,Second)
+       -3       defmaxcars(Asd,0648,Rtd,0755)
+        0       (OLD LEVEL ****)
+
+REMAINING 294 ENTRIES SKIPPED
+
+---- obj  the objective variable
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+
+****
+****  297 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 9
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Model Statistics    SOLVE nscirc Using MIP From line 216
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          496
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          298  99 projected
+NON ZERO ELEMENTS           896     DISCRETE VARIABLES        297
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 10
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Solution Report     SOLVE nscirc Using MIP From line 216
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nscirc              OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  216
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+>>  gams railcirc-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+Gams      : railcirc-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 11
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Equation Listing    SOLVE nscirc Using MIP From line 228
+
+
+---- circulation  =E=  inflow is equal outflow at each node
+
+circulation(tu2,Asd,0639)..  - f(tu2,Asd,0639,Asd,0648) + f(tu2,Asd,2338,Asd,0639) + f(tu2,Rtd,0531,Asd,0639) =E= 0 ; (LHS = 1, INFES = 1 ****)
+     
+circulation(tu2,Asd,0648)..  f(tu2,Asd,0639,Asd,0648) - f(tu2,Asd,0648,Asd,0738) - f(tu2,Asd,0648,Rtd,0755) =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+circulation(tu2,Asd,0738)..  f(tu2,Asd,0648,Asd,0738) - f(tu2,Asd,0738,Asd,0755) + f(tu2,Rtd,0629,Asd,0738) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+REMAINING 195 ENTRIES SKIPPED
+
+
+---- demand  =L=  demand of first and second class seats
+
+demand(Asd,0648,Rtd,0755,First)..  - 65*f(tu2,Asd,0648,Rtd,0755) =L= -47 ; (LHS = -130)
+     
+demand(Asd,0648,Rtd,0755,Second)..  - 218*f(tu2,Asd,0648,Rtd,0755) =L= -340 ; (LHS = -436)
+     
+demand(Asd,0755,Rtd,0858,First)..  - 65*f(tu2,Asd,0755,Rtd,0858) =L= -100 ; (LHS = -195)
+     
+REMAINING 195 ENTRIES SKIPPED
+
+
+---- defmaxcars  =G=  maximum cars on in-service arcs
+
+defmaxcars(Asd,0648,Rtd,0755)..  - 4*f(tu2,Asd,0648,Rtd,0755) =G= -16 ; (LHS = -8)
+     
+defmaxcars(Asd,0755,Rtd,0858)..  - 4*f(tu2,Asd,0755,Rtd,0858) =G= -16 ; (LHS = -12)
+     
+defmaxcars(Asd,0856,Rtd,0958)..  - 4*f(tu2,Asd,0856,Rtd,0958) =G= -16 ; (LHS = -8)
+     
+REMAINING 96 ENTRIES SKIPPED
+
+
+---- defobj  =E=  objective function
+
+defobj..  - 5*f(tu2,Asd,2338,Asd,0639) - 5*f(tu2,Rtd,2358,Rtd,0531) - 5*f(tu2,Rsd,2354,Rsd,0529) - 5*f(tu2,Vl,2238,Vl,0530) + obj =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 12
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Column Listing      SOLVE nscirc Using MIP From line 228
+
+
+---- f  the flow of train units
+
+f(tu2,Asd,0639,Asd,0648)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu2,Asd,0639)
+        1       circulation(tu2,Asd,0648)
+
+f(tu2,Asd,0648,Asd,0738)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu2,Asd,0648)
+        1       circulation(tu2,Asd,0738)
+
+f(tu2,Asd,0648,Rtd,0755)
+                (.LO, .L, .UP, .M = 2, 2, 100, 0)
+       -1       circulation(tu2,Asd,0648)
+        1       circulation(tu2,Rtd,0755)
+      -65       demand(Asd,0648,Rtd,0755,First)
+     -218       demand(Asd,0648,Rtd,0755,Second)
+       -4       defmaxcars(Asd,0648,Rtd,0755)
+        0       (OLD LEVEL ****)
+
+REMAINING 294 ENTRIES SKIPPED
+
+---- obj  the objective variable
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+
+****
+****  297 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 13
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Model Statistics    SOLVE nscirc Using MIP From line 228
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          496
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          298  99 projected
+NON ZERO ELEMENTS           896     DISCRETE VARIABLES        297
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 14
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Solution Report     SOLVE nscirc Using MIP From line 228
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nscirc              OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  228
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+>>  gams railcirc-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+Gams      : railcirc-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 15
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Equation Listing    SOLVE nscirc Using MIP From line 245
+
+
+---- circulation  =E=  inflow is equal outflow at each node
+
+circulation(tu1,Asd,0639)..  - f(tu1,Asd,0639,Asd,0648) + f(tu1,Asd,2338,Asd,0639) + f(tu1,Rtd,0531,Asd,0639) =E= 0 ; (LHS = 0)
+     
+circulation(tu1,Asd,0648)..  f(tu1,Asd,0639,Asd,0648) - f(tu1,Asd,0648,Asd,0738) - f(tu1,Asd,0648,Rtd,0755) =E= 0 ; (LHS = 0)
+     
+circulation(tu1,Asd,0738)..  f(tu1,Asd,0648,Asd,0738) - f(tu1,Asd,0738,Asd,0755) + f(tu1,Rtd,0629,Asd,0738) =E= 0 ; (LHS = 0)
+     
+REMAINING 393 ENTRIES SKIPPED
+
+
+---- demand  =L=  demand of first and second class seats
+
+demand(Asd,0648,Rtd,0755,First)..  - 38*f(tu1,Asd,0648,Rtd,0755) - 65*f(tu2,Asd,0648,Rtd,0755) =L= -47 ; (LHS = 0, INFES = 47 ****)
+     
+demand(Asd,0648,Rtd,0755,Second)..  - 163*f(tu1,Asd,0648,Rtd,0755) - 218*f(tu2,Asd,0648,Rtd,0755) =L= -340 ; (LHS = 0, INFES = 340 ****)
+     
+demand(Asd,0755,Rtd,0858,First)..  - 38*f(tu1,Asd,0755,Rtd,0858) - 65*f(tu2,Asd,0755,Rtd,0858) =L= -100 ; (LHS = 0, INFES = 100 ****)
+     
+REMAINING 195 ENTRIES SKIPPED
+
+
+---- defmaxcars  =G=  maximum cars on in-service arcs
+
+defmaxcars(Asd,0648,Rtd,0755)..  - 3*f(tu1,Asd,0648,Rtd,0755) - 4*f(tu2,Asd,0648,Rtd,0755) =G= -15 ; (LHS = 0)
+     
+defmaxcars(Asd,0755,Rtd,0858)..  - 3*f(tu1,Asd,0755,Rtd,0858) - 4*f(tu2,Asd,0755,Rtd,0858) =G= -15 ; (LHS = 0)
+     
+defmaxcars(Asd,0856,Rtd,0958)..  - 3*f(tu1,Asd,0856,Rtd,0958) - 4*f(tu2,Asd,0856,Rtd,0958) =G= -15 ; (LHS = 0)
+     
+REMAINING 96 ENTRIES SKIPPED
+
+
+---- defobj  =E=  objective function
+
+defobj..  - 4*f(tu1,Asd,2338,Asd,0639) - 4*f(tu1,Rtd,2358,Rtd,0531) - 4*f(tu1,Rsd,2354,Rsd,0529) - 4*f(tu1,Vl,2238,Vl,0530) - 5*f(tu2,Asd,2338,Asd,0639) - 5*f(tu2,Rtd,2358,Rtd,0531) - 5*f(tu2,Rsd,2354,Rsd,0529) - 5*f(tu2,Vl,2238,Vl,0530) + obj =E= 0 ;
+     
+      (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 16
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Column Listing      SOLVE nscirc Using MIP From line 245
+
+
+---- f  the flow of train units
+
+f(tu1,Asd,0639,Asd,0648)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu1,Asd,0639)
+        1       circulation(tu1,Asd,0648)
+
+f(tu1,Asd,0648,Asd,0738)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu1,Asd,0648)
+        1       circulation(tu1,Asd,0738)
+
+f(tu1,Asd,0648,Rtd,0755)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       circulation(tu1,Asd,0648)
+        1       circulation(tu1,Rtd,0755)
+      -38       demand(Asd,0648,Rtd,0755,First)
+     -163       demand(Asd,0648,Rtd,0755,Second)
+       -3       defmaxcars(Asd,0648,Rtd,0755)
+
+REMAINING 591 ENTRIES SKIPPED
+
+---- obj  the objective variable
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+
+****
+****  594 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 17
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Model Statistics    SOLVE nscirc Using MIP From line 245
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          694
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          595
+NON ZERO ELEMENTS         1,791     DISCRETE VARIABLES        594
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 18
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+Solution Report     SOLVE nscirc Using MIP From line 245
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nscirc              OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  245
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+>>  gams railcirc-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+Gams      : railcirc-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 19
+Minimum Circulation of Railway Stock (railcirc,SEQ=220)
+E x e c u t i o n
+
+
+----    251 PARAMETER rep  solution report
+
+             maxcars
+
+tu1 only      15.000
+tu2 only      16.000
+tu1+tu2       15.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/railcirc/railcirc.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/railcirc/railcirc-scalar.gms.lst

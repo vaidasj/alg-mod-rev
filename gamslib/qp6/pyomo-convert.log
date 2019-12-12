@@ -1,0 +1,33 @@
+--- Job qp6.gms Start 12/13/18 10:32:15 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- qp6.gms(17) 2 Mb
+--- .qpdata.inc(16290) 4 Mb
+--- qp6.gms(80) 4 Mb
+--- Starting execution: elapsed 0:00:00.022
+--- qp6.gms(16351) 6 Mb
+--- Generating MCP model qp6
+--- qp6.gms(16364) 8 Mb
+---   110 rows  110 columns  3,131 non-zeroes
+---   0 nl-code  0 nl-non-zeroes
+--- qp6.gms(16364) 6 Mb
+--- Executing CONVERT: elapsed 0:00:00.032
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp6/convert.opt"
+>>  pyomo qp6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp6/convert.opt"
+--- Writing Pyomo     : qp6-scalar.py
+
+--- Restarting execution
+--- qp6.gms(16364) 4 Mb
+--- Reading solution for model qp6
+--- qp6.gms(16368) 4 Mb
+*** Status: Normal completion
+--- Job qp6.gms Stop 12/13/18 10:32:15 elapsed 0:00:00.054

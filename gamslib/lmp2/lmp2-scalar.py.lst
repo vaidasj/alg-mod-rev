@@ -1,0 +1,1528 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 2
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+C o m p i l a t i o n
+
+
+   5   
+       
+         Generates and solves random linear multiplicative models of
+         "Type 2." Problem instances are generated as proposed by
+         Thoai. Model developed by N. Sahinidis.
+       
+       
+      N. V. Thoai, "A global optimization approach for solving
+      convex multiplicative programming problems,"
+      Journal of Global Optimization, 1(341-357), 1991.
+       
+      M. Tawarmalani and N. Sahinidis, Convexification and Global
+      Optimization in Continuous and Mixed-Integer Nonlinear
+      Programming: Theory, Algorithms, Software, and Applications,
+      Kluwer Academic Publishers, 2002.
+       
+  23   
+  24  Options
+  25       optcr    = 0,
+  26       optca    = 1.e-6,
+  27       limrow   = 0,
+  28       limcol   = 0,
+  29       solprint = off;
+  30   
+  31  Sets mm /m1*m200/
+  32       nn /n1*n200/;
+  33   
+  34  Sets m(mm) constraints
+  35       n(nn) variables;
+  36   
+  37  Sets p     products    /p1*p2/
+  38       c     cases       /c1*c5/
+  39       i     instances   /i1*i5/ ;
+  40   
+  41  * For each case to be solved, we use a different (m,n) pair
+  42  Table cases(c,*)
+  43        m   n
+  44  c1   10  20
+  45  c2   20  30
+  46  c3   60 100
+  47  c4  100 100
+  48  c5  200 200 ;
+  49   
+  50  Parameters cc(p,nn)  cost coefficients
+  51             f(p)      constants
+  52             A(mm,nn)  constraint coefficients
+  53             b(mm)     left-hand-side
+  54             rep(c,*)  summary report ;
+  55   
+  56  Parameters ResMin, Resmax, NodMin, Nodmax;
+  57   
+  58   
+  59  Variables y(p), x(nn), obj ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 3
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+C o m p i l a t i o n
+
+
+  60  x.lo(nn) = 0;
+  61   
+  62   
+  63  Equations  Objective,
+  64             Constraints(mm),
+  65             Products(p);
+  66   
+  67  Objective..      obj  =E= prod(p, y(p));
+  68   
+  69  Products(p)..    y(p) =E= sum(n, cc(p,n)*x(n));
+  70   
+  71  Constraints(m).. b(m) =L= sum(n, A(m,n)*x(n)) ;
+  72   
+  73   
+  74  Model lmp2 /all/;
+  75  lmp2.workspace = 32;
+  76   
+  77  rep(c,'AvgResUsd') = 0;
+  78  rep(c,'AvgNodUsd')= 0;
+  79   
+  80   
+  81  loop (c,
+  82   
+  83     m(mm)   = ord(mm) <= cases(c,'m');
+  84     n(nn)   = ord(nn) <= cases(c,'n');
+  85   
+  86     ResMin  = inf;
+  87     Resmax  = 0;
+  88     NodMin  = inf;
+  89     Nodmax  = 0;
+  90   
+  91     loop(i,
+  92   
+  93        f(p)    = uniform(0,1);
+  94        cc(p,n) = uniform(0,1);
+  95        A(m,n)  = (2*uniform(0,1)-1);
+  96        b(m)    = (sum(n, A(m,n)) + 2*uniform(0,1));
+  97   
+  98  * Set initial starting point for all models to 0
+  99        x.l(n)=0; y.l(p)=0;
+ 100   
+ 101        Solve lmp2 minimizing obj using nlp;
+ 102   
+ 103        rep(c,'AvgResUsd')  = rep(c,'AvgResUsd') + lmp2.resusd;
+ 104        rep(c,'AvgNodUsd')  = rep(c,'AvgNodUsd') + lmp2.nodusd;
+ 105   
+ 106        ResMin = min(ResMin, lmp2.resusd);
+ 107        NodMin = min(NodMin, lmp2.nodusd);
+ 108        ResMax = max(ResMax, lmp2.resusd);
+ 109        NodMax = max(NodMax, lmp2.nodusd);
+ 110   
+ 111     );
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 4
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+C o m p i l a t i o n
+
+
+ 113     rep(c,'MinResUsd') = ResMin;
+ 114     rep(c,'MaxResUsd') = ResMax;
+ 115     rep(c,'MinNodUsd') = nodMin;
+ 116     rep(c,'MaxNodUsd') = nodMax;
+ 117   
+ 118  );
+ 119   
+ 120  rep(c,'AvgResUsd') = rep(c,'AvgResUsd')/card(i);
+ 121  rep(c,'AvgNodUsd') = rep(c,'AvgNodUsd')/card(i);
+ 122   
+ 123  Display rep;
+ 124   
+ 125   
+ 126   
+ 127   
+ 128   
+ 129   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 5
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c1
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           23
+NON ZERO ELEMENTS           245     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 6
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 7
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c1
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           23
+NON ZERO ELEMENTS           245     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 8
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:51 Page 9
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c1
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           23
+NON ZERO ELEMENTS           245     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 10
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 11
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c1
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           23
+NON ZERO ELEMENTS           245     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 12
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 13
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c1
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           23
+NON ZERO ELEMENTS           245     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 14
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 15
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c2
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 16
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 17
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c2
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 18
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 19
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c2
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 20
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 21
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c2
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 22
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 23
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c2
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 24
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 25
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c3
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           63
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS         6,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 26
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 27
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c3
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           63
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS         6,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 28
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 29
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c3
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           63
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS         6,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 30
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 31
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c3
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           63
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS         6,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 32
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 33
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c3
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           63
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS         6,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 34
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 35
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c4
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          103
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        10,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 36
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 37
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c4
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          103
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        10,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 38
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 39
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c4
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          103
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        10,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 40
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 41
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c4
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          103
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        10,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 42
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 43
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c4
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          103
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        10,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 44
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 45
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c5
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          203
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        40,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.023 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 46
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 47
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c5
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          203
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        40,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.023 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 48
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 49
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c5
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          203
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        40,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.027 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 50
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 51
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c5
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          203
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        40,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.023 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 52
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 53
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Model Statistics    SOLVE lmp2 Using NLP From line 101
+
+
+LOOPS                                    c   c5
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          203
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        40,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.023 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 54
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+Solution Report     SOLVE lmp2 Using NLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+>>  pyomo lmp2-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp2/convert.opt"
+Pyomo     : lmp2-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:51 Page 55
+Linear Multiplicative Programs - Type 2 (LMP2, SEQ=252)
+E x e c u t i o n
+
+
+----    123 PARAMETER rep  summary report
+
+     AvgNodUsd   MinNodUsd   MaxNodUsd
+
+c1          NA          NA          NA
+c2          NA          NA          NA
+c3          NA          NA          NA
+c4          NA          NA          NA
+c5          NA          NA          NA
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/lmp2/lmp2.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/lmp2/lmp2-scalar.py.lst

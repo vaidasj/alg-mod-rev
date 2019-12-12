@@ -1,0 +1,77 @@
+--- Job sparta.gms Start 12/13/18 10:24:49 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- sparta.gms(82) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- sparta.gms(63) 4 Mb
+--- Generating LP model sparta1
+--- sparta.gms(70) 4 Mb
+---   11 rows  41 columns  131 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+>>  gams sparta-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+--- Writing Gams      : sparta-scalar.gms
+
+--- Restarting execution
+--- sparta.gms(70) 2 Mb
+--- Reading solution for model sparta1
+--- Generating LP model sparta2
+--- sparta.gms(71) 3 Mb
+---   11 rows  41 columns  131 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.019
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+>>  gams sparta-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+--- Writing Gams      : sparta-scalar.gms
+
+--- Restarting execution
+--- sparta.gms(71) 2 Mb
+--- Reading solution for model sparta2
+--- Generating LP model sparta3
+--- sparta.gms(72) 3 Mb
+---   11 rows  41 columns  131 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.035
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+>>  gams sparta-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+--- Writing Gams      : sparta-scalar.gms
+
+--- Restarting execution
+--- sparta.gms(72) 2 Mb
+--- Reading solution for model sparta3
+--- Generating LP model sparta4
+--- sparta.gms(73) 3 Mb
+---   11 rows  51 columns  130 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.045
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+>>  gams sparta-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sparta/convert.opt"
+--- Writing Gams      : sparta-scalar.gms
+
+--- Restarting execution
+--- sparta.gms(73) 2 Mb
+--- Reading solution for model sparta4
+--- sparta.gms(82) 3 Mb
+*** Status: Normal completion
+--- Job sparta.gms Stop 12/13/18 10:24:49 elapsed 0:00:00.057

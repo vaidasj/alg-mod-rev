@@ -1,0 +1,124 @@
+  T H E   D  E  C  I  S   S Y S T E M
+  
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved. 
+  
+  Licensee: Customer Sublicensee           Gams Development Corporation  
+  
+ parameters: 
+  
+ istrat    =  1
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+  
+ stoch array sizes:
+ jele:   5
+ jsum:   20
+ itoc:   5
+ itele:  20
+  
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000021  R0000006   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+  
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+  
+ nwcore1:  9004769
+ nwcore2:  6609
+ nwcore :  9017987
+  
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 10 cols 25 nonz 64
+ master: rows 5 cols 21 nonz 37
+ B:      rows 6 cols 20 nonz 17
+ sub:    rows 6 cols 5 nonz 10
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 6 cols: 20 nonz: 17
+ Successful input of stochastic file:
+ Independent random parameters:  5
+ Total number of outcomes     :  20
+ Universe scenarios           :   750.
+ start deterministic benders (exp.values)
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm  0.
+ theta : -1.E+09
+ evaluating w/ expected values
+ sub obj:  7332.5
+ solve master, iteration:  1
+ master objective:  -182.5
+ lower bnd.: -182.5  var.:  0.
+ upper bnd.:  7332.5  var.:  0.
+ objm  970.
+ evaluating w/ expected values
+ sub obj:  2432.5
+ solve master, iteration:  2
+ master objective:   512.428571
+ lower bnd.:  512.428571  var.:  0.
+ upper bnd.:  3402.5  var.:  0.
+ objm  936.519481
+ evaluating w/ expected values
+ sub obj:  1867.5
+ solve master, iteration:  3
+ master objective:   845.222944
+ lower bnd.:  845.222944  var.:  0.
+ upper bnd.:  2804.01948  var.:  0.
+ objm  945.619048
+ evaluating w/ expected values
+ sub obj:  3019.6039
+ solve master, iteration:  4
+ master objective:   981.928571
+ lower bnd.:  981.928571  var.:  0.
+ upper bnd.:  2804.01948  var.:  0.
+ objm  971.714286
+ evaluating w/ expected values
+ sub obj:  562.714286
+ solve master, iteration:  5
+ master objective:   1037.24603
+ lower bnd.:  1037.24603  var.:  0.
+ upper bnd.:  1534.42857  var.:  0.
+ objm  904.928571
+ evaluating w/ expected values
+ sub obj:  132.31746
+ solve master, iteration:  6
+ master objective:   1037.24603
+ lower bnd.:  1037.24603  var.:  0.
+ upper bnd.:  1037.24603  var.:  0.
+ objm  904.928571
+ re-evaluating best solution for upper bnd
+ evaluating w/ expected values
+ sub obj:  132.31746
+ upper bnd.:  1037.24603 var.:  0.
+  solution : 
+  obj :   1037.24603
+ x1p( 1):   10.
+ x1p( 7):   7.56349206
+ x1p( 8):   5.43650794
+ x1p( 9):   6.
+ x1p( 12):   8.87301587
+ x1p( 15):   16.1269841
+ x1p( 16):   10.2777778
+ x1p( 18):   4.72222222
+ x1p( 21):   132.31746
+ theta:   132.31746 zsub:   132.31746

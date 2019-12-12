@@ -1,0 +1,622 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 2
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+C o m p i l a t i o n
+
+
+       
+         This is a direct MINLP formulation of the gamslib model NONSHARP, which
+         solves this problem with a special Benders method called APROS. The initial
+         GAMS implementation was done by Skip Paules.
+       
+       
+      Aggarwal, A, and Floudas, C A, Synthesis of General Distillation
+      Sequences: Nonsharp Separation. Computers and Chemical Engineering
+      14, 6 (1990), 631-653.
+       
+  15   
+  16  Sets  c  components     / a, b, c        /
+  17        i  columns        / col-1*col-2    /
+  18        p  products       / prod-1, prod-2 /
+  19        s  column streams / top, bot       /
+  20   
+  21  *   Derived Sets - These sets are used to define the mapping of the
+  22  *   superstructure for the problem at any stage
+  23   
+  24        inter(i,i,s)  column i fed by column j top or bottom  /
+  25                      col-1.col-2.top, col-2.col-1.bot  /
+  26        key(i,s,c)    key components for column  /
+  27                      col-1.top.a, (col-2.top,col-1.bot).b, col-2.bot.c /
+  28        link(i,s,c)   nondistribution of nonkeys  /
+  29                      col-1.top.c, col-2.bot.a /
+  30   
+  31  Alias(i,j) ;
+  32   
+  33  Parameters
+  34   
+  35    feed(c)  feed of each component  /a  100, b  100, c  100 /
+  36    cost(i)  alpha coeffs  / col-1    0.23947  ,  col-2    0.75835   /
+  37    a1(i)    a1 coeffs   / col-1   -0.0139904,  col-2   -0.0661588 /
+  38    a2(i,s)  a2 coeffs   / col-1.top  0.0093514, col-2.top    0.0338147
+  39                           col-1.bot  0.0077308, col-2.bot    0.0373349 /
+  40    a3(i,c)  a3 coeffs (corresponds to feed composition)
+  41                         / col-1.a   -0.0005719, col-2.a    0.0016371
+  42                           col-1.b    0.0042656, col-2.b    0.0288996
+  43                           col-1.c    0.0      , col-2.c    0.0         /
+  44    out(c,p) product composition /
+  45                           a.prod-1 80, b.prod-1 30, c.prod-1 20
+  46                           a.prod-2 20, b.prod-2 70, c.prod-2 80  /
+  47    xinit(c) composition of flow finite and fby
+  48    totfeed  total flow to the superstructure ;
+  49   
+  50  totfeed  = sum(c, feed(c));
+  51  xinit(c) = feed(c)/totfeed;
+  52   
+  53  Variable
+  54      cobj    total cost
+  55   
+  56  Positive Variables
+  57      finit(i)     flow from initial splitter to column i
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 3
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+C o m p i l a t i o n
+
+
+  58      fin(i)       total flow to column i
+  59      f(i,s)       flow rate of column top & bottom product streams
+  60      fint(i,j,s)  flow rate of interconnecting streams
+  61      fpr(i,s,p)   flow rate of streams to products
+  62      fby(p)       flow rate of bypass streams
+  63      cfin(i,c)    component flow to column i
+  64      xin(i,c)     composition of flow fin
+  65      x(i,s,c)     composition of flow f
+  66      rec(i,s,c)   recovery of key components
+  67   
+  68  Binary Variables
+  69      y(i)         existence of column i ;
+  70   
+  71  Equations
+  72     obj           objective function
+  73     spblinit      initial splitter balance
+  74     spblcol(i,s)  splitter balances at each column top & bottom outlets
+  75     mixbal(i,c)   mixer balance equations at inlet of each column
+  76     colbal(i,c)   component balance equations around each column
+  77     keybal(i,s,c) key component balances for each column
+  78     probal(p,c)   component balance equations for each product
+  79     cfloin(i,c)   equations defining component flowrates for column inlet
+  80     molsum(i,s)   constraint for sum of mole fractions for column products
+  81     molsumin(i)   constraint for sum of mole fractions for column inlet
+  82     dist(i,s,c)   constraint defining the nondistribution of nonkeys
+  83     intcon(i)     logical constraints ;
+  84   
+  85   
+  86  obj.. cobj =E= sum(i, cost(i)*y(i)
+  87               + ( a1(i) + sum(key(i,s,c), a2(i,s)*rec(key)) +  sum(c, a3(i,c)*xin(i,c)))*fin(i));
+  88   
+  89  spblinit..     sum(i, finit(i)) + sum(p, fby(p)) =E= totfeed ;
+  90   
+  91  spblcol(i,s).. f(i,s) =e= sum(inter(j,i,s), fint(inter)) + sum(p, fpr(i,s,p)) ;
+  92   
+  93  mixbal(i,c)..  cfin(i,c) =e= finit(i)*xinit(c) + sum(inter(i,j,s), fint(inter)*x(j,s,c));
+  94   
+  95  colbal(i,c)..  cfin(i,c) =e= sum(s, f(i,s)*x(i,s,c));
+  96   
+  97  keybal(key(i,s,c))..  cfin(i,c)*rec(key) =e= f(i,s)*x(key);
+  98   
+  99  probal(p,c)..  sum((i,s), fpr(i,s,p)*x(i,s,c)) +  fby(p)*xinit(c) =e= out(c,p);
+ 100   
+ 101  cfloin(i,c)..  fin(i)*xin(i,c) =e= cfin(i,c) ;
+ 102   
+ 103  molsum(i,s)..  sum(c, x(i,s,c)) =E= 1 ;
+ 104   
+ 105  molsumin(i)..  sum(c, xin(i,c)) =E= 1 ;
+ 106   
+ 107  dist(link)..   x(link) =E= 0 ;
+ 108   
+ 109  intcon(i)..    fin(i) =l= totfeed*y(i) ;
+ 110   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 4
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+C o m p i l a t i o n
+
+
+ 111  cfin.up(i,c) = feed(c);
+ 112  rec.lo(key)  = .85; rec.up(key) = 1;
+ 113   
+ 114  Model nonsharp / all / ;
+ 115   
+ 116  finit.up(i)    = totfeed;
+ 117  fin.up(i)      = totfeed;
+ 118  f.up(i,s)      = totfeed;
+ 119  fint.up(i,j,s) = totfeed;
+ 120  fpr.up(i,s,p)  = totfeed;
+ 121   
+ 122  x.up(i,s,c) = 1; xin.up(i,c) = 1;
+ 123   
+ 124  * we need to give initial values and bounds to avoid getting
+ 125  * stuck at an infeasible point when the NLP solver starts up
+ 126   
+ 127  y.l(i) = 1/card(i);
+ 128   
+ 129  finit.l(i)    = totfeed/card(i);
+ 130  fin.l(i)      = finit.l(i);
+ 131  f.l(i,s)      = fin.l(i)/card(s);
+ 132  fint.l(i,j,s) = f.l(i,s)/card(j);
+ 133  fpr.l(i,s,p)  = f.l(i,s)/card(p);
+ 134   
+ 135  x.l(i,s,c) = 1/card(c);
+ 136   
+ 137  xin.l(i,c) = 1/card(c);
+ 138   
+ 139  cfin.l(i,c) = sum(s, f.l(i,s)*x.l(i,s,c));
+ 140   
+ 141  solve nonsharp using MINLP minmizing cobj;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 5
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Equation Listing    SOLVE nonsharp Using MINLP From line 141
+
+
+---- obj  =E=  objective function
+
+obj..  cobj - (0.00176070333333333)*fin(col-1) - (0.00449726)*fin(col-2) + (0.085785)*xin(col-1,a) - (0.63984)*xin(col-1,b) - (0.245565)*xin(col-2,a) - (4.33494)*xin(col-2,b) - (1.40271)*rec(col-1,top,a) - (1.15962)*rec(col-1,bot,b)
+     
+      - (5.072205)*rec(col-2,top,b) - (5.600235)*rec(col-2,bot,c) - 0.23947*y(col-1) - 0.75835*y(col-2) =E= 0 ; (LHS = -1.4376045, INFES = 1.4376045 ****)
+     
+
+---- spblinit  =E=  initial splitter balance
+
+spblinit..  finit(col-1) + finit(col-2) + fby(prod-1) + fby(prod-2) =E= 300 ; (LHS = 300)
+     
+
+---- spblcol  =E=  splitter balances at each column top & bottom outlets
+
+spblcol(col-1,top)..  f(col-1,top) - fpr(col-1,top,prod-1) - fpr(col-1,top,prod-2) =E= 0 ; (LHS = 0)
+     
+spblcol(col-1,bot)..  f(col-1,bot) - fint(col-2,col-1,bot) - fpr(col-1,bot,prod-1) - fpr(col-1,bot,prod-2) =E= 0 ; (LHS = -37.5, INFES = 37.5 ****)
+     
+spblcol(col-2,top)..  f(col-2,top) - fint(col-1,col-2,top) - fpr(col-2,top,prod-1) - fpr(col-2,top,prod-2) =E= 0 ; (LHS = -37.5, INFES = 37.5 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- mixbal  =E=  mixer balance equations at inlet of each column
+
+mixbal(col-1,a)..  - 0.333333333333333*finit(col-1) - (0.333333333333333)*fint(col-1,col-2,top) + cfin(col-1,a) - (37.5)*x(col-2,top,a) =E= 0 ; (LHS = -12.5, INFES = 12.5 ****)
+     
+mixbal(col-1,b)..  - 0.333333333333333*finit(col-1) - (0.333333333333333)*fint(col-1,col-2,top) + cfin(col-1,b) - (37.5)*x(col-2,top,b) =E= 0 ; (LHS = -12.5, INFES = 12.5 ****)
+     
+mixbal(col-1,c)..  - 0.333333333333333*finit(col-1) - (0.333333333333333)*fint(col-1,col-2,top) + cfin(col-1,c) - (37.5)*x(col-2,top,c) =E= 0 ; (LHS = -12.5, INFES = 12.5 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- colbal  =E=  component balance equations around each column
+
+colbal(col-1,a)..  - (0.333333333333333)*f(col-1,top) - (0.333333333333333)*f(col-1,bot) + cfin(col-1,a) - (75)*x(col-1,top,a) - (75)*x(col-1,bot,a) =E= 0 ; (LHS = 0)
+     
+colbal(col-1,b)..  - (0.333333333333333)*f(col-1,top) - (0.333333333333333)*f(col-1,bot) + cfin(col-1,b) - (75)*x(col-1,top,b) - (75)*x(col-1,bot,b) =E= 0 ; (LHS = 0)
+     
+colbal(col-1,c)..  - (0.333333333333333)*f(col-1,top) - (0.333333333333333)*f(col-1,bot) + cfin(col-1,c) - (75)*x(col-1,top,c) - (75)*x(col-1,bot,c) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- keybal  =E=  key component balances for each column
+
+keybal(col-1,top,a)..  - (0.333333333333333)*f(col-1,top) + (0.85)*cfin(col-1,a) - (75)*x(col-1,top,a) + (50)*rec(col-1,top,a) =E= 0 ; (LHS = 17.5, INFES = 17.5 ****)
+     
+keybal(col-1,bot,b)..  - (0.333333333333333)*f(col-1,bot) + (0.85)*cfin(col-1,b) - (75)*x(col-1,bot,b) + (50)*rec(col-1,bot,b) =E= 0 ; (LHS = 17.5, INFES = 17.5 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 6
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Equation Listing    SOLVE nonsharp Using MINLP From line 141
+
+
+     keybal  =E=  key component balances for each column
+
+keybal(col-2,top,b)..  - (0.333333333333333)*f(col-2,top) + (0.85)*cfin(col-2,b) - (75)*x(col-2,top,b) + (50)*rec(col-2,top,b) =E= 0 ; (LHS = 17.5, INFES = 17.5 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- probal  =E=  component balance equations for each product
+
+probal(prod-1,a)..  (0.333333333333333)*fpr(col-1,top,prod-1) + (0.333333333333333)*fpr(col-1,bot,prod-1) + (0.333333333333333)*fpr(col-2,top,prod-1) + (0.333333333333333)*fpr(col-2,bot,prod-1) + 0.333333333333333*fby(prod-1) + (37.5)*x(col-1,top,a)
+     
+      + (37.5)*x(col-1,bot,a) + (37.5)*x(col-2,top,a) + (37.5)*x(col-2,bot,a) =E= 80 ; (LHS = 50, INFES = 30 ****)
+     
+probal(prod-1,b)..  (0.333333333333333)*fpr(col-1,top,prod-1) + (0.333333333333333)*fpr(col-1,bot,prod-1) + (0.333333333333333)*fpr(col-2,top,prod-1) + (0.333333333333333)*fpr(col-2,bot,prod-1) + 0.333333333333333*fby(prod-1) + (37.5)*x(col-1,top,b)
+     
+      + (37.5)*x(col-1,bot,b) + (37.5)*x(col-2,top,b) + (37.5)*x(col-2,bot,b) =E= 30 ; (LHS = 50, INFES = 20 ****)
+     
+probal(prod-1,c)..  (0.333333333333333)*fpr(col-1,top,prod-1) + (0.333333333333333)*fpr(col-1,bot,prod-1) + (0.333333333333333)*fpr(col-2,top,prod-1) + (0.333333333333333)*fpr(col-2,bot,prod-1) + 0.333333333333333*fby(prod-1) + (37.5)*x(col-1,top,c)
+     
+      + (37.5)*x(col-1,bot,c) + (37.5)*x(col-2,top,c) + (37.5)*x(col-2,bot,c) =E= 20 ; (LHS = 50, INFES = 30 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- cfloin  =E=  equations defining component flowrates for column inlet
+
+cfloin(col-1,a)..  (0.333333333333333)*fin(col-1) - cfin(col-1,a) + (150)*xin(col-1,a) =E= 0 ; (LHS = 0)
+     
+cfloin(col-1,b)..  (0.333333333333333)*fin(col-1) - cfin(col-1,b) + (150)*xin(col-1,b) =E= 0 ; (LHS = 0)
+     
+cfloin(col-1,c)..  (0.333333333333333)*fin(col-1) - cfin(col-1,c) + (150)*xin(col-1,c) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- molsum  =E=  constraint for sum of mole fractions for column products
+
+molsum(col-1,top)..  x(col-1,top,a) + x(col-1,top,b) + x(col-1,top,c) =E= 1 ; (LHS = 1)
+     
+molsum(col-1,bot)..  x(col-1,bot,a) + x(col-1,bot,b) + x(col-1,bot,c) =E= 1 ; (LHS = 1)
+     
+molsum(col-2,top)..  x(col-2,top,a) + x(col-2,top,b) + x(col-2,top,c) =E= 1 ; (LHS = 1)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- molsumin  =E=  constraint for sum of mole fractions for column inlet
+
+molsumin(col-1)..  xin(col-1,a) + xin(col-1,b) + xin(col-1,c) =E= 1 ; (LHS = 1)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 7
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Equation Listing    SOLVE nonsharp Using MINLP From line 141
+
+
+     molsumin  =E=  constraint for sum of mole fractions for column inlet
+
+molsumin(col-2)..  xin(col-2,a) + xin(col-2,b) + xin(col-2,c) =E= 1 ; (LHS = 1)
+     
+
+---- dist  =E=  constraint defining the nondistribution of nonkeys
+
+dist(col-1,top,c)..  x(col-1,top,c) =E= 0 ; (LHS = 0.333333333333333, INFES = 0.333333333333333 ****)
+     
+dist(col-2,bot,a)..  x(col-2,bot,a) =E= 0 ; (LHS = 0.333333333333333, INFES = 0.333333333333333 ****)
+     
+
+---- intcon  =L=  logical constraints
+
+intcon(col-1)..  fin(col-1) - 300*y(col-1) =L= 0 ; (LHS = 0)
+     
+intcon(col-2)..  fin(col-2) - 300*y(col-2) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 8
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Column Listing      SOLVE nonsharp Using MINLP From line 141
+
+
+---- cobj  total cost
+
+cobj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- finit  flow from initial splitter to column i
+
+finit(col-1)
+                (.LO, .L, .UP, .M = 0, 150, 300, 0)
+        1       spblinit
+       -0.3333  mixbal(col-1,a)
+       -0.3333  mixbal(col-1,b)
+       -0.3333  mixbal(col-1,c)
+
+finit(col-2)
+                (.LO, .L, .UP, .M = 0, 150, 300, 0)
+        1       spblinit
+       -0.3333  mixbal(col-2,a)
+       -0.3333  mixbal(col-2,b)
+       -0.3333  mixbal(col-2,c)
+
+
+---- fin  total flow to column i
+
+fin(col-1)
+                (.LO, .L, .UP, .M = 0, 150, 300, 0)
+      (-0.0018) obj
+       (0.3333) cfloin(col-1,a)
+       (0.3333) cfloin(col-1,b)
+       (0.3333) cfloin(col-1,c)
+        1       intcon(col-1)
+
+fin(col-2)
+                (.LO, .L, .UP, .M = 0, 150, 300, 0)
+      (-0.0045) obj
+       (0.3333) cfloin(col-2,a)
+       (0.3333) cfloin(col-2,b)
+       (0.3333) cfloin(col-2,c)
+        1       intcon(col-2)
+
+
+---- f  flow rate of column top & bottom product streams
+
+f(col-1,top)
+                (.LO, .L, .UP, .M = 0, 75, 300, 0)
+        1       spblcol(col-1,top)
+      (-0.3333) colbal(col-1,a)
+      (-0.3333) colbal(col-1,b)
+      (-0.3333) colbal(col-1,c)
+      (-0.3333) keybal(col-1,top,a)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 9
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Column Listing      SOLVE nonsharp Using MINLP From line 141
+
+
+     f  flow rate of column top & bottom product streams
+
+f(col-1,bot)
+                (.LO, .L, .UP, .M = 0, 75, 300, 0)
+        1       spblcol(col-1,bot)
+      (-0.3333) colbal(col-1,a)
+      (-0.3333) colbal(col-1,b)
+      (-0.3333) colbal(col-1,c)
+      (-0.3333) keybal(col-1,bot,b)
+
+f(col-2,top)
+                (.LO, .L, .UP, .M = 0, 75, 300, 0)
+        1       spblcol(col-2,top)
+      (-0.3333) colbal(col-2,a)
+      (-0.3333) colbal(col-2,b)
+      (-0.3333) colbal(col-2,c)
+      (-0.3333) keybal(col-2,top,b)
+
+REMAINING ENTRY SKIPPED
+
+---- fint  flow rate of interconnecting streams
+
+fint(col-1,col-2,top)
+                (.LO, .L, .UP, .M = 0, 37.5, 300, 0)
+       -1       spblcol(col-2,top)
+      (-0.3333) mixbal(col-1,a)
+      (-0.3333) mixbal(col-1,b)
+      (-0.3333) mixbal(col-1,c)
+
+fint(col-2,col-1,bot)
+                (.LO, .L, .UP, .M = 0, 37.5, 300, 0)
+       -1       spblcol(col-1,bot)
+      (-0.3333) mixbal(col-2,a)
+      (-0.3333) mixbal(col-2,b)
+      (-0.3333) mixbal(col-2,c)
+
+
+---- fpr  flow rate of streams to products
+
+fpr(col-1,top,prod-1)
+                (.LO, .L, .UP, .M = 0, 37.5, 300, 0)
+       -1       spblcol(col-1,top)
+       (0.3333) probal(prod-1,a)
+       (0.3333) probal(prod-1,b)
+       (0.3333) probal(prod-1,c)
+
+fpr(col-1,top,prod-2)
+                (.LO, .L, .UP, .M = 0, 37.5, 300, 0)
+       -1       spblcol(col-1,top)
+       (0.3333) probal(prod-2,a)
+       (0.3333) probal(prod-2,b)
+       (0.3333) probal(prod-2,c)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:30 Page 10
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Column Listing      SOLVE nonsharp Using MINLP From line 141
+
+
+     fpr  flow rate of streams to products
+
+fpr(col-1,bot,prod-1)
+                (.LO, .L, .UP, .M = 0, 37.5, 300, 0)
+       -1       spblcol(col-1,bot)
+       (0.3333) probal(prod-1,a)
+       (0.3333) probal(prod-1,b)
+       (0.3333) probal(prod-1,c)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- fby  flow rate of bypass streams
+
+fby(prod-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       spblinit
+        0.3333  probal(prod-1,a)
+        0.3333  probal(prod-1,b)
+        0.3333  probal(prod-1,c)
+
+fby(prod-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       spblinit
+        0.3333  probal(prod-2,a)
+        0.3333  probal(prod-2,b)
+        0.3333  probal(prod-2,c)
+
+
+---- cfin  component flow to column i
+
+cfin(col-1,a)
+                (.LO, .L, .UP, .M = 0, 50, 100, 0)
+        1       mixbal(col-1,a)
+        1       colbal(col-1,a)
+       (0.85)   keybal(col-1,top,a)
+       -1       cfloin(col-1,a)
+
+cfin(col-1,b)
+                (.LO, .L, .UP, .M = 0, 50, 100, 0)
+        1       mixbal(col-1,b)
+        1       colbal(col-1,b)
+       (0.85)   keybal(col-1,bot,b)
+       -1       cfloin(col-1,b)
+
+cfin(col-1,c)
+                (.LO, .L, .UP, .M = 0, 50, 100, 0)
+        1       mixbal(col-1,c)
+        1       colbal(col-1,c)
+       -1       cfloin(col-1,c)
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:30 Page 11
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Column Listing      SOLVE nonsharp Using MINLP From line 141
+
+
+---- xin  composition of flow fin
+
+xin(col-1,a)
+                (.LO, .L, .UP, .M = 0, 0.333333333333333, 1, 0)
+       (0.0858) obj
+     (150)      cfloin(col-1,a)
+        1       molsumin(col-1)
+
+xin(col-1,b)
+                (.LO, .L, .UP, .M = 0, 0.333333333333333, 1, 0)
+      (-0.6398) obj
+     (150)      cfloin(col-1,b)
+        1       molsumin(col-1)
+
+xin(col-1,c)
+                (.LO, .L, .UP, .M = 0, 0.333333333333333, 1, 0)
+     (150)      cfloin(col-1,c)
+        1       molsumin(col-1)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- x  composition of flow f
+
+x(col-1,top,a)
+                (.LO, .L, .UP, .M = 0, 0.333333333333333, 1, 0)
+     (-75)      colbal(col-1,a)
+     (-75)      keybal(col-1,top,a)
+      (37.5)    probal(prod-1,a)
+      (37.5)    probal(prod-2,a)
+        1       molsum(col-1,top)
+
+x(col-1,top,b)
+                (.LO, .L, .UP, .M = 0, 0.333333333333333, 1, 0)
+     (-75)      colbal(col-1,b)
+      (37.5)    probal(prod-1,b)
+      (37.5)    probal(prod-2,b)
+        1       molsum(col-1,top)
+
+x(col-1,top,c)
+                (.LO, .L, .UP, .M = 0, 0.333333333333333, 1, 0)
+     (-75)      colbal(col-1,c)
+      (37.5)    probal(prod-1,c)
+      (37.5)    probal(prod-2,c)
+        1       molsum(col-1,top)
+        1       dist(col-1,top,c)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- rec  recovery of key components
+
+rec(col-1,top,a)
+                (.LO, .L, .UP, .M = 0.85, 0.85, 1, 0)
+      (-1.4027) obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:30 Page 12
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Column Listing      SOLVE nonsharp Using MINLP From line 141
+
+
+     rec  recovery of key components
+
+      (50)      keybal(col-1,top,a)
+        0       (OLD LEVEL ****)
+
+rec(col-1,bot,b)
+                (.LO, .L, .UP, .M = 0.85, 0.85, 1, 0)
+      (-1.1596) obj
+      (50)      keybal(col-1,bot,b)
+        0       (OLD LEVEL ****)
+
+rec(col-2,top,b)
+                (.LO, .L, .UP, .M = 0.85, 0.85, 1, 0)
+      (-5.0722) obj
+      (50)      keybal(col-2,top,b)
+        0       (OLD LEVEL ****)
+
+REMAINING ENTRY SKIPPED
+
+---- y  existence of column i
+
+y(col-1)
+                (.LO, .L, .UP, .M = 0, 0.5, 1, 0)
+       -0.2395  obj
+     -300       intcon(col-1)
+
+y(col-2)
+                (.LO, .L, .UP, .M = 0, 0.5, 1, 0)
+       -0.7583  obj
+     -300       intcon(col-2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:30 Page 13
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Model Statistics    SOLVE nonsharp Using MINLP From line 141
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS           44
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES           51  4 projected
+NON ZERO ELEMENTS           197     NON LINEAR N-Z            122
+DERIVATIVE POOL              20     CONSTANT POOL              26
+CODE LENGTH                 232     DISCRETE VARIABLES          2
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:30 Page 14
+Synthesis of General Distillation Sequences (NSHARPX,SEQ=226)
+Solution Report     SOLVE nonsharp Using MINLP From line 141
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nonsharp            OBJECTIVE  cobj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  141
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nsharpx/convert.opt"
+>>  ampl nsharpx-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nsharpx/convert.opt"
+Ampl      : nsharpx-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/nsharpx/nsharpx.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/nsharpx/nsharpx-scalar.mod.lst

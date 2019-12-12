@@ -1,0 +1,46 @@
+--- Job blend.gms Start 12/13/18 10:24:28 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- blend.gms(56) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- blend.gms(30) 4 Mb
+--- Generating LP model b1
+--- blend.gms(52) 4 Mb
+---   4 rows  10 columns  37 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/blend/convert.opt"
+>>  pyomo blend-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/blend/convert.opt"
+--- Writing Pyomo     : blend-scalar.py
+
+--- Restarting execution
+--- blend.gms(52) 2 Mb
+--- Reading solution for model b1
+--- blend.gms(52) 3 Mb
+--- Generating LP model b2
+--- blend.gms(53) 3 Mb
+---   5 rows  10 columns  46 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.022
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/blend/convert.opt"
+>>  pyomo blend-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/blend/convert.opt"
+--- Writing Pyomo     : blend-scalar.py
+
+--- Restarting execution
+--- blend.gms(53) 2 Mb
+--- Reading solution for model b2
+--- blend.gms(55) 3 Mb
+*** Status: Normal completion
+--- Job blend.gms Stop 12/13/18 10:24:28 elapsed 0:00:00.037

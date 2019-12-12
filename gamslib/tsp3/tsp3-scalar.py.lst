@@ -1,0 +1,728 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 2
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+C o m p i l a t i o n
+
+
+       This is the third problem in a series of traveling salesman
+       problems. The formulation uses a subtour elimination based
+       on logic to find all subtours first, and then add appropriate
+       eliminations constraints.
+       
+       
+      Kalvelagen, E, Model Building with GAMS. forthcoming
+       
+      de Wetering, A V, private communication.
+       
+      Lawler, E L, Lenstra, J K, Kan, A H G R, and Shmoys, D B, Eds, The
+      Traveling Salesman Problem, A Guided Tour of Combinatorial
+      Optimization. Wiley, 1985.
+       
+       Additional information can be found at:
+       
+       http://www.gams.com/modlib/adddocs/tsp3doc.htm
+       
+  26   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/tsp3/br17.inc
+  28   
+  29  * TSP data and incomplete TSP model. The data is problem br17 from TSPLIB.
+  30  * (http://www.iwr.uni-heidelberg.de/iwr/comopt/soft/TSPLIB95/TSPLIB.html)
+  31   
+  32  set ii    cities / i1*i17 /
+  33      i(ii) subset of cities
+  34  alias (ii,jj),(i,j,k);
+  35   
+  36  table c(ii,jj) cost coefficients (br17 from TSPLIB)
+  37       i1  i2  i3  i4  i5  i6  i7  i8  i9  i10 i11 i12 i13 i14 i15 i16 i17
+  38  i1        3   5  48  48   8   8   5   5   3   3   0   3   5   8   8   5
+  39  i2    3       3  48  48   8   8   5   5   0   0   3   0   3   8   8   5
+  40  i3    5   3      72  72  48  48  24  24   3   3   5   3   0  48  48  24
+  41  i4   48  48  74       0   6   6  12  12  48  48  48  48  74   6   6  12
+  42  i5   48  48  74   0       6   6  12  12  48  48  48  48  74   6   6  12
+  43  i6    8   8  50   6   6       0   8   8   8   8   8   8  50   0   0   8
+  44  i7    8   8  50   6   6   0       8   8   8   8   8   8  50   0   0   8
+  45  i8    5   5  26  12  12   8   8       0   5   5   5   5  26   8   8   0
+  46  i9    5   5  26  12  12   8   8   0       5   5   5   5  26   8   8   0
+  47  i10   3   0   3  48  48   8   8   5   5       0   3   0   3   8   8   5
+  48  i11   3   0   3  48  48   8   8   5   5   0       3   0   3   8   8   5
+  49  i12   0   3   5  48  48   8   8   5   5   3   3       3   5   8   8   5
+  50  i13   3   0   3  48  48   8   8   5   5   0   0   3       3   8   8   5
+  51  i14   5   3   0  72  72  48  48  24  24   3   3   5   3      48  48  24
+  52  i15   8   8  50   6   6   0   0   8   8   8   8   8   8  50       0   8
+  53  i16   8   8  50   6   6   0   0   8   8   8   8   8   8  50   0       8
+  54  i17   5   5  26  12  12   8   8   0   0   5   5   5   5  26   8   8
+  55  *
+  56  * for computational work with simple minded
+  57  * algorithm we can restrict size of problem
+  58  * and define the model over a subset of all cities.
+  59  *
+  60  *
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 3
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+C o m p i l a t i o n
+
+
+  61  variables x(ii,jj)  decision variables - leg of trip
+  62            z         objective variable;
+  63  binary variable x;
+  64   
+  65  equations objective   total cost
+  66            rowsum(ii)  leave each city only once
+  67            colsum(jj)  arrive at each city only once;
+  68  *
+  69  *
+  70  * the assignment problem is a relaxation of the TSP
+  71  *
+  72  objective.. z =e= sum((i,j), c(i,j)*x(i,j));
+  73   
+  74  rowsum(i).. sum(j, x(i,j)) =e= 1;
+  75  colsum(j).. sum(i, x(i,j)) =e= 1;
+  76   
+  77  * exclude diagonal
+  78  *
+  79  x.fx(ii,ii) = 0;
+  80   
+  81   
+  82   
+  83  * first select a small subset
+  84  set i(ii) / i1*i6 /;
+  85   
+  86  * This code is tricky and the generation of all
+  87  * subsets is explained by example below:
+  88  *
+  89  * First we take one element
+  90  *  n1  yes
+  91  *  n2  no
+  92  * Then for i=i2 we have
+  93  *  n1  yes   no
+  94  *  n2  no    no
+  95  *  n3  yes   yes  copy of n1 plus adding i2=yes
+  96  *  n4  no    tes  copy of n2 plus adding i2=yes
+  97  * Then for i=i3 we have
+  98  *  n1  yes   no   no
+  99  *  n2  no    no   no
+ 100  *  n3  yes   yes  no
+ 101  *  n4  no    yes  no
+ 102  *  n5  yes   no   yes
+ 103  *  n6  no    no   yes
+ 104  *  n7  yes   yes  yes
+ 105  *  n8  no    yes  yes
+ 106   
+ 107  sets n subtour id  / n1*n500/  //  maximum of 1000 subsets
+ 108       nn(n), nnn(n), curn(n)
+ 109       si(n,i)     subset
+ 110       sicomp(n,i) subsets complements;
+ 111   
+ 112  * initialize tree
+ 113  si('n1','i1') = yes;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 4
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+C o m p i l a t i o n
+
+
+ 114  si('n2','i1') = no;
+ 115  curn('n2') = yes;
+ 116  nnn('n1')  = yes;
+ 117  nnn('n2')  = yes;
+ 118   
+ 119  scalar goon;
+ 120  loop(i$(ord(i)>1),
+ 121     // make a copy of all previously generated sets
+ 122     // one copy is to include i, the other one not.
+ 123     nn(n) = nnn(n);
+ 124     loop(nn,
+ 125        curn(n) = curn(n-1);
+ 126        nnn(curn) = yes;
+ 127        si(curn, j) = si(nn,j);  // copy old one
+ 128        si(curn, i) = yes;
+ 129     );
+ 130  );
+ 131   
+ 132  sicomp(nnn,i) = not si(nnn,i);
+ 133  display si, sicomp;
+ 134   
+ 135  * exclude empty rows like
+ 136  *      i1   i2   i3
+ 137  *  n2  no   no   no
+ 138  * and "full" rows like:
+ 139  *      i1   i2   i3
+ 140  *  n7  yes  yes  yes
+ 141  *
+ 142  set n1(n) simplified set of subtours;
+ 143   
+ 144  n1(nnn)=yes;
+ 145  n1(nnn)$(sum(i$si(nnn,i),1) = 0) = no;
+ 146  n1(nnn)$(sum(i$si(nnn,i),1) = card(i)) = no;
+ 147   
+ 148   
+ 149  equations  se1(n) subtour elimination 1
+ 150             se2(n) subtour elimination 2;
+ 151   
+ 152   
+ 153  se1(n1).. sum(i$si(n1,i),sum(j$si(n1,j), x(i,j))) =L= sum(si(n1,i),1) - 1;
+ 154  se2(n1).. sum(si(n1,i),sum(sicomp(n1,j), x(i,j))) =G= 1;
+ 155   
+ 156  model subt1 /objective, rowsum, colsum, se1/;
+ 157  model subt2 /objective, rowsum, colsum, se2/;
+ 158   
+ 159  solve subt1 using mip minimizing z;
+ 160  display x.l
+ 161   
+ 162  solve subt2 using mip minimizing z
+ 163  display x.l;
+ 164   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 5
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/tsp3/tsp3.gms
+     2       27 INCLUDE        1      27  ./home/renigijus/gams/opt-mod-lib/gamslib/tsp3/br17.inc
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 6
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+E x e c u t i o n
+
+
+----    133 SET si  subset
+
+             i1          i2          i3          i4          i5          i6
+
+n1          YES
+n3          YES         YES
+n4                      YES
+n5          YES                     YES
+n6                                  YES
+n7          YES         YES         YES
+n8                      YES         YES
+n9          YES                                 YES
+n10                                             YES
+n11         YES         YES                     YES
+n12                     YES                     YES
+n13         YES                     YES         YES
+n14                                 YES         YES
+n15         YES         YES         YES         YES
+n16                     YES         YES         YES
+n17         YES                                             YES
+n18                                                         YES
+n19         YES         YES                                 YES
+n20                     YES                                 YES
+n21         YES                     YES                     YES
+n22                                 YES                     YES
+n23         YES         YES         YES                     YES
+n24                     YES         YES                     YES
+n25         YES                                 YES         YES
+n26                                             YES         YES
+n27         YES         YES                     YES         YES
+n28                     YES                     YES         YES
+n29         YES                     YES         YES         YES
+n30                                 YES         YES         YES
+n31         YES         YES         YES         YES         YES
+n32                     YES         YES         YES         YES
+n33         YES                                                         YES
+n34                                                                     YES
+n35         YES         YES                                             YES
+n36                     YES                                             YES
+n37         YES                     YES                                 YES
+n38                                 YES                                 YES
+n39         YES         YES         YES                                 YES
+n40                     YES         YES                                 YES
+n41         YES                                 YES                     YES
+n42                                             YES                     YES
+n43         YES         YES                     YES                     YES
+n44                     YES                     YES                     YES
+n45         YES                     YES         YES                     YES
+n46                                 YES         YES                     YES
+n47         YES         YES         YES         YES                     YES
+n48                     YES         YES         YES                     YES
+n49         YES                                             YES         YES
+n50                                                         YES         YES
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 7
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+E x e c u t i o n
+
+
+        133 SET si  subset
+
+             i1          i2          i3          i4          i5          i6
+
+n51         YES         YES                                 YES         YES
+n52                     YES                                 YES         YES
+n53         YES                     YES                     YES         YES
+n54                                 YES                     YES         YES
+n55         YES         YES         YES                     YES         YES
+n56                     YES         YES                     YES         YES
+n57         YES                                 YES         YES         YES
+n58                                             YES         YES         YES
+n59         YES         YES                     YES         YES         YES
+n60                     YES                     YES         YES         YES
+n61         YES                     YES         YES         YES         YES
+n62                                 YES         YES         YES         YES
+n63         YES         YES         YES         YES         YES         YES
+n64                     YES         YES         YES         YES         YES
+
+
+----    133 SET sicomp  subsets complements
+
+             i1          i2          i3          i4          i5          i6
+
+n1                      YES         YES         YES         YES         YES
+n2          YES         YES         YES         YES         YES         YES
+n3                                  YES         YES         YES         YES
+n4          YES                     YES         YES         YES         YES
+n5                      YES                     YES         YES         YES
+n6          YES         YES                     YES         YES         YES
+n7                                              YES         YES         YES
+n8          YES                                 YES         YES         YES
+n9                      YES         YES                     YES         YES
+n10         YES         YES         YES                     YES         YES
+n11                                 YES                     YES         YES
+n12         YES                     YES                     YES         YES
+n13                     YES                                 YES         YES
+n14         YES         YES                                 YES         YES
+n15                                                         YES         YES
+n16         YES                                             YES         YES
+n17                     YES         YES         YES                     YES
+n18         YES         YES         YES         YES                     YES
+n19                                 YES         YES                     YES
+n20         YES                     YES         YES                     YES
+n21                     YES                     YES                     YES
+n22         YES         YES                     YES                     YES
+n23                                             YES                     YES
+n24         YES                                 YES                     YES
+n25                     YES         YES                                 YES
+n26         YES         YES         YES                                 YES
+n27                                 YES                                 YES
+n28         YES                     YES                                 YES
+n29                     YES                                             YES
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 8
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+E x e c u t i o n
+
+
+        133 SET sicomp  subsets complements
+
+             i1          i2          i3          i4          i5          i6
+
+n30         YES         YES                                             YES
+n31                                                                     YES
+n32         YES                                                         YES
+n33                     YES         YES         YES         YES
+n34         YES         YES         YES         YES         YES
+n35                                 YES         YES         YES
+n36         YES                     YES         YES         YES
+n37                     YES                     YES         YES
+n38         YES         YES                     YES         YES
+n39                                             YES         YES
+n40         YES                                 YES         YES
+n41                     YES         YES                     YES
+n42         YES         YES         YES                     YES
+n43                                 YES                     YES
+n44         YES                     YES                     YES
+n45                     YES                                 YES
+n46         YES         YES                                 YES
+n47                                                         YES
+n48         YES                                             YES
+n49                     YES         YES         YES
+n50         YES         YES         YES         YES
+n51                                 YES         YES
+n52         YES                     YES         YES
+n53                     YES                     YES
+n54         YES         YES                     YES
+n55                                             YES
+n56         YES                                 YES
+n57                     YES         YES
+n58         YES         YES         YES
+n59                                 YES
+n60         YES                     YES
+n61                     YES
+n62         YES         YES
+n64         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:12 Page 9
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Equation Listing    SOLVE subt1 Using MIP From line 159
+
+
+---- objective  =E=  total cost
+
+objective..  - 3*x(i1,i2) - 5*x(i1,i3) - 48*x(i1,i4) - 48*x(i1,i5) - 8*x(i1,i6) - 3*x(i2,i1) - 3*x(i2,i3) - 48*x(i2,i4) - 48*x(i2,i5) - 8*x(i2,i6) - 5*x(i3,i1) - 3*x(i3,i2) - 72*x(i3,i4) - 72*x(i3,i5) - 48*x(i3,i6) - 48*x(i4,i1) - 48*x(i4,i2)
+     
+      - 74*x(i4,i3) - 6*x(i4,i6) - 48*x(i5,i1) - 48*x(i5,i2) - 74*x(i5,i3) - 6*x(i5,i6) - 8*x(i6,i1) - 8*x(i6,i2) - 50*x(i6,i3) - 6*x(i6,i4) - 6*x(i6,i5) + z =E= 0 ; (LHS = 0)
+     
+
+---- rowsum  =E=  leave each city only once
+
+rowsum(i1)..  x(i1,i1) + x(i1,i2) + x(i1,i3) + x(i1,i4) + x(i1,i5) + x(i1,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+rowsum(i2)..  x(i2,i1) + x(i2,i2) + x(i2,i3) + x(i2,i4) + x(i2,i5) + x(i2,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+rowsum(i3)..  x(i3,i1) + x(i3,i2) + x(i3,i3) + x(i3,i4) + x(i3,i5) + x(i3,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- colsum  =E=  arrive at each city only once
+
+colsum(i1)..  x(i1,i1) + x(i2,i1) + x(i3,i1) + x(i4,i1) + x(i5,i1) + x(i6,i1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+colsum(i2)..  x(i1,i2) + x(i2,i2) + x(i3,i2) + x(i4,i2) + x(i5,i2) + x(i6,i2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+colsum(i3)..  x(i1,i3) + x(i2,i3) + x(i3,i3) + x(i4,i3) + x(i5,i3) + x(i6,i3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- se1  =L=  subtour elimination 1
+
+se1(n1)..  x(i1,i1) =L= 0 ; (LHS = 0)
+     
+se1(n3)..  x(i1,i1) + x(i1,i2) + x(i2,i1) + x(i2,i2) =L= 1 ; (LHS = 0)
+     
+se1(n4)..  x(i2,i2) =L= 0 ; (LHS = 0)
+     
+REMAINING 59 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 10
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Column Listing      SOLVE subt1 Using MIP From line 159
+
+
+---- x  decision variables - leg of trip
+
+x(i1,i1)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+        1       rowsum(i1)
+        1       colsum(i1)
+        1       se1(n1)
+        1       se1(n3)
+        1       se1(n5)
+        1       se1(n7)
+        1       se1(n9)
+        1       se1(n11)
+        1       se1(n13)
+        1       se1(n15)
+        1       se1(n17)
+        1       se1(n19)
+        1       se1(n21)
+        1       se1(n23)
+        1       se1(n25)
+        1       se1(n27)
+        1       se1(n29)
+        1       se1(n31)
+        1       se1(n33)
+        1       se1(n35)
+        1       se1(n37)
+        1       se1(n39)
+        1       se1(n41)
+        1       se1(n43)
+        1       se1(n45)
+        1       se1(n47)
+        1       se1(n49)
+        1       se1(n51)
+        1       se1(n53)
+        1       se1(n55)
+        1       se1(n57)
+        1       se1(n59)
+        1       se1(n61)
+
+x(i1,i2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -3       objective
+        1       rowsum(i1)
+        1       colsum(i2)
+        1       se1(n3)
+        1       se1(n7)
+        1       se1(n11)
+        1       se1(n15)
+        1       se1(n19)
+        1       se1(n23)
+        1       se1(n27)
+        1       se1(n31)
+        1       se1(n35)
+        1       se1(n39)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 11
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Column Listing      SOLVE subt1 Using MIP From line 159
+
+
+     x  decision variables - leg of trip
+
+        1       se1(n43)
+        1       se1(n47)
+        1       se1(n51)
+        1       se1(n55)
+        1       se1(n59)
+
+x(i1,i3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       objective
+        1       rowsum(i1)
+        1       colsum(i3)
+        1       se1(n5)
+        1       se1(n7)
+        1       se1(n13)
+        1       se1(n15)
+        1       se1(n21)
+        1       se1(n23)
+        1       se1(n29)
+        1       se1(n31)
+        1       se1(n37)
+        1       se1(n39)
+        1       se1(n45)
+        1       se1(n47)
+        1       se1(n53)
+        1       se1(n55)
+        1       se1(n61)
+
+REMAINING 33 ENTRIES SKIPPED
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objective
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 12
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Model Statistics    SOLVE subt1 Using MIP From line 159
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           75
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           737     DISCRETE VARIABLES         30
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 13
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Solution Report     SOLVE subt1 Using MIP From line 159
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   subt1               OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  159
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+>>  pyomo tsp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+Pyomo     : tsp3-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 14
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+E x e c u t i o n
+
+
+----    160 VARIABLE x.L  decision variables - leg of trip
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 15
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Equation Listing    SOLVE subt2 Using MIP From line 163
+
+
+---- objective  =E=  total cost
+
+objective..  - 3*x(i1,i2) - 5*x(i1,i3) - 48*x(i1,i4) - 48*x(i1,i5) - 8*x(i1,i6) - 3*x(i2,i1) - 3*x(i2,i3) - 48*x(i2,i4) - 48*x(i2,i5) - 8*x(i2,i6) - 5*x(i3,i1) - 3*x(i3,i2) - 72*x(i3,i4) - 72*x(i3,i5) - 48*x(i3,i6) - 48*x(i4,i1) - 48*x(i4,i2)
+     
+      - 74*x(i4,i3) - 6*x(i4,i6) - 48*x(i5,i1) - 48*x(i5,i2) - 74*x(i5,i3) - 6*x(i5,i6) - 8*x(i6,i1) - 8*x(i6,i2) - 50*x(i6,i3) - 6*x(i6,i4) - 6*x(i6,i5) + z =E= 0 ; (LHS = 0)
+     
+
+---- rowsum  =E=  leave each city only once
+
+rowsum(i1)..  x(i1,i1) + x(i1,i2) + x(i1,i3) + x(i1,i4) + x(i1,i5) + x(i1,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+rowsum(i2)..  x(i2,i1) + x(i2,i2) + x(i2,i3) + x(i2,i4) + x(i2,i5) + x(i2,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+rowsum(i3)..  x(i3,i1) + x(i3,i2) + x(i3,i3) + x(i3,i4) + x(i3,i5) + x(i3,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- colsum  =E=  arrive at each city only once
+
+colsum(i1)..  x(i1,i1) + x(i2,i1) + x(i3,i1) + x(i4,i1) + x(i5,i1) + x(i6,i1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+colsum(i2)..  x(i1,i2) + x(i2,i2) + x(i3,i2) + x(i4,i2) + x(i5,i2) + x(i6,i2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+colsum(i3)..  x(i1,i3) + x(i2,i3) + x(i3,i3) + x(i4,i3) + x(i5,i3) + x(i6,i3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- se2  =G=  subtour elimination 2
+
+se2(n1)..  x(i1,i2) + x(i1,i3) + x(i1,i4) + x(i1,i5) + x(i1,i6) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+se2(n3)..  x(i1,i3) + x(i1,i4) + x(i1,i5) + x(i1,i6) + x(i2,i3) + x(i2,i4) + x(i2,i5) + x(i2,i6) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+se2(n4)..  x(i2,i1) + x(i2,i3) + x(i2,i4) + x(i2,i5) + x(i2,i6) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 59 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 16
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Column Listing      SOLVE subt2 Using MIP From line 163
+
+
+---- x  decision variables - leg of trip
+
+x(i1,i1)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+        1       rowsum(i1)
+        1       colsum(i1)
+
+x(i1,i2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -3       objective
+        1       rowsum(i1)
+        1       colsum(i2)
+        1       se2(n1)
+        1       se2(n5)
+        1       se2(n9)
+        1       se2(n13)
+        1       se2(n17)
+        1       se2(n21)
+        1       se2(n25)
+        1       se2(n29)
+        1       se2(n33)
+        1       se2(n37)
+        1       se2(n41)
+        1       se2(n45)
+        1       se2(n49)
+        1       se2(n53)
+        1       se2(n57)
+        1       se2(n61)
+
+x(i1,i3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       objective
+        1       rowsum(i1)
+        1       colsum(i3)
+        1       se2(n1)
+        1       se2(n3)
+        1       se2(n9)
+        1       se2(n11)
+        1       se2(n17)
+        1       se2(n19)
+        1       se2(n25)
+        1       se2(n27)
+        1       se2(n33)
+        1       se2(n35)
+        1       se2(n41)
+        1       se2(n43)
+        1       se2(n49)
+        1       se2(n51)
+        1       se2(n57)
+        1       se2(n59)
+
+REMAINING 33 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 17
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Column Listing      SOLVE subt2 Using MIP From line 163
+
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objective
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 18
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Model Statistics    SOLVE subt2 Using MIP From line 163
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           75
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           581     DISCRETE VARIABLES         30
+
+
+GENERATION TIME      =        0.011 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.011 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 19
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+Solution Report     SOLVE subt2 Using MIP From line 163
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   subt2               OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  163
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+>>  pyomo tsp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+Pyomo     : tsp3-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:12 Page 20
+Traveling Salesman Problem - Three (TSP3,SEQ=179)
+E x e c u t i o n
+
+
+----    163 VARIABLE x.L  decision variables - leg of trip
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tsp3/tsp3.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tsp3/tsp3-scalar.py.lst

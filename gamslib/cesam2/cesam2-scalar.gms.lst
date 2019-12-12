@@ -1,0 +1,1454 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 2
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+      CESAM2 illustrates a cross entropy technique for estimating the cells of a
+      consistent SAM assuming that the initial data are inconsistent and measured
+      with error. The method is applied to estimate the macro SAM used in CESAM.GMS.
+      Cell elements, some macro control totals, and row and column totals are assumed
+      to be measured with error. We assume that the user can specify prior estimates
+      of the values and standard errors of measurement for the cell values, macro
+      control totals, and row and column sums.
+       
+      The original version of this code, CESAM.GMS, assumed that the SAM column
+      coefficients, A(i,j) = SAM(i,j)/SUM(i, SAM(i,j)), are treated as analogous to
+      probabilities and are included directly in the cross-entropy minimand. In this
+      version each SAM element, SAM(i,j), is assumed to be measured with error, and
+      all the errors are treated as probability-weighted sums of error support sets.
+      Only probabilities are included in the cross-entropy minimand, which is
+      consistent with the information-theoretic Bayesian approach to estimate
+      probabilities. The cost of this approach is that in CESAM2 there are many more
+      probabilities to be estimated. However, new solution algorithms are able to
+      solve large problems of this type, so size is no longer a serious constraint.
+       
+      In the estimation procedure, we assume prior information on either:
+       (1) values of cells, SAM(i,j), or
+       (2) coefficients, A(i,j).
+       
+      Errors can be treated as either:
+       (1) additive [e.g., SAM(i,j) = sam0(i,j) + err(i,j)], or
+       (2) multiplicative [e.g., A(i,j) = abar0(i,j)*EXP(err(i,j))]
+       
+      where sam0(i,j) and abar0(i,j) are prior values of the cell value or
+      coefficient, and err(i,j) is the estimated measurement error.
+       
+      In the first case, the prior mean of the errors is assumed to be zero. In the
+      second case, it will be one. In the first case, it is possible for the
+      posterior estimated cell value to change sign from the prior, while in the
+      second case the posterior estimated coefficient value can never change sign.
+       
+      In the code below, we assume a prior on coefficients measured with
+      multiplicative errors for selected SAM accounts defined by the set acoeff(i).
+       
+      Note that it is important to scale the SAM. Ideally, the SAM being estimated
+      should be scaled so that it does not contain values larger than about 1e3.
+       
+      Note also that by default we use the GAMS intrinsic function centropy() in
+      the objective definition.  If you define NOCENTROPY (e.g. by running with
+      --NOCENTROPY=1 on the command line) the cross-entropy function is written
+      explicitly using logs, etc.
+       
+       
+      References:
+       
+      Robinson, S, Cattaneo, A, and El-Said, M, Updating and Estimating
+      a Social Accounting Matrix Using Cross Enthropy Methods. Economic
+      System Research 13, 1 (2001).
+       
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 3
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+      Golan, G, Judge, G, and Miller, D, Maximum Enthropy Econometrics.
+      John Wiley and Sons, 1996.
+       
+      Judge, George G. and Ron C. Mittelhammer, An Information Theoretic Approach
+      to Econometrics. Cambridge: Cambridge University Press, 2012.
+       
+      Programmed by Sherman Robinson, April 2013
+       
+      Environment and Production Technology Division and
+      Development Strategy and Governance Division
+      International Food Policy Research Institute (IFPRI)
+      2033 K Street, N.W.
+      Washington, DC 20006 USA
+      Email: S.Robinson@CGIAR.ORG
+       
+      Earlier version, CESAM, programmed by Sherman Robinson and Moataz El-Said,
+      November 2000.
+      Original version programmed by Sherman Robinson and Andrea Cattaneo.
+       
+  78   
+  79  * by default use centropy(), uncomment the line below to use logs explicitly
+  80  * $set NOCENTROPY 1
+  81   
+  82  SETS
+  83   i             SAM accounts
+  84                 / ACT     Activities
+  85                   COM     Commodities
+  86                   FAC     Factors
+  87                   ENT     Enterprises
+  88                   HOU     Households
+  89                   GOV     Govt recurrent expenditures
+  90                   GIN     Govt investment
+  91                   CAP     Capital account
+  92                   ROW     Rest of world
+  93                   TOTAL   Row and column totals
+  94                 /
+  95   
+  96   icoeff(i,i)   SAM elements whose prior is specified as coefficients
+  97   ival(i,i)     SAM elements whose prior is specified as values
+  98   
+  99   ii(i)         all accounts in i except TOTAL
+ 100   
+ 101   macro         macro controls  /gdpfc2, gdp2 /
+ 102   
+ 103  * The set jwt defines the dimension of the support set for the error
+ 104  * distribution and the number of weights that must be estimated for each
+ 105  * error. In this case, we specify an uninformative prior for jwt1,
+ 106  * a normal prior for jwt2, and a general two-parameter distribution for jwt3.
+ 107   
+ 108   jwt           master set of possible weights             /1*7/
+ 109   jwt1(jwt)     set of weights for errors in column sums   /1*7/
+ 110   jwt2(jwt)     set of weights for errors in macro totals  /1*5/
+ 111   jwt3(jwt)     set of weights for errors in cell elements /1*3/
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 4
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 112   
+ 113   NONZERO(i,i)  SAM elements that can be nonzero and hence estimated
+ 114  ;
+ 115   
+ 116  ALIAS (i,j), (ii,jj);
+ 117   
+ 118   ii(i)       = YES;
+ 119   ii("Total") = NO;
+ 120   
+ 121  Parameter
+ 122   stderr1       standard error of measurement for column sums   /.05/
+ 123   stderr2       standard error of measurement for macro totals  /.05/
+ 124   stderr3       standard error of measurement for cell elements /.25/
+ 125   
+ 126   scalesam      scale factor for scaling initial SAM            /1e3/
+ 127   delta         small number for CE objective function          /1e-8/
+ 128  ;
+ 129   
+ 130  *Prior unbalanced proto-SAM
+ 131  *########################    SAM DATABASE       ########################
+ 132  *The SAM is unbalanced by adding new rows with bad data
+ 133  TABLE SAM(i,j)  prior unbalanced social accounting matrix
+ 134                         ACT            COM            FAC            ENT
+ 135  ACT                    0.0     14827.4240            0.0            0.0
+ 136  COM              7917.5040            0.0            0.0            0.0
+ 137  FAC              9805.4140            0.0            0.0            0.0
+ 138  ENT                    0.0            0.0      3699.7060            0.0
+ 139  *HOU                   0.0            0.0      6031.3080      3417.5060
+ 140  HOU                                            6000.0000      3300.0000
+ 141  GOV               733.6000       357.4000        74.4000       165.2000
+ 142  GIN                    0.0            0.0            0.0            0.0
+ 143  CAP                    0.0            0.0            0.0       150.0000
+ 144  ROW                    0.0      5573.8150            0.0            0.0
+ 145  Total           18456.5180      20758.639       9805.414       3732.706
+ 146   
+ 147    +                    HOU            GOV            GIN            CAP
+ 148  ACT              2101.0490        -0.3270            0.0            0.0
+ 149  *COM             6753.3320      1764.5000      2118.5000      2197.7980
+ 150  COM              6953.3320      1564.5000      2518.5000      2597.7980
+ 151  FAC                    0.0            0.0            0.0            0.0
+ 152  ENT                    0.0        33.0000            0.0            0.0
+ 153  HOU                    0.0        29.6000            0.0            0.0
+ 154  GOV               139.5000            0.0            0.0            0.0
+ 155  GIN                    0.0            0.0            0.0            0.0
+ 156  CAP               649.1560      -356.6730      -406.2000            0.0
+ 157  ROW                    0.0            0.0            0.0            0.0
+ 158  Total             9643.037         1470.1         1712.3       2197.798
+ 159   
+ 160    +                    ROW      Total
+ 161  ACT              1488.1570      18416.303
+ 162  COM                    0.0      20751.634
+ 163  FAC                    0.0       9805.414
+ 164  ENT                    0.0       3732.706
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 5
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 165  *HOU              209.5010       9687.915
+ 166  HOU               200.0000       9687.915
+ 167  GOV                    0.0         1470.1
+ 168  GIN              1712.3000         1712.3
+ 169  CAP              2163.8570        2200.14
+ 170  ROW                    0.0       5573.815
+ 171  Total             5573.815
+ 172   ;
+ 173   
+ 174  *#########################  Parameters and Scalars #####################
+ 175  PARAMETER
+ 176   SAM0(i,j)        Unbalance prior or proto-SAM transactions matrix
+ 177   SAMBALCHK(i)     Column sums minus row sums in the SAM
+ 178   Abar0(i,j)       Prior SAM coefficient matrix
+ 179   ColSum0(i)       Targets for macro SAM column totals
+ 180   macrov0(macro)   Target values for macro aggregates
+ 181   
+ 182   vbar1(i,jwt)     Error support set 1 for column sums
+ 183   vbar2(macro,jwt) Error support set 2 for macro aggregates
+ 184   vbar3(i,j,jwt)   Error support set 3 for SAM elements
+ 185   
+ 186   wbar1(i,jwt)     Weights on error support set 1 for column totals
+ 187   wbar2(macro,jwt) Weights on error support set 2 for macro aggregates
+ 188   wbar3(i,j,jwt)   Weights on error support set 3 for SAM elements
+ 189   
+ 190   sigmay1(i)       Prior standard error of column sums
+ 191   sigmay2(macro)   Prior standard error of macro aggregates
+ 192   sigmay3(i,j)     Prior standard error of SAM elements
+ 193   
+ 194  *macro control totals
+ 195   gdp0             base GDP
+ 196   gdpfc0           base GDP at factor cost
+ 197   gdp00            GDP from final SAM
+ 198   gdpfc00          GDP at factor cost from final SAM
+ 199  ;
+ 200   
+ 201  *################# Initializing Parameters
+ 202   SAM("TOTAL",jj)      = sum(ii, SAM(ii,jj));
+ 203   SAM(ii,"TOTAL")      = sum(jj, SAM(ii,jj));
+ 204   
+ 205  *#################
+ 206  * Divide SAM entries by scalesam for better scaling.
+ 207  * The SAM is scaled to enhance solver efficiency. Nonlinear solvers are
+ 208  * more efficient if variables are scaled to be around 1.
+ 209   
+ 210   SAM(i,j)                 = SAM(i,j)/scalesam ;
+ 211   abar0(ii,jj)$SAM("TOTAL",jj) = SAM(ii,jj)/SAM("TOTAL",jj) ;
+ 212   
+ 213   SAM0(ii,jj)              = SAM(ii,jj);
+ 214   SAM0("TOTAL",jj)         = sum(ii, SAM(ii,jj));
+ 215   SAM0(ii,"TOTAL")         = sum(jj, SAM(ii,jj));
+ 216   SAMBALCHK(jj)            = SAM0('TOTAL',jj) - SAM0(jj,'TOTAL') ;
+ 217   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 6
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 218   Display abar0, sam0, sambalchk ;
+ 219   
+ 220  *########################  CROSS ENTROPY  ##############################
+ 221   
+ 222  Parameter
+ 223   NegSam(i,j)      Negative SAM values
+ 224   chkset(i,j)      Check coefficient and value sets
+ 225  ;
+ 226   
+ 227  *identify negative SAM entries for information
+ 228   NegSam(i,j)$(SAM0(i,j) lt 0)  = SAM(i,j) ;
+ 229   
+ 230  * Define set of elements of SAM that can be nonzero. In this case, only
+ 231  * elements which are nonzero in initial SAM.
+ 232   
+ 233   NONZERO(ii,jj)$(Abar0(ii,jj)) = yes ;
+ 234   
+ 235  *SAM cells with priors on coefficients. We will also assume they have
+ 236  *multiplicative errors.
+ 237  SET
+ 238   acoeff(i) Accounts with prior on column coefficients /act,fac,ent,hou/
+ 239  ;
+ 240   
+ 241   icoeff(ii,acoeff)$NONZERO(ii,acoeff)              = yes ;
+ 242   ival(ii,jj)$(SAM0(ii,jj) and (NOT icoeff(ii,jj))) = yes ;
+ 243   
+ 244   chkset(ii,jj) = +1$ival(ii,jj) + 1$icoeff(ii,jj) - 1$NONZERO(ii,jj) ;
+ 245   
+ 246  display icoeff, ival, chkset ;
+ 247   
+ 248  *   Note that target column sums are being set to average of initial
+ 249  *   row and column sums. Initial column sums or other values
+ 250  *   could have been used instead, depending on knowledge of data quality
+ 251  *   and any other prior information.
+ 252   
+ 253   ColSum0(ii)         = (sam(ii,"total") + sam("total",ii))/2 ;
+ 254   gdpfc0              = sam("fac","act");
+ 255   gdp0                = sam("fac","act") + sam("gov","act") -
+ 256                         sam("act","gov") + sam("gov","com") ;
+ 257   
+ 258   macrov0("gdp2")     = gdp0   ;
+ 259   macrov0("gdpfc2")   = gdpfc0 ;
+ 260   
+ 261  Display negsam, ColSum0, gdpfc0, gdp0, macrov0;
+ 262   
+      *############### Define prior distributions of errors #####################
+      Start from assumed prior knowledge of the means and standard errors of
+      measurement of the cell elements, macro aggregates, and column sums. Below,
+      we assume that all column sums and macro aggregates have standard errors set
+      in stderr1, stderr2, and stderr3. These are Bayesian priors, not a maintained
+      hypothesis.
+       
+      The estimated error is weighted sum of elements in an error support
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 7
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+      set:
+             ERR(ii)    = SUM(jwt, W(ii,jwt)*VBAR(ii,jwt))
+      where the W's are estimated in the CE procedure and the support set, VBAR,
+      is specified to span the possible domain of the errors.
+       
+      The prior mean (zero) and variance of these errors is given by:
+                0       = SUM(jwt, WBAR(ii,jwt)*VBAR(ii,jwt)) and
+        (sigmay(ii))**2 = SUM(jwt, WBAR(ii,jwt)*(VBAR(ii,jwt))**2 )
+      where the WBAR's are the priors on the probability weights.
+       
+      The VBARs are chosen to define a domain for the support set of +/- 3
+      standard errors. The prior on the weights, WBAR, are then calculated
+      to yield the specified prior on the standard error, sigmay.
+       
+      In Robinson, Cattaneo, and El-Said (2001), we specify prior weights
+      (WBAR) that are "uninformative", given by a uniform distribution,
+      and set the prior standard errors by the choice of support set, VBAR.
+      In that paper, we use a three-weight specification (jwt /1*3/) with uniform
+      prior weights. Our current practice to specify an uniformative prior is to use
+      a seven-element support set with uniform prior weights, WBAR. To illustrate,
+      we specify an uninformative prior for col/row sums below
+       
+      We assume two possible "informative" priors:
+      (1) A general two-parameter distribution with priors on the mean (zero) and
+          variance (sigmay**2). This prior requires a three-element support set.
+          We specify this prior for SAM elements with either additive or
+          multiplicative errors.
+      (2) A normal distribution with priors on the mean (zero), variance (sigmay**2),
+          skewness (zero), and kurtosis (3*sigmay**4). This prior requires a
+          five-element support set. We specify this prior for macro totals.
+       
+      We solve for the prior weights (wbar) given the specification of the prior
+      distribution and choice of the support set values (vbar)
+       
+      For example, for the prior of a normal distribution, we assumes a prior mean
+      of zero, skewness of zero, and a prior value of kurtosis consistent with a
+      prior normal distribution with mean zero and variance of sigmay**2. In this
+      case, kurtosis equals 3*sigmay**4. To specify a four-parameter distribution
+      (mean, variance, skewness, kurtosis) requires a five-weight support set.
+       
+      The prior weights (wbar) are specified so that:
+      SUM(jwt, wbar(ii,jwt)*vbar(ii,jwt)**4) = 3*sigmay(ii,jwt)**4
+      as well as defining the variance as above, a mean of zero, and skewness (third
+      moment) of zero. These equations suffice to determine the values of the prior
+      weights (wbar).
+       
+      The choice of +/- 1.5 standard error for vbar(ii,"2") and vbar(ii,"4") is
+      arbitrary, but it is convenient to have equal spacing of the error support set.
+       
+      These are priors, not maintained hypotheses. The actual moments are estimated
+      as part of the estimation procedure.
+ 324   
+ 325  *Set standard deviation for errors on column/row totals
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 8
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 326    sigmay1(ii)       = stderr1*ColSum0(ii) ;
+ 327   
+ 328  *Set constants for 7-weight error distribution (uninformative uniform prior)
+ 329    vbar1(ii,"1")     = -3 * sigmay1(ii) ;
+ 330    vbar1(ii,"2")     = -2 * sigmay1(ii) ;
+ 331    vbar1(ii,"3")     = -1 * sigmay1(ii) ;
+ 332    vbar1(ii,"4")     =  0               ;
+ 333    vbar1(ii,"5")     = +1 * sigmay1(ii) ;
+ 334    vbar1(ii,"6")     = +2 * sigmay1(ii) ;
+ 335    vbar1(ii,"7")     = +3 * sigmay1(ii) ;
+ 336   
+ 337    wbar1(ii,jwt1)    = 1/7              ;
+ 338   
+ 339  *Set standard deviation for errors on macro aggregates
+ 340    sigmay2(macro)    = stderr2*macrov0(macro) ;
+ 341   
+ 342  *Set constants for 5-weight error distribution (normal prior)
+ 343    vbar2(macro,"1")  = -3   * sigmay2(macro) ;
+ 344    vbar2(macro,"2")  = -1.5 * sigmay2(macro) ;
+ 345    vbar2(macro,"3")  =  0                    ;
+ 346    vbar2(macro,"4")  = +1.5 * sigmay2(macro) ;
+ 347    vbar2(macro,"5")  = +3   * sigmay2(macro) ;
+ 348   
+ 349    wbar2(macro,"1")  =  1/162        ;
+ 350    wbar2(macro,"2")  = 16/81         ;
+ 351    wbar2(macro,"3")  = 48/81         ;
+ 352    wbar2(macro,"4")  = 16/81         ;
+ 353    wbar2(macro,"5")  =  1/162        ;
+ 354   
+ 355  *Set constants for 3-weight error distribution (2-parameter prior)
+ 356  LOOP((ii,jj)$NONZERO(ii,jj),
+ 357  *Set standard deviation for errors on cell values or coefficients
+ 358  *Additive errors
+ 359    sigmay3(ii,jj)$ival(ii,jj)    = stderr3*ABS(sam0(ii,jj)) ;
+ 360  *Multiplicative errors
+ 361    sigmay3(ii,jj)$icoeff(ii,jj)  = stderr3 ;
+ 362   
+ 363    vbar3(ii,jj,"1")  = -3 * sigmay3(ii,jj) ;
+ 364    vbar3(ii,jj,"2")  =  0                  ;
+ 365    vbar3(ii,jj,"3")  = +3 * sigmay3(ii,jj) ;
+ 366   
+ 367    wbar3(ii,jj,"1")  =  1/18         ;
+ 368    wbar3(ii,jj,"2")  = 16/18         ;
+ 369    wbar3(ii,jj,"3")  =  1/18         ;
+ 370  *end ii,jj loop
+ 371  ) ;
+ 372   
+ 373   Display vbar1, vbar2, vbar3, sigmay1, sigmay2, sigmay3 ;
+ 374   
+ 375  *###################### VARIABLES #################################
+ 376   VARIABLES
+ 377   A(i,j)         Posterior SAM coefficient matrix
+ 378   TSAM(i,j)      Posterior matrix of SAM transactions
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 9
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 379   MACROV(macro)  Macro aggregates
+ 380   Y(i)           row sum of SAM
+ 381   ERR1(i)        Error value on column sums
+ 382   ERR2(macro)    Error value for macro aggregates
+ 383   ERR3(i,j)      Error value for SAM elements
+ 384   W1(i,jwt)      Error weights for column sums
+ 385   W2(macro,jwt)  Error weights for macro aggregates
+ 386   W3(i,j,jwt)    Error weights for cell elements
+ 387   DENTROPY       Entropy difference (objective)
+ 388    ;
+ 389   
+ 390  *########################## INITIALIZE VARIABLES ##################
+ 391   
+ 392   A.L(ii,jj)          = Abar0(ii,jj) ;
+ 393   TSAM.L(ii,jj)       = sam0(ii,jj)   ;
+ 394   Y.L(ii)             = ColSum0(ii)  ;
+ 395   
+ 396   MACROV.L(macro)     = macrov0(macro) ;
+ 397   
+ 398   ERR1.L(ii)          = 0.0          ;
+ 399   ERR2.L(macro)       = 0.0          ;
+ 400   ERR3.L(ii,jj)$NONZERO(ii,jj)   = 0.0   ;
+ 401   
+ 402   W1.L(ii,jwt)        = wbar1(ii,jwt)    ;
+ 403   W2.L(macro,jwt)     = wbar2(macro,jwt) ;
+ 404   W3.L(ii,jj,jwt)$NONZERO(ii,jj) = wbar3(ii,jj,jwt) ;
+ 405   
+ 406   DENTROPY.L          = 0            ;
+ 407   
+ 408  *############ CORE EQUATIONS
+ 409   EQUATIONS
+ 410   
+ 411   ROWSUMEQ(i)     Rowsum with error
+ 412   ROWSUM(i)       row sums
+ 413   COLSUM(j)       column sums
+ 414   SAMCOEF(i,j)    Define SAM coefficients
+ 415   TSAMEQ(i,j)     SAM elements in values
+ 416   ASAMEQ(i,j)     SAM coefficients
+ 417   GDPFCDEF        define GDP at factor cost
+ 418   GDPDEF          define GDP at market prices
+ 419   MACROEQ(macro)  Macro aggregates with error
+ 420   ERROR1EQ(i)     definition of error term 1
+ 421   ERROR2EQ(macro) definition of error term 2
+ 422   ERROR3EQ(i,j)   definition of error term 3
+ 423   SUMW1(i)        Sum of weights 1
+ 424   SUMW2(macro)    Sum of weights 2
+ 425   SUMW3(i,j)      Sum of weights 3
+ 426   ENTROPY         Entropy difference definition
+ 427   ;
+ 428   
+ 429  *MODEL EQUATIONS====================================================
+ 430   
+ 431  *Row and column sums estimation and balance
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 10
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 432   ROWSUMEQ(ii)..                  Y(ii)       =E= ColSum0(ii) + ERR1(ii) ;
+ 433   
+ 434   ROWSUM(ii)..           SUM(jj, TSAM(ii,jj)) =E= Y(ii) ;
+ 435   
+ 436   COLSUM(jj)..           SUM(ii, TSAM(ii,jj)) =E= Y(jj) ;
+ 437   
+ 438  *Estimating SAM elements from prior values or coefficients
+ 439   SAMCOEF(ii,jj)$NONZERO(ii,jj).. TSAM(ii,jj) =E= A(ii,jj)*Y(jj) ;
+ 440   
+ 441   TSAMEQ(ii,jj)$IVAL(ii,jj)..     TSAM(ii,jj) =E= sam0(ii,jj) + ERR3(ii,jj) ;
+ 442   
+ 443   ASAMEQ(ii,jj)$ICOEFF(ii,jj)..   A(ii,jj)    =E= abar0(ii,jj)*EXP(ERR3(ii,jj)) ;
+ 444   
+ 445  *Macro aggregates measured with error
+ 446   GDPFCDEF..        MACROV("gdpfc2") =E= TSAM("fac","act")  ;
+ 447   
+ 448   GDPDEF..          MACROV("gdp2")   =E=
+ 449                       TSAM("fac","act") + TSAM("gov","act") -
+ 450                       TSAM("act","gov") + TSAM("gov","com") ;
+ 451   
+ 452   MACROEQ(macro)..  MACROV(macro) =E= macrov0(macro) + ERR2(macro) ;
+ 453   
+ 454  *Definition of errors as probability weighted sums of support sets
+ 455   ERROR1EQ(ii)..
+ 456        ERR1(ii)    =E= SUM(jwt1, W1(ii,jwt1)*vbar1(ii,jwt1)) ;
+ 457   
+ 458   ERROR2EQ(macro)..
+ 459        ERR2(macro) =E= SUM(jwt2, W2(macro,jwt2)*vbar2(macro,jwt2)) ;
+ 460   
+ 461   ERROR3EQ(ii,jj)$NONZERO(ii,jj)..
+ 462        ERR3(ii,jj) =E= SUM(jwt3, W3(ii,jj,jwt3)*vbar3(ii,jj,jwt3)) ;
+ 463   
+ 464  *Probabilities must sum to one
+ 465   SUMW1(ii)..                   SUM(jwt1, W1(ii,jwt1))    =E= 1 ;
+ 466   
+ 467   SUMW2(macro)..                SUM(jwt2, W2(macro,jwt2)) =E= 1 ;
+ 468   
+ 469   SUMW3(ii,jj)$NONZERO(ii,jj).. SUM(jwt3, W3(ii,jj,jwt3)) =E= 1 ;
+ 470   
+ 472   
+ 473  * Objective function using GAMS cross-entropy intrinsic function, CENTROPY
+ 474   ENTROPY.. DENTROPY    =E= SUM[(ii,jj,jwt3)$nonzero(ii,jj),
+ 475                             CENTROPY(W3(ii,jj,jwt3),wbar3(ii,jj,jwt3))]
+ 476                           +
+ 477                             SUM[(ii,jwt1),
+ 478                             CENTROPY(W1(ii,jwt1),wbar1(ii,jwt1))]
+ 479                           +
+ 480                             SUM[(macro,jwt2),
+ 481                             CENTROPY(W2(macro,jwt2),wbar2(macro,jwt2))] ;
+ 483   
+ 484  *Define bounds for cell values and fix variables not
+ 485  *included in the estimation
+ 486   A.FX(ii,jj)$(NOT nonzero(ii,jj))    = 0 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 11
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 487   TSAM.FX(ii,jj)$(NOT nonzero(ii,jj)) = 0 ;
+ 488   
+ 489  * Upper and lower bounds on the error weights
+ 490   W1.LO(ii,jwt1)                      = 0 ;
+ 491   W1.UP(ii,jwt1)                      = 1 ;
+ 492   
+ 493   W2.LO(macro,jwt2)                   = 0 ;
+ 494   W2.UP(macro,jwt2)                   = 1 ;
+ 495   
+ 496   W3.LO(ii,jj,jwt3)$NONZERO(ii,jj)    = 0 ;
+ 497   W3.UP(ii,jj,jwt3)$NONZERO(ii,jj)    = 1 ;
+ 498   
+ 499   W3.FX(ii,jj,jwt3)$(NOT nonzero(ii,jj)) = 0 ;
+ 500   
+ 501  *######################## DEFINE MODEL ############################
+ 502   
+ 503   MODEL SAMENTROP / ALL /
+ 504   
+ 505  *######################## SOLVE MODEL #############################
+ 506   
+ 507   OPTION LIMROW  = 100, LIMCOL = 0;
+ 508   OPTION SOLPRINT = ON;
+ 509   OPTION DOMLIM = 100;
+ 510   
+ 511   SAMENTROP.HOLDFIXED = 1 ;
+ 512   
+ 513  *########################### Solve statement ######################
+ 514   
+ 515    SOLVE SAMENTROP using NLP minimizing dentropy ;
+ 516   
+ 517  *###################################################################
+ 518   
+ 519  *---------------- Parameters for reporting results
+ 520  Parameters
+ 521   Macsam1(i,j)       Assigned new balanced SAM flows from CE
+ 522   Macsam2(i,j)       Balanced SAM flows in original units
+ 523   percent1(i,j)      percent change of new SAM from original SAM
+ 524   Diffrnce(i,j)      Differnce btw original SAM and final SAM in values
+ 525   ;
+ 526   
+ 527   macsam1(ii,jj)         = TSAM.L(ii,jj);
+ 528   macsam1("total",jj)    = SUM(ii, macsam1(ii,jj)) ;
+ 529   macsam1(ii,"total")    = SUM(jj, macsam1(ii,jj)) ;
+ 530   macsam2(i,j)           = macsam1(i,j)*scalesam ;
+ 531   percent1(i,j)$(sam0(i,j))= 100*(macsam1(i,j)-sam0(i,j))/sam0(i,j);
+ 532   Diffrnce(i,j)          = macsam1(i,j) - sam0(i,j);
+ 533   
+ 534   SAMBALCHK(jj)          = TSAM.L('TOTAL',jj) - TSAM.L(jj,'TOTAL') ;
+ 535   
+ 536   display sam0, macsam1, SAMBALCHK, Diffrnce, percent1, macsam2, dentropy.l ;
+ 537   
+ 538   gdp00                  = macsam1("fac","act") + macsam1("gov","act") -
+ 539                            macsam1("act","gov") + macsam1("gov","com") ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 12
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+C o m p i l a t i o n
+
+
+ 540   
+ 541   gdpfc00                = macsam1("fac","act") ;
+ 542   
+ 543   display gdp0, gdp00, gdpfc0, gdpfc00, macrov0, macrov.l ;
+ 544   
+ 545  *#######
+ 546   Parameter ANEW(i,j) ;
+ 547  * print some stuff
+ 548   ANEW(ii,jj)        = A.L(ii,jj)          ;
+ 549   ANEW("total",jj)   = SUM(ii, A.L(ii,jj)) ;
+ 550   ANEW(ii,"total")   = SUM(jj, A.L(ii,jj)) ;
+ 551   
+ 552   ABAR0("total",jj)  = SUM(ii, ABAR0(ii,jj)) ;
+ 553   ABAR0(ii,"total")  = SUM(jj, ABAR0(ii,jj)) ;
+ 554   
+ 555   Display ANEW, ABAR0 ;
+ 556   
+ 557   scalar meanerr1, meanerr2 ;
+ 558   meanerr1 = SUM(ii, abs(err1.l(ii)))/card(ii) ;
+ 559   meanerr2 = SUM(macro, abs(err2.l(macro)))/card(macro) ;
+ 560   display meanerr1, meanerr2 ;
+ 561   
+ 562  *#*#*#*#*#*#*#*#*#*#*#*#* THE END *#*#*#*#*#*#*#*#*#*#*#*#*#*#*
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 13
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    218 PARAMETER Abar0  Prior SAM coefficient matrix
+
+            ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW
+
+ACT                   0.714                               0.213 -2.57460E-4                               0.267
+COM       0.429                                           0.706       1.232       1.192       1.000
+FAC       0.531
+ENT                               0.379                               0.026
+HOU                               0.614       0.913                   0.023                               0.036
+GOV       0.040       0.017       0.008       0.046       0.014
+GIN                                                                                                       0.308
+CAP                                           0.041       0.066      -0.281      -0.192                   0.389
+ROW                   0.269
+
+
+----    218 PARAMETER SAM0  Unbalance prior or proto-SAM transactions matrix
+
+              ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW       TOTAL
+
+ACT                    14.827                               2.101 -3.27000E-4                               1.488      18.416
+COM         7.918                                           6.953       1.564       2.519       2.598                  21.552
+FAC         9.805                                                                                                       9.805
+ENT                                 3.700                               0.033                                           3.733
+HOU                                 6.000       3.300                   0.030                               0.200       9.530
+GOV         0.734       0.357       0.074       0.165       0.140                                                       1.470
+GIN                                                                                                         1.712       1.712
+CAP                                             0.150       0.649      -0.357      -0.406                   2.164       2.200
+ROW                     5.574                                                                                           5.574
+TOTAL      18.457      20.759       9.774       3.615       9.843       1.270       2.112       2.598       5.564
+
+
+----    218 PARAMETER SAMBALCHK  Column sums minus row sums in the SAM
+
+ACT  0.040,    COM -0.793,    FAC -0.031,    ENT -0.118,    HOU  0.313,    GOV -0.200,    GIN  0.400,    CAP  0.398,    ROW -0.010
+
+
+----    246 SET icoeff  SAM elements whose prior is specified as coefficients
+
+            ACT         FAC         ENT         HOU
+
+ACT                                             YES
+COM         YES                                 YES
+FAC         YES
+ENT                     YES
+HOU                     YES         YES
+GOV         YES         YES         YES         YES
+CAP                                 YES         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 14
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    246 SET ival  SAM elements whose prior is specified as values
+
+            COM         GOV         GIN         CAP         ROW
+
+ACT         YES         YES                                 YES
+COM                     YES         YES         YES
+ENT                     YES
+HOU                     YES                                 YES
+GOV         YES
+GIN                                                         YES
+CAP                     YES         YES                     YES
+ROW         YES
+
+
+----    246 PARAMETER chkset  Check coefficient and value sets
+
+                      ( ALL       0.000 )
+
+
+----    261 PARAMETER NegSam  Negative SAM values
+
+            GOV         GIN
+
+ACT -3.27000E-4
+CAP      -0.357      -0.406
+
+
+----    261 PARAMETER ColSum0  Targets for macro SAM column totals
+
+ACT 18.436,    COM 21.155,    FAC  9.790,    ENT  3.674,    HOU  9.686,    GOV  1.370,    GIN  1.912,    CAP  2.399,    ROW  5.569
+
+
+----    261 PARAMETER gdpfc0               =        9.805  base GDP at factor cost
+            PARAMETER gdp0                 =       10.897  base GDP
+
+----    261 PARAMETER macrov0  Target values for macro aggregates
+
+gdpfc2  9.805,    gdp2   10.897
+
+
+----    373 PARAMETER vbar1  Error support set 1 for column sums
+
+              1           2           3           5           6           7
+
+ACT      -2.765      -1.844      -0.922       0.922       1.844       2.765
+COM      -3.173      -2.116      -1.058       1.058       2.116       3.173
+FAC      -1.468      -0.979      -0.489       0.489       0.979       1.468
+ENT      -0.551      -0.367      -0.184       0.184       0.367       0.551
+HOU      -1.453      -0.969      -0.484       0.484       0.969       1.453
+GOV      -0.206      -0.137      -0.069       0.069       0.137       0.206
+GIN      -0.287      -0.191      -0.096       0.096       0.191       0.287
+CAP      -0.360      -0.240      -0.120       0.120       0.240       0.360
+ROW      -0.835      -0.557      -0.278       0.278       0.557       0.835
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 15
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    373 PARAMETER vbar2  Error support set 2 for macro aggregates
+
+                 1           2           4           5
+
+gdpfc2      -1.471      -0.735       0.735       1.471
+gdp2        -1.635      -0.817       0.817       1.635
+
+
+----    373 PARAMETER vbar3  Error support set 3 for SAM elements
+
+                  1           3
+
+ACT.COM     -11.121      11.121
+ACT.HOU      -0.750       0.750
+ACT.GOV -2.45250E-4 2.452500E-4
+ACT.ROW      -1.116       1.116
+COM.ACT      -0.750       0.750
+COM.HOU      -0.750       0.750
+COM.GOV      -1.173       1.173
+COM.GIN      -1.889       1.889
+COM.CAP      -1.948       1.948
+FAC.ACT      -0.750       0.750
+ENT.FAC      -0.750       0.750
+ENT.GOV      -0.025       0.025
+HOU.FAC      -0.750       0.750
+HOU.ENT      -0.750       0.750
+HOU.GOV      -0.022       0.022
+HOU.ROW      -0.150       0.150
+GOV.ACT      -0.750       0.750
+GOV.COM      -0.268       0.268
+GOV.FAC      -0.750       0.750
+GOV.ENT      -0.750       0.750
+GOV.HOU      -0.750       0.750
+GIN.ROW      -1.284       1.284
+CAP.ENT      -0.750       0.750
+CAP.HOU      -0.750       0.750
+CAP.GOV      -0.268       0.268
+CAP.GIN      -0.305       0.305
+CAP.ROW      -1.623       1.623
+ROW.COM      -4.180       4.180
+
+
+----    373 PARAMETER sigmay1  Prior standard error of column sums
+
+ACT 0.922,    COM 1.058,    FAC 0.489,    ENT 0.184,    HOU 0.484,    GOV 0.069,    GIN 0.096,    CAP 0.120,    ROW 0.278
+
+
+----    373 PARAMETER sigmay2  Prior standard error of macro aggregates
+
+gdpfc2 0.490,    gdp2   0.545
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 16
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    373 PARAMETER sigmay3  Prior standard error of SAM elements
+
+            ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW
+
+ACT                   3.707                               0.250 8.175000E-5                               0.372
+COM       0.250                                           0.250       0.391       0.630       0.649
+FAC       0.250
+ENT                               0.250                               0.008
+HOU                               0.250       0.250                   0.007                               0.050
+GOV       0.250       0.089       0.250       0.250       0.250
+GIN                                                                                                       0.428
+CAP                                           0.250       0.250       0.089       0.102                   0.541
+ROW                   1.393
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 17
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+---- ROWSUMEQ  =E=  Rowsum with error
+
+ROWSUMEQ(ACT)..  Y(ACT) - ERR1(ACT) =E= 18.4364105 ; (LHS = 18.4364105)
+     
+ROWSUMEQ(COM)..  Y(COM) - ERR1(COM) =E= 21.1551365 ; (LHS = 21.1551365)
+     
+ROWSUMEQ(FAC)..  Y(FAC) - ERR1(FAC) =E= 9.78976 ; (LHS = 9.78976)
+     
+ROWSUMEQ(ENT)..  Y(ENT) - ERR1(ENT) =E= 3.673953 ; (LHS = 3.673953)
+     
+ROWSUMEQ(HOU)..  Y(HOU) - ERR1(HOU) =E= 9.6863185 ; (LHS = 9.6863185)
+     
+ROWSUMEQ(GOV)..  Y(GOV) - ERR1(GOV) =E= 1.3701 ; (LHS = 1.3701)
+     
+ROWSUMEQ(GIN)..  Y(GIN) - ERR1(GIN) =E= 1.9123 ; (LHS = 1.9123)
+     
+ROWSUMEQ(CAP)..  Y(CAP) - ERR1(CAP) =E= 2.398969 ; (LHS = 2.398969)
+     
+ROWSUMEQ(ROW)..  Y(ROW) - ERR1(ROW) =E= 5.5690645 ; (LHS = 5.5690645)
+     
+
+---- ROWSUM  =E=  row sums
+
+ROWSUM(ACT)..  TSAM(ACT,COM) + TSAM(ACT,HOU) + TSAM(ACT,GOV) + TSAM(ACT,ROW) - Y(ACT) =E= 0 ; (LHS = -0.0201074999999982, INFES = 0.0201074999999982 ****)
+     
+ROWSUM(COM)..  TSAM(COM,ACT) + TSAM(COM,HOU) + TSAM(COM,GOV) + TSAM(COM,GIN) + TSAM(COM,CAP) - Y(COM) =E= 0 ; (LHS = 0.396497500000002, INFES = 0.396497500000002 ****)
+     
+ROWSUM(FAC)..  TSAM(FAC,ACT) - Y(FAC) =E= 0 ; (LHS = 0.0156539999999996, INFES = 0.0156539999999996 ****)
+     
+ROWSUM(ENT)..  TSAM(ENT,FAC) + TSAM(ENT,GOV) - Y(ENT) =E= 0 ; (LHS = 0.0587530000000003, INFES = 0.0587530000000003 ****)
+     
+ROWSUM(HOU)..  TSAM(HOU,FAC) + TSAM(HOU,ENT) + TSAM(HOU,GOV) + TSAM(HOU,ROW) - Y(HOU) =E= 0 ; (LHS = -0.1567185, INFES = 0.1567185 ****)
+     
+ROWSUM(GOV)..  TSAM(GOV,ACT) + TSAM(GOV,COM) + TSAM(GOV,FAC) + TSAM(GOV,ENT) + TSAM(GOV,HOU) - Y(GOV) =E= 0 ; (LHS = 0.0999999999999999, INFES = 0.0999999999999999 ****)
+     
+ROWSUM(GIN)..  TSAM(GIN,ROW) - Y(GIN) =E= 0 ; (LHS = -0.2, INFES = 0.2 ****)
+     
+ROWSUM(CAP)..  TSAM(CAP,ENT) + TSAM(CAP,HOU) + TSAM(CAP,GOV) + TSAM(CAP,GIN) + TSAM(CAP,ROW) - Y(CAP) =E= 0 ; (LHS = -0.198828999999999, INFES = 0.198828999999999 ****)
+     
+ROWSUM(ROW)..  TSAM(ROW,COM) - Y(ROW) =E= 0 ; (LHS = 0.0047505000000001, INFES = 0.0047505000000001 ****)
+     
+
+---- COLSUM  =E=  column sums
+
+COLSUM(ACT)..  TSAM(COM,ACT) + TSAM(FAC,ACT) + TSAM(GOV,ACT) - Y(ACT) =E= 0 ; (LHS = 0.0201074999999982, INFES = 0.0201074999999982 ****)
+     
+COLSUM(COM)..  TSAM(ACT,COM) + TSAM(GOV,COM) + TSAM(ROW,COM) - Y(COM) =E= 0 ; (LHS = -0.396497499999995, INFES = 0.396497499999995 ****)
+     
+COLSUM(FAC)..  TSAM(ENT,FAC) + TSAM(HOU,FAC) + TSAM(GOV,FAC) - Y(FAC) =E= 0 ; (LHS = -0.0156539999999996, INFES = 0.0156539999999996 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 18
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     COLSUM  =E=  column sums
+
+COLSUM(ENT)..  TSAM(HOU,ENT) + TSAM(GOV,ENT) + TSAM(CAP,ENT) - Y(ENT) =E= 0 ; (LHS = -0.0587529999999998, INFES = 0.0587529999999998 ****)
+     
+COLSUM(HOU)..  TSAM(ACT,HOU) + TSAM(COM,HOU) + TSAM(GOV,HOU) + TSAM(CAP,HOU) - Y(HOU) =E= 0 ; (LHS = 0.1567185, INFES = 0.1567185 ****)
+     
+COLSUM(GOV)..  TSAM(ACT,GOV) + TSAM(COM,GOV) + TSAM(ENT,GOV) + TSAM(HOU,GOV) + TSAM(CAP,GOV) - Y(GOV) =E= 0 ; (LHS = -0.1, INFES = 0.1 ****)
+     
+COLSUM(GIN)..  TSAM(COM,GIN) + TSAM(CAP,GIN) - Y(GIN) =E= 0 ; (LHS = 0.2, INFES = 0.2 ****)
+     
+COLSUM(CAP)..  TSAM(COM,CAP) - Y(CAP) =E= 0 ; (LHS = 0.198829, INFES = 0.198829 ****)
+     
+COLSUM(ROW)..  TSAM(ACT,ROW) + TSAM(HOU,ROW) + TSAM(GIN,ROW) + TSAM(CAP,ROW) - Y(ROW) =E= 0 ; (LHS = -0.0047505000000001, INFES = 0.0047505000000001 ****)
+     
+
+---- SAMCOEF  =E=  Define SAM coefficients
+
+SAMCOEF(ACT,COM)..  - (21.1551365)*A(ACT,COM) + TSAM(ACT,COM) - (0.714277270296959)*Y(COM) =E= 0 ; (LHS = -0.283209151979568, INFES = 0.283209151979568 ****)
+     
+SAMCOEF(ACT,HOU)..  - (9.6863185)*A(ACT,HOU) + TSAM(ACT,HOU) - (0.213455359357076)*Y(HOU) =E= 0 ; (LHS = 0.033452403735402, INFES = 0.033452403735402 ****)
+     
+SAMCOEF(ACT,GOV)..  - (1.3701)*A(ACT,GOV) + TSAM(ACT,GOV) + (0.000257460042516337)*Y(GOV) =E= 0 ; (LHS = 2.57460042516338E-5, INFES = 2.57460042516338E-5 ****)
+     
+SAMCOEF(ACT,ROW)..  - (5.5690645)*A(ACT,ROW) + TSAM(ACT,ROW) - (0.267446625046681)*Y(ROW) =E= 0 ; (LHS = -0.00127050519228411, INFES = 0.00127050519228411 ****)
+     
+SAMCOEF(COM,ACT)..  - (18.4364105)*A(COM,ACT) + TSAM(COM,ACT) - (0.428981457932639)*Y(ACT) =E= 0 ; (LHS = 0.00862574466538035, INFES = 0.00862574466538035 ****)
+     
+SAMCOEF(COM,HOU)..  - (9.6863185)*A(COM,HOU) + TSAM(COM,HOU) - (0.706421402256235)*Y(HOU) =E= 0 ; (LHS = 0.110709302529494, INFES = 0.110709302529494 ****)
+     
+SAMCOEF(COM,GOV)..  - (1.3701)*A(COM,GOV) + TSAM(COM,GOV) - (1.23179277222266)*Y(GOV) =E= 0 ; (LHS = -0.123179277222266, INFES = 0.123179277222266 ****)
+     
+SAMCOEF(COM,GIN)..  - (1.9123)*A(COM,GIN) + TSAM(COM,GIN) - (1.1923022297969)*Y(GIN) =E= 0 ; (LHS = 0.238460445959381, INFES = 0.238460445959381 ****)
+     
+SAMCOEF(COM,CAP)..  - (2.398969)*A(COM,CAP) + TSAM(COM,CAP) - (1)*Y(CAP) =E= 0 ; (LHS = 0.198829, INFES = 0.198829 ****)
+     
+SAMCOEF(FAC,ACT)..  - (18.4364105)*A(FAC,ACT) + TSAM(FAC,ACT) - (0.531271066405917)*Y(ACT) =E= 0 ; (LHS = 0.0106825329677562, INFES = 0.0106825329677562 ****)
+     
+SAMCOEF(ENT,FAC)..  - (9.78976)*A(ENT,FAC) + TSAM(ENT,FAC) - (0.37852116602787)*Y(FAC) =E= 0 ; (LHS = -0.00592537033300067, INFES = 0.00592537033300067 ****)
+     
+SAMCOEF(ENT,GOV)..  - (1.3701)*A(ENT,GOV) + TSAM(ENT,GOV) - (0.0259822061255019)*Y(GOV) =E= 0 ; (LHS = -0.0025982206125502, INFES = 0.0025982206125502 ****)
+     
+SAMCOEF(HOU,FAC)..  - (9.78976)*A(HOU,FAC) + TSAM(HOU,FAC) - (0.613866884603052)*Y(FAC) =E= 0 ; (LHS = -0.00960947221157671, INFES = 0.00960947221157671 ****)
+     
+SAMCOEF(HOU,ENT)..  - (3.673953)*A(HOU,ENT) + TSAM(HOU,ENT) - (0.912812569152467)*Y(ENT) =E= 0 ; (LHS = -0.0536304768754148, INFES = 0.0536304768754148 ****)
+     
+SAMCOEF(HOU,GOV)..  - (1.3701)*A(HOU,GOV) + TSAM(HOU,GOV) - (0.0233052515549957)*Y(GOV) =E= 0 ; (LHS = -0.00233052515549957, INFES = 0.00233052515549957 ****)
+     
+SAMCOEF(HOU,ROW)..  - (5.5690645)*A(HOU,ROW) + TSAM(HOU,ROW) - (0.0359433346141142)*Y(ROW) =E= 0 ; (LHS = -0.000170748811084309, INFES = 0.000170748811084309 ****)
+     
+SAMCOEF(GOV,ACT)..  - (18.4364105)*A(GOV,ACT) + TSAM(GOV,ACT) - (0.0397474756614438)*Y(ACT) =E= 0 ; (LHS = 0.000799222366862473, INFES = 0.000799222366862473 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 19
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     SAMCOEF  =E=  Define SAM coefficients
+
+SAMCOEF(GOV,COM)..  - (21.1551365)*A(GOV,COM) + TSAM(GOV,COM) - (0.0172169283352343)*Y(COM) =E= 0 ; (LHS = -0.00682646904259954, INFES = 0.00682646904259954 ****)
+     
+SAMCOEF(GOV,FAC)..  - (9.78976)*A(GOV,FAC) + TSAM(GOV,FAC) - (0.00761194936907785)*Y(FAC) =E= 0 ; (LHS = -0.000119157455423555, INFES = 0.000119157455423555 ****)
+     
+SAMCOEF(GOV,ENT)..  - (3.673953)*A(GOV,ENT) + TSAM(GOV,ENT) - (0.0456959504315114)*Y(ENT) =E= 0 ; (LHS = -0.00268477417570259, INFES = 0.00268477417570259 ****)
+     
+SAMCOEF(GOV,HOU)..  - (9.6863185)*A(GOV,HOU) + TSAM(GOV,HOU) - (0.0141724551070975)*Y(HOU) =E= 0 ; (LHS = 0.00222108590570166, INFES = 0.00222108590570166 ****)
+     
+SAMCOEF(GIN,ROW)..  - (5.5690645)*A(GIN,ROW) + TSAM(GIN,ROW) - (0.307728859298738)*Y(ROW) =E= 0 ; (LHS = -0.00146186594609854, INFES = 0.00146186594609854 ****)
+     
+SAMCOEF(CAP,ENT)..  - (3.673953)*A(CAP,ENT) + TSAM(CAP,ENT) - (0.0414914804160212)*Y(ENT) =E= 0 ; (LHS = -0.00243774894888249, INFES = 0.00243774894888249 ****)
+     
+SAMCOEF(CAP,HOU)..  - (9.6863185)*A(CAP,HOU) + TSAM(CAP,HOU) - (0.0659507832795914)*Y(HOU) =E= 0 ; (LHS = 0.0103357078294026, INFES = 0.0103357078294026 ****)
+     
+SAMCOEF(CAP,GOV)..  - (1.3701)*A(CAP,GOV) + TSAM(CAP,GOV) + (0.280822769860641)*Y(GOV) =E= 0 ; (LHS = 0.0280822769860641, INFES = 0.0280822769860641 ****)
+     
+SAMCOEF(CAP,GIN)..  - (1.9123)*A(CAP,GIN) + TSAM(CAP,GIN) + (0.192302229796904)*Y(GIN) =E= 0 ; (LHS = -0.0384604459593808, INFES = 0.0384604459593808 ****)
+     
+SAMCOEF(CAP,ROW)..  - (5.5690645)*A(CAP,ROW) + TSAM(CAP,ROW) - (0.388881181040466)*Y(ROW) =E= 0 ; (LHS = -0.00184738005053253, INFES = 0.00184738005053253 ****)
+     
+SAMCOEF(ROW,COM)..  - (21.1551365)*A(ROW,COM) + TSAM(ROW,COM) - (0.268505801367806)*Y(COM) =E= 0 ; (LHS = -0.106461878977831, INFES = 0.106461878977831 ****)
+     
+
+---- TSAMEQ  =E=  SAM elements in values
+
+TSAMEQ(ACT,COM)..  TSAM(ACT,COM) - ERR3(ACT,COM) =E= 14.827424 ; (LHS = 14.827424)
+     
+TSAMEQ(ACT,GOV)..  TSAM(ACT,GOV) - ERR3(ACT,GOV) =E= -0.000327 ; (LHS = -0.000327)
+     
+TSAMEQ(ACT,ROW)..  TSAM(ACT,ROW) - ERR3(ACT,ROW) =E= 1.488157 ; (LHS = 1.488157)
+     
+TSAMEQ(COM,GOV)..  TSAM(COM,GOV) - ERR3(COM,GOV) =E= 1.5645 ; (LHS = 1.5645)
+     
+TSAMEQ(COM,GIN)..  TSAM(COM,GIN) - ERR3(COM,GIN) =E= 2.5185 ; (LHS = 2.5185)
+     
+TSAMEQ(COM,CAP)..  TSAM(COM,CAP) - ERR3(COM,CAP) =E= 2.597798 ; (LHS = 2.597798)
+     
+TSAMEQ(ENT,GOV)..  TSAM(ENT,GOV) - ERR3(ENT,GOV) =E= 0.033 ; (LHS = 0.033)
+     
+TSAMEQ(HOU,GOV)..  TSAM(HOU,GOV) - ERR3(HOU,GOV) =E= 0.0296 ; (LHS = 0.0296)
+     
+TSAMEQ(HOU,ROW)..  TSAM(HOU,ROW) - ERR3(HOU,ROW) =E= 0.2 ; (LHS = 0.2)
+     
+TSAMEQ(GOV,COM)..  TSAM(GOV,COM) - ERR3(GOV,COM) =E= 0.3574 ; (LHS = 0.3574)
+     
+TSAMEQ(GIN,ROW)..  TSAM(GIN,ROW) - ERR3(GIN,ROW) =E= 1.7123 ; (LHS = 1.7123)
+     
+TSAMEQ(CAP,GOV)..  TSAM(CAP,GOV) - ERR3(CAP,GOV) =E= -0.356673 ; (LHS = -0.356673)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 20
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     TSAMEQ  =E=  SAM elements in values
+
+TSAMEQ(CAP,GIN)..  TSAM(CAP,GIN) - ERR3(CAP,GIN) =E= -0.4062 ; (LHS = -0.4062)
+     
+TSAMEQ(CAP,ROW)..  TSAM(CAP,ROW) - ERR3(CAP,ROW) =E= 2.163857 ; (LHS = 2.163857)
+     
+TSAMEQ(ROW,COM)..  TSAM(ROW,COM) - ERR3(ROW,COM) =E= 5.573815 ; (LHS = 5.573815)
+     
+
+---- ASAMEQ  =E=  SAM coefficients
+
+ASAMEQ(ACT,HOU)..  A(ACT,HOU) - (0.213455359357076)*ERR3(ACT,HOU) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(COM,ACT)..  A(COM,ACT) - (0.428981457932639)*ERR3(COM,ACT) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(COM,HOU)..  A(COM,HOU) - (0.706421402256235)*ERR3(COM,HOU) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(FAC,ACT)..  A(FAC,ACT) - (0.531271066405917)*ERR3(FAC,ACT) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(ENT,FAC)..  A(ENT,FAC) - (0.37852116602787)*ERR3(ENT,FAC) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(HOU,FAC)..  A(HOU,FAC) - (0.613866884603052)*ERR3(HOU,FAC) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(HOU,ENT)..  A(HOU,ENT) - (0.912812569152467)*ERR3(HOU,ENT) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(GOV,ACT)..  A(GOV,ACT) - (0.0397474756614438)*ERR3(GOV,ACT) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(GOV,FAC)..  A(GOV,FAC) - (0.00761194936907785)*ERR3(GOV,FAC) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(GOV,ENT)..  A(GOV,ENT) - (0.0456959504315114)*ERR3(GOV,ENT) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(GOV,HOU)..  A(GOV,HOU) - (0.0141724551070975)*ERR3(GOV,HOU) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(CAP,ENT)..  A(CAP,ENT) - (0.0414914804160212)*ERR3(CAP,ENT) =E= 0 ; (LHS = 0)
+     
+ASAMEQ(CAP,HOU)..  A(CAP,HOU) - (0.0659507832795914)*ERR3(CAP,HOU) =E= 0 ; (LHS = 0)
+     
+
+---- GDPFCDEF  =E=  define GDP at factor cost
+
+GDPFCDEF..  - TSAM(FAC,ACT) + MACROV(gdpfc2) =E= 0 ; (LHS = 0)
+     
+
+---- GDPDEF  =E=  define GDP at market prices
+
+GDPDEF..  TSAM(ACT,GOV) - TSAM(FAC,ACT) - TSAM(GOV,ACT) - TSAM(GOV,COM) + MACROV(gdp2) =E= 0 ; (LHS = 0)
+     
+
+---- MACROEQ  =E=  Macro aggregates with error
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 21
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     MACROEQ  =E=  Macro aggregates with error
+
+MACROEQ(gdpfc2)..  MACROV(gdpfc2) - ERR2(gdpfc2) =E= 9.805414 ; (LHS = 9.805414)
+     
+MACROEQ(gdp2)..  MACROV(gdp2) - ERR2(gdp2) =E= 10.896741 ; (LHS = 10.896741)
+     
+
+---- ERROR1EQ  =E=  definition of error term 1
+
+ERROR1EQ(ACT)..  ERR1(ACT) + 2.765461575*W1(ACT,1) + 1.84364105*W1(ACT,2) + 0.921820525*W1(ACT,3) - 0.921820525*W1(ACT,5) - 1.84364105*W1(ACT,6) - 2.765461575*W1(ACT,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(COM)..  ERR1(COM) + 3.173270475*W1(COM,1) + 2.11551365*W1(COM,2) + 1.057756825*W1(COM,3) - 1.057756825*W1(COM,5) - 2.11551365*W1(COM,6) - 3.173270475*W1(COM,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(FAC)..  ERR1(FAC) + 1.468464*W1(FAC,1) + 0.978976*W1(FAC,2) + 0.489488*W1(FAC,3) - 0.489488*W1(FAC,5) - 0.978976*W1(FAC,6) - 1.468464*W1(FAC,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(ENT)..  ERR1(ENT) + 0.55109295*W1(ENT,1) + 0.3673953*W1(ENT,2) + 0.18369765*W1(ENT,3) - 0.18369765*W1(ENT,5) - 0.3673953*W1(ENT,6) - 0.55109295*W1(ENT,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(HOU)..  ERR1(HOU) + 1.452947775*W1(HOU,1) + 0.96863185*W1(HOU,2) + 0.484315925*W1(HOU,3) - 0.484315925*W1(HOU,5) - 0.96863185*W1(HOU,6) - 1.452947775*W1(HOU,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(GOV)..  ERR1(GOV) + 0.205515*W1(GOV,1) + 0.13701*W1(GOV,2) + 0.068505*W1(GOV,3) - 0.068505*W1(GOV,5) - 0.13701*W1(GOV,6) - 0.205515*W1(GOV,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(GIN)..  ERR1(GIN) + 0.286845*W1(GIN,1) + 0.19123*W1(GIN,2) + 0.095615*W1(GIN,3) - 0.095615*W1(GIN,5) - 0.19123*W1(GIN,6) - 0.286845*W1(GIN,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(CAP)..  ERR1(CAP) + 0.35984535*W1(CAP,1) + 0.2398969*W1(CAP,2) + 0.11994845*W1(CAP,3) - 0.11994845*W1(CAP,5) - 0.2398969*W1(CAP,6) - 0.35984535*W1(CAP,7) =E= 0 ; (LHS = 0)
+     
+ERROR1EQ(ROW)..  ERR1(ROW) + 0.835359675*W1(ROW,1) + 0.55690645*W1(ROW,2) + 0.278453225*W1(ROW,3) - 0.278453225*W1(ROW,5) - 0.55690645*W1(ROW,6) - 0.835359675*W1(ROW,7) =E= 0 ; (LHS = 0)
+     
+
+---- ERROR2EQ  =E=  definition of error term 2
+
+ERROR2EQ(gdpfc2)..  ERR2(gdpfc2) + 1.4708121*W2(gdpfc2,1) + 0.73540605*W2(gdpfc2,2) - 0.73540605*W2(gdpfc2,4) - 1.4708121*W2(gdpfc2,5) =E= 0 ; (LHS = 0)
+     
+ERROR2EQ(gdp2)..  ERR2(gdp2) + 1.63451115*W2(gdp2,1) + 0.817255575*W2(gdp2,2) - 0.817255575*W2(gdp2,4) - 1.63451115*W2(gdp2,5) =E= 0 ; (LHS = 0)
+     
+
+---- ERROR3EQ  =E=  definition of error term 3
+
+ERROR3EQ(ACT,COM)..  ERR3(ACT,COM) + 11.120568*W3(ACT,COM,1) - 11.120568*W3(ACT,COM,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(ACT,HOU)..  ERR3(ACT,HOU) + 0.75*W3(ACT,HOU,1) - 0.75*W3(ACT,HOU,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(ACT,GOV)..  ERR3(ACT,GOV) + 0.00024525*W3(ACT,GOV,1) - 0.00024525*W3(ACT,GOV,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(ACT,ROW)..  ERR3(ACT,ROW) + 1.11611775*W3(ACT,ROW,1) - 1.11611775*W3(ACT,ROW,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(COM,ACT)..  ERR3(COM,ACT) + 0.75*W3(COM,ACT,1) - 0.75*W3(COM,ACT,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(COM,HOU)..  ERR3(COM,HOU) + 0.75*W3(COM,HOU,1) - 0.75*W3(COM,HOU,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(COM,GOV)..  ERR3(COM,GOV) + 1.173375*W3(COM,GOV,1) - 1.173375*W3(COM,GOV,3) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 22
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     ERROR3EQ  =E=  definition of error term 3
+
+ERROR3EQ(COM,GIN)..  ERR3(COM,GIN) + 1.888875*W3(COM,GIN,1) - 1.888875*W3(COM,GIN,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(COM,CAP)..  ERR3(COM,CAP) + 1.9483485*W3(COM,CAP,1) - 1.9483485*W3(COM,CAP,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(FAC,ACT)..  ERR3(FAC,ACT) + 0.75*W3(FAC,ACT,1) - 0.75*W3(FAC,ACT,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(ENT,FAC)..  ERR3(ENT,FAC) + 0.75*W3(ENT,FAC,1) - 0.75*W3(ENT,FAC,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(ENT,GOV)..  ERR3(ENT,GOV) + 0.02475*W3(ENT,GOV,1) - 0.02475*W3(ENT,GOV,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(HOU,FAC)..  ERR3(HOU,FAC) + 0.75*W3(HOU,FAC,1) - 0.75*W3(HOU,FAC,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(HOU,ENT)..  ERR3(HOU,ENT) + 0.75*W3(HOU,ENT,1) - 0.75*W3(HOU,ENT,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(HOU,GOV)..  ERR3(HOU,GOV) + 0.0222*W3(HOU,GOV,1) - 0.0222*W3(HOU,GOV,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(HOU,ROW)..  ERR3(HOU,ROW) + 0.15*W3(HOU,ROW,1) - 0.15*W3(HOU,ROW,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(GOV,ACT)..  ERR3(GOV,ACT) + 0.75*W3(GOV,ACT,1) - 0.75*W3(GOV,ACT,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(GOV,COM)..  ERR3(GOV,COM) + 0.26805*W3(GOV,COM,1) - 0.26805*W3(GOV,COM,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(GOV,FAC)..  ERR3(GOV,FAC) + 0.75*W3(GOV,FAC,1) - 0.75*W3(GOV,FAC,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(GOV,ENT)..  ERR3(GOV,ENT) + 0.75*W3(GOV,ENT,1) - 0.75*W3(GOV,ENT,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(GOV,HOU)..  ERR3(GOV,HOU) + 0.75*W3(GOV,HOU,1) - 0.75*W3(GOV,HOU,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(GIN,ROW)..  ERR3(GIN,ROW) + 1.284225*W3(GIN,ROW,1) - 1.284225*W3(GIN,ROW,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(CAP,ENT)..  ERR3(CAP,ENT) + 0.75*W3(CAP,ENT,1) - 0.75*W3(CAP,ENT,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(CAP,HOU)..  ERR3(CAP,HOU) + 0.75*W3(CAP,HOU,1) - 0.75*W3(CAP,HOU,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(CAP,GOV)..  ERR3(CAP,GOV) + 0.26750475*W3(CAP,GOV,1) - 0.26750475*W3(CAP,GOV,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(CAP,GIN)..  ERR3(CAP,GIN) + 0.30465*W3(CAP,GIN,1) - 0.30465*W3(CAP,GIN,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(CAP,ROW)..  ERR3(CAP,ROW) + 1.62289275*W3(CAP,ROW,1) - 1.62289275*W3(CAP,ROW,3) =E= 0 ; (LHS = 0)
+     
+ERROR3EQ(ROW,COM)..  ERR3(ROW,COM) + 4.18036125*W3(ROW,COM,1) - 4.18036125*W3(ROW,COM,3) =E= 0 ; (LHS = 0)
+     
+
+---- SUMW1  =E=  Sum of weights 1
+
+SUMW1(ACT)..  W1(ACT,1) + W1(ACT,2) + W1(ACT,3) + W1(ACT,4) + W1(ACT,5) + W1(ACT,6) + W1(ACT,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(COM)..  W1(COM,1) + W1(COM,2) + W1(COM,3) + W1(COM,4) + W1(COM,5) + W1(COM,6) + W1(COM,7) =E= 1 ; (LHS = 1)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 23
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     SUMW1  =E=  Sum of weights 1
+
+SUMW1(FAC)..  W1(FAC,1) + W1(FAC,2) + W1(FAC,3) + W1(FAC,4) + W1(FAC,5) + W1(FAC,6) + W1(FAC,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(ENT)..  W1(ENT,1) + W1(ENT,2) + W1(ENT,3) + W1(ENT,4) + W1(ENT,5) + W1(ENT,6) + W1(ENT,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(HOU)..  W1(HOU,1) + W1(HOU,2) + W1(HOU,3) + W1(HOU,4) + W1(HOU,5) + W1(HOU,6) + W1(HOU,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(GOV)..  W1(GOV,1) + W1(GOV,2) + W1(GOV,3) + W1(GOV,4) + W1(GOV,5) + W1(GOV,6) + W1(GOV,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(GIN)..  W1(GIN,1) + W1(GIN,2) + W1(GIN,3) + W1(GIN,4) + W1(GIN,5) + W1(GIN,6) + W1(GIN,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(CAP)..  W1(CAP,1) + W1(CAP,2) + W1(CAP,3) + W1(CAP,4) + W1(CAP,5) + W1(CAP,6) + W1(CAP,7) =E= 1 ; (LHS = 1)
+     
+SUMW1(ROW)..  W1(ROW,1) + W1(ROW,2) + W1(ROW,3) + W1(ROW,4) + W1(ROW,5) + W1(ROW,6) + W1(ROW,7) =E= 1 ; (LHS = 1)
+     
+
+---- SUMW2  =E=  Sum of weights 2
+
+SUMW2(gdpfc2)..  W2(gdpfc2,1) + W2(gdpfc2,2) + W2(gdpfc2,3) + W2(gdpfc2,4) + W2(gdpfc2,5) =E= 1 ; (LHS = 1)
+     
+SUMW2(gdp2)..  W2(gdp2,1) + W2(gdp2,2) + W2(gdp2,3) + W2(gdp2,4) + W2(gdp2,5) =E= 1 ; (LHS = 1)
+     
+
+---- SUMW3  =E=  Sum of weights 3
+
+SUMW3(ACT,COM)..  W3(ACT,COM,1) + W3(ACT,COM,2) + W3(ACT,COM,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(ACT,HOU)..  W3(ACT,HOU,1) + W3(ACT,HOU,2) + W3(ACT,HOU,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(ACT,GOV)..  W3(ACT,GOV,1) + W3(ACT,GOV,2) + W3(ACT,GOV,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(ACT,ROW)..  W3(ACT,ROW,1) + W3(ACT,ROW,2) + W3(ACT,ROW,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(COM,ACT)..  W3(COM,ACT,1) + W3(COM,ACT,2) + W3(COM,ACT,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(COM,HOU)..  W3(COM,HOU,1) + W3(COM,HOU,2) + W3(COM,HOU,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(COM,GOV)..  W3(COM,GOV,1) + W3(COM,GOV,2) + W3(COM,GOV,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(COM,GIN)..  W3(COM,GIN,1) + W3(COM,GIN,2) + W3(COM,GIN,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(COM,CAP)..  W3(COM,CAP,1) + W3(COM,CAP,2) + W3(COM,CAP,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(FAC,ACT)..  W3(FAC,ACT,1) + W3(FAC,ACT,2) + W3(FAC,ACT,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(ENT,FAC)..  W3(ENT,FAC,1) + W3(ENT,FAC,2) + W3(ENT,FAC,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(ENT,GOV)..  W3(ENT,GOV,1) + W3(ENT,GOV,2) + W3(ENT,GOV,3) =E= 1 ; (LHS = 1)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 24
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     SUMW3  =E=  Sum of weights 3
+
+SUMW3(HOU,FAC)..  W3(HOU,FAC,1) + W3(HOU,FAC,2) + W3(HOU,FAC,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(HOU,ENT)..  W3(HOU,ENT,1) + W3(HOU,ENT,2) + W3(HOU,ENT,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(HOU,GOV)..  W3(HOU,GOV,1) + W3(HOU,GOV,2) + W3(HOU,GOV,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(HOU,ROW)..  W3(HOU,ROW,1) + W3(HOU,ROW,2) + W3(HOU,ROW,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(GOV,ACT)..  W3(GOV,ACT,1) + W3(GOV,ACT,2) + W3(GOV,ACT,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(GOV,COM)..  W3(GOV,COM,1) + W3(GOV,COM,2) + W3(GOV,COM,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(GOV,FAC)..  W3(GOV,FAC,1) + W3(GOV,FAC,2) + W3(GOV,FAC,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(GOV,ENT)..  W3(GOV,ENT,1) + W3(GOV,ENT,2) + W3(GOV,ENT,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(GOV,HOU)..  W3(GOV,HOU,1) + W3(GOV,HOU,2) + W3(GOV,HOU,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(GIN,ROW)..  W3(GIN,ROW,1) + W3(GIN,ROW,2) + W3(GIN,ROW,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(CAP,ENT)..  W3(CAP,ENT,1) + W3(CAP,ENT,2) + W3(CAP,ENT,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(CAP,HOU)..  W3(CAP,HOU,1) + W3(CAP,HOU,2) + W3(CAP,HOU,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(CAP,GOV)..  W3(CAP,GOV,1) + W3(CAP,GOV,2) + W3(CAP,GOV,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(CAP,GIN)..  W3(CAP,GIN,1) + W3(CAP,GIN,2) + W3(CAP,GIN,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(CAP,ROW)..  W3(CAP,ROW,1) + W3(CAP,ROW,2) + W3(CAP,ROW,3) =E= 1 ; (LHS = 1)
+     
+SUMW3(ROW,COM)..  W3(ROW,COM,1) + W3(ROW,COM,2) + W3(ROW,COM,3) =E= 1 ; (LHS = 1)
+     
+
+---- ENTROPY  =E=  Entropy difference definition
+
+ENTROPY..  - (1)*W1(ACT,1) - (1)*W1(ACT,2) - (1)*W1(ACT,3) - (1)*W1(ACT,4) - (1)*W1(ACT,5) - (1)*W1(ACT,6) - (1)*W1(ACT,7) - (1)*W1(COM,1) - (1)*W1(COM,2) - (1)*W1(COM,3) - (1)*W1(COM,4) - (1)*W1(COM,5) - (1)*W1(COM,6) - (1)*W1(COM,7) - (1)*W1(FAC,1)
+     
+      - (1)*W1(FAC,2) - (1)*W1(FAC,3) - (1)*W1(FAC,4) - (1)*W1(FAC,5) - (1)*W1(FAC,6) - (1)*W1(FAC,7) - (1)*W1(ENT,1) - (1)*W1(ENT,2) - (1)*W1(ENT,3) - (1)*W1(ENT,4) - (1)*W1(ENT,5) - (1)*W1(ENT,6) - (1)*W1(ENT,7) - (1)*W1(HOU,1) - (1)*W1(HOU,2)
+     
+      - (1)*W1(HOU,3) - (1)*W1(HOU,4) - (1)*W1(HOU,5) - (1)*W1(HOU,6) - (1)*W1(HOU,7) - (1)*W1(GOV,1) - (1)*W1(GOV,2) - (1)*W1(GOV,3) - (1)*W1(GOV,4) - (1)*W1(GOV,5) - (1)*W1(GOV,6) - (1)*W1(GOV,7) - (1)*W1(GIN,1) - (1)*W1(GIN,2) - (1)*W1(GIN,3)
+     
+      - (1)*W1(GIN,4) - (1)*W1(GIN,5) - (1)*W1(GIN,6) - (1)*W1(GIN,7) - (1)*W1(CAP,1) - (1)*W1(CAP,2) - (1)*W1(CAP,3) - (1)*W1(CAP,4) - (1)*W1(CAP,5) - (1)*W1(CAP,6) - (1)*W1(CAP,7) - (1)*W1(ROW,1) - (1)*W1(ROW,2) - (1)*W1(ROW,3) - (1)*W1(ROW,4)
+     
+      - (1)*W1(ROW,5) - (1)*W1(ROW,6) - (1)*W1(ROW,7) - (1)*W2(gdpfc2,1) - (1)*W2(gdpfc2,2) - (1)*W2(gdpfc2,3) - (1)*W2(gdpfc2,4) - (1)*W2(gdpfc2,5) - (1)*W2(gdp2,1) - (1)*W2(gdp2,2) - (1)*W2(gdp2,3) - (1)*W2(gdp2,4) - (1)*W2(gdp2,5) - (1)*W3(ACT,COM,1)
+     
+      - (1)*W3(ACT,COM,2) - (1)*W3(ACT,COM,3) - (1)*W3(ACT,HOU,1) - (1)*W3(ACT,HOU,2) - (1)*W3(ACT,HOU,3) - (1)*W3(ACT,GOV,1) - (1)*W3(ACT,GOV,2) - (1)*W3(ACT,GOV,3) - (1)*W3(ACT,ROW,1) - (1)*W3(ACT,ROW,2) - (1)*W3(ACT,ROW,3) - (1)*W3(COM,ACT,1)
+     
+      - (1)*W3(COM,ACT,2) - (1)*W3(COM,ACT,3) - (1)*W3(COM,HOU,1) - (1)*W3(COM,HOU,2) - (1)*W3(COM,HOU,3) - (1)*W3(COM,GOV,1) - (1)*W3(COM,GOV,2) - (1)*W3(COM,GOV,3) - (1)*W3(COM,GIN,1) - (1)*W3(COM,GIN,2) - (1)*W3(COM,GIN,3) - (1)*W3(COM,CAP,1)
+     
+      - (1)*W3(COM,CAP,2) - (1)*W3(COM,CAP,3) - (1)*W3(FAC,ACT,1) - (1)*W3(FAC,ACT,2) - (1)*W3(FAC,ACT,3) - (1)*W3(ENT,FAC,1) - (1)*W3(ENT,FAC,2) - (1)*W3(ENT,FAC,3) - (1)*W3(ENT,GOV,1) - (1)*W3(ENT,GOV,2) - (1)*W3(ENT,GOV,3) - (1)*W3(HOU,FAC,1)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 25
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Equation Listing    SOLVE SAMENTROP Using NLP From line 515
+
+
+     ENTROPY  =E=  Entropy difference definition     
+     
+      - (1)*W3(HOU,FAC,2) - (1)*W3(HOU,FAC,3) - (1)*W3(HOU,ENT,1) - (1)*W3(HOU,ENT,2) - (1)*W3(HOU,ENT,3) - (1)*W3(HOU,GOV,1) - (1)*W3(HOU,GOV,2) - (1)*W3(HOU,GOV,3) - (1)*W3(HOU,ROW,1) - (1)*W3(HOU,ROW,2) - (1)*W3(HOU,ROW,3) - (1)*W3(GOV,ACT,1)
+     
+      - (1)*W3(GOV,ACT,2) - (1)*W3(GOV,ACT,3) - (1)*W3(GOV,COM,1) - (1)*W3(GOV,COM,2) - (1)*W3(GOV,COM,3) - (1)*W3(GOV,FAC,1) - (1)*W3(GOV,FAC,2) - (1)*W3(GOV,FAC,3) - (1)*W3(GOV,ENT,1) - (1)*W3(GOV,ENT,2) - (1)*W3(GOV,ENT,3) - (1)*W3(GOV,HOU,1)
+     
+      - (1)*W3(GOV,HOU,2) - (1)*W3(GOV,HOU,3) - (1)*W3(GIN,ROW,1) - (1)*W3(GIN,ROW,2) - (1)*W3(GIN,ROW,3) - (1)*W3(CAP,ENT,1) - (1)*W3(CAP,ENT,2) - (1)*W3(CAP,ENT,3) - (1)*W3(CAP,HOU,1) - (1)*W3(CAP,HOU,2) - (1)*W3(CAP,HOU,3) - (1)*W3(CAP,GOV,1)
+     
+      - (1)*W3(CAP,GOV,2) - (1)*W3(CAP,GOV,3) - (1)*W3(CAP,GIN,1) - (1)*W3(CAP,GIN,2) - (1)*W3(CAP,GIN,3) - (1)*W3(CAP,ROW,1) - (1)*W3(CAP,ROW,2) - (1)*W3(CAP,ROW,3) - (1)*W3(ROW,COM,1) - (1)*W3(ROW,COM,2) - (1)*W3(ROW,COM,3) + DENTROPY =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 26
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Model Statistics    SOLVE SAMENTROP Using NLP From line 515
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          16     SINGLE EQUATIONS          166
+BLOCKS OF VARIABLES          11     SINGLE VARIABLES          264
+NON ZERO ELEMENTS           715     NON LINEAR N-Z            226
+DERIVATIVE POOL              20     CONSTANT POOL              35
+CODE LENGTH                 849
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 27
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+Solution Report     SOLVE SAMENTROP Using NLP From line 515
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   SAMENTROP           OBJECTIVE  DENTROPY
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  515
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0           100
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cesam2/convert.opt"
+>>  gams cesam2-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cesam2/convert.opt"
+Gams      : cesam2-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 28
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    536 PARAMETER SAM0  Unbalance prior or proto-SAM transactions matrix
+
+              ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW       TOTAL
+
+ACT                    14.827                               2.101 -3.27000E-4                               1.488      18.416
+COM         7.918                                           6.953       1.564       2.519       2.598                  21.552
+FAC         9.805                                                                                                       9.805
+ENT                                 3.700                               0.033                                           3.733
+HOU                                 6.000       3.300                   0.030                               0.200       9.530
+GOV         0.734       0.357       0.074       0.165       0.140                                                       1.470
+GIN                                                                                                         1.712       1.712
+CAP                                             0.150       0.649      -0.357      -0.406                   2.164       2.200
+ROW                     5.574                                                                                           5.574
+TOTAL      18.457      20.759       9.774       3.615       9.843       1.270       2.112       2.598       5.564
+
+
+----    536 PARAMETER Macsam1  Assigned new balanced SAM flows from CE
+
+              ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW       TOTAL
+
+ACT                    14.827                               2.101 -3.27000E-4                               1.488      18.416
+COM         7.918                                           6.953       1.564       2.519       2.598                  21.552
+FAC         9.805                                                                                                       9.805
+ENT                                 3.700                               0.033                                           3.733
+HOU                                 6.000       3.300                   0.030                               0.200       9.530
+GOV         0.734       0.357       0.074       0.165       0.140                                                       1.470
+GIN                                                                                                         1.712       1.712
+CAP                                             0.150       0.649      -0.357      -0.406                   2.164       2.200
+ROW                     5.574                                                                                           5.574
+TOTAL      18.457      20.759       9.774       3.615       9.843       1.270       2.112       2.598       5.564
+
+
+----    536 PARAMETER SAMBALCHK  Column sums minus row sums in the SAM
+
+                      ( ALL       0.000 )
+
+
+----    536 PARAMETER Diffrnce  Differnce btw original SAM and final SAM in values
+
+                      ( ALL       0.000 )
+
+
+----    536 PARAMETER percent1  percent change of new SAM from original SAM
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 29
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    536 PARAMETER Macsam2  Balanced SAM flows in original units
+
+              ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW       TOTAL
+
+ACT                 14827.424                            2101.049      -0.327                            1488.157   18416.303
+COM      7917.504                                        6953.332    1564.500    2518.500    2597.798               21551.634
+FAC      9805.414                                                                                                    9805.414
+ENT                              3699.706                              33.000                                        3732.706
+HOU                              6000.000    3300.000                  29.600                             200.000    9529.600
+GOV       733.600     357.400      74.400     165.200     139.500                                                    1470.100
+GIN                                                                                                      1712.300    1712.300
+CAP                                           150.000     649.156    -356.673    -406.200                2163.857    2200.140
+ROW                  5573.815                                                                                        5573.815
+TOTAL   18456.518   20758.639    9774.106    3615.200    9843.037    1270.100    2112.300    2597.798    5564.314
+
+
+----    536 VARIABLE DENTROPY.L            =        0.000  Entropy difference (objective)
+
+----    543 PARAMETER gdp0                 =       10.897  base GDP
+            PARAMETER gdp00                =       10.897  GDP from final SAM
+            PARAMETER gdpfc0               =        9.805  base GDP at factor cost
+            PARAMETER gdpfc00              =        9.805  GDP at factor cost from final SAM
+
+----    543 PARAMETER macrov0  Target values for macro aggregates
+
+gdpfc2  9.805,    gdp2   10.897
+
+
+----    543 VARIABLE MACROV.L  Macro aggregates
+
+gdpfc2  9.805,    gdp2   10.897
+
+
+----    555 PARAMETER ANEW  
+
+              ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW       TOTAL
+
+ACT                     0.714                               0.213 -2.57460E-4                               0.267       1.195
+COM         0.429                                           0.706       1.232       1.192       1.000                   4.559
+FAC         0.531                                                                                                       0.531
+ENT                                 0.379                               0.026                                           0.405
+HOU                                 0.614       0.913                   0.023                               0.036       1.586
+GOV         0.040       0.017       0.008       0.046       0.014                                                       0.124
+GIN                                                                                                         0.308       0.308
+CAP                                             0.041       0.066      -0.281      -0.192                   0.389       0.023
+ROW                     0.269                                                                                           0.269
+TOTAL       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:36 Page 30
+Cross Entropy SAM Estimation (CESAM2,SEQ=393)
+E x e c u t i o n
+
+
+----    555 PARAMETER Abar0  Prior SAM coefficient matrix
+
+              ACT         COM         FAC         ENT         HOU         GOV         GIN         CAP         ROW       TOTAL
+
+ACT                     0.714                               0.213 -2.57460E-4                               0.267       1.195
+COM         0.429                                           0.706       1.232       1.192       1.000                   4.559
+FAC         0.531                                                                                                       0.531
+ENT                                 0.379                               0.026                                           0.405
+HOU                                 0.614       0.913                   0.023                               0.036       1.586
+GOV         0.040       0.017       0.008       0.046       0.014                                                       0.124
+GIN                                                                                                         0.308       0.308
+CAP                                             0.041       0.066      -0.281      -0.192                   0.389       0.023
+ROW                     0.269                                                                                           0.269
+TOTAL       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+
+----    560 PARAMETER meanerr1             =        0.000  
+            PARAMETER meanerr2             =        0.000  
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/cesam2/cesam2.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/cesam2/cesam2-scalar.gms.lst

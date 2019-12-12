@@ -1,0 +1,63 @@
+--- Job airsp.gms Start 12/13/18 10:32:17 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- airsp.gms(171) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- airsp.gms(120) 4 Mb
+--- Generating LP model alloch
+--- airsp.gms(124) 4 Mb
+---   36 rows  49 columns  129 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  pyomo airsp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+--- Writing Pyomo     : airsp-scalar.py
+
+--- Restarting execution
+--- airsp.gms(124) 2 Mb
+--- Reading solution for model alloch
+--- airsp.gms(138) 3 Mb
+--- Generating LP model allocs
+--- airsp.gms(140) 3 Mb
+---   511 rows  524 columns  1,559 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.020
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  pyomo airsp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+--- Writing Pyomo     : airsp-scalar.py
+
+--- Restarting execution
+--- airsp.gms(140) 2 Mb
+--- Reading solution for model allocs
+--- airsp.gms(165) 3 Mb
+--- Generating LP model allocs
+--- airsp.gms(167) 4 Mb
+---   3,761 rows  3,774 columns  11,309 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.061
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  pyomo airsp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+--- Writing Pyomo     : airsp-scalar.py
+
+--- Restarting execution
+--- airsp.gms(167) 2 Mb
+--- Reading solution for model allocs
+--- airsp.gms(171) 3 Mb
+*** Status: Normal completion
+--- Job airsp.gms Stop 12/13/18 10:32:17 elapsed 0:00:00.084

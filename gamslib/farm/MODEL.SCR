@@ -1,0 +1,142 @@
+  T H E   D  E  C  I  S   S Y S T E M
+  
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved. 
+  
+  Licensee: Customer Sublicensee           Gams Development Corporation  
+  
+ parameters: 
+  
+ istrat    =  4
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+  
+ stoch array sizes:
+ jele:   1
+ jsum:   3
+ itoc:   3
+ itele:  9
+  
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000004  R0000003   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+  
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+  
+ nwcore1:  9004769
+ nwcore2:  4231
+ nwcore :  9013231
+  
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 8 cols 12 nonz 27
+ master: rows 2 cols 4 nonz 6
+ B:      rows 7 cols 3 nonz 3
+ sub:    rows 7 cols 9 nonz 18
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 7 cols: 3 nonz: 3
+ Successful input of stochastic file:
+ Independent random parameters:  1
+ Total number of outcomes     :  9
+ Universe scenarios           :   3.
+ start benders universe solution
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm -1.1920929E-07
+ theta : -1.E+09
+ evaluating w/ universe
+ solve master, iteration:  1
+ master objective:  -131999.738
+ lower bnd.: -131999.738  var.:  0.
+ upper bnd.:  97999.902  var.:  0.
+ objm  130000.
+ evaluating w/ universe
+ solve master, iteration:  2
+ master objective:  -128999.763
+ lower bnd.: -128999.763  var.:  0.
+ upper bnd.: -27999.842  var.:  0.
+ objm  108000.
+ evaluating w/ universe
+ solve master, iteration:  3
+ master objective:  -126813.661
+ lower bnd.: -126813.661  var.:  0.
+ upper bnd.: -98199.7938  var.:  0.
+ objm  91968.4543
+ evaluating w/ universe
+ solve master, iteration:  4
+ master objective:  -121963.398
+ lower bnd.: -121963.398  var.:  0.
+ upper bnd.: -98199.7938  var.:  0.
+ objm  116781.818
+ evaluating w/ universe
+ solve master, iteration:  5
+ master objective:  -112120.756
+ lower bnd.: -112120.756  var.:  0.
+ upper bnd.: -104220.385  var.:  0.
+ objm  110482.517
+ evaluating w/ universe
+ solve master, iteration:  6
+ master objective:  -110419.266
+ lower bnd.: -110419.266  var.:  0.
+ upper bnd.: -107259.223  var.:  0.
+ objm  109714.978
+ evaluating w/ universe
+ solve master, iteration:  7
+ master objective:  -109503.983
+ lower bnd.: -109503.983  var.:  0.
+ upper bnd.: -107259.223  var.:  0.
+ objm  111758.771
+ evaluating w/ universe
+ solve master, iteration:  8
+ master objective:  -108860.893
+ lower bnd.: -108860.893  var.:  0.
+ upper bnd.: -107812.364  var.:  0.
+ objm  109611.111
+ evaluating w/ universe
+ solve master, iteration:  9
+ master objective:  -108801.918
+ lower bnd.: -108801.918  var.:  0.
+ upper bnd.: -108327.56  var.:  0.
+ objm  109893.162
+ evaluating w/ universe
+ solve master, iteration:  10
+ master objective:  -108389.783
+ lower bnd.: -108389.783  var.:  0.
+ upper bnd.: -108327.56  var.:  0.
+ objm  108900.
+ evaluating w/ universe
+ solve master, iteration:  11
+ master objective:  -108389.783
+ lower bnd.: -108389.783  var.:  0.
+ upper bnd.: -108389.783  var.:  0.
+ objm  108900.
+ re-evaluating best solution for upper bnd
+ evaluating w/ universe
+ upper bnd.: -108389.783 var.:  0.
+  solution : 
+  obj :  -108389.783
+ x1p( 1):   170.
+ x1p( 2):   80.
+ x1p( 3):   250.
+ x1p( 4):  -217289.783
+ theta:  -217289.783 zsub:  -217289.783

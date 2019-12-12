@@ -1,0 +1,762 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 2
+Financial Optimization: Risk Management (WORST,SEQ=111)
+C o m p i l a t i o n
+
+
+   3   
+       
+         The need for analyzing option portfolios arises because risk/return
+         tradeoffs grow increasingly more complex as more options are included
+         in a portfolio.  This model evaluates the worst-case scenario for
+         an option portfolio.
+       
+       
+      Dahl, H, Meeraus, A, and Zenios, S A, Some Financial Optimization
+      Models: Risk Management. In Zenios, S A, Ed, Financial Optimization.
+      Cambridge University Press, New York, NY, 1993.
+       
+  17   
+  18  Set  t  expiration date           / jun, oct, jan    /
+  19       i  underlying issue          / 9000011, 9020063 /
+  20       j  options                   / 1*5 / ;
+  21   
+  22   
+  23  Table  tdata(t,*)  time related data
+  24   
+  25           term      r0       rmax      rmin     qmax     qmin
+  26   
+  27  jun    0.09167   0.0697   0.08570   0.05245   0.0788   0.0388
+  28  oct    0.33889   0.0790   0.09500   0.06175   0.0768   0.0368
+  29  jan    0.58889   0.0779   0.09390   0.06190   0.0768   0.0368 ;
+  30   
+  31  * notation:
+  32  *     term    time in years to maturing
+  33  *     r0      current estimated risk free rate
+  34  *     rmax    maximum risk free rate
+  35  *     rmin    minimum risk free rate
+  36  *     qmax    maximum volatility move
+  37  *     qmin    minimum volatility move
+  38   
+  39   
+  40  Table  f0(i,t)    adjusted spot price
+  41   
+  42                 jun        oct        jan
+  43   9000011      95.54      93.27      91.03
+  44   9020063      95.54      93.27      91.03 ;
+  45   
+  46   
+  47  Acronym  future, call, puto;
+  48   
+  49  Table pdata(i,t,j,*)    portfolio data
+  50   
+  51                       type     strike       nom      price
+  52   
+  53   9000011.jun.1       future               -35000     96.60
+  54   9000011.oct.1       future                15000     96.60
+  55   
+  56   9020063.jun.1       future                74000     96.15
+  57   9020063.oct.1       future                20000     95.80
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 3
+Financial Optimization: Risk Management (WORST,SEQ=111)
+C o m p i l a t i o n
+
+
+  58   9020063.oct.2       call        95       -30000      3.00
+  59   9020063.oct.3       call        97       -30000      1.50
+  60   9020063.oct.4       puto        95         5000      0.25
+  61   9020063.oct.5       puto        97        15000      1.20
+  62   9020063.jan.1       future              -290000     95.80
+  63   9020063.jan.2       call        95        25000      0.90
+  64   9020063.jan.3       call        97       -50000      0.90
+  65   9020063.jan.4       call        99        25000      0.90
+  66   9020063.jan.5       puto        99        50000      0.90 ;
+  67   
+  68  * notation:
+  69  *     type      type of instrument  (futures, call option, put option)
+  70  *     strike    strike price for call and put options
+  71  *     nom       nominal units of issue (ref. parameters x, y, and z)
+  72  *     price     price of futures or options premium
+  73   
+  74   
+  75  Variables
+  76      pval         portfolio objective function value
+  77      d1(i,t,j)    black d1
+  78      d2(i,t,j)    black d2;
+  79   
+  80  Positive Variables
+  81      f(i,t)       futures price
+  82      c(i,j,t)     call price
+  83      p(i,j,t)     put price
+  84      r(t)         risk free rate
+  85      q(t)         volatility ;
+  86   
+  87      r.lo(t) = tdata(t,"rmin") ;
+  88      r.up(t) = tdata(t,"rmax") ;
+  89      q.lo(t) = tdata(t,"qmin") ;
+  90      q.up(t) = tdata(t,"qmax") ;
+  91   
+  92      f.lo(i,t)    = .001 ;
+  93   
+  94      f.l(i,t) = f0(i,t) * exp(tdata(t,"r0")*tdata(t,"term")) ;
+  95      r.l(t)   = (r.lo(t) + r.up(t))/2 ;
+  96      q.l(t)   = (q.lo(t) + q.up(t))/2 ;
+  97   
+  98  Equations
+  99      tpv             total portfolio value
+ 100      futval(i,t,j)   futures value
+ 101      callval(i,t,j)  call value
+ 102      putval(i,t,j)   put value
+ 103      dd1(i,t,j)      d1 in black model
+ 104      dd2(i,t,j)      d2 in black model;
+ 105   
+ 106   
+ 107  tpv..    pval =e= sum((i,t,j)$pdata(i,t,j,"nom"),
+ 108           (f(i,t) - pdata(i,t,j,"price")
+ 109                     * pdata(i,t,j,"nom"))$(pdata(i,t,j,"type") eq future)
+ 110         + (c(i,j,t) * pdata(i,t,j,"nom"))$(pdata(i,t,j,"type") eq call)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 4
+Financial Optimization: Risk Management (WORST,SEQ=111)
+C o m p i l a t i o n
+
+
+ 111         + (p(i,j,t) * pdata(i,t,j,"nom"))$(pdata(i,t,j,"type") eq puto));
+ 112   
+ 113   
+ 114   
+ 115  futval(i,t,j)$(pdata(i,t,j,"type") eq future)..
+ 116   
+ 117           f(i,t)  =e=  f0(i,t) * exp(r(t)*tdata(t,"term")) ;
+ 118   
+ 119   
+ 120   
+ 121  callval(i,t,j)$(pdata(i,t,j,"type") eq call)..
+ 122   
+ 123           c(i,j,t)  =e=  exp(-r(t)*tdata(t,"term")) *
+ 124                           (f(i,t)*errorf(d1(i,t,j))
+ 125                            - pdata(i,t,j,"strike")*errorf(d2(i,t,j))) ;
+ 126   
+ 127   
+ 128   
+ 129  putval(i,t,j)$(pdata(i,t,j,"type") eq puto)..
+ 130   
+ 131           p(i,j,t)  =e=  exp(-r(t)*tdata(t,"term")) *
+ 132                           (pdata(i,t,j,"strike")*errorf(-d2(i,t,j))
+ 133                            - f(i,t)*errorf(-d1(i,t,j))) ;
+ 134   
+ 135   
+ 136   
+ 137  dd1(i,t,j)$pdata(i,t,j,"strike")..
+ 138   
+ 139          d1(i,t,j)  =e=  ( log(f(i,t)/pdata(i,t,j,"strike"))
+ 140                           + 0.5*sqr(q(t))*tdata(t,"term"))
+ 141                             / ( q(t)*sqrt(tdata(t,"term")) ) ;
+ 142   
+ 143   
+ 144   
+ 145  dd2(i,t,j)$pdata(i,t,j,"strike")..
+ 146   
+ 147          d2(i,t,j)  =e=  d1(i,t,j) - q(t)*sqrt(tdata(t,"term")) ;
+ 148   
+ 149   
+ 150   
+ 151  Model riskmod / all /;
+ 152   
+ 153  * worst case
+ 154  Solve riskmod using nlp minimizing pval;
+ 155   
+ 156  * best case
+ 157  Solve riskmod using nlp maximizing pval;
+ 158   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 5
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Equation Listing    SOLVE riskmod Using NLP From line 154
+
+
+---- tpv  =E=  total portfolio value
+
+tpv..  pval - f(9000011,jun) - f(9000011,oct) - f(9020063,jun) - f(9020063,oct) - f(9020063,jan) + 30000*c(9020063,2,oct) - 25000*c(9020063,2,jan) + 30000*c(9020063,3,oct) + 50000*c(9020063,3,jan) - 25000*c(9020063,4,jan) - 5000*p(9020063,4,oct)
+     
+      - 15000*p(9020063,5,oct) - 50000*p(9020063,5,jan) =E= 20682900 ; (LHS = -479.209579527378, INFES = 20683379.2095795 ****)
+     
+
+---- futval  =E=  futures value
+
+futval(9000011,jun,1)..  f(9000011,jun) - (8.81378529166755)*r(jun) =E= 0 ; (LHS = 0.00550877361493463, INFES = 0.00550877361493463 ****)
+     
+futval(9000011,oct,1)..  f(9000011,oct) - (32.4590504410131)*r(oct) =E= 0 ; (LHS = 0.0202890551241381, INFES = 0.0202890551241381 ****)
+     
+futval(9020063,jun,1)..  f(9020063,jun) - (8.81378529166755)*r(jun) =E= 0 ; (LHS = 0.00550877361493463, INFES = 0.00550877361493463 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- callval  =E=  call value
+
+callval(9020063,oct,2)..  - (37.217228499887)*d1(9020063,oct,2) + (36.9061371131152)*d2(9020063,oct,2) - (0.486894562079701)*f(9020063,oct) + c(9020063,2,oct) + (0.132131595524283)*r(oct) =E= 0 ; (LHS = -0.389895233038104, INFES = 0.389895233038104 ****)
+     
+callval(9020063,oct,3)..  - (37.217228499887)*d1(9020063,oct,3) + (37.6831084207598)*d2(9020063,oct,3) - (0.486894562079701)*f(9020063,oct) + c(9020063,3,oct) - (0.197875800762097)*r(oct) =E= 0 ; (LHS = 0.583893891121297, INFES = 0.583893891121297 ****)
+     
+callval(9020063,jan,2)..  - (36.3157157849424)*d1(9020063,jan,2) + (36.2001704504233)*d2(9020063,jan,2) - (0.477580898934171)*f(9020063,jan) + c(9020063,2,jan) + (0.0852798705323043)*r(jan) =E= 0 ; (LHS = -0.144814601253722
+     , INFES = 0.144814601253722 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- putval  =E=  put value
+
+putval(9020063,oct,4)..  - (37.217228499887)*d1(9020063,oct,4) + (36.9061371131152)*d2(9020063,oct,4) + (0.486894562079701)*f(9020063,oct) + p(9020063,4,oct) - (0.132131595524283)*r(oct) =E= 0 ; (LHS = 0.389895233038104, INFES = 0.389895233038104 ****)
+     
+putval(9020063,oct,5)..  - (37.217228499887)*d1(9020063,oct,5) + (37.6831084207598)*d2(9020063,oct,5) + (0.486894562079701)*f(9020063,oct) + p(9020063,5,oct) + (0.197875800762097)*r(oct) =E= 0 ; (LHS = -0.583893891121297, INFES = 0.583893891121297 ****)
+     
+putval(9020063,jan,5)..  - (36.3157157849424)*d1(9020063,jan,5) + (37.724388153599)*d2(9020063,jan,5) + (0.477580898934171)*f(9020063,jan) + p(9020063,5,jan) + (1.03969059176107)*r(jan) =E= 0 ; (LHS = -1.76550899448296, INFES = 1.76550899448296 ****)
+     
+
+---- dd1  =E=  d1 in black model
+
+dd1(9020063,oct,2)..  d1(9020063,oct,2) - (0.31568448939327)*f(9020063,oct) + (4.17822712041727)*q(oct) =E= 0 ; (LHS = -0.270388999791144, INFES = 0.270388999791144 ****)
+     
+dd1(9020063,oct,3)..  d1(9020063,oct,3) - (0.31568448939327)*f(9020063,oct) - (6.91475781024905)*q(oct) =E= 0 ; (LHS = 0.359692544270703, INFES = 0.359692544270703 ****)
+     
+dd1(9020063,oct,4)..  d1(9020063,oct,4) - (0.31568448939327)*f(9020063,oct) + (4.17822712041727)*q(oct) =E= 0 ; (LHS = -0.270388999791144, INFES = 0.270388999791144 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 6
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Equation Listing    SOLVE riskmod Using NLP From line 154
+
+
+---- dd2  =E=  d2 in black model
+
+dd2(9020063,oct,2)..  - d1(9020063,oct,2) + d2(9020063,oct,2) + 0.582142594215541*q(oct) =E= 0 ; (LHS = 0.0330656993514427, INFES = 0.0330656993514427 ****)
+     
+dd2(9020063,oct,3)..  - d1(9020063,oct,3) + d2(9020063,oct,3) + 0.582142594215541*q(oct) =E= 0 ; (LHS = 0.0330656993514427, INFES = 0.0330656993514427 ****)
+     
+dd2(9020063,oct,4)..  - d1(9020063,oct,4) + d2(9020063,oct,4) + 0.582142594215541*q(oct) =E= 0 ; (LHS = 0.0330656993514427, INFES = 0.0330656993514427 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 7
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Column Listing      SOLVE riskmod Using NLP From line 154
+
+
+---- pval  portfolio objective function value
+
+pval
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tpv
+
+
+---- d1  black d1
+
+d1(9020063,oct,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     (-37.2172) callval(9020063,oct,2)
+        1       dd1(9020063,oct,2)
+       -1       dd2(9020063,oct,2)
+
+d1(9020063,oct,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     (-37.2172) callval(9020063,oct,3)
+        1       dd1(9020063,oct,3)
+       -1       dd2(9020063,oct,3)
+
+d1(9020063,oct,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     (-37.2172) putval(9020063,oct,4)
+        1       dd1(9020063,oct,4)
+       -1       dd2(9020063,oct,4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- d2  black d2
+
+d2(9020063,oct,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (36.9061) callval(9020063,oct,2)
+        1       dd2(9020063,oct,2)
+
+d2(9020063,oct,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (37.6831) callval(9020063,oct,3)
+        1       dd2(9020063,oct,3)
+
+d2(9020063,oct,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (36.9061) putval(9020063,oct,4)
+        1       dd2(9020063,oct,4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- f  futures price
+
+f(9000011,jun)
+                (.LO, .L, .UP, .M = 0.001, 96.1523975231246, +INF, 0)
+       -1       tpv
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 8
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Column Listing      SOLVE riskmod Using NLP From line 154
+
+
+     f  futures price
+
+        1       futval(9000011,jun,1)
+
+f(9000011,oct)
+                (.LO, .L, .UP, .M = 0.001, 95.8007796007676, +INF, 0)
+       -1       tpv
+        1       futval(9000011,oct,1)
+
+f(9020063,jun)
+                (.LO, .L, .UP, .M = 0.001, 96.1523975231246, +INF, 0)
+       -1       tpv
+        1       futval(9020063,jun,1)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- c  call price
+
+c(9020063,2,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    30000       tpv
+        1       callval(9020063,oct,2)
+
+c(9020063,2,jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+   -25000       tpv
+        1       callval(9020063,jan,2)
+
+c(9020063,3,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    30000       tpv
+        1       callval(9020063,oct,3)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- p  put price
+
+p(9020063,4,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -5000       tpv
+        1       putval(9020063,oct,4)
+
+p(9020063,5,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+   -15000       tpv
+        1       putval(9020063,oct,5)
+
+p(9020063,5,jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+   -50000       tpv
+        1       putval(9020063,jan,5)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 9
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Column Listing      SOLVE riskmod Using NLP From line 154
+
+
+---- r  risk free rate
+
+r(jun)
+                (.LO, .L, .UP, .M = 0.05245, 0.069075, 0.0857, 0)
+      (-8.8138) futval(9000011,jun,1)
+      (-8.8138) futval(9020063,jun,1)
+
+r(oct)
+                (.LO, .L, .UP, .M = 0.06175, 0.078375, 0.095, 0)
+     (-32.4591) futval(9000011,oct,1)
+     (-32.4591) futval(9020063,oct,1)
+       (0.1321) callval(9020063,oct,2)
+      (-0.1979) callval(9020063,oct,3)
+      (-0.1321) putval(9020063,oct,4)
+       (0.1979) putval(9020063,oct,5)
+
+r(jan)
+                (.LO, .L, .UP, .M = 0.0619, 0.0779, 0.0939, 0)
+     (-56.1231) futval(9020063,jan,1)
+       (0.0853) callval(9020063,jan,2)
+      (-0.4772) callval(9020063,jan,3)
+      (-1.0397) callval(9020063,jan,4)
+       (1.0397) putval(9020063,jan,5)
+
+
+---- q  volatility
+
+q(oct)
+                (.LO, .L, .UP, .M = 0.0368, 0.0568, 0.0768, 0)
+       (4.1782) dd1(9020063,oct,2)
+      (-6.9148) dd1(9020063,oct,3)
+       (4.1782) dd1(9020063,oct,4)
+      (-6.9148) dd1(9020063,oct,5)
+        0.5821  dd2(9020063,oct,2)
+        0.5821  dd2(9020063,oct,3)
+        0.5821  dd2(9020063,oct,4)
+        0.5821  dd2(9020063,oct,5)
+
+q(jan)
+                (.LO, .L, .UP, .M = 0.0368, 0.0568, 0.0768, 0)
+       (0.9035) dd1(9020063,jan,2)
+      (-7.5117) dd1(9020063,jan,3)
+     (-15.755)  dd1(9020063,jan,4)
+     (-15.755)  dd1(9020063,jan,5)
+        0.7674  dd2(9020063,jan,2)
+        0.7674  dd2(9020063,jan,3)
+        0.7674  dd2(9020063,jan,4)
+        0.7674  dd2(9020063,jan,5)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 10
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Model Statistics    SOLVE riskmod Using NLP From line 154
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           30
+BLOCKS OF VARIABLES           8     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             53
+DERIVATIVE POOL              20     CONSTANT POOL              32
+CODE LENGTH                 251
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 11
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Solution Report     SOLVE riskmod Using NLP From line 154
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   riskmod             OBJECTIVE  pval
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  154
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/worst/convert.opt"
+>>  ampl worst-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/worst/convert.opt"
+Ampl      : worst-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 12
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Equation Listing    SOLVE riskmod Using NLP From line 157
+
+
+---- tpv  =E=  total portfolio value
+
+tpv..  pval - f(9000011,jun) - f(9000011,oct) - f(9020063,jun) - f(9020063,oct) - f(9020063,jan) + 30000*c(9020063,2,oct) - 25000*c(9020063,2,jan) + 30000*c(9020063,3,oct) + 50000*c(9020063,3,jan) - 25000*c(9020063,4,jan) - 5000*p(9020063,4,oct)
+     
+      - 15000*p(9020063,5,oct) - 50000*p(9020063,5,jan) =E= 20682900 ; (LHS = -479.209579527378, INFES = 20683379.2095795 ****)
+     
+
+---- futval  =E=  futures value
+
+futval(9000011,jun,1)..  f(9000011,jun) - (8.81378529166755)*r(jun) =E= 0 ; (LHS = 0.00550877361493463, INFES = 0.00550877361493463 ****)
+     
+futval(9000011,oct,1)..  f(9000011,oct) - (32.4590504410131)*r(oct) =E= 0 ; (LHS = 0.0202890551241381, INFES = 0.0202890551241381 ****)
+     
+futval(9020063,jun,1)..  f(9020063,jun) - (8.81378529166755)*r(jun) =E= 0 ; (LHS = 0.00550877361493463, INFES = 0.00550877361493463 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- callval  =E=  call value
+
+callval(9020063,oct,2)..  - (37.217228499887)*d1(9020063,oct,2) + (36.9061371131152)*d2(9020063,oct,2) - (0.486894562079701)*f(9020063,oct) + c(9020063,2,oct) + (0.132131595524283)*r(oct) =E= 0 ; (LHS = -0.389895233038104, INFES = 0.389895233038104 ****)
+     
+callval(9020063,oct,3)..  - (37.217228499887)*d1(9020063,oct,3) + (37.6831084207598)*d2(9020063,oct,3) - (0.486894562079701)*f(9020063,oct) + c(9020063,3,oct) - (0.197875800762097)*r(oct) =E= 0 ; (LHS = 0.583893891121297, INFES = 0.583893891121297 ****)
+     
+callval(9020063,jan,2)..  - (36.3157157849424)*d1(9020063,jan,2) + (36.2001704504233)*d2(9020063,jan,2) - (0.477580898934171)*f(9020063,jan) + c(9020063,2,jan) + (0.0852798705323043)*r(jan) =E= 0 ; (LHS = -0.144814601253722
+     , INFES = 0.144814601253722 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- putval  =E=  put value
+
+putval(9020063,oct,4)..  - (37.217228499887)*d1(9020063,oct,4) + (36.9061371131152)*d2(9020063,oct,4) + (0.486894562079701)*f(9020063,oct) + p(9020063,4,oct) - (0.132131595524283)*r(oct) =E= 0 ; (LHS = 0.389895233038104, INFES = 0.389895233038104 ****)
+     
+putval(9020063,oct,5)..  - (37.217228499887)*d1(9020063,oct,5) + (37.6831084207598)*d2(9020063,oct,5) + (0.486894562079701)*f(9020063,oct) + p(9020063,5,oct) + (0.197875800762097)*r(oct) =E= 0 ; (LHS = -0.583893891121297, INFES = 0.583893891121297 ****)
+     
+putval(9020063,jan,5)..  - (36.3157157849424)*d1(9020063,jan,5) + (37.724388153599)*d2(9020063,jan,5) + (0.477580898934171)*f(9020063,jan) + p(9020063,5,jan) + (1.03969059176107)*r(jan) =E= 0 ; (LHS = -1.76550899448296, INFES = 1.76550899448296 ****)
+     
+
+---- dd1  =E=  d1 in black model
+
+dd1(9020063,oct,2)..  d1(9020063,oct,2) - (0.31568448939327)*f(9020063,oct) + (4.17822712041727)*q(oct) =E= 0 ; (LHS = -0.270388999791144, INFES = 0.270388999791144 ****)
+     
+dd1(9020063,oct,3)..  d1(9020063,oct,3) - (0.31568448939327)*f(9020063,oct) - (6.91475781024905)*q(oct) =E= 0 ; (LHS = 0.359692544270703, INFES = 0.359692544270703 ****)
+     
+dd1(9020063,oct,4)..  d1(9020063,oct,4) - (0.31568448939327)*f(9020063,oct) + (4.17822712041727)*q(oct) =E= 0 ; (LHS = -0.270388999791144, INFES = 0.270388999791144 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 13
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Equation Listing    SOLVE riskmod Using NLP From line 157
+
+
+---- dd2  =E=  d2 in black model
+
+dd2(9020063,oct,2)..  - d1(9020063,oct,2) + d2(9020063,oct,2) + 0.582142594215541*q(oct) =E= 0 ; (LHS = 0.0330656993514427, INFES = 0.0330656993514427 ****)
+     
+dd2(9020063,oct,3)..  - d1(9020063,oct,3) + d2(9020063,oct,3) + 0.582142594215541*q(oct) =E= 0 ; (LHS = 0.0330656993514427, INFES = 0.0330656993514427 ****)
+     
+dd2(9020063,oct,4)..  - d1(9020063,oct,4) + d2(9020063,oct,4) + 0.582142594215541*q(oct) =E= 0 ; (LHS = 0.0330656993514427, INFES = 0.0330656993514427 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 14
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Column Listing      SOLVE riskmod Using NLP From line 157
+
+
+---- pval  portfolio objective function value
+
+pval
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tpv
+
+
+---- d1  black d1
+
+d1(9020063,oct,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     (-37.2172) callval(9020063,oct,2)
+        1       dd1(9020063,oct,2)
+       -1       dd2(9020063,oct,2)
+
+d1(9020063,oct,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     (-37.2172) callval(9020063,oct,3)
+        1       dd1(9020063,oct,3)
+       -1       dd2(9020063,oct,3)
+
+d1(9020063,oct,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     (-37.2172) putval(9020063,oct,4)
+        1       dd1(9020063,oct,4)
+       -1       dd2(9020063,oct,4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- d2  black d2
+
+d2(9020063,oct,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (36.9061) callval(9020063,oct,2)
+        1       dd2(9020063,oct,2)
+
+d2(9020063,oct,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (37.6831) callval(9020063,oct,3)
+        1       dd2(9020063,oct,3)
+
+d2(9020063,oct,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (36.9061) putval(9020063,oct,4)
+        1       dd2(9020063,oct,4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- f  futures price
+
+f(9000011,jun)
+                (.LO, .L, .UP, .M = 0.001, 96.1523975231246, +INF, 0)
+       -1       tpv
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 15
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Column Listing      SOLVE riskmod Using NLP From line 157
+
+
+     f  futures price
+
+        1       futval(9000011,jun,1)
+
+f(9000011,oct)
+                (.LO, .L, .UP, .M = 0.001, 95.8007796007676, +INF, 0)
+       -1       tpv
+        1       futval(9000011,oct,1)
+
+f(9020063,jun)
+                (.LO, .L, .UP, .M = 0.001, 96.1523975231246, +INF, 0)
+       -1       tpv
+        1       futval(9020063,jun,1)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- c  call price
+
+c(9020063,2,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    30000       tpv
+        1       callval(9020063,oct,2)
+
+c(9020063,2,jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+   -25000       tpv
+        1       callval(9020063,jan,2)
+
+c(9020063,3,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    30000       tpv
+        1       callval(9020063,oct,3)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- p  put price
+
+p(9020063,4,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -5000       tpv
+        1       putval(9020063,oct,4)
+
+p(9020063,5,oct)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+   -15000       tpv
+        1       putval(9020063,oct,5)
+
+p(9020063,5,jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+   -50000       tpv
+        1       putval(9020063,jan,5)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 16
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Column Listing      SOLVE riskmod Using NLP From line 157
+
+
+---- r  risk free rate
+
+r(jun)
+                (.LO, .L, .UP, .M = 0.05245, 0.069075, 0.0857, 0)
+      (-8.8138) futval(9000011,jun,1)
+      (-8.8138) futval(9020063,jun,1)
+
+r(oct)
+                (.LO, .L, .UP, .M = 0.06175, 0.078375, 0.095, 0)
+     (-32.4591) futval(9000011,oct,1)
+     (-32.4591) futval(9020063,oct,1)
+       (0.1321) callval(9020063,oct,2)
+      (-0.1979) callval(9020063,oct,3)
+      (-0.1321) putval(9020063,oct,4)
+       (0.1979) putval(9020063,oct,5)
+
+r(jan)
+                (.LO, .L, .UP, .M = 0.0619, 0.0779, 0.0939, 0)
+     (-56.1231) futval(9020063,jan,1)
+       (0.0853) callval(9020063,jan,2)
+      (-0.4772) callval(9020063,jan,3)
+      (-1.0397) callval(9020063,jan,4)
+       (1.0397) putval(9020063,jan,5)
+
+
+---- q  volatility
+
+q(oct)
+                (.LO, .L, .UP, .M = 0.0368, 0.0568, 0.0768, 0)
+       (4.1782) dd1(9020063,oct,2)
+      (-6.9148) dd1(9020063,oct,3)
+       (4.1782) dd1(9020063,oct,4)
+      (-6.9148) dd1(9020063,oct,5)
+        0.5821  dd2(9020063,oct,2)
+        0.5821  dd2(9020063,oct,3)
+        0.5821  dd2(9020063,oct,4)
+        0.5821  dd2(9020063,oct,5)
+
+q(jan)
+                (.LO, .L, .UP, .M = 0.0368, 0.0568, 0.0768, 0)
+       (0.9035) dd1(9020063,jan,2)
+      (-7.5117) dd1(9020063,jan,3)
+     (-15.755)  dd1(9020063,jan,4)
+     (-15.755)  dd1(9020063,jan,5)
+        0.7674  dd2(9020063,jan,2)
+        0.7674  dd2(9020063,jan,3)
+        0.7674  dd2(9020063,jan,4)
+        0.7674  dd2(9020063,jan,5)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 17
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Model Statistics    SOLVE riskmod Using NLP From line 157
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           30
+BLOCKS OF VARIABLES           8     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             53
+DERIVATIVE POOL              20     CONSTANT POOL              32
+CODE LENGTH                 251
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 18
+Financial Optimization: Risk Management (WORST,SEQ=111)
+Solution Report     SOLVE riskmod Using NLP From line 157
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   riskmod             OBJECTIVE  pval
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  157
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/worst/convert.opt"
+>>  ampl worst-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/worst/convert.opt"
+Ampl      : worst-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/worst/worst.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/worst/worst-scalar.mod.lst

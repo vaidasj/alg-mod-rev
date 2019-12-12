@@ -1,0 +1,153 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 2
+Parts Supply Problem w/ 10 Types & w/ Asymmetric Information (PS10_S,SEQ=368)
+C o m p i l a t i o n
+
+
+   3   
+   4  * Hideo Hashimoto, Kojun Hamada, and Nobuhiro Hosoe, "A Numerical Approach
+   5  *   to the Contract Theory: the Case of Adverse Selection", GRIPS Discussion
+   6  *   Paper 11-27, National Graduate Institute for Policy Studies, Tokyo, Japan,
+   7  *   March 2012.
+   8  *
+   9  *  http://r-center.grips.ac.jp/DiscussionPapersDetails/247/#
+  10   
+  11  Option limcol=0,limrow=0;
+  12   
+  13  * Definition of Set
+  14  Set     i       type of supplier        /0*9/;
+  15  Alias (i,j);
+  16  * Definition of Parameters
+  17  Parameter
+  18          theta(i)        efficiency
+  19          p(i)            probability of type;
+  20  theta(i)=ord(i) /card(i);
+  21  p(i)    =1      /card(i);
+  22   
+  23  Scalar  ru              reservation utility     /0/;
+  24   
+  25  * Definition of Primal/Dual Variables
+  26  Positive Variable
+  27          x(i)            quality
+  28          b(i)            maker's revenue
+  29          w(i)            price;
+  30  Variable
+  31          Util            maker's utility;
+  32  Equation
+  33          obj             maker's utility function
+  34          rev(i)          maker's revenue function
+  35          pc(i)           participation constraint
+  36          licd(i)         incentive compatibility constraint;
+  37   
+  38  * Specification of Equations
+  39  obj..   Util =e= sum(i, p(i)*(b(i)-w(i)));
+  40  rev(i)..b(i) =e= x(i)**(0.5);
+  41  pc(i).. w(i)-theta(i)*x(i) =g= ru;
+  42  licd(i)..w(i)-theta(i)*x(i) =g= w(i+1)-theta(i)*x(i+1);
+  43   
+  44  * Setting Lower Bounds on Variables to Avoid Division by Zero
+  45  x.lo(i)=0.0001;
+  46   
+  47  * Defining and Solving the Model
+  48  Model SB_lic /all/;
+  49  Solve SB_lic maximizing Util using NLP;
+  50   
+  51  * End of Model
+  52  File sol /solution_lic.csv/;
+  53  put sol;
+  54  sol.pc=5;
+  55  sol.pw=32767;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 3
+Parts Supply Problem w/ 10 Types & w/ Asymmetric Information (PS10_S,SEQ=368)
+C o m p i l a t i o n
+
+
+  56   
+  57  put "type" "x.l" "w.l" "b.l" "prob" "theta"/;
+  58  loop(i,
+  59  put i.tl x.l(i):20:10 w.l(i):20:10 b.l(i):20:10 p(i):20:10 theta(i):20:10/;
+  60  );
+  61  put "Util" Util.l:20:10 //;
+  62   
+  63  put "Shadow price of IC(i,j)" /;
+  64  put "True type"; put "LICD" /;
+  65  loop(i, put i.tl licd.m(i):20:10; put /;);
+  66   
+  67  * end
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 4
+Parts Supply Problem w/ 10 Types & w/ Asymmetric Information (PS10_S,SEQ=368)
+Model Statistics    SOLVE SB_lic Using NLP From line 49
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           31
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           31  10 projected
+NON ZERO ELEMENTS            99     NON LINEAR N-Z             10
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  60
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 5
+Parts Supply Problem w/ 10 Types & w/ Asymmetric Information (PS10_S,SEQ=368)
+Solution Report     SOLVE SB_lic Using NLP From line 49
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   SB_lic              OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  49
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps10_s/convert.opt"
+>>  ampl ps10_s-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps10_s/convert.opt"
+Ampl      : ps10_s-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 6
+Parts Supply Problem w/ 10 Types & w/ Asymmetric Information (PS10_S,SEQ=368)
+E x e c u t i o n
+
+
+**** REPORT FILE SUMMARY
+
+sol /home/renigijus/gams/opt-mod-lib/gamslib/ps10_s/solution_lic.csv
+
+
+EXECUTION TIME       =        0.000 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ps10_s/ps10_s.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ps10_s/ps10_s-scalar.mod.lst

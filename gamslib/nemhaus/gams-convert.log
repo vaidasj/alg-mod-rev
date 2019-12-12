@@ -1,0 +1,334 @@
+--- Job nemhaus.gms Start 12/13/18 10:32:17 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- nemhaus.gms(144) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- nemhaus.gms(135) 4 Mb
+--- Generating NLP model one
+--- nemhaus.gms(137) 6 Mb
+--- LOOPS jj = fac-1
+---   6 rows  6 columns  11 non-zeroes
+---   38 nl-code  5 nl-non-zeroes
+--- nemhaus.gms(137) 4 Mb
+--- Executing BARON: elapsed 0:00:00.004
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Preprocessing found feasible solution with value  31.0000000000     
+ Problem solved during preprocessing
+ Lower bound is  31.0000000000     
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.01
+ Total CPU time used:                 0.01
+
+ Total no. of BaR iterations:      -1
+ Best solution found at node:      -1
+ Max. no. of nodes in memory:       0
+ 
+ All done
+===========================================================================
+
+Solution      = 31  best solution found during preprocessing
+Best possible = 31
+Absolute gap  = 0  optca = 1E-9
+Relative gap  = 0.00000  optcr = 0.001
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- nemhaus.gms(137) 2 Mb
+--- Reading solution for model one
+--- nemhaus.gms(135) 3 Mb
+--- Generating MIP model two
+--- nemhaus.gms(140) 3 Mb
+--- LOOPS jj = fac-1
+---   15 rows  15 columns  42 non-zeroes
+---   5 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.039
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+>>  gams nemhaus-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+--- Writing Gams      : nemhaus-scalar.gms
+
+--- Restarting execution
+--- nemhaus.gms(140) 2 Mb
+--- Reading solution for model two
+--- nemhaus.gms(135) 3 Mb
+--- Generating NLP model one
+--- nemhaus.gms(137) 5 Mb
+--- LOOPS jj = fac-2
+---   6 rows  11 columns  21 non-zeroes
+---   74 nl-code  10 nl-non-zeroes
+--- nemhaus.gms(137) 3 Mb
+--- Executing BARON: elapsed 0:00:00.052
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Starting solution is feasible with a value of     31.0000000000     
+ Doing local search
+ Preprocessing found feasible solution with value  9.00000000000     
+ Solving bounding LP
+ Starting multi-start local search
+ Done with local search
+===========================================================================
+  Iteration    Open nodes         Time (s)    Lower bound      Upper bound
+          1             0             0.02     8.99101          9.00000    
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.02
+ Total CPU time used:                 0.02
+
+ Total no. of BaR iterations:       1
+ Best solution found at node:       1
+ Max. no. of nodes in memory:       1
+ 
+ All done
+===========================================================================
+
+Solution      = 9  found at node 1
+Best possible = 8.99100899101
+Absolute gap  = 0.00899100898999983  optca = 1E-9
+Relative gap  = 0.00100  optcr = 0.001
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- nemhaus.gms(137) 2 Mb
+--- Reading solution for model one
+--- nemhaus.gms(135) 3 Mb
+--- Generating MIP model two
+--- nemhaus.gms(140) 3 Mb
+--- LOOPS jj = fac-2
+---   24 rows  29 columns  83 non-zeroes
+---   10 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.105
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+>>  gams nemhaus-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+--- Writing Gams      : nemhaus-scalar.gms
+
+--- Restarting execution
+--- nemhaus.gms(140) 2 Mb
+--- Reading solution for model two
+--- nemhaus.gms(135) 3 Mb
+--- Generating NLP model one
+--- nemhaus.gms(137) 5 Mb
+--- LOOPS jj = fac-3
+---   6 rows  16 columns  31 non-zeroes
+---   110 nl-code  15 nl-non-zeroes
+--- nemhaus.gms(137) 3 Mb
+--- Executing BARON: elapsed 0:00:00.117
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Starting solution is feasible with a value of     9.00000000000     
+ Doing local search
+ Preprocessing found feasible solution with value  3.00000000000     
+ Solving bounding LP
+ Starting multi-start local search
+ Done with local search
+===========================================================================
+  Iteration    Open nodes         Time (s)    Lower bound      Upper bound
+          1             0             0.02     2.99700          3.00000    
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.02
+ Total CPU time used:                 0.02
+
+ Total no. of BaR iterations:       1
+ Best solution found at node:       1
+ Max. no. of nodes in memory:       1
+ 
+ All done
+===========================================================================
+
+Solution      = 3  found at node 1
+Best possible = 2.997002997
+Absolute gap  = 0.00299700299999994  optca = 1E-9
+Relative gap  = 0.00100  optcr = 0.001
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- nemhaus.gms(137) 2 Mb
+--- Reading solution for model one
+--- nemhaus.gms(135) 3 Mb
+--- Generating MIP model two
+--- nemhaus.gms(140) 3 Mb
+--- LOOPS jj = fac-3
+---   33 rows  43 columns  124 non-zeroes
+---   15 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.201
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+>>  gams nemhaus-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+--- Writing Gams      : nemhaus-scalar.gms
+
+--- Restarting execution
+--- nemhaus.gms(140) 2 Mb
+--- Reading solution for model two
+--- nemhaus.gms(135) 3 Mb
+--- Generating NLP model one
+--- nemhaus.gms(137) 5 Mb
+--- LOOPS jj = fac-4
+---   6 rows  21 columns  41 non-zeroes
+---   146 nl-code  20 nl-non-zeroes
+--- nemhaus.gms(137) 3 Mb
+--- Executing BARON: elapsed 0:00:00.219
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Starting solution is feasible with a value of     3.00000000000     
+ Doing local search
+ Preprocessing found feasible solution with value  0.00000000000     
+ Problem solved during preprocessing
+ Lower bound is -.100000000000E-008
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.01
+ Total CPU time used:                 0.01
+
+ Total no. of BaR iterations:      -1
+ Best solution found at node:      -1
+ Max. no. of nodes in memory:       0
+ 
+ All done
+===========================================================================
+
+Solution      = 0  best solution found during preprocessing
+Best possible = -1E-9
+Absolute gap  = 1E-9  optca = 1E-9
+Relative gap  = 1.00000  optcr = 0.001
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- nemhaus.gms(137) 2 Mb
+--- Reading solution for model one
+--- nemhaus.gms(135) 3 Mb
+--- Generating MIP model two
+--- nemhaus.gms(140) 3 Mb
+--- LOOPS jj = fac-4
+---   42 rows  57 columns  165 non-zeroes
+---   20 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.262
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+>>  gams nemhaus-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nemhaus/convert.opt"
+--- Writing Gams      : nemhaus-scalar.gms
+
+--- Restarting execution
+--- nemhaus.gms(140) 2 Mb
+--- Reading solution for model two
+--- nemhaus.gms(144) 3 Mb
+*** Status: Normal completion
+--- Job nemhaus.gms Stop 12/13/18 10:32:18 elapsed 0:00:00.274

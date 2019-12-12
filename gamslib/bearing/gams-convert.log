@@ -1,0 +1,30 @@
+--- Job bearing.gms Start 12/13/18 10:32:23 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- bearing.gms(193) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- bearing.gms(192) 4 Mb
+--- Generating NLP model m
+--- bearing.gms(193) 6 Mb
+---   13 rows  14 columns  41 non-zeroes
+---   95 nl-code  28 nl-non-zeroes
+--- bearing.gms(193) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/bearing/convert.opt"
+>>  gams bearing-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/bearing/convert.opt"
+--- Writing Gams      : bearing-scalar.gms
+
+--- Restarting execution
+--- bearing.gms(193) 2 Mb
+--- Reading solution for model m
+*** Status: Normal completion
+--- Job bearing.gms Stop 12/13/18 10:32:23 elapsed 0:00:00.016

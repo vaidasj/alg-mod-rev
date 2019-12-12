@@ -1,0 +1,313 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 2
+Stratified Sample Design  (SAMPLE,SEQ=27)
+C o m p i l a t i o n
+
+
+       
+      The problem is to find a sampling plan that minimizes cost
+      and yields variances of the population less than an upper bound.
+      Table 10.1 in the book is not consistent with the equation
+      statements and the objective function value must be a misprint.
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 10.2. In Selected Applications
+      of Nonlinear Programming. John Wiley and Sons, New York, 1968.
+       
+  16   
+  17  Sets  h  stratum  / 1*4 /,  j  variate  / a,b /
+  18   
+  19  Table data(h,*)
+  20   
+  21       pop    a     b    cost
+  22   1  400000  25    1     1
+  23   2  300000  25    4     1
+  24   3  200000  25   16     1
+  25   4  100000  25   64     1
+  26   
+  27  Parameter vmax(j) maximum variance  / a .04, b .01 /
+  28            w(h)    stratum weight
+  29            tpop    total population
+  30            k1(h,j) constant one
+  31            k2(j)   constant two;
+  32   
+  33   tpop = sum(h, data(h,"pop"));
+  34   w(h) = data(h,"pop")/tpop;
+  35   k1(h,j) = sqr(w(h))*data(h,j);
+  36   k2(j)   = sum(h, w(h)*data(h,j)/data(h,"pop"));
+  37   
+  38  Display tpop, w, k1,k2;
+  39   
+  40  Variables  n(h)  sample - original formulation
+  41             nr(h) reciprocal of sample size
+  42             c     cost
+  43   
+  44  Equations  vbal(j)  variance balance - original formulation
+  45             vbalr(j) reciprocal variance balance
+  46             cbal     cost balance - original formulation
+  47             cbalr    reciprocal formulation of cost balance;
+  48   
+  49  vbal(j)..  sum(h, k1(h,j)/n(h)) - k2(j) =l= vmax(j);
+  50   
+  51  vbalr(j).. sum(h, k1(h,j)*nr(h)) - k2(j) =l= vmax(j);
+  52   
+  53  cbal..     c =e= sum(h, data(h,"cost")*n(h));
+  54   
+  55  cbalr..    c =e= sum(h, data(h,"cost")/nr(h));
+  56   
+  57  Models sample  original formulation      / vbal,cbal /
+  58         sampler reciprocal formulation    / vbalr,cbalr / ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 3
+Stratified Sample Design  (SAMPLE,SEQ=27)
+C o m p i l a t i o n
+
+
+  59   
+  60  n.lo(h) = 100; n.up(h) = data(h,"pop");
+  61  n.l(h) = 200; c.l = sum(h, data(h,"cost")*n.l(h));
+  62  Solve sample minimizing c using nlp;
+  63   
+  64  nr.lo(h) = 1/data(h,"pop"); nr.up(h) = 1/100; nr.l(h) = 1/n.l(h);
+  65  Solve sampler minimizing c using nlp;
+  66   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 4
+Stratified Sample Design  (SAMPLE,SEQ=27)
+E x e c u t i o n
+
+
+----     38 PARAMETER tpop                 =  1000000.000  total population
+
+----     38 PARAMETER w  stratum weight
+
+1 0.400,    2 0.300,    3 0.200,    4 0.100
+
+
+----     38 PARAMETER k1  constant one
+
+            a           b
+
+1       4.000       0.160
+2       2.250       0.360
+3       1.000       0.640
+4       0.250       0.640
+
+
+----     38 PARAMETER k2  constant two
+
+a 1.000000E-4,    b 8.500000E-5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 5
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Equation Listing    SOLVE sample Using NLP From line 62
+
+
+---- vbal  =L=  variance balance - original formulation
+
+vbal(a)..  - (1E-4)*n(1) - (5.625E-5)*n(2) - (2.5E-5)*n(3) - (6.25E-6)*n(4) =L= 0.0401 ; (LHS = 0.0375)
+     
+vbal(b)..  - (4E-6)*n(1) - (9E-6)*n(2) - (1.6E-5)*n(3) - (1.6E-5)*n(4) =L= 0.010085 ; (LHS = 0.009)
+     
+
+---- cbal  =E=  cost balance - original formulation
+
+cbal..  - n(1) - n(2) - n(3) - n(4) + c =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 6
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Column Listing      SOLVE sample Using NLP From line 62
+
+
+---- n  sample - original formulation
+
+n(1)
+                (.LO, .L, .UP, .M = 100, 200, 400000, 0)
+      (-0.0001) vbal(a)
+ (-4.000000E-6) vbal(b)
+       -1       cbal
+
+n(2)
+                (.LO, .L, .UP, .M = 100, 200, 300000, 0)
+ (-5.625000E-5) vbal(a)
+ (-9.000000E-6) vbal(b)
+       -1       cbal
+
+n(3)
+                (.LO, .L, .UP, .M = 100, 200, 200000, 0)
+ (-2.500000E-5) vbal(a)
+ (-1.600000E-5) vbal(b)
+       -1       cbal
+
+REMAINING ENTRY SKIPPED
+
+---- c  cost
+
+c
+                (.LO, .L, .UP, .M = -INF, 800, +INF, 0)
+        1       cbal
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 7
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Model Statistics    SOLVE sample Using NLP From line 62
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS            13     NON LINEAR N-Z              8
+DERIVATIVE POOL              20     CONSTANT POOL              23
+CODE LENGTH                  34
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 8
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Solution Report     SOLVE sample Using NLP From line 62
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   sample              OBJECTIVE  c
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  62
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sample/convert.opt"
+>>  gams sample-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sample/convert.opt"
+Gams      : sample-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 9
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Equation Listing    SOLVE sampler Using NLP From line 65
+
+
+---- vbalr  =L=  reciprocal variance balance
+
+vbalr(a)..  4*nr(1) + 2.25*nr(2) + 1*nr(3) + 0.25*nr(4) =L= 0.0401 ; (LHS = 0.0375)
+     
+vbalr(b)..  0.16*nr(1) + 0.36*nr(2) + 0.64*nr(3) + 0.64*nr(4) =L= 0.010085 ; (LHS = 0.009)
+     
+
+---- cbalr  =E=  reciprocal formulation of cost balance
+
+cbalr..  (40000)*nr(1) + (40000)*nr(2) + (40000)*nr(3) + (40000)*nr(4) + c =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 10
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Column Listing      SOLVE sampler Using NLP From line 65
+
+
+---- nr  reciprocal of sample size
+
+nr(1)
+                (.LO, .L, .UP, .M = 2.5E-6, 0.005, 0.01, 0)
+        4       vbalr(a)
+        0.16    vbalr(b)
+   (40000)      cbalr
+
+nr(2)
+                (.LO, .L, .UP, .M = 3.33333333333333E-6, 0.005, 0.01, 0)
+        2.25    vbalr(a)
+        0.36    vbalr(b)
+   (40000)      cbalr
+
+nr(3)
+                (.LO, .L, .UP, .M = 5E-6, 0.005, 0.01, 0)
+        1       vbalr(a)
+        0.64    vbalr(b)
+   (40000)      cbalr
+
+REMAINING ENTRY SKIPPED
+
+---- c  cost
+
+c
+                (.LO, .L, .UP, .M = -INF, 800, +INF, 0)
+        1       cbalr
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 11
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Model Statistics    SOLVE sampler Using NLP From line 65
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS            13     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  19
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 12
+Stratified Sample Design  (SAMPLE,SEQ=27)
+Solution Report     SOLVE sampler Using NLP From line 65
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   sampler             OBJECTIVE  c
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  65
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sample/convert.opt"
+>>  gams sample-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sample/convert.opt"
+Gams      : sample-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/sample/sample.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/sample/sample-scalar.gms.lst

@@ -1,0 +1,92 @@
+--- Job clearlak.gms Start 12/13/18 11:22:40 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- clearlak.gms(136) 3 Mb
+--- .scenred.gms(29) 3 Mb
+--- clearlak.gms(197) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- clearlak.gms(181) 4 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/clearlak/lakein.gdx
+--- clearlak.gms(182) 4 Mb
+--- clearlak.gms(187) 4 Mb
+
+
+SCENRED -- Reduction of scenario trees
+
+Command line version: 05/08/2002
+
+Developed by
+N. Groewe-Kuska, H. Heitsch, W. Roemisch,
+Humboldt-University Berlin, Germany
+
+Kt gruod. 13 11:22:40 EET 2018
+FILE SUMMARY 
+------------ 
+OPTION FILE: scenred.opt
+LOG    FILE: lakelog.txt
+INPUT   GDX: lakein.gdx
+OUTPUT  GDX: lakeout.gdx
+
+
+Start reading the parameters......................
+
+**** SCENRED Warning ... 
+**** Parameter where_random changed to default value
+
+
+...................................................DONE (0 seconds)
+
+Check the input...................................
+
+...................................................DONE (0 seconds)
+
+Compute the scenario distances....................
+
+...................................................DONE (0 seconds)
+
+START SCENARIO REDUCTION..........................
+
+FAST BACKWARD ALGORITHM 
+
+FORWARD ALGORITHM 
+
+
+...................................................DONE (0 seconds)
+
+REDUCTION OF THE SCENARIOS WAS SUCCESSFULL
+
+         ORIGINAL TREE    REDUCED TREE
+NODES              121            23
+LEAVES              81            10
+
+REDUCTION PERCENTAGE 0.523583
+          ABSOLUTE   24444.2
+METHOD   FAST BACKWARD + FORWARD
+SCENRED EXECUTION TIME = 0s
+
+--- clearlak.gms(188) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/clearlak/lakeout.gdx
+--- clearlak.gms(212) 4 Mb
+--- Generating LP model mincost
+--- clearlak.gms(218) 4 Mb
+---   23 rows  92 columns  157 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.024
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/clearlak/convert.opt"
+>>  pyomo clearlak-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/clearlak/convert.opt"
+--- Writing Pyomo     : clearlak-scalar.py
+
+--- Restarting execution
+--- clearlak.gms(218) 2 Mb
+--- Reading solution for model mincost
+--- Putfile opts /home/renigijus/gams/opt-mod-lib/gamslib/clearlak/scenred.opt
+*** Status: Normal completion
+--- Job clearlak.gms Stop 12/13/18 11:22:40 elapsed 0:00:00.040

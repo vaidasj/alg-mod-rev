@@ -1,0 +1,325 @@
+--- Job immun.gms Start 12/13/18 10:24:50 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- immun.gms(362) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- immun.gms(169) 4 Mb
+--- Generating LP model immun1
+--- immun.gms(206) 4 Mb
+---   3 rows  9 columns  25 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.006
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 2 rows, 8 columns, and 16 nonzeros.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1            -904.886980              x(bond-1)              pvm artif
+     2          -24493.226597              x(bond-3)              ddm artif
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.01 ticks)
+
+Optimal solution found.
+Objective :      -24493.226597
+
+--- Restarting execution
+--- immun.gms(206) 2 Mb
+--- Reading solution for model immun1
+--- Generating LP model immun2
+--- immun.gms(208) 3 Mb
+---   3 rows  9 columns  25 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.031
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 2 rows, 8 columns, and 16 nonzeros.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1 sI            0.000000              x(bond-3)              pvm artif
+     2            7197.760305              x(bond-1)              ddm artif
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.02 ticks)
+
+Optimal solution found.
+Objective :        7197.760305
+
+--- Restarting execution
+--- immun.gms(208) 2 Mb
+--- Reading solution for model immun2
+--- Generating LP model immun3
+--- immun.gms(210) 3 Mb
+---   4 rows  9 columns  33 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.054
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 3 rows, 8 columns, and 24 nonzeros.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1 sI            0.000000              x(bond-2)              pvm artif
+     2          641283.859859              x(bond-1)              ddm artif
+     3          884940.015135              x(bond-3)              x(bond-2)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.02 ticks)
+
+Optimal solution found.
+Objective :      884940.015135
+
+--- Restarting execution
+--- immun.gms(210) 2 Mb
+--- Reading solution for model immun3
+--- immun.gms(287) 3 Mb
+--- Generating LP model factor1
+--- immun.gms(289) 3 Mb
+---   5 rows  9 columns  41 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.082
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 4 rows, 8 columns, and 32 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1            -904.886980                            2          -19977.072116              x(bond-3)         fm(tilt) artif
+     3          -25627.277254              x(bond-6)        fm(curve) artif
+     4          -28601.209796              x(bond-7)        fm(shift) artif
+     5          -32482.367172              x(bond-8)              x(bond-6)
+LP status(3): infeasible
+Cplex Time: 0.00sec (det. 0.02 ticks)
+
+Model has been proven infeasible.
+--- Restarting execution
+--- immun.gms(289) 2 Mb
+--- Reading solution for model factor1
+--- Generating LP model factor2
+--- immun.gms(290) 3 Mb
+---   5 rows  12 columns  47 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.106
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 4 rows, 11 columns, and 35 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1            -904.886980              x(bond-1)              pvm artif
+     2          -19977.072116              x(bond-3)      diffm(tilt) artif
+     3          -25053.904622             dif(curve)     diffm(curve) artif
+     4          -25540.682739              x(bond-6)     diffm(shift) artif
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.02 ticks)
+
+Optimal solution found.
+Objective :      -25540.682739
+
+--- Restarting execution
+--- immun.gms(290) 2 Mb
+--- Reading solution for model factor2
+--- immun.gms(313) 3 Mb
+--- Generating LP model dedic
+--- immun.gms(325) 3 Mb
+---   7 rows  21 columns  58 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.131
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 12 columns.
+Reduced LP has 5 rows, 9 columns, and 28 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+Initializing dual steep norms . . .
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1          126523.089424              x(bond-2)        cbal(tl1) artif
+     2          192046.447621              x(bond-5)        cbal(tl5) slack
+     3          193074.473249              x(bond-3)                 s(tl4)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.02 ticks)
+
+Optimal solution found.
+Objective :      193074.473249
+
+--- Restarting execution
+--- immun.gms(325) 2 Mb
+--- Reading solution for model dedic
+--- immun.gms(329) 3 Mb
+--- Generating LP model comb1
+--- immun.gms(340) 3 Mb
+---   8 rows  21 columns  67 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.152
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 3 rows and 10 columns.
+Reduced LP has 5 rows, 11 columns, and 40 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1          237566.854954              x(bond-6)        cbal(tl1) artif
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.03 ticks)
+
+Optimal solution found.
+Objective :      237566.854954
+
+--- Restarting execution
+--- immun.gms(340) 2 Mb
+--- Reading solution for model comb1
+--- Generating LP model comb2
+--- immun.gms(341) 3 Mb
+---   8 rows  21 columns  66 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.174
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 3 rows and 10 columns.
+Reduced LP has 5 rows, 11 columns, and 40 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+Using devex.
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.03 ticks)
+
+Optimal solution found.
+Objective :      216798.496214
+
+--- Restarting execution
+--- immun.gms(341) 2 Mb
+--- Reading solution for model comb2
+--- immun.gms(342) 3 Mb
+--- Generating LP model comb3
+--- immun.gms(343) 3 Mb
+---   10 rows  21 columns  82 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.203
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/immun/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 3 rows and 10 columns.
+Reduced LP has 7 rows, 11 columns, and 56 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1 sI            8.991150              x(bond-3)        cbal(tl3) artif
+     2 sI            8.991150                 s(tl2)        cbal(tl4) slack
+     3 sI            8.991150              x(bond-6)        cbal(tl2) artif
+     4 sI            8.502537                 s(tl3)        fm(curve) artif
+     5 sI            8.268877              x(bond-2)        cbal(tl1) artif
+     6 sI            0.000000                 s(tl1)              x(bond-3)
+     7          182150.612316              x(bond-3)         fm(tilt) artif
+     8          224209.678216              x(bond-8)                 s(tl3)
+     9          237499.889167              x(bond-5)              x(bond-6)
+    10          252031.968947        cbal(tl4) slack        fm(shift) artif
+    11          389404.109988              x(bond-1)              x(bond-5)
+    12         1089285.306946                 s(tl3)              x(bond-2)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.06 ticks)
+
+Optimal solution found.
+Objective :     1089285.306945
+
+--- Restarting execution
+--- immun.gms(343) 2 Mb
+--- Reading solution for model comb3
+--- immun.gms(351) 3 Mb
+--- Generating QCP model sigma
+--- immun.gms(362) 5 Mb
+---   8 rows  22 columns  64 non-zeroes
+---   25 nl-code  6 nl-non-zeroes
+--- immun.gms(362) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.220
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/immun/convert.opt"
+>>  pyomo immun-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/immun/convert.opt"
+--- Writing Pyomo     : immun-scalar.py
+
+--- Restarting execution
+--- immun.gms(362) 2 Mb
+--- Reading solution for model sigma
+*** Status: Normal completion
+--- Job immun.gms Stop 12/13/18 10:24:51 elapsed 0:00:00.235

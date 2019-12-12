@@ -1,0 +1,274 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 2
+Integer Cut Example (ICUT,SEQ=160)
+C o m p i l a t i o n
+
+
+        Sometimes it may be required to exclude certain integer solutions.
+        Additional constraints, called cuts, can be added to exclude such
+        solutions. To exclude the k'th integer solution we can write:
+       
+            cut(k)..  sum(i, abs(x(i)-xsol(i,k)) =g= 1;
+       
+        The absolute function has to be simulated using 0/1 variables
+        and some additional constraints. When the solution to be excluded
+        is at lower or upper bound, we do not need additional 0/1 variables.
+       
+        In this example we simply show how to enumerate all possible
+        combinations of four integer variables.
+       
+       
+      GAMS Development Corporation, Formulation and Language Example.
+       
+  24  sets  i      index on integer variable  / 1 * 4 /
+  25        ie(i)  variables fixed
+  26        in(i)  not fixed
+  27        il(i)  solutions at lower bound
+  28        iu(i)  solutions at upper bound
+  29        ib(i)  solution between bounds
+  30   
+  31        kk       cut identification set  / 1 * 100 /
+  32        k(kk)    dynamic subset of k
+  33        bb(kk,i) cut memory
+  34        bl(kk,i) cut memory
+  35        bu(kk,i) cut memory
+  36   
+  37   
+  38  variables  x(i)    test variable
+  39             z       some objective variable
+  40             b(kk,i) flip-flop for in between solutions
+  41             u(kk,i) changes up
+  42             l(kk,i) changes down
+  43   
+  44  integer variable x;
+  45  binary variable b; positive variable u,l;
+  46   
+  47  equations cut(kk)     main cut equations
+  48            cutu(kk,i)  upper bound limit for inbetween integers
+  49            cutl(kk,i)  lower bound limit for inbetween integers
+  50            cutul(kk,i) definition of positive and negative deviations
+  51            obj         obj definition;
+  52   
+  53  parameters  cutrhs(kk)    cut RHS value
+  54              cutlx(kk,i)   cut lower bound
+  55              cutux(kk,i)   cut upper bound
+  56              cuts(kk,i)    cut solution value
+  57   
+  58              report(kk,*)  cut report variable
+  59              whatnext      loop control variable;
+  60   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 3
+Integer Cut Example (ICUT,SEQ=160)
+C o m p i l a t i o n
+
+
+  61  *  pick an objective function which will order the solutions
+  62   
+  63  obj..   z =e= sum(i, power(10,card(i)-ord(i))*x(i));
+  64   
+  65  cut(k)..      - sum(bu(k,i), x(i)) + sum(bl(k,i),x(i))
+  66                + sum(bb(k,i), l(bb) + u(bb)) =g= cutrhs(k);
+  67   
+  68  cutu(bb(k,i))..  u(bb) =l= cutux(bb)*b(bb);
+  69   
+  70  cutl(bb(k,i))..  l(bb) =l= cutlx(bb)*(1-b(bb));
+  71   
+  72  cutul(bb(k,i)).. x(i)  =e= cuts(bb) + u(bb) - l(bb);
+  73   
+  74  model enum / all /;
+  75   
+  76  * get an initial solution and set bounds
+  77   
+  78  x.lo(i)   = 2;
+  79  x.up(i)   = 4;
+  80  x.fx('2') = 3;   ! fix one variable
+  81  x.up('4') = 3;   ! only two values
+  82   
+  83  x.l(i)    = x.lo(i);
+  84   
+  85  k(kk) = no;                        ! make cut set empty
+  86  ie(i) = yes$(x.lo(i)=x.up(i));     ! find fixed variables
+  87  in(i) = yes - ie(i);               ! find free variables
+  88   
+  89  whatnext    = 1;  ! initial loop control
+  90  enum.resusd = 0;  ! inital CPU used
+  91   
+  92  enum.reslim = 60; ! dont spend more than 60 seconds on on problem
+  93   
+  94  * We enumerate all solutions so we are happy with the first solution
+  95  * the solver finds.
+  96   
+  97  enum.optcr  = 0; enum.optca = 1e06;
+  98   
+  99  loop(kk$whatnext,
+ 100     il(in) = yes$(x.l(in)=x.lo(in));         ! find variables at lower
+ 101     iu(in) = yes$(x.l(in)=x.up(in));         ! find variables at upper
+ 102     ib(in) = yes - ie(in) - iu(in) - il(in); ! find variables between
+ 103     k(kk)        = yes;   ! add
+ 104     bl(kk,il)    = yes;   !   cut
+ 105     bu(kk,iu)    = yes;   !      information
+ 106     bb(kk,ib)    = yes;   !         as needed
+ 107     cutux(kk,ib) = x.up(ib) - x.l(ib);
+ 108     cutlx(kk,ib) = x.l(ib) - x.lo(ib);
+ 109     cuts(kk,ib)  = x.l(ib);
+ 110     cutrhs(kk)   = 1 + sum(il, x.l(il)) - sum(iu, x.l(iu));
+ 111     report(kk,i) = x.l(i);                   ! save previous solution
+ 112     report(kk,'binaries') = card(bb);        ! remember binaries
+ 113     report(kk,'CPU time') = enum.resusd;     ! remember time
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 4
+Integer Cut Example (ICUT,SEQ=160)
+C o m p i l a t i o n
+
+
+ 114     solve enum min z us mip;
+ 115     enum.limcol = 0;                   ! turn off
+ 116     enum.limrow = 0;                   !    all
+ 117     enum.solprint = 2;  !       output
+ 118     whatnext = enum.modelstat=1 or enum.modelstat=8 );
+ 119   
+ 120  display enum.solvestat, enum.modelstat, report;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 5
+Integer Cut Example (ICUT,SEQ=160)
+Equation Listing    SOLVE enum Using MIP From line 114
+
+
+---- cut  =G=  main cut equations
+
+cut(1)..  x(1) + x(3) + x(4) =G= 7 ; (LHS = 6, INFES = 1 ****)
+     
+
+---- cutu  =L=  upper bound limit for inbetween integers
+
+                NONE
+
+
+---- cutl  =L=  lower bound limit for inbetween integers
+
+                NONE
+
+
+---- cutul  =E=  definition of positive and negative deviations
+
+                NONE
+
+
+---- obj  =E=  obj definition
+
+obj..  - 1000*x(1) - 100*x(2) - 10*x(3) - x(4) + z =E= 0 ; (LHS = -2322, INFES = 2322 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 6
+Integer Cut Example (ICUT,SEQ=160)
+Column Listing      SOLVE enum Using MIP From line 114
+
+
+---- x  test variable
+
+x(1)
+                (.LO, .L, .UP, .M = 2, 2, 4, 0)
+        1       cut(1)
+    -1000       obj
+
+x(2)
+                (.LO, .L, .UP, .M = 3, 3, 3, 0)
+     -100       obj
+
+x(3)
+                (.LO, .L, .UP, .M = 2, 2, 4, 0)
+        1       cut(1)
+      -10       obj
+
+REMAINING ENTRY SKIPPED
+
+---- z  some objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 7
+Integer Cut Example (ICUT,SEQ=160)
+Model Statistics    SOLVE enum Using MIP From line 114
+
+
+LOOPS                                   kk   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS            2
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             8     DISCRETE VARIABLES          3
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 kk 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 8
+Integer Cut Example (ICUT,SEQ=160)
+Solution Report     SOLVE enum Using MIP From line 114
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   enum                OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  114
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000        60.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/icut/convert.opt"
+>>  pyomo icut-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/icut/convert.opt"
+Pyomo     : icut-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 9
+Integer Cut Example (ICUT,SEQ=160)
+E x e c u t i o n
+
+
+----    120 MODEL enum.SolveStat           =        1.000  
+            MODEL enum.ModelStat           =       14.000  
+
+----    120 PARAMETER report  cut report variable
+
+            1           2           3           4
+
+1       2.000       3.000       2.000       2.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/icut/icut.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/icut/icut-scalar.py.lst

@@ -1,0 +1,36 @@
+--- Job tablelayout.gms Start 12/13/18 11:43:40 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- tablelayout.gms(85) 2 Mb
+--- call awk -f "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/tl.awk" tablelayout5x5.inc | uniq > "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/tlinst.dat"
+--- tablelayout.gms(103) 2 Mb
+--- call gams "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/dataprep" lo=2 o="/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/dataprep.lst"
+--- tablelayout.gms(116) 2 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/inst.gdx
+--- tablelayout.gms(304) 3 Mb
+--- call rm -f "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/inst.gdx" "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/dataprep.gms" "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/225a/dataprep.lst" "/home/renigijus/gams/opt
+--- Starting execution: elapsed 0:00:00.075
+--- tablelayout.gms(173) 4 Mb
+--- Generating MIP model layoutMIP
+--- tablelayout.gms(176) 4 Mb
+---   57 rows  59 columns  277 non-zeroes
+---   28 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.077
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/convert.opt"
+>>  pyomo tablelayout-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tablelayout/convert.opt"
+--- Writing Pyomo     : tablelayout-scalar.py
+
+--- Restarting execution
+--- tablelayout.gms(176) 2 Mb
+--- Reading solution for model layoutMIP
+*** Status: Normal completion
+--- Job tablelayout.gms Stop 12/13/18 11:43:40 elapsed 0:00:00.090

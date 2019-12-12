@@ -1,0 +1,299 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 2
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+C o m p i l a t i o n
+
+
+   4   
+       
+      Maximize the area of the valve opening for one rotation of a
+      convex cam with constraints on the curvature and on the radius
+      of the cam.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of discretization points can be specified using the command
+      line parameter --n. COPS performance tests have been reported for n =
+      100, 200, 400, 800
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Anitescu, M, and Serban, R, A Sparse Superlinearly
+      Convergent SQP with Applications to Two-Dimensional Shape
+      Optimization. Tech. rep., Argonne National Laboratory, 1998.
+       
+  28   
+  29   
+  31   
+  32  Set i discretization points /i1 * i100/;
+  33   
+  34  Alias (i,j);
+  35   
+  36  Scalar R_v     design parameter related to the valve shape /1/
+  37         R_max   maximum allowed radius of the cam           /2/
+  38         R_min   minimum allowed radius of the cam           /1/
+  39         pi      a famous constant
+  40         alpha   curvature limit parameter                   /1.5/
+  41         d_theta angle between discretization points;
+  42   
+  43  pi = 2*arctan(inf);
+  44  d_theta = 2*pi/(5*(100+1));
+  45   
+  46  set first(i), last(i), middle(i);
+  47  first('i1')  = yes;
+  48  last('i100') = yes;
+  49  middle(i) = yes; middle(first) = no; middle(last) = no;
+  50   
+  51  Variables  r(i)      radius of the cam at discretization points
+  52             rdiff(i)  intermediate
+  53             area      valve area;
+  54   
+  55  Equations  obj          objective
+  56             convexity(i)
+  57             convex_edge1(i)
+  58             convex_edge3(i)
+  59             convex_edge4(i)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 3
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+C o m p i l a t i o n
+
+
+  60             eqrdiff(i);
+  61   
+  62  obj.. area =e= ((pi*R_v)/100) * sum(i, r(i));
+  63   
+  64  convexity(middle(i)).. -r(i-1)*r(i) - r(i)*r(i+1) + 2*r(i-1)*r(i+1)*cos(d_theta) =l= 0;
+  65   
+  66  convex_edge1(first(i)).. -R_min*r(i) - r(i)*r(i+1) + 2*R_min*r(i+1)*cos(d_theta) =l= 0;
+  67   
+  68  convex_edge3(last(i)).. -r(i-1)*r(i) - r(i)*R_max + 2*r(i-1)*R_max*cos(d_theta) =l= 0;
+  69   
+  70  convex_edge4(last(i)).. -2*R_max*r(i) + 2*sqr(r(i))*cos(d_theta) =l= 0;
+  71   
+  72  eqrdiff(j(i+1)).. rdiff(i) =e= r(i+1) - r(i);
+  73   
+  74  r.lo(i) = R_min;
+  75  r.up(i) = R_max;
+  76   
+  77  rdiff.lo(i(j+1)) = -alpha*d_theta;
+  78  rdiff.up(i(j+1)) =  alpha*d_theta;
+  79   
+  80  r.lo('i1') = max(-alpha*d_theta + R_min, r.lo('i1'));
+  81  r.up('i1') = min( alpha*d_theta + R_min, r.up('i1'));
+  82   
+  83  r.lo('i100') =  max(R_max - alpha*d_theta, r.lo('i100'));
+  84  r.up('i100') =  min(R_max + alpha*d_theta, r.up('i100'));
+  85   
+  86  r.up('i1') = min( R_min/(2*cos(d_theta)-1), r.up('i1'));
+  87   
+  88  r.l(i) = (R_min+R_max)/2;
+  89   
+  90  model camshape /all/;
+  91   
+  93   
+  94  solve camshape using nlp maximizing area;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 4
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+Equation Listing    SOLVE camshape Using NLP From line 94
+
+
+---- obj  =E=  objective
+
+obj..  - 0.0314159265358979*r(i1) - 0.0314159265358979*r(i2) - 0.0314159265358979*r(i3) - 0.0314159265358979*r(i4) - 0.0314159265358979*r(i5) - 0.0314159265358979*r(i6) - 0.0314159265358979*r(i7) - 0.0314159265358979*r(i8) - 0.0314159265358979*r(i9)
+     
+      - 0.0314159265358979*r(i10) - 0.0314159265358979*r(i11) - 0.0314159265358979*r(i12) - 0.0314159265358979*r(i13) - 0.0314159265358979*r(i14) - 0.0314159265358979*r(i15) - 0.0314159265358979*r(i16) - 0.0314159265358979*r(i17)
+     
+      - 0.0314159265358979*r(i18) - 0.0314159265358979*r(i19) - 0.0314159265358979*r(i20) - 0.0314159265358979*r(i21) - 0.0314159265358979*r(i22) - 0.0314159265358979*r(i23) - 0.0314159265358979*r(i24) - 0.0314159265358979*r(i25)
+     
+      - 0.0314159265358979*r(i26) - 0.0314159265358979*r(i27) - 0.0314159265358979*r(i28) - 0.0314159265358979*r(i29) - 0.0314159265358979*r(i30) - 0.0314159265358979*r(i31) - 0.0314159265358979*r(i32) - 0.0314159265358979*r(i33)
+     
+      - 0.0314159265358979*r(i34) - 0.0314159265358979*r(i35) - 0.0314159265358979*r(i36) - 0.0314159265358979*r(i37) - 0.0314159265358979*r(i38) - 0.0314159265358979*r(i39) - 0.0314159265358979*r(i40) - 0.0314159265358979*r(i41)
+     
+      - 0.0314159265358979*r(i42) - 0.0314159265358979*r(i43) - 0.0314159265358979*r(i44) - 0.0314159265358979*r(i45) - 0.0314159265358979*r(i46) - 0.0314159265358979*r(i47) - 0.0314159265358979*r(i48) - 0.0314159265358979*r(i49)
+     
+      - 0.0314159265358979*r(i50) - 0.0314159265358979*r(i51) - 0.0314159265358979*r(i52) - 0.0314159265358979*r(i53) - 0.0314159265358979*r(i54) - 0.0314159265358979*r(i55) - 0.0314159265358979*r(i56) - 0.0314159265358979*r(i57)
+     
+      - 0.0314159265358979*r(i58) - 0.0314159265358979*r(i59) - 0.0314159265358979*r(i60) - 0.0314159265358979*r(i61) - 0.0314159265358979*r(i62) - 0.0314159265358979*r(i63) - 0.0314159265358979*r(i64) - 0.0314159265358979*r(i65)
+     
+      - 0.0314159265358979*r(i66) - 0.0314159265358979*r(i67) - 0.0314159265358979*r(i68) - 0.0314159265358979*r(i69) - 0.0314159265358979*r(i70) - 0.0314159265358979*r(i71) - 0.0314159265358979*r(i72) - 0.0314159265358979*r(i73)
+     
+      - 0.0314159265358979*r(i74) - 0.0314159265358979*r(i75) - 0.0314159265358979*r(i76) - 0.0314159265358979*r(i77) - 0.0314159265358979*r(i78) - 0.0314159265358979*r(i79) - 0.0314159265358979*r(i80) - 0.0314159265358979*r(i81)
+     
+      - 0.0314159265358979*r(i82) - 0.0314159265358979*r(i83) - 0.0314159265358979*r(i84) - 0.0314159265358979*r(i85) - 0.0314159265358979*r(i86) - 0.0314159265358979*r(i87) - 0.0314159265358979*r(i88) - 0.0314159265358979*r(i89)
+     
+      - 0.0314159265358979*r(i90) - 0.0314159265358979*r(i91) - 0.0314159265358979*r(i92) - 0.0314159265358979*r(i93) - 0.0314159265358979*r(i94) - 0.0314159265358979*r(i95) - 0.0314159265358979*r(i96) - 0.0314159265358979*r(i97)
+     
+      - 0.0314159265358979*r(i98) - 0.0314159265358979*r(i99) - 0.0314159265358979*r(i100) + area =E= 0 ; (LHS = -4.71180753119504, INFES = 4.71180753119504 ****)
+     
+
+---- convexity  =L=  
+
+convexity(i2)..  (1.49976779977456)*r(i1) - (2.50015482411709)*r(i2) + (0.500154824117089)*r(i3) =L= 0 ; (LHS = -0.75)
+     
+convexity(i3)..  (1.49976779977456)*r(i2) - (3)*r(i3) + (1.49976779977456)*r(i4) =L= 0 ; (LHS = -0.000348300338157692)
+     
+convexity(i4)..  (1.49976779977456)*r(i3) - (3)*r(i4) + (1.49976779977456)*r(i5) =L= 0 ; (LHS = -0.000348300338157692)
+     
+REMAINING 95 ENTRIES SKIPPED
+
+
+---- convex_edge1  =L=  
+
+convex_edge1(i1)..  - (2.5)*r(i1) + (0.999690375732619)*r(i2) =L= 0 ; (LHS = 0.499380739481839, INFES = 0.499380739481839 ****)
+     
+
+---- convex_edge3  =L=  
+
+convex_edge3(i100)..  (2.0183533263544)*r(i99) - (3.5)*r(i100) =L= 0 ; (LHS = -0.935144157158415)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 5
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+Equation Listing    SOLVE camshape Using NLP From line 94
+
+
+---- convex_edge4  =L=  
+
+convex_edge4(i100)..  (3.92473487082658)*r(i100) =L= 0 ; (LHS = -0.0745627953807029)
+     
+
+---- eqrdiff  =E=  
+
+eqrdiff(i2)..  r(i1) - r(i2) + rdiff(i1) =E= 0 ; (LHS = -0.499845175882911, INFES = 0.499845175882911 ****)
+     
+eqrdiff(i3)..  r(i2) - r(i3) + rdiff(i2) =E= 0 ; (LHS = 0)
+     
+eqrdiff(i4)..  r(i3) - r(i4) + rdiff(i3) =E= 0 ; (LHS = 0)
+     
+REMAINING 96 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 6
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+Column Listing      SOLVE camshape Using NLP From line 94
+
+
+---- r  radius of the cam at discretization points
+
+r(i1)
+                (.LO, .L, .UP, .M = 1, 1.00015482411709, 1.00015482411709, 0)
+       -0.0314  obj
+       (1.4998) convexity(i2)
+      (-2.5)    convex_edge1(i1)
+        1       eqrdiff(i2)
+        1.5     (OLD LEVEL ****)
+
+r(i2)
+                (.LO, .L, .UP, .M = 1, 1.5, 2, 0)
+       -0.0314  obj
+      (-2.5002) convexity(i2)
+       (1.4998) convexity(i3)
+       (0.9997) convex_edge1(i1)
+       -1       eqrdiff(i2)
+        1       eqrdiff(i3)
+
+r(i3)
+                (.LO, .L, .UP, .M = 1, 1.5, 2, 0)
+       -0.0314  obj
+       (0.5002) convexity(i2)
+      (-3)      convexity(i3)
+       (1.4998) convexity(i4)
+       -1       eqrdiff(i3)
+        1       eqrdiff(i4)
+
+REMAINING 97 ENTRIES SKIPPED
+
+---- rdiff  intermediate
+
+rdiff(i1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       eqrdiff(i2)
+
+rdiff(i2)
+                (.LO, .L, .UP, .M = -0.0186629266549889, 0, 0.0186629266549889, 0)
+        1       eqrdiff(i3)
+
+rdiff(i3)
+                (.LO, .L, .UP, .M = -0.0186629266549889, 0, 0.0186629266549889, 0)
+        1       eqrdiff(i4)
+
+REMAINING 96 ENTRIES SKIPPED
+
+---- area  valve area
+
+area
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 7
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+Model Statistics    SOLVE camshape Using NLP From line 94
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS          201
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          200  2 projected
+NON ZERO ELEMENTS           697     NON LINEAR N-Z            299
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH               1,201
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 8
+Shape optimization of a cam COPS 2.0 #4 (CAMSHAPE,SEQ=232)
+Solution Report     SOLVE camshape Using NLP From line 94
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   camshape            OBJECTIVE  area
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  94
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/camshape/convert.opt"
+>>  gams camshape-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/camshape/convert.opt"
+Gams      : camshape-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/camshape/camshape.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/camshape/camshape-scalar.gms.lst

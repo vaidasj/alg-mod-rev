@@ -1,0 +1,80 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%Creator: class EPSDevice
+%%Title: template.eps
+%%BoundingBox: 0 0 501 501
+%%EndComments
+/Rect {
+/InputDict 8 dict def
+InputDict begin
+/Y4 exch def
+/X4 exch def
+/Y3 exch def
+/X3 exch def
+/Y2 exch def
+/X2 exch def
+/Y1 exch def
+/X1 exch def
+newpath
+X1 Y1 moveto
+X2 Y2 lineto
+X3 Y3 lineto
+X4 Y4 lineto
+closepath
+end } def
+/cRect {
+/InputDict 9 dict def
+InputDict begin
+/comment exch def
+/Y4 exch def
+/X4 exch def
+/Y3 exch def
+/X3 exch def
+/Y2 exch def
+/X2 exch def
+/Y1 exch def
+/X1 exch def
+newpath
+X1 Y1 moveto
+currentfont 12 scalefont
+comment stringwidth pop
+X3 X1 sub exch div 0.8 mul
+Y3 Y1 sub 12 div
+1 index 1 index lt { exch } if
+gsave dup scale
+comment show
+X1 Y1 comment stringwidth rectclip grestore
+newpath
+X1 Y1 moveto
+X2 Y2 lineto
+X3 Y3 lineto
+X4 Y4 lineto
+closepath
+end } def
+/SetupFont {
+/InputDict 1 dict def
+InputDict begin
+/size exch def
+/Helvetica findfont
+size scalefont
+setfont end } def
+%% end header
+% setup coordinate system [10, 20]*[10, 20]
+0 0 translate
+48.0769 48.0769 scale
+-9.8 -9.8 translate
+% set clipping box
+newpath
+9.8 9.8 moveto
+20.2 9.8 lineto
+20.2 20.2 lineto
+9.8 20.2 lineto
+closepath
+clip
+% draw box in gray
+0.01 setlinewidth
+0 setgray
+9.8 9.8 20.2 9.8 20.2 20.2 9.8 20.2 Rect
+stroke
+%% drawing below
+0.02 setlinewidth
+0.2 SetupFont

@@ -1,0 +1,46 @@
+--- Job tfordy.gms Start 12/13/18 10:24:40 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- tfordy.gms(245) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- tfordy.gms(159) 4 Mb
+--- Generating LP model antala
+--- tfordy.gms(231) 4 Mb
+---   264 rows  862 columns  3,488 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.010
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+>>  ampl tfordy-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+--- Writing Ampl      : tfordy-scalar.mod
+
+--- Restarting execution
+--- tfordy.gms(231) 2 Mb
+--- Reading solution for model antala
+--- tfordy.gms(236) 3 Mb
+--- Generating LP model antalb
+--- tfordy.gms(238) 3 Mb
+---   263 rows  862 columns  3,428 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.030
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+>>  ampl tfordy-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+--- Writing Ampl      : tfordy-scalar.mod
+
+--- Restarting execution
+--- tfordy.gms(238) 2 Mb
+--- Reading solution for model antalb
+--- tfordy.gms(245) 3 Mb
+*** Status: Normal completion
+--- Job tfordy.gms Stop 12/13/18 10:24:40 elapsed 0:00:00.044

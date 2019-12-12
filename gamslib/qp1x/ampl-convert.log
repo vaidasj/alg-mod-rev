@@ -1,0 +1,78 @@
+--- Job qp1x.gms Start 12/13/18 11:22:35 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- qp1x.gms(45) 2 Mb
+--- call =test qpdata.gdx -nt qpdata.inc
+--- qp1x.gms(46) 2 Mb
+--- call =gams qpdata.inc lo=0 a=c gdx=qpdata
+--- qp1x.gms(48) 2 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qpdata.gdx
+--- qp1x.gms(121) 3 Mb
+--- Starting execution: elapsed 0:00:00.033
+--- qp1x.gms(52) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qpdata.gdx
+--- qp1x.gms(101) 6 Mb
+--- Generating NLP model qp1
+--- qp1x.gms(102) 8 Mb
+---   3 rows  51 columns  148 non-zeroes
+---   10,002 nl-code  50 nl-non-zeroes
+--- qp1x.gms(102) 6 Mb
+--- Executing CONVERT: elapsed 0:00:00.057
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/convert.opt"
+>>  ampl qp1x-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/convert.opt"
+--- Writing Ampl      : qp1x-scalar.mod
+
+--- Restarting execution
+--- qp1x.gms(102) 4 Mb
+--- Reading solution for model qp1
+--- qp1x.gms(106) 4 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qp1xsol.gdx
+--- qp1x.gms(110) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qp1xsol.gdx
+--- qp1x.gms(111) 4 Mb
+--- Generating NLP model qp1
+--- qp1x.gms(112) 7 Mb
+---   3 rows  51 columns  148 non-zeroes
+---   10,002 nl-code  50 nl-non-zeroes
+--- qp1x.gms(112) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.087
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/convert.opt"
+>>  ampl qp1x-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp1x/convert.opt"
+--- Writing Ampl      : qp1x-scalar.mod
+
+--- Restarting execution
+--- qp1x.gms(112) 4 Mb
+--- Reading solution for model qp1
+--- qp1x.gms(115) 4 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qp1xso2.gdx
+--- qp1x.gms(118) 4 Mb
+GDXDIFF          24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+File1 : qp1xsol.gdx
+File2 : qp1xso2.gdx
+No differences found
+Output: diffile.gdx
+GDXDiff finished
+--- qp1x.gms(121) 4 Mb
+$onempty
+
+Set FilesCompared(*) /
+'File1' qp1xsol.gdx, 
+'File2' qp1xso2.gdx /;
+
+$offempty
+*** Status: Normal completion
+--- Job qp1x.gms Stop 12/13/18 11:22:35 elapsed 0:00:00.169

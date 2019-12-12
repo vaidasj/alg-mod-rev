@@ -1,0 +1,1062 @@
+--- Job lmp1.gms Start 12/13/18 11:22:44 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- lmp1.gms(131) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c1
+---       i = i1
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 5 Mb
+--- LOOPS c = c1
+---       i = i2
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.015
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 5 Mb
+--- LOOPS c = c1
+---       i = i3
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.028
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 5 Mb
+--- LOOPS c = c1
+---       i = i4
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.040
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 5 Mb
+--- LOOPS c = c1
+---       i = i5
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.057
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c2
+---       i = i1
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.080
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c2
+---       i = i2
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.112
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c2
+---       i = i3
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.150
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c2
+---       i = i4
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.186
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 3 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c2
+---       i = i5
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.220
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 2 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c3
+---       i = i1
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.266
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c3
+---       i = i2
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.354
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c3
+---       i = i3
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.430
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c3
+---       i = i4
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.514
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c3
+---       i = i5
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.598
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c4
+---       i = i1
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.658
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c4
+---       i = i2
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.676
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c4
+---       i = i3
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.697
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c4
+---       i = i4
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.721
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c4
+---       i = i5
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.744
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c5
+---       i = i1
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.770
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c5
+---       i = i2
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.810
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c5
+---       i = i3
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.855
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c5
+---       i = i4
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.897
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c5
+---       i = i5
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.939
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c6
+---       i = i1
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.986
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c6
+---       i = i2
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.055
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c6
+---       i = i3
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.120
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c6
+---       i = i4
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.195
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c6
+---       i = i5
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.268
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c7
+---       i = i1
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.326
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c7
+---       i = i2
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.348
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c7
+---       i = i3
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.445
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c7
+---       i = i4
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.508
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 6 Mb
+--- LOOPS c = c7
+---       i = i5
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.532
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c8
+---       i = i1
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.560
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c8
+---       i = i2
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.605
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c8
+---       i = i3
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.653
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c8
+---       i = i4
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.693
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 7 Mb
+--- LOOPS c = c8
+---       i = i5
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.733
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c9
+---       i = i1
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.790
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c9
+---       i = i2
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.867
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c9
+---       i = i3
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.938
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c9
+---       i = i4
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.013
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c9
+---       i = i5
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.094
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c10
+---       i = i1
+---   206 rows  206 columns  41,011 non-zeroes
+---   8 nl-code  5 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.169
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c10
+---       i = i2
+---   206 rows  206 columns  41,011 non-zeroes
+---   8 nl-code  5 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.248
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c10
+---       i = i3
+---   206 rows  206 columns  41,011 non-zeroes
+---   8 nl-code  5 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.328
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c10
+---       i = i4
+---   206 rows  206 columns  41,011 non-zeroes
+---   8 nl-code  5 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.410
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(84) 4 Mb
+--- Generating NLP model lmp1
+--- lmp1.gms(104) 9 Mb
+--- LOOPS c = c10
+---       i = i5
+---   206 rows  206 columns  41,011 non-zeroes
+---   8 nl-code  5 nl-non-zeroes
+--- lmp1.gms(104) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.489
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+--- Writing Gams      : lmp1-scalar.gms
+
+--- Restarting execution
+--- lmp1.gms(104) 3 Mb
+--- Reading solution for model lmp1
+--- lmp1.gms(127) 4 Mb
+*** Status: Normal completion
+--- Job lmp1.gms Stop 12/13/18 11:22:46 elapsed 0:00:02.553

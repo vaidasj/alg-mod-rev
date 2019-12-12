@@ -1,0 +1,31 @@
+--- Job procsel.gms Start 12/13/18 10:24:52 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- procsel.gms(100) 2 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- procsel.gms(95) 3 Mb
+--- Generating MINLP model process
+--- procsel.gms(100) 5 Mb
+---   8 rows  11 columns  26 non-zeroes
+---   9 nl-code  2 nl-non-zeroes
+---   3 discrete-columns
+--- procsel.gms(100) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/procsel/convert.opt"
+>>  gams procsel-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/procsel/convert.opt"
+--- Writing Gams      : procsel-scalar.gms
+
+--- Restarting execution
+--- procsel.gms(100) 2 Mb
+--- Reading solution for model process
+*** Status: Normal completion
+--- Job procsel.gms Stop 12/13/18 10:24:52 elapsed 0:00:00.014

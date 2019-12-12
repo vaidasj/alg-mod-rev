@@ -1,0 +1,1392 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 2
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+C o m p i l a t i o n
+
+
+   3   
+      The model demonstrates various forumlations to represent bilinear
+      product terms of one continuous and one binary variable.
+       
+      A set of 60 products i is produced on a set of machine with a given
+      total capacity. Some machine are special in the sense that if a
+      product is produced on one of them, cleaning treatment costs apply
+      caused by a set of cleaning treatment machines t.
+       
+      A binary variable, delta(i), indicates that product i is produced on
+      one of the special machines. The model is simplified regarding the
+      machine-product relations.
+       
+      Here we mimic a larger roduction problem, and just require that
+       
+           E1.. sum(iE, delta(iE)) =e= 2 ;
+           E2.. sum(iO, delta(iO)) =e= 5 ;
+       
+      which represents the fact that it cannot be avoided to use the special
+      machine and, thus, to have some cleaning treatment.
+       
+      If product i is produced on a special machine, then the amount, y(i),
+      of the by-product is given by the recipe constraint y(i)=0.164*p(i),
+      where the non-negative variable p(i) is the amount produced on special
+      machines. For each product there is a specific yield of YS(i) $/ton.
+      The by-product is burnt and leads to an energy yield of YB(i) $/ton,
+      where YB(i)<YS(i). The by-product also passes the treatment plant.
+       
+      The production is limited by the production capacity C, where x(i),
+      100+i <= x(i) <= XUB, is the amount of product i produced.
+       
+      The amount produced on special machines is p(i)=x(i)*delta(i).
+       
+      We compare the non-convex MINLP formulation to equivalent linear
+      forms of p(i)=x(i)*delta(i) using big-M, convex hull, and indicator
+      forumlations.  Moreover, a new SOS-1 formulation is presented which is
+      described in:
+       
+       
+      Kallrath, J, Combined Strategic Design and Operative Planning in the
+      Process Industry, 2009. Submitted to Computers & Chemical Engineering
+  46   
+  56   
+  57  * Modell dimensions
+  60   
+  62   
+  63  Sets i     products to be produced and sold   /i1*i60/
+  64       iE(i) products with even ordinal number
+  65       iO(i) products with odd ordinal number
+  66       t     cleaning treatment facilities      /t1*t10/;
+  67   
+  68  iE(i) = mod(ord(i),2)=0; iO(i) = not iE(i);
+  69   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 3
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+C o m p i l a t i o n
+
+
+  70  Parameter
+  71       Capacity total machine capacity /20000/
+  72       C(i,t) cleaning treatment costs
+  73       XUB(i) upper bound on production
+  74       XLB(i) lower bound on production
+  75       YS(i)  yield from selling product i
+  76       YB(i)  yield from burning extra waste;
+  77   
+  78  C(i,t)  = sqrt(ord(i)) * ord(t);
+  79  C(iE,t) = -C(iE,t) + 5;
+  80  XUB(i)  = 10000;
+  81  XLB(i)  = 100 + ord(i);
+  82  YS(i)   = 0.04 + 0.001*sqrt(ord(i));
+  83  YB(i)   = 0.007;
+  84   
+  85  Variables
+  86       z        objective variable
+  87       x(i)     production
+  88       y(i)     waste material produced on special machine
+  89       delta(i) indicator for production on special machine
+  90  Positive variables x, y;
+  91  Binary variable delta;
+  92   
+  93  Equations
+  94       E1, E2         force use some of the special machine
+  95       ByProductNC(i) by-product produced on special machine
+  96       ProdCap        production capacity
+  97       ObjFuncNC      objective function: yield minus cleaning treatment costs;
+  98   
+  99  ObjFuncNC..      z =e=   sum(i, YS(i)*x(i) + YB(i)*y(i))
+ 100                         - sum(t, sqr(sum(i, C(i,t)*x(i)*delta(i)+y(i))));
+ 101   
+ 102  ProdCap..        sum(i, x(i)) =l= Capacity;
+ 103   
+ 104  ByProductNC(i).. y(i) =e= 0.164*x(i)*delta(i);
+ 105   
+ 106  E1..             sum(iE, delta(iE)) =e= 2;
+ 107   
+ 108  E2..             sum(iO, delta(iO)) =e= 5;
+ 109   
+ 110  model core / ProdCap, E1, E2 /
+ 111  model NC non-convex model / core, ByProductNC, ObjFuncNC /;
+ 112   
+ 113  x.lo(i) = XLB(i); x.up(i) = XUB(i);
+ 114   
+ 115  * We need a global solver to find optimum of non-convex model
+ 116  * Solver alternatives: Baron, LindoGlobal, Couenne, SCIP
+ 117  option miqcp=cplex, optcr=0;
+ 118   
+ 119  NC.workfactor = 10;
+ 120  if (1, solve NC max z using minlp);
+ 121   
+ 122  * First bigM Convexification
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 4
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+C o m p i l a t i o n
+
+
+ 123  Positive variable
+ 124       p(i)           product x times delta;
+ 125   
+ 126  Equations
+ 127       ByProduct(i)   by-product produced on special machine
+ 128       ObjFunc        objective function: yield minus cleaning treatment costs
+ 129       bigM1_1, bigM1_2, bigM1_3 bigM convexification of binary times bounded continuous;
+ 130   
+ 131  ByProduct(i).. y(i) =e= 0.164*p(i);
+ 132   
+ 133  ObjFunc..      z =e=   sum(i, YS(i)*x(i) + YB(i)*y(i))
+ 134                       - sum(t, sqr(sum(i, C(i,t)*p(i)+y(i))));
+ 135   
+ 136  bigM1_1(i)..   p(i) =l= x(i); // this is not needed because of the sign of p in the objective
+ 137   
+ 138  bigM1_2(i)..   p(i) =l= XUB(i)*delta(i);
+ 139   
+ 140  bigM1_3(i)..   p(i) =g= x(i) - XUB(i)*(1-delta(i));
+ 141   
+ 142  model coreConv / core, ByProduct, ObjFunc /;
+ 143   
+ 144  model bigM1 / coreConv, bigM1_1, bigM1_2, bigM1_3 /;
+ 145   
+ 146  p.up(i) = XUB(i);
+ 147   
+ 151  if (1, bigM1.optfile=1; solve bigM1 max z using miqcp);
+ 152   
+ 153  * Alternative bigM forumulation
+ 154  Positive variable slack(i);
+ 155   
+ 156  Equations
+ 157       bigM2_1, bigM2_2, bigM2_3 bigM convexification of binary times bounded continuous;
+ 158   
+ 159  bigM2_1(i)..   p(i)     =e= x(i) - slack(i);
+ 160   
+ 161  bigM2_2(i)..   p(i)     =l= XUB(i)*delta(i); // this is not needed because of the sign of p in the objective
+ 162   
+ 163  bigM2_3(i)..   slack(i) =l= XUB(i)*(1-delta(i));
+ 164   
+ 165  model bigM2 / coreConv, bigM2_1, bigM2_2, bigM2_3 /;
+ 166   
+ 167  slack.up(i) = XUB(i);
+ 168  if (0, bigM2.optfile=1; solve bigM2 max z using miqcp);
+ 169   
+ 170  * Cplex Indicator Formulation
+ 171  Equations
+ 172       disj1, disj2  indicator convexification of binary times bounded continuous;
+ 173   
+ 174  disj1(i)..     p(i) =e= x(i);
+ 175   
+ 176  disj2(i)..     p(i) =e= 0; // this is not needed because of the sign of p in the objective
+ 177   
+ 178  model indic / coreConv, disj1, disj2 /;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 5
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+C o m p i l a t i o n
+
+
+ 179   
+ 185   
+ 186  if (0, indic.optfile=2; solve indic max z using miqcp);
+ 187   
+ 188  * The EMP (Extended Math Programming) framework explores modeling
+ 189  * extensions that result in non-traditional math programs (like
+ 190  * disjunctions) and automate the reformulation into traditional math
+ 191  * programs (like MIPs). The manually generated big-M and indicator
+ 192  * formulations above are automatically produced by EMP from a model
+ 193  * with disjunctions. Moreover, EMP provides a convex hull formulation
+ 194  * (which is independent of a bigM) for disjunctions.
+ 195   
+ 196  * EMP Formulations
+ 197  file femp / "/home/renigijus/gams/opt-mod-lib/gamslib/bilinear/225a/empinfo.dat" /; put femp;
+ 198   
+ 203   
+ 204  * Convex Hull Convexification
+ 205  putclose 'modeltype miqcp disjunction delta disj1 else disj2';
+ 206   
+ 207  if (0, indic.optfile=1; solve indic max z using emp);
+ 208   
+ 209  * Cplex Indicator Convexification
+ 210  putclose 'modeltype miqcp disjunction indic delta disj1 else disj2';
+ 211   
+ 212  if (0, indic.optfile=1; solve indic max z using emp);
+ 213   
+ 214  * Big-M Convexification type 1 (similar to bigM1 formulation)
+ 215  put 'modeltype miqcp'; loop(i, put / 'disjunction bigM' XUB(i) delta(i) disj1(i) 'else' disj2(i)); putclose;
+ 216   
+ 217  if (0, indic.optfile=1; solve indic max z using emp);
+ 218   
+ 219  * Big-M Convexification type 2 (similar to bigM2 forumlation)
+ 220  put 'modeltype miqcp'; loop(i, put / 'disjunction bigM' XUB(i) 1e-4 1 delta(i) disj1(i) 'else' disj2(i)); putclose;
+ 221   
+ 222  if (0, indic.optfile=1; solve indic max z using emp);
+ 223   
+ 224  * SOS1 Formulation
+ 225  delta.prior(i) = inf; // relax binary requirement of delta
+ 226   
+ 227  Set j binary choice / 0,1 /;
+ 228  SOS1 Variables S1(i,j), S2(i,j);
+ 229   
+ 230  Equations
+ 231       defS1_0, defS1_1, defS2_0, defS2_1 selection constraints;
+ 232   
+ 233  defS1_0(i).. S1(i,'0') =e= delta(i);
+ 234   
+ 235  defS1_1(i).. S1(i,'1') =e= x(i) - p(i);
+ 236   
+ 237  defS2_0(i).. S2(i,'0') =e= 1 - delta(i);
+ 238   
+ 239  defS2_1(i).. S2(i,'1') =e= p(i);
+ 240   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 6
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+C o m p i l a t i o n
+
+
+ 241  model sos1conv / coreConv, defS1_0, defS1_1, defS2_0, defS2_1 /;
+ 242   
+ 243  if (0, solve sos1conv max z using miqcp);
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 7
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Equation Listing    SOLVE NC Using MINLP From line 120
+
+
+---- ProdCap  =L=  production capacity
+
+ProdCap..  x(i1) + x(i2) + x(i3) + x(i4) + x(i5) + x(i6) + x(i7) + x(i8) + x(i9) + x(i10) + x(i11) + x(i12) + x(i13) + x(i14) + x(i15) + x(i16) + x(i17) + x(i18) + x(i19) + x(i20) + x(i21) + x(i22) + x(i23) + x(i24) + x(i25) + x(i26) + x(i27) + x(i28)
+     
+      + x(i29) + x(i30) + x(i31) + x(i32) + x(i33) + x(i34) + x(i35) + x(i36) + x(i37) + x(i38) + x(i39) + x(i40) + x(i41) + x(i42) + x(i43) + x(i44) + x(i45) + x(i46) + x(i47) + x(i48) + x(i49) + x(i50) + x(i51) + x(i52) + x(i53) + x(i54) + x(i55)
+     
+      + x(i56) + x(i57) + x(i58) + x(i59) + x(i60) =L= 20000 ; (LHS = 7830)
+     
+
+---- E1  =E=  
+
+E1..  delta(i2) + delta(i4) + delta(i6) + delta(i8) + delta(i10) + delta(i12) + delta(i14) + delta(i16) + delta(i18) + delta(i20) + delta(i22) + delta(i24) + delta(i26) + delta(i28) + delta(i30) + delta(i32) + delta(i34) + delta(i36) + delta(i38)
+     
+      + delta(i40) + delta(i42) + delta(i44) + delta(i46) + delta(i48) + delta(i50) + delta(i52) + delta(i54) + delta(i56) + delta(i58) + delta(i60) =E= 2 ; (LHS = 0, INFES = 2 ****)
+     
+
+---- E2  =E=  force use some of the special machine
+
+E2..  delta(i1) + delta(i3) + delta(i5) + delta(i7) + delta(i9) + delta(i11) + delta(i13) + delta(i15) + delta(i17) + delta(i19) + delta(i21) + delta(i23) + delta(i25) + delta(i27) + delta(i29) + delta(i31) + delta(i33) + delta(i35) + delta(i37)
+     
+      + delta(i39) + delta(i41) + delta(i43) + delta(i45) + delta(i47) + delta(i49) + delta(i51) + delta(i53) + delta(i55) + delta(i57) + delta(i59) =E= 5 ; (LHS = 0, INFES = 5 ****)
+     
+
+---- ByProductNC  =E=  by-product produced on special machine
+
+ByProductNC(i1)..  (0)*x(i1) + y(i1) - (16.564)*delta(i1) =E= 0 ; (LHS = 0)
+     
+ByProductNC(i2)..  (0)*x(i2) + y(i2) - (16.728)*delta(i2) =E= 0 ; (LHS = 0)
+     
+ByProductNC(i3)..  (0)*x(i3) + y(i3) - (16.892)*delta(i3) =E= 0 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- ObjFuncNC  =E=  objective function: yield minus cleaning treatment costs
+
+ObjFuncNC..  z - (0.041)*x(i1) - (0.0414142135623731)*x(i2) - (0.0417320508075689)*x(i3) - (0.042)*x(i4) - (0.0422360679774998)*x(i5) - (0.0424494897427832)*x(i6) - (0.0426457513110646)*x(i7) - (0.0428284271247462)*x(i8) - (0.043)*x(i9)
+     
+      - (0.0431622776601684)*x(i10) - (0.0433166247903554)*x(i11) - (0.0434641016151378)*x(i12) - (0.043605551275464)*x(i13) - (0.0437416573867739)*x(i14) - (0.0438729833462074)*x(i15) - (0.044)*x(i16) - (0.0441231056256177)*x(i17)
+     
+      - (0.0442426406871193)*x(i18) - (0.0443588989435407)*x(i19) - (0.0444721359549996)*x(i20) - (0.0445825756949558)*x(i21) - (0.0446904157598234)*x(i22) - (0.0447958315233127)*x(i23) - (0.0448989794855664)*x(i24) - (0.045)*x(i25)
+     
+      - (0.0450990195135928)*x(i26) - (0.0451961524227066)*x(i27) - (0.0452915026221292)*x(i28) - (0.0453851648071345)*x(i29) - (0.0454772255750517)*x(i30) - (0.04556776436283)*x(i31) - (0.0456568542494924)*x(i32) - (0.045744562646538)*x(i33)
+     
+      - (0.0458309518948453)*x(i34) - (0.0459160797830996)*x(i35) - (0.046)*x(i36) - (0.0460827625302982)*x(i37) - (0.046164414002969)*x(i38) - (0.0462449979983984)*x(i39) - (0.0463245553203368)*x(i40) - (0.0464031242374328)*x(i41)
+     
+      - (0.0464807406984079)*x(i42) - (0.046557438524302)*x(i43) - (0.0466332495807108)*x(i44) - (0.0467082039324994)*x(i45) - (0.0467823299831253)*x(i46) - (0.046855654600401)*x(i47) - (0.0469282032302755)*x(i48) - (0.047)*x(i49)
+     
+      - (0.0470710678118655)*x(i50) - (0.0471414284285429)*x(i51) - (0.047211102550928)*x(i52) - (0.0472801098892805)*x(i53) - (0.0473484692283495)*x(i54) - (0.0474161984870957)*x(i55) - (0.0474833147735479)*x(i56) - (0.0475498344352707)*x(i57)
+     
+      - (0.0476157731058639)*x(i58) - (0.0476811457478686)*x(i59) - (0.0477459666924148)*x(i60) - (0.007)*y(i1) - (0.007)*y(i2) - (0.007)*y(i3) - (0.007)*y(i4) - (0.007)*y(i5) - (0.007)*y(i6) - (0.007)*y(i7) - (0.007)*y(i8) - (0.007)*y(i9)
+     
+      - (0.007)*y(i10) - (0.007)*y(i11) - (0.007)*y(i12) - (0.007)*y(i13) - (0.007)*y(i14) - (0.007)*y(i15) - (0.007)*y(i16) - (0.007)*y(i17) - (0.007)*y(i18) - (0.007)*y(i19) - (0.007)*y(i20) - (0.007)*y(i21) - (0.007)*y(i22) - (0.007)*y(i23)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 8
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Equation Listing    SOLVE NC Using MINLP From line 120
+
+
+     ObjFuncNC  =E=  objective function: yield minus cleaning treatment costs     
+     
+      - (0.007)*y(i24) - (0.007)*y(i25) - (0.007)*y(i26) - (0.007)*y(i27) - (0.007)*y(i28) - (0.007)*y(i29) - (0.007)*y(i30) - (0.007)*y(i31) - (0.007)*y(i32) - (0.007)*y(i33) - (0.007)*y(i34) - (0.007)*y(i35) - (0.007)*y(i36) - (0.007)*y(i37)
+     
+      - (0.007)*y(i38) - (0.007)*y(i39) - (0.007)*y(i40) - (0.007)*y(i41) - (0.007)*y(i42) - (0.007)*y(i43) - (0.007)*y(i44) - (0.007)*y(i45) - (0.007)*y(i46) - (0.007)*y(i47) - (0.007)*y(i48) - (0.007)*y(i49) - (0.007)*y(i50) - (0.007)*y(i51)
+     
+      - (0.007)*y(i52) - (0.007)*y(i53) - (0.007)*y(i54) - (0.007)*y(i55) - (0.007)*y(i56) - (0.007)*y(i57) - (0.007)*y(i58) - (0.007)*y(i59) - (0.007)*y(i60) + (0)*delta(i1) + (0)*delta(i2) + (0)*delta(i3) + (0)*delta(i4) + (0)*delta(i5) + (0)*delta(i6)
+     
+      + (0)*delta(i7) + (0)*delta(i8) + (0)*delta(i9) + (0)*delta(i10) + (0)*delta(i11) + (0)*delta(i12) + (0)*delta(i13) + (0)*delta(i14) + (0)*delta(i15) + (0)*delta(i16) + (0)*delta(i17) + (0)*delta(i18) + (0)*delta(i19) + (0)*delta(i20)
+     
+      + (0)*delta(i21) + (0)*delta(i22) + (0)*delta(i23) + (0)*delta(i24) + (0)*delta(i25) + (0)*delta(i26) + (0)*delta(i27) + (0)*delta(i28) + (0)*delta(i29) + (0)*delta(i30) + (0)*delta(i31) + (0)*delta(i32) + (0)*delta(i33) + (0)*delta(i34)
+     
+      + (0)*delta(i35) + (0)*delta(i36) + (0)*delta(i37) + (0)*delta(i38) + (0)*delta(i39) + (0)*delta(i40) + (0)*delta(i41) + (0)*delta(i42) + (0)*delta(i43) + (0)*delta(i44) + (0)*delta(i45) + (0)*delta(i46) + (0)*delta(i47) + (0)*delta(i48)
+     
+      + (0)*delta(i49) + (0)*delta(i50) + (0)*delta(i51) + (0)*delta(i52) + (0)*delta(i53) + (0)*delta(i54) + (0)*delta(i55) + (0)*delta(i56) + (0)*delta(i57) + (0)*delta(i58) + (0)*delta(i59) + (0)*delta(i60) =E= 0 ;
+     
+      (LHS = -355.938428193873, INFES = 355.938428193873 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:33 Page 9
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Column Listing      SOLVE NC Using MINLP From line 120
+
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ObjFuncNC
+
+
+---- x  production
+
+x(i1)
+                (.LO, .L, .UP, .M = 101, 101, 10000, 0)
+        1       ProdCap
+       (0)      ByProductNC(i1)
+      (-0.041)  ObjFuncNC
+        0       (OLD LEVEL ****)
+
+x(i2)
+                (.LO, .L, .UP, .M = 102, 102, 10000, 0)
+        1       ProdCap
+       (0)      ByProductNC(i2)
+      (-0.0414) ObjFuncNC
+        0       (OLD LEVEL ****)
+
+x(i3)
+                (.LO, .L, .UP, .M = 103, 103, 10000, 0)
+        1       ProdCap
+       (0)      ByProductNC(i3)
+      (-0.0417) ObjFuncNC
+        0       (OLD LEVEL ****)
+
+REMAINING 57 ENTRIES SKIPPED
+
+---- y  waste material produced on special machine
+
+y(i1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ByProductNC(i1)
+      (-0.007)  ObjFuncNC
+
+y(i2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ByProductNC(i2)
+      (-0.007)  ObjFuncNC
+
+y(i3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ByProductNC(i3)
+      (-0.007)  ObjFuncNC
+
+REMAINING 57 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 10
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Column Listing      SOLVE NC Using MINLP From line 120
+
+
+---- delta  indicator for production on special machine
+
+delta(i1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       E2
+     (-16.564)  ByProductNC(i1)
+       (0)      ObjFuncNC
+
+delta(i2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       E1
+     (-16.728)  ByProductNC(i2)
+       (0)      ObjFuncNC
+
+delta(i3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       E2
+     (-16.892)  ByProductNC(i3)
+       (0)      ObjFuncNC
+
+REMAINING 57 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 11
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Model Statistics    SOLVE NC Using MINLP From line 120
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           64
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          181  60 projected
+NON ZERO ELEMENTS           481     NON LINEAR N-Z            300
+DERIVATIVE POOL              20     CONSTANT POOL             608
+CODE LENGTH               3,609     DISCRETE VARIABLES         60
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 12
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE NC Using MINLP From line 120
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   NC                  OBJECTIVE  z
+     TYPE    MINLP               DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  120
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/bilinear/convert.opt"
+>>  ampl bilinear-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/bilinear/convert.opt"
+Ampl      : bilinear-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 13
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Equation Listing    SOLVE bigM1 Using MIQCP From line 151
+
+
+---- ProdCap  =L=  production capacity
+
+ProdCap..  x(i1) + x(i2) + x(i3) + x(i4) + x(i5) + x(i6) + x(i7) + x(i8) + x(i9) + x(i10) + x(i11) + x(i12) + x(i13) + x(i14) + x(i15) + x(i16) + x(i17) + x(i18) + x(i19) + x(i20) + x(i21) + x(i22) + x(i23) + x(i24) + x(i25) + x(i26) + x(i27) + x(i28)
+     
+      + x(i29) + x(i30) + x(i31) + x(i32) + x(i33) + x(i34) + x(i35) + x(i36) + x(i37) + x(i38) + x(i39) + x(i40) + x(i41) + x(i42) + x(i43) + x(i44) + x(i45) + x(i46) + x(i47) + x(i48) + x(i49) + x(i50) + x(i51) + x(i52) + x(i53) + x(i54) + x(i55)
+     
+      + x(i56) + x(i57) + x(i58) + x(i59) + x(i60) =L= 20000 ; (LHS = 7830)
+     
+
+---- E1  =E=  
+
+E1..  delta(i2) + delta(i4) + delta(i6) + delta(i8) + delta(i10) + delta(i12) + delta(i14) + delta(i16) + delta(i18) + delta(i20) + delta(i22) + delta(i24) + delta(i26) + delta(i28) + delta(i30) + delta(i32) + delta(i34) + delta(i36) + delta(i38)
+     
+      + delta(i40) + delta(i42) + delta(i44) + delta(i46) + delta(i48) + delta(i50) + delta(i52) + delta(i54) + delta(i56) + delta(i58) + delta(i60) =E= 2 ; (LHS = 0, INFES = 2 ****)
+     
+
+---- E2  =E=  force use some of the special machine
+
+E2..  delta(i1) + delta(i3) + delta(i5) + delta(i7) + delta(i9) + delta(i11) + delta(i13) + delta(i15) + delta(i17) + delta(i19) + delta(i21) + delta(i23) + delta(i25) + delta(i27) + delta(i29) + delta(i31) + delta(i33) + delta(i35) + delta(i37)
+     
+      + delta(i39) + delta(i41) + delta(i43) + delta(i45) + delta(i47) + delta(i49) + delta(i51) + delta(i53) + delta(i55) + delta(i57) + delta(i59) =E= 5 ; (LHS = 0, INFES = 5 ****)
+     
+
+---- ByProduct  =E=  by-product produced on special machine
+
+ByProduct(i1)..  y(i1) - 0.164*p(i1) =E= 0 ; (LHS = 0)
+     
+ByProduct(i2)..  y(i2) - 0.164*p(i2) =E= 0 ; (LHS = 0)
+     
+ByProduct(i3)..  y(i3) - 0.164*p(i3) =E= 0 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- ObjFunc  =E=  objective function: yield minus cleaning treatment costs
+
+ObjFunc..  z - 0.041*x(i1) - 0.0414142135623731*x(i2) - 0.0417320508075689*x(i3) - 0.042*x(i4) - 0.0422360679774998*x(i5) - 0.0424494897427832*x(i6) - 0.0426457513110646*x(i7) - 0.0428284271247462*x(i8) - 0.043*x(i9) - 0.0431622776601684*x(i10)
+     
+      - 0.0433166247903554*x(i11) - 0.0434641016151378*x(i12) - 0.043605551275464*x(i13) - 0.0437416573867739*x(i14) - 0.0438729833462074*x(i15) - 0.044*x(i16) - 0.0441231056256177*x(i17) - 0.0442426406871193*x(i18) - 0.0443588989435407*x(i19)
+     
+      - 0.0444721359549996*x(i20) - 0.0445825756949558*x(i21) - 0.0446904157598234*x(i22) - 0.0447958315233127*x(i23) - 0.0448989794855664*x(i24) - 0.045*x(i25) - 0.0450990195135928*x(i26) - 0.0451961524227066*x(i27) - 0.0452915026221292*x(i28)
+     
+      - 0.0453851648071345*x(i29) - 0.0454772255750517*x(i30) - 0.04556776436283*x(i31) - 0.0456568542494924*x(i32) - 0.045744562646538*x(i33) - 0.0458309518948453*x(i34) - 0.0459160797830996*x(i35) - 0.046*x(i36) - 0.0460827625302982*x(i37)
+     
+      - 0.046164414002969*x(i38) - 0.0462449979983984*x(i39) - 0.0463245553203368*x(i40) - 0.0464031242374328*x(i41) - 0.0464807406984079*x(i42) - 0.046557438524302*x(i43) - 0.0466332495807108*x(i44) - 0.0467082039324994*x(i45) - 0.0467823299831253*x(i46)
+     
+      - 0.046855654600401*x(i47) - 0.0469282032302755*x(i48) - 0.047*x(i49) - 0.0470710678118655*x(i50) - 0.0471414284285429*x(i51) - 0.047211102550928*x(i52) - 0.0472801098892805*x(i53) - 0.0473484692283495*x(i54) - 0.0474161984870957*x(i55)
+     
+      - 0.0474833147735479*x(i56) - 0.0475498344352707*x(i57) - 0.0476157731058639*x(i58) - 0.0476811457478686*x(i59) - 0.0477459666924148*x(i60) - (0.007)*y(i1) - (0.007)*y(i2) - (0.007)*y(i3) - (0.007)*y(i4) - (0.007)*y(i5) - (0.007)*y(i6)
+     
+      - (0.007)*y(i7) - (0.007)*y(i8) - (0.007)*y(i9) - (0.007)*y(i10) - (0.007)*y(i11) - (0.007)*y(i12) - (0.007)*y(i13) - (0.007)*y(i14) - (0.007)*y(i15) - (0.007)*y(i16) - (0.007)*y(i17) - (0.007)*y(i18) - (0.007)*y(i19) - (0.007)*y(i20)
+     
+      - (0.007)*y(i21) - (0.007)*y(i22) - (0.007)*y(i23) - (0.007)*y(i24) - (0.007)*y(i25) - (0.007)*y(i26) - (0.007)*y(i27) - (0.007)*y(i28) - (0.007)*y(i29) - (0.007)*y(i30) - (0.007)*y(i31) - (0.007)*y(i32) - (0.007)*y(i33) - (0.007)*y(i34)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 14
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Equation Listing    SOLVE bigM1 Using MIQCP From line 151
+
+
+     ObjFunc  =E=  objective function: yield minus cleaning treatment costs     
+     
+      - (0.007)*y(i35) - (0.007)*y(i36) - (0.007)*y(i37) - (0.007)*y(i38) - (0.007)*y(i39) - (0.007)*y(i40) - (0.007)*y(i41) - (0.007)*y(i42) - (0.007)*y(i43) - (0.007)*y(i44) - (0.007)*y(i45) - (0.007)*y(i46) - (0.007)*y(i47) - (0.007)*y(i48)
+     
+      - (0.007)*y(i49) - (0.007)*y(i50) - (0.007)*y(i51) - (0.007)*y(i52) - (0.007)*y(i53) - (0.007)*y(i54) - (0.007)*y(i55) - (0.007)*y(i56) - (0.007)*y(i57) - (0.007)*y(i58) - (0.007)*y(i59) - (0.007)*y(i60) + (0)*p(i1) + (0)*p(i2) + (0)*p(i3)
+     
+      + (0)*p(i4) + (0)*p(i5) + (0)*p(i6) + (0)*p(i7) + (0)*p(i8) + (0)*p(i9) + (0)*p(i10) + (0)*p(i11) + (0)*p(i12) + (0)*p(i13) + (0)*p(i14) + (0)*p(i15) + (0)*p(i16) + (0)*p(i17) + (0)*p(i18) + (0)*p(i19) + (0)*p(i20) + (0)*p(i21) + (0)*p(i22)
+     
+      + (0)*p(i23) + (0)*p(i24) + (0)*p(i25) + (0)*p(i26) + (0)*p(i27) + (0)*p(i28) + (0)*p(i29) + (0)*p(i30) + (0)*p(i31) + (0)*p(i32) + (0)*p(i33) + (0)*p(i34) + (0)*p(i35) + (0)*p(i36) + (0)*p(i37) + (0)*p(i38) + (0)*p(i39) + (0)*p(i40) + (0)*p(i41)
+     
+      + (0)*p(i42) + (0)*p(i43) + (0)*p(i44) + (0)*p(i45) + (0)*p(i46) + (0)*p(i47) + (0)*p(i48) + (0)*p(i49) + (0)*p(i50) + (0)*p(i51) + (0)*p(i52) + (0)*p(i53) + (0)*p(i54) + (0)*p(i55) + (0)*p(i56) + (0)*p(i57) + (0)*p(i58) + (0)*p(i59) + (0)*p(i60)
+      =E= 0 ; (LHS = -355.938428193873, INFES = 355.938428193873 ****)
+     
+
+---- bigM1_1  =L=  
+
+bigM1_1(i1)..  - x(i1) + p(i1) =L= 0 ; (LHS = -101)
+     
+bigM1_1(i2)..  - x(i2) + p(i2) =L= 0 ; (LHS = -102)
+     
+bigM1_1(i3)..  - x(i3) + p(i3) =L= 0 ; (LHS = -103)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- bigM1_2  =L=  
+
+bigM1_2(i1)..  - 10000*delta(i1) + p(i1) =L= 0 ; (LHS = 0)
+     
+bigM1_2(i2)..  - 10000*delta(i2) + p(i2) =L= 0 ; (LHS = 0)
+     
+bigM1_2(i3)..  - 10000*delta(i3) + p(i3) =L= 0 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- bigM1_3  =G=  bigM convexification of binary times bounded continuous
+
+bigM1_3(i1)..  - x(i1) - 10000*delta(i1) + p(i1) =G= -10000 ; (LHS = -101)
+     
+bigM1_3(i2)..  - x(i2) - 10000*delta(i2) + p(i2) =G= -10000 ; (LHS = -102)
+     
+bigM1_3(i3)..  - x(i3) - 10000*delta(i3) + p(i3) =G= -10000 ; (LHS = -103)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 15
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Column Listing      SOLVE bigM1 Using MIQCP From line 151
+
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ObjFunc
+
+
+---- x  production
+
+x(i1)
+                (.LO, .L, .UP, .M = 101, 101, 10000, 0)
+        1       ProdCap
+       -0.041   ObjFunc
+       -1       bigM1_1(i1)
+       -1       bigM1_3(i1)
+        0       (OLD LEVEL ****)
+
+x(i2)
+                (.LO, .L, .UP, .M = 102, 102, 10000, 0)
+        1       ProdCap
+       -0.0414  ObjFunc
+       -1       bigM1_1(i2)
+       -1       bigM1_3(i2)
+        0       (OLD LEVEL ****)
+
+x(i3)
+                (.LO, .L, .UP, .M = 103, 103, 10000, 0)
+        1       ProdCap
+       -0.0417  ObjFunc
+       -1       bigM1_1(i3)
+       -1       bigM1_3(i3)
+        0       (OLD LEVEL ****)
+
+REMAINING 57 ENTRIES SKIPPED
+
+---- y  waste material produced on special machine
+
+y(i1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ByProduct(i1)
+      (-0.007)  ObjFunc
+
+y(i2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ByProduct(i2)
+      (-0.007)  ObjFunc
+
+y(i3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ByProduct(i3)
+      (-0.007)  ObjFunc
+
+REMAINING 57 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 16
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Column Listing      SOLVE bigM1 Using MIQCP From line 151
+
+
+---- delta  indicator for production on special machine
+
+delta(i1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       E2
+   -10000       bigM1_2(i1)
+   -10000       bigM1_3(i1)
+
+delta(i2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       E1
+   -10000       bigM1_2(i2)
+   -10000       bigM1_3(i2)
+
+delta(i3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       E2
+   -10000       bigM1_2(i3)
+   -10000       bigM1_3(i3)
+
+REMAINING 57 ENTRIES SKIPPED
+
+---- p  product x times delta
+
+p(i1)
+                (.LO, .L, .UP, .M = 0, 0, 10000, 0)
+       -0.164   ByProduct(i1)
+       (0)      ObjFunc
+        1       bigM1_1(i1)
+        1       bigM1_2(i1)
+        1       bigM1_3(i1)
+
+p(i2)
+                (.LO, .L, .UP, .M = 0, 0, 10000, 0)
+       -0.164   ByProduct(i2)
+       (0)      ObjFunc
+        1       bigM1_1(i2)
+        1       bigM1_2(i2)
+        1       bigM1_3(i2)
+
+p(i3)
+                (.LO, .L, .UP, .M = 0, 0, 10000, 0)
+       -0.164   ByProduct(i3)
+       (0)      ObjFunc
+        1       bigM1_1(i3)
+        1       bigM1_2(i3)
+        1       bigM1_3(i3)
+
+REMAINING 57 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 17
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Model Statistics    SOLVE bigM1 Using MIQCP From line 151
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS          244
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES          241  60 projected
+NON ZERO ELEMENTS           841     NON LINEAR N-Z            120
+DERIVATIVE POOL              20     CONSTANT POOL             547
+CODE LENGTH               1,938     DISCRETE VARIABLES         60
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 18
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   bigM1               OBJECTIVE  z
+     TYPE    MIQCP               DIRECTION  MAXIMIZE
+     SOLVER  CPLEX               FROM LINE  151
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE         -4192317.8899
+
+ RESOURCE USAGE, LIMIT          0.328      1000.000
+ ITERATION COUNT, LIMIT      1854    2000000000
+ EVALUATION ERRORS              0             0
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+--- GAMS/Cplex licensed for continuous and discrete problems.
+Cplex 12.6.3.0
+
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/bilinear/cplex.opt"
+>>  mipemphasis 3
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/bilinear/cplex.opt"
+Space for names approximately 0.01 Mb
+Use option 'names no' to turn use of names off
+MIQP status(101): integer optimal solution
+Cplex Time: 0.32sec (det. 475.35 ticks)
+Fixing integer variables, and solving final QP..
+QP status(1): optimal
+Cplex Time: 0.00sec (det. 1.06 ticks)
+Proven optimal solution.
+
+MIP Solution:     -4192317.887225    (1854 iterations, 92 nodes)
+Final Solve:      -4192317.889943    (0 iterations)
+
+Best possible:    -4192317.887225
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ProdCap           -INF        19999.9993     20000.0000         0.0477      
+---- EQU E1                 2.0000         2.0000         2.0000         EPS         
+---- EQU E2                 5.0000         5.0000         5.0000         EPS         
+
+  ProdCap  production capacity
+  E2  force use some of the special machine
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 19
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+---- EQU ByProduct  by-product produced on special machine
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1           .              .              .         -6449.5594      
+i2           .              .              .             EPS         
+i3           .              .              .         -6449.5594      
+i4           .              .              .             EPS         
+i5           .              .              .         -6449.5594      
+i6           .              .              .             EPS         
+i7           .              .              .         -6449.5594      
+i8           .              .              .             EPS         
+i9           .              .              .         -6449.5594      
+i10          .              .              .             EPS         
+i11          .              .              .             EPS         
+i12          .              .              .             EPS         
+i13          .              .              .             EPS         
+i14          .              .              .             EPS         
+i15          .              .              .             EPS         
+i16          .              .              .             EPS         
+i17          .              .              .             EPS         
+i18          .              .              .             EPS         
+i19          .              .              .             EPS         
+i20          .              .              .             EPS         
+i21          .              .              .             EPS         
+i22          .              .              .             EPS         
+i23          .              .              .             EPS         
+i24          .              .              .             EPS         
+i25          .              .              .             EPS         
+i26          .              .              .         -6449.5594      
+i27          .              .              .             EPS         
+i28          .              .              .         -6449.5594      
+i29          .              .              .             EPS         
+i30          .              .              .             EPS         
+i31          .              .              .             EPS         
+i32          .              .              .             EPS         
+i33          .              .              .             EPS         
+i34          .              .              .             EPS         
+i35          .              .              .             EPS         
+i36          .              .              .             EPS         
+i37          .              .              .             EPS         
+i38          .              .              .             EPS         
+i39          .              .              .             EPS         
+i40          .              .              .             EPS         
+i41          .              .              .             EPS         
+i42          .              .              .             EPS         
+i43          .              .              .             EPS         
+i44          .              .              .             EPS         
+i45          .              .              .             EPS         
+i46          .              .              .             EPS         
+i47          .              .              .             EPS         
+i48          .              .              .             EPS         
+i49          .              .              .             EPS         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 20
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     EQU ByProduct  by-product produced on special machine
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i50          .              .              .             EPS         
+i51          .              .              .             EPS         
+i52          .              .              .             EPS         
+i53          .              .              .             EPS         
+i54          .              .              .             EPS         
+i55          .              .              .             EPS         
+i56          .              .              .             EPS         
+i57          .              .              .             EPS         
+i58          .              .              .             EPS         
+i59          .              .              .             EPS         
+i60          .              .              .             EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ObjFunc             .              .              .             1.0000      
+
+  ObjFunc  objective function: yield minus cleaning treatment costs
+
+---- EQU bigM1_1  
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1         -INF             .              .             EPS         
+i2         -INF         -102.0058          .             EPS         
+i3         -INF             .              .             EPS         
+i4         -INF         -104.0065          .             EPS         
+i5         -INF             .              .             EPS         
+i6         -INF         -106.0070          .             EPS         
+i7         -INF             .              .             EPS         
+i8         -INF         -108.0076          .             EPS         
+i9         -INF             .              .             EPS         
+i10        -INF         -110.0082          .             EPS         
+i11        -INF         -111.0085          .             EPS         
+i12        -INF         -112.0088          .             EPS         
+i13        -INF         -113.0091          .             EPS         
+i14        -INF         -114.0094          .             EPS         
+i15        -INF         -115.0097          .             EPS         
+i16        -INF         -116.0101          .             EPS         
+i17        -INF         -117.0104          .             EPS         
+i18        -INF         -118.0108          .             EPS         
+i19        -INF         -119.0111          .             EPS         
+i20        -INF         -120.0115          .             EPS         
+i21        -INF         -121.0119          .             EPS         
+i22        -INF         -122.0123          .             EPS         
+i23        -INF         -123.0127          .             EPS         
+i24        -INF         -124.0132          .             EPS         
+i25        -INF         -125.0137          .             EPS         
+i26        -INF             .              .             EPS         
+i27        -INF         -127.0147          .             EPS         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 21
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     EQU bigM1_1  
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i28        -INF             .              .             EPS         
+i29        -INF         -129.0157          .             EPS         
+i30        -INF         -130.0163          .             EPS         
+i31        -INF         -131.0169          .             EPS         
+i32        -INF         -132.0176          .             EPS         
+i33        -INF         -133.0183          .             EPS         
+i34        -INF         -134.0190          .             EPS         
+i35        -INF         -135.0198          .             EPS         
+i36        -INF         -136.0206          .             EPS         
+i37        -INF         -137.0215          .             EPS         
+i38        -INF         -138.0225          .             EPS         
+i39        -INF         -139.0235          .             EPS         
+i40        -INF         -140.0246          .             EPS         
+i41        -INF         -141.0258          .             EPS         
+i42        -INF         -142.0272          .             EPS         
+i43        -INF         -143.0286          .             EPS         
+i44        -INF         -144.0303          .             EPS         
+i45        -INF         -145.0321          .             EPS         
+i46        -INF         -146.0342          .             EPS         
+i47        -INF         -147.0367          .             EPS         
+i48        -INF         -148.0396          .             EPS         
+i49        -INF         -149.0431          .             EPS         
+i50        -INF         -150.0474          .             EPS         
+i51        -INF         -151.0530          .             EPS         
+i52        -INF         -152.0604          .             EPS         
+i53        -INF         -153.0707          .             EPS         
+i54        -INF         -154.0864          .             EPS         
+i55        -INF         -155.1126          .             EPS         
+i56        -INF         -156.1637          .             EPS         
+i57        -INF         -157.2841          .             EPS         
+i58        -INF         -158.4578          .             EPS         
+i59        -INF        -2488.6489          .             EPS         
+i60        -INF        -9998.2675          .             EPS         
+
+---- EQU bigM1_2  
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1         -INF        -9899.0000          .             EPS         
+i2         -INF             .              .             EPS         
+i3         -INF        -9897.0000          .             EPS         
+i4         -INF             .              .             EPS         
+i5         -INF        -9895.0000          .             EPS         
+i6         -INF             .              .             EPS         
+i7         -INF        -9893.0000          .             EPS         
+i8         -INF             .              .             EPS         
+i9         -INF        -9891.0000          .             EPS         
+i10        -INF             .              .             EPS         
+i11        -INF             .              .             EPS         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 22
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     EQU bigM1_2  
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i12        -INF             .              .             EPS         
+i13        -INF             .              .             EPS         
+i14        -INF             .              .             EPS         
+i15        -INF             .              .             EPS         
+i16        -INF             .              .             EPS         
+i17        -INF             .              .             EPS         
+i18        -INF             .              .             EPS         
+i19        -INF             .              .             EPS         
+i20        -INF             .              .             EPS         
+i21        -INF             .              .             EPS         
+i22        -INF             .              .             EPS         
+i23        -INF             .              .             EPS         
+i24        -INF             .              .             EPS         
+i25        -INF             .              .             EPS         
+i26        -INF        -9874.0000          .             EPS         
+i27        -INF             .              .             EPS         
+i28        -INF        -9872.0000          .             EPS         
+i29        -INF             .              .             EPS         
+i30        -INF             .              .             EPS         
+i31        -INF             .              .             EPS         
+i32        -INF             .              .             EPS         
+i33        -INF             .              .             EPS         
+i34        -INF             .              .             EPS         
+i35        -INF             .              .             EPS         
+i36        -INF             .              .             EPS         
+i37        -INF             .              .             EPS         
+i38        -INF             .              .             EPS         
+i39        -INF             .              .             EPS         
+i40        -INF             .              .             EPS         
+i41        -INF             .              .             EPS         
+i42        -INF             .              .             EPS         
+i43        -INF             .              .             EPS         
+i44        -INF             .              .             EPS         
+i45        -INF             .              .             EPS         
+i46        -INF             .              .             EPS         
+i47        -INF             .              .             EPS         
+i48        -INF             .              .             EPS         
+i49        -INF             .              .             EPS         
+i50        -INF             .              .             EPS         
+i51        -INF             .              .             EPS         
+i52        -INF             .              .             EPS         
+i53        -INF             .              .             EPS         
+i54        -INF             .              .             EPS         
+i55        -INF             .              .             EPS         
+i56        -INF             .              .             EPS         
+i57        -INF             .              .             EPS         
+i58        -INF             .              .             EPS         
+i59        -INF             .              .             EPS         
+i60        -INF             .              .             EPS         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 23
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+---- EQU bigM1_3  bigM convexification of binary times bounded continuous
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1     -10000.0000    -10000.0000        +INF        -4272.0123      
+i2     -10000.0000      -102.0058        +INF            EPS         
+i3     -10000.0000    -10000.0000        +INF        -6625.0319      
+i4     -10000.0000      -104.0065        +INF            EPS         
+i5     -10000.0000    -10000.0000        +INF        -8245.0865      
+i6     -10000.0000      -106.0070        +INF            EPS         
+i7     -10000.0000    -10000.0000        +INF        -9561.9253      
+i8     -10000.0000      -108.0076        +INF            EPS         
+i9     -10000.0000    -10000.0000        +INF       -10700.5813      
+i10    -10000.0000      -110.0082        +INF            EPS         
+i11    -10000.0000      -111.0085        +INF            EPS         
+i12    -10000.0000      -112.0088        +INF            EPS         
+i13    -10000.0000      -113.0091        +INF            EPS         
+i14    -10000.0000      -114.0094        +INF            EPS         
+i15    -10000.0000      -115.0097        +INF            EPS         
+i16    -10000.0000      -116.0101        +INF            EPS         
+i17    -10000.0000      -117.0104        +INF            EPS         
+i18    -10000.0000      -118.0108        +INF            EPS         
+i19    -10000.0000      -119.0111        +INF            EPS         
+i20    -10000.0000      -120.0115        +INF            EPS         
+i21    -10000.0000      -121.0119        +INF            EPS         
+i22    -10000.0000      -122.0123        +INF            EPS         
+i23    -10000.0000      -123.0127        +INF            EPS         
+i24    -10000.0000      -124.0132        +INF            EPS         
+i25    -10000.0000      -125.0137        +INF            EPS         
+i26    -10000.0000    -10000.0000        +INF       -16915.8600      
+i27    -10000.0000      -127.0147        +INF            EPS         
+i28    -10000.0000    -10000.0000        +INF       -16297.1645      
+i29    -10000.0000      -129.0157        +INF            EPS         
+i30    -10000.0000      -130.0163        +INF            EPS         
+i31    -10000.0000      -131.0169        +INF            EPS         
+i32    -10000.0000      -132.0176        +INF            EPS         
+i33    -10000.0000      -133.0183        +INF            EPS         
+i34    -10000.0000      -134.0190        +INF            EPS         
+i35    -10000.0000      -135.0198        +INF            EPS         
+i36    -10000.0000      -136.0206        +INF            EPS         
+i37    -10000.0000      -137.0215        +INF            EPS         
+i38    -10000.0000      -138.0225        +INF            EPS         
+i39    -10000.0000      -139.0235        +INF            EPS         
+i40    -10000.0000      -140.0246        +INF            EPS         
+i41    -10000.0000      -141.0258        +INF            EPS         
+i42    -10000.0000      -142.0272        +INF            EPS         
+i43    -10000.0000      -143.0286        +INF            EPS         
+i44    -10000.0000      -144.0303        +INF            EPS         
+i45    -10000.0000      -145.0321        +INF            EPS         
+i46    -10000.0000      -146.0342        +INF            EPS         
+i47    -10000.0000      -147.0367        +INF            EPS         
+i48    -10000.0000      -148.0396        +INF            EPS         
+i49    -10000.0000      -149.0431        +INF            EPS         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 24
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     EQU bigM1_3  bigM convexification of binary times bounded continuous
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i50    -10000.0000      -150.0474        +INF            EPS         
+i51    -10000.0000      -151.0530        +INF            EPS         
+i52    -10000.0000      -152.0604        +INF            EPS         
+i53    -10000.0000      -153.0707        +INF            EPS         
+i54    -10000.0000      -154.0864        +INF            EPS         
+i55    -10000.0000      -155.1126        +INF            EPS         
+i56    -10000.0000      -156.1637        +INF            EPS         
+i57    -10000.0000      -157.2841        +INF            EPS         
+i58    -10000.0000      -158.4578        +INF            EPS         
+i59    -10000.0000     -2488.6489        +INF            EPS         
+i60    -10000.0000     -9998.2675        +INF            EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF      -4.192318E+6        +INF            EPS         
+
+  z  objective variable
+
+---- VAR x  production
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1        101.0000       101.0000     10000.0000     -4272.0190      
+i2        102.0000       102.0058     10000.0000        -0.0063      
+i3        103.0000       103.0000     10000.0000     -6625.0378      
+i4        104.0000       104.0065     10000.0000        -0.0057      
+i5        105.0000       105.0000     10000.0000     -8245.0919      
+i6        106.0000       106.0070     10000.0000        -0.0052      
+i7        107.0000       107.0000     10000.0000     -9561.9303      
+i8        108.0000       108.0076     10000.0000        -0.0049      
+i9        109.0000       109.0000     10000.0000    -10700.5860      
+i10       110.0000       110.0082     10000.0000        -0.0045      
+i11       111.0000       111.0085     10000.0000        -0.0044      
+i12       112.0000       112.0088     10000.0000        -0.0042      
+i13       113.0000       113.0091     10000.0000        -0.0041      
+i14       114.0000       114.0094     10000.0000        -0.0039      
+i15       115.0000       115.0097     10000.0000        -0.0038      
+i16       116.0000       116.0101     10000.0000        -0.0037      
+i17       117.0000       117.0104     10000.0000        -0.0036      
+i18       118.0000       118.0108     10000.0000        -0.0034      
+i19       119.0000       119.0111     10000.0000        -0.0033      
+i20       120.0000       120.0115     10000.0000        -0.0032      
+i21       121.0000       121.0119     10000.0000        -0.0031      
+i22       122.0000       122.0123     10000.0000        -0.0030      
+i23       123.0000       123.0127     10000.0000        -0.0029      
+i24       124.0000       124.0132     10000.0000        -0.0028      
+i25       125.0000       125.0137     10000.0000        -0.0027      
+i26       126.0000       126.0000     10000.0000    -16915.8626      
+i27       127.0000       127.0147     10000.0000        -0.0025      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 25
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     VAR x  production
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i28       128.0000       128.0000     10000.0000    -16297.1669      
+i29       129.0000       129.0157     10000.0000        -0.0023      
+i30       130.0000       130.0163     10000.0000        -0.0022      
+i31       131.0000       131.0169     10000.0000        -0.0021      
+i32       132.0000       132.0176     10000.0000        -0.0020      
+i33       133.0000       133.0183     10000.0000        -0.0019      
+i34       134.0000       134.0190     10000.0000        -0.0019      
+i35       135.0000       135.0198     10000.0000        -0.0018      
+i36       136.0000       136.0206     10000.0000        -0.0017      
+i37       137.0000       137.0215     10000.0000        -0.0016      
+i38       138.0000       138.0225     10000.0000        -0.0015      
+i39       139.0000       139.0235     10000.0000        -0.0014      
+i40       140.0000       140.0246     10000.0000        -0.0014      
+i41       141.0000       141.0258     10000.0000        -0.0013      
+i42       142.0000       142.0272     10000.0000        -0.0012      
+i43       143.0000       143.0286     10000.0000        -0.0011      
+i44       144.0000       144.0303     10000.0000        -0.0010      
+i45       145.0000       145.0321     10000.0000        -0.0010      
+i46       146.0000       146.0342     10000.0000        -0.0009      
+i47       147.0000       147.0367     10000.0000        -0.0008      
+i48       148.0000       148.0396     10000.0000        -0.0008      
+i49       149.0000       149.0431     10000.0000        -0.0007      
+i50       150.0000       150.0474     10000.0000        -0.0006      
+i51       151.0000       151.0530     10000.0000        -0.0005      
+i52       152.0000       152.0604     10000.0000        -0.0005      
+i53       153.0000       153.0707     10000.0000        -0.0004      
+i54       154.0000       154.0864     10000.0000        -0.0003      
+i55       155.0000       155.1126     10000.0000        -0.0003      
+i56       156.0000       156.1637     10000.0000        -0.0002      
+i57       157.0000       157.2841     10000.0000        -0.0001      
+i58       158.0000       158.4578     10000.0000   -6.541804E-5      
+i59       159.0000      2488.6489     10000.0000   -4.540220E-8      
+i60       160.0000      9998.2675     10000.0000   6.4775542E-5      
+
+---- VAR y  waste material produced on special machine
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1           .            16.5640        +INF      -2.09184E-11      
+i2           .              .            +INF        -6449.5594      
+i3           .            16.8920        +INF      -2.09184E-11      
+i4           .              .            +INF        -6449.5594      
+i5           .            17.2200        +INF      -2.09184E-11      
+i6           .              .            +INF        -6449.5594      
+i7           .            17.5480        +INF      -2.09184E-11      
+i8           .              .            +INF        -6449.5594      
+i9           .            17.8760        +INF      -2.09184E-11      
+i10          .              .            +INF        -6449.5594      
+i11          .              .            +INF        -6449.5594      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 26
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     VAR y  waste material produced on special machine
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i12          .              .            +INF        -6449.5594      
+i13          .              .            +INF        -6449.5594      
+i14          .              .            +INF        -6449.5594      
+i15          .              .            +INF        -6449.5594      
+i16          .              .            +INF        -6449.5594      
+i17          .              .            +INF        -6449.5594      
+i18          .              .            +INF        -6449.5594      
+i19          .              .            +INF        -6449.5594      
+i20          .              .            +INF        -6449.5594      
+i21          .              .            +INF        -6449.5594      
+i22          .              .            +INF        -6449.5594      
+i23          .              .            +INF        -6449.5594      
+i24          .              .            +INF        -6449.5594      
+i25          .              .            +INF        -6449.5594      
+i26          .            20.6640        +INF      -2.09184E-11      
+i27          .              .            +INF        -6449.5594      
+i28          .            20.9920        +INF      -2.09184E-11      
+i29          .              .            +INF        -6449.5594      
+i30          .              .            +INF        -6449.5594      
+i31          .              .            +INF        -6449.5594      
+i32          .              .            +INF        -6449.5594      
+i33          .              .            +INF        -6449.5594      
+i34          .              .            +INF        -6449.5594      
+i35          .              .            +INF        -6449.5594      
+i36          .              .            +INF        -6449.5594      
+i37          .              .            +INF        -6449.5594      
+i38          .              .            +INF        -6449.5594      
+i39          .              .            +INF        -6449.5594      
+i40          .              .            +INF        -6449.5594      
+i41          .              .            +INF        -6449.5594      
+i42          .              .            +INF        -6449.5594      
+i43          .              .            +INF        -6449.5594      
+i44          .              .            +INF        -6449.5594      
+i45          .              .            +INF        -6449.5594      
+i46          .              .            +INF        -6449.5594      
+i47          .              .            +INF        -6449.5594      
+i48          .              .            +INF        -6449.5594      
+i49          .              .            +INF        -6449.5594      
+i50          .              .            +INF        -6449.5594      
+i51          .              .            +INF        -6449.5594      
+i52          .              .            +INF        -6449.5594      
+i53          .              .            +INF        -6449.5594      
+i54          .              .            +INF        -6449.5594      
+i55          .              .            +INF        -6449.5594      
+i56          .              .            +INF        -6449.5594      
+i57          .              .            +INF        -6449.5594      
+i58          .              .            +INF        -6449.5594      
+i59          .              .            +INF        -6449.5594      
+i60          .              .            +INF        -6449.5594      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 27
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+---- VAR delta  indicator for production on special machine
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1           .             1.0000         1.0000   -4.272012E+7      
+i2           .              .             1.0000         EPS         
+i3           .             1.0000         1.0000   -6.625032E+7      
+i4           .              .             1.0000         EPS         
+i5           .             1.0000         1.0000   -8.245086E+7      
+i6           .              .             1.0000         EPS         
+i7           .             1.0000         1.0000   -9.561925E+7      
+i8           .              .             1.0000         EPS         
+i9           .             1.0000         1.0000   -1.070058E+8      
+i10          .              .             1.0000         EPS         
+i11          .              .             1.0000         EPS         
+i12          .              .             1.0000         EPS         
+i13          .              .             1.0000         EPS         
+i14          .              .             1.0000         EPS         
+i15          .              .             1.0000         EPS         
+i16          .              .             1.0000         EPS         
+i17          .              .             1.0000         EPS         
+i18          .              .             1.0000         EPS         
+i19          .              .             1.0000         EPS         
+i20          .              .             1.0000         EPS         
+i21          .              .             1.0000         EPS         
+i22          .              .             1.0000         EPS         
+i23          .              .             1.0000         EPS         
+i24          .              .             1.0000         EPS         
+i25          .              .             1.0000         EPS         
+i26          .             1.0000         1.0000   -1.691586E+8      
+i27          .              .             1.0000         EPS         
+i28          .             1.0000         1.0000   -1.629716E+8      
+i29          .              .             1.0000         EPS         
+i30          .              .             1.0000         EPS         
+i31          .              .             1.0000         EPS         
+i32          .              .             1.0000         EPS         
+i33          .              .             1.0000         EPS         
+i34          .              .             1.0000         EPS         
+i35          .              .             1.0000         EPS         
+i36          .              .             1.0000         EPS         
+i37          .              .             1.0000         EPS         
+i38          .              .             1.0000         EPS         
+i39          .              .             1.0000         EPS         
+i40          .              .             1.0000         EPS         
+i41          .              .             1.0000         EPS         
+i42          .              .             1.0000         EPS         
+i43          .              .             1.0000         EPS         
+i44          .              .             1.0000         EPS         
+i45          .              .             1.0000         EPS         
+i46          .              .             1.0000         EPS         
+i47          .              .             1.0000         EPS         
+i48          .              .             1.0000         EPS         
+i49          .              .             1.0000         EPS         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 28
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     VAR delta  indicator for production on special machine
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i50          .              .             1.0000         EPS         
+i51          .              .             1.0000         EPS         
+i52          .              .             1.0000         EPS         
+i53          .              .             1.0000         EPS         
+i54          .              .             1.0000         EPS         
+i55          .              .             1.0000         EPS         
+i56          .              .             1.0000         EPS         
+i57          .              .             1.0000         EPS         
+i58          .              .             1.0000         EPS         
+i59          .              .             1.0000         EPS         
+i60          .              .             1.0000         EPS         
+
+---- VAR p  product x times delta
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i1           .           101.0000     10000.0000   -2.01453E-10      
+i2           .              .         10000.0000    -27702.1470      
+i3           .           103.0000     10000.0000   -1.90994E-10      
+i4           .              .         10000.0000    -25819.2627      
+i5           .           105.0000     10000.0000   -1.45519E-11      
+i6           .              .         10000.0000    -24374.4748      
+i7           .           107.0000     10000.0000   -2.89219E-10      
+i8           .              .         10000.0000    -23156.4622      
+i9           .           109.0000     10000.0000   -2.54659E-10      
+i10          .              .         10000.0000    -22083.3716      
+i11          .              .         10000.0000    -10660.5758      
+i12          .              .         10000.0000    -21113.2236      
+i13          .              .         10000.0000    -11589.2677      
+i14          .              .         10000.0000    -20221.0803      
+i15          .              .         10000.0000    -12448.8705      
+i16          .              .         10000.0000    -19390.6937      
+i17          .              .         10000.0000    -13252.8346      
+i18          .              .         10000.0000    -18610.7775      
+i19          .              .         10000.0000    -14010.7415      
+i20          .              .         10000.0000    -17873.1144      
+i21          .              .         10000.0000    -14729.7022      
+i22          .              .         10000.0000    -17171.5010      
+i23          .              .         10000.0000    -15415.1671      
+i24          .              .         10000.0000    -16501.1178      
+i25          .              .         10000.0000    -16071.4227      
+i26          .           126.0000     10000.0000   2.728484E-11      
+i27          .              .         10000.0000    -16701.9124      
+i28          .           128.0000     10000.0000   2.728484E-10      
+i29          .              .         10000.0000    -17309.4520      
+i30          .              .         10000.0000    -14642.4704      
+i31          .              .         10000.0000    -17896.3789      
+i32          .              .         10000.0000    -14065.0927      
+i33          .              .         10000.0000    -18464.6589      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 29
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+Solution Report     SOLVE bigM1 Using MIQCP From line 151
+
+
+     VAR p  product x times delta
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+i34          .              .         10000.0000    -13505.4933      
+i35          .              .         10000.0000    -19015.9637      
+i36          .              .         10000.0000    -12962.1246      
+i37          .              .         10000.0000    -19551.7295      
+i38          .              .         10000.0000    -12433.6512      
+i39          .              .         10000.0000    -20073.2005      
+i40          .              .         10000.0000    -11918.9115      
+i41          .              .         10000.0000    -20581.4632      
+i42          .              .         10000.0000    -11416.8872      
+i43          .              .         10000.0000    -21077.4732      
+i44          .              .         10000.0000    -10926.6803      
+i45          .              .         10000.0000    -21562.0761      
+i46          .              .         10000.0000    -10447.4934      
+i47          .              .         10000.0000    -22036.0246      
+i48          .              .         10000.0000     -9978.6153      
+i49          .              .         10000.0000    -22499.9917      
+i50          .              .         10000.0000     -9519.4079      
+i51          .              .         10000.0000    -22954.5829      
+i52          .              .         10000.0000     -9069.2964      
+i53          .              .         10000.0000    -23400.3446      
+i54          .              .         10000.0000     -8627.7608      
+i55          .              .         10000.0000    -23837.7721      
+i56          .              .         10000.0000     -8194.3289      
+i57          .              .         10000.0000    -24267.3161      
+i58          .              .         10000.0000     -7768.5701      
+i59          .              .         10000.0000    -24689.3880      
+i60          .              .         10000.0000     -7350.0909      
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:33 Page 30
+Convexification of bilinear term binary times x (BILINEAR,SEQ=346)
+E x e c u t i o n
+
+
+**** REPORT FILE SUMMARY
+
+femp /home/renigijus/gams/opt-mod-lib/gamslib/bilinear/225a/empinfo.dat
+
+
+EXECUTION TIME       =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/bilinear/bilinear.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/bilinear/bilinear-scalar.mod.lst

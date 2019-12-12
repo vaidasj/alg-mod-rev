@@ -1,0 +1,513 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 2
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+C o m p i l a t i o n
+
+
+   4   
+       
+      Exercise, p. 44:
+       
+      The Clear Lake Dam controls the water level in Clear Lake, a
+      well-known resort in Dreamland.  The Dam Commission is trying to
+      decide how much water to release in each of the next four months.
+      The Lake is currently 150 mm below flood stage.  The dam is capable
+      of lowering the water level 200 mm each month, but additional
+      precipitation and evaporation affect the dam.  The weather near Clear
+      Lake is highly variable.  The Dam Commission has divided the months
+      into two two-month blocks of similar weather.  The months within each
+      block have the same probabilities for weather, which are assumed
+      independent of one another.  In each month of the first block, they
+      assign a probability of 1/2 to having a natural 100-mm increase in
+      water levels and probabilities of 1/4 to having a 50-mm decrease or a
+      250-mm increase in water levels.  All these figures correspond to
+      natural changes in water level without dam releases.  In each month
+      of the second block, they assign a probability of 1/2 to having a
+      natural 150-mm increase in water levels and probabilities of 1/4 to
+      having a 50-mm increase or a 350-mm increase in water levels.  If a
+      flood occurs, then damage is assessed at $10,000 per mm above flood
+      level.  A water level too low leads to costly importation of water.
+      These costs are $5000 per mm less than 250 mm below flood stage.  The
+      commission first considers an overall goal of minimizing expected
+      costs.  This model only considers this first objective.
+       
+       
+      Birge, R, and Louveaux, F V, Introduction to Stochastic Programming.
+      Springer, 1997.
+       
+  37   
+  38   
+  39  SET     p       Precipitation levels in each month /low, normal, high/
+  40          t       Time periods /dec,jan,feb,mar,apr/
+  41          baset(t) / dec /
+  42          w       Weather conditions /wet, dry/;
+  43  SET     tw(t,w)        relates months to weather conditions /
+  44                  (jan,feb).wet
+  45                  (mar,apr).dry
+  46                  /;
+  47   
+  48  SET     n       nodes / n1 * n121 /;
+  49  ALIAS   (n,parent,child);
+  50  SET     root(n)        root node / n1 /
+  51          tn(t,n) map nodes to time periods
+  52          anc(child,parent) ancestor mapping
+  53          np(n,p)           maps nodes to precipitation level
+  54          leaf(n);
+  55   
+  56  np(n,p)$[mod(ord(n)-2,card(p)) eq ord(p)-1] = yes;
+  57  np(root,p) = no;
+  58  * display np;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 3
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+C o m p i l a t i o n
+
+
+  59   
+  60  scalar tmp1, tmp2;
+  61  tmp1 = 0;
+  62  loop {t,
+  63      tmp2 = (power[card(p), ord(t)]) / (card(p)-1);
+  64      tn(t,n)$[ord(n) ge tmp1  and  ord(n) lt tmp2] = yes;
+  65      tmp1 = tmp2;
+  66  };
+  67  * display tn;
+  68  anc(child,parent)$[floor((ord(child)+1)/card(p)) eq ord(parent)] = yes;
+  69  * display anc;
+  70  leaf(n)$[ord(n) gt (power[card(p), card(t)-1] - 1) / (card(p)-1)] =  yes;
+  71  * display leaf;
+  72   
+  73  TABLE  delta(w,p)  Changes in reservoir level for each season
+  74                          low     normal  high
+  75                  dry     -50     100     250
+  76                  wet     50      150     350     ;
+  77   
+  78  PARAMETER       pr(p)  Probability distribution /
+  79  low     0.25,
+  80  normal         0.50,
+  81  high    0.25
+  82  /;
+  83   
+  84  PARAMETER nprob(n)      probability of being at any node;
+  85  nprob(root) = 1;
+  86  loop {anc(child,parent),
+  87      nprob(child) = sum {np(child,p), pr(p)} * nprob(parent);
+  88  };
+  89  * display nprob;
+  90   
+  91  * ndelta required for current scenRed implementation
+  92  PARAMETER ndelta(n)     water delta at each node;
+  93  ndelta(n) = sum {(tw(t,w), np(n,p))$[tn(t,n)], delta(w,p)};
+  94  * display ndelta;
+  95   
+  96  tmp1 = sum {leaf, nprob(leaf)};
+  97  abort$[abs(tmp1-1) gt 1e-8] "Error in tree: leaf probabilities do not sum to 1";
+  98   
+  99   
+ 100  SCALAR floodCost        'K$/mm for amounts over flood level' / 10 /;
+ 101  SCALAR lowCost          'K$/mm for amounts 250mm below flood level' / 5 /;
+ 102  SCALAR l0               'initial water level' /100/;
+ 103   
+ 104  VARIABLE                ec      'Expected value of cost';
+ 105  POSITIVE VARIABLE       l(t,n)  'level of water in dam, EOP'
+ 106                          r(t,n)  'mm released normally'
+ 107                          f(t,n)  'mm of floodwater released'
+ 108                          z(t,n)  'mm of water imported';
+ 109   
+ 110  r.up(t,n) = 200;
+ 111  * water level l is relative to 250mm below flood stage
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 4
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+C o m p i l a t i o n
+
+
+ 112  l.up(t,n) = 250;
+ 113  l.fx(baset,n) = l0;
+ 114   
+ 115  SET     nn(n)              nodes in reduced tree
+ 116          sanc(child,parent) ancestor mapping for reduced tree
+ 117          canc(child,parent) computed ancestor mapping for reduced tree;
+ 118  PARAMETER snprob(n)        probabilities for reduced tree;
+ 119   
+ 120  EQUATIONS               ecdef, ldef(t,n);
+ 121   
+ 122  ecdef..         ec =e= sum {tn(t,nn), snprob(nn) *
+ 123                               [floodCost * f(t,nn) + lowCost * z(t,nn)]};
+ 124   
+ 125  ldef(tn(t,nn))$[not root(nn)]..
+ 126                  l(t,nn) =e= sum {anc(nn,parent), l(t-1,parent)}
+ 127                           + ndelta(nn) + z(t,nn)
+ 128                           - r(t,nn) - f(t,nn);
+ 129   
+ 130  model mincost / ecdef, ldef /;
+ 131   
+ 133   
+ 134  * now let's shrink the node set
+LIBINCLUDE /opt/gams/gams24.7_linux_x64_64_sfx/inclib/scenred.gms
+ 136  SET SR_Parms 'ScenRed input parameters' /
+ 137  num_time_steps  'path length from root to leaf'
+ 138  num_leaves      'leaves/scenarios in the initial tree'
+ 139  num_nodes       'nodes in the initial tree'
+ 140  num_random      'random variables assigned to a scenario or node'
+ 141  red_num_leaves  'desired number of preserved scenarios or leaves'
+ 142  red_percentage  'desired relative distance from initial to reduced tree'
+ 143  where_random    '100*inObj + 10*inRHS + inMatrix'
+ 144  reduction_method 'desired method'
+ 145  num_stages      'branching levels ???'
+ 146  run_time_limit  'in seconds'
+ 147  report_level    '0-default, 1-additional log info'
+ 148  /;
+ 149   
+ 150  SET SR_Stats 'ScenRed output statistics' /
+ 151  ScenRedWarnings
+ 152  ScenRedErrors
+ 153  run_time        'in seconds'
+ 154  orig_nodes      'nodes in the initial tree'
+ 155  orig_leaves     'leaves/scenarios in the initial tree'
+ 156  red_nodes       'nodes in the reduced tree'
+ 157  red_leaves      'leaves/scenarios in the reduced tree'
+ 158  red_percentage  'relative distance from initial to reduced tree'
+ 159  red_absolute    'absolute distance from initial to reduced tree'
+ 160  reduction_method 'method used'
+ 161  /;
+ 162   
+ 163  PARAMETER ScenRedParms (SR_Parms);
+ 164  PARAMETER ScenRedReport(SR_Stats);
+ 165   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 5
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+C o m p i l a t i o n
+
+
+ 166  ScenRedParms('num_leaves') =  sum {leaf, 1};
+ 167  ScenRedParms('num_random') = 1;
+ 168  ScenRedParms('num_nodes') = card(n);
+ 169  ScenRedParms('num_time_steps') = card(t);
+ 170  * typically, one of the following two parameters is set
+ 171  ScenRedParms('red_percentage') = 0.5;
+ 172   
+ 173  * optional SCENRED input parameters: defaults are commented
+ 174  * ScenRedParms('num_stages') = ScenRedParms('num_time_steps');
+ 175  * ScenRedParms('reduction_method') = 0;
+ 176  * ScenRedParms('where_random') = 10;
+ 177  * ScenRedParms('report_level') = 0;
+ 178  ScenRedParms('run_time_limit') = 60;
+ 179   
+ 180  execute_unload 'lakein.gdx',  ScenRedParms, n, anc, nprob, ndelta;
+ 181  execute 'rm -f lakeout.gdx';
+ 182  file opts / 'scenred.opt' /;
+ 183  putclose opts   'log_file =    lakelog.txt'
+ 184                / 'input_gdx     lakein.gdx'
+ 185                / 'output_gdx =  lakeout.gdx';
+ 186  execute 'scenred scenred.opt  >> "/home/renigijus/gams/opt-mod-lib/gamslib/clearlak/gams-convert.log"';
+ 187  execute_load   'lakeout.gdx', ScenRedReport, snprob=red_prob,
+ 188                                sanc=red_ancestor;
+ 189  display ScenRedReport;
+ 190  display snprob;
+ 191   
+ 192  nn(n) = snprob(n);
+ 193  display nn;
+ 194   
+ 195   
+ 196  * -- BEGIN consistency check of output -- *
+ 197  canc(anc(child,parent))$[nn(child)] = YES;
+ 198  display canc, sanc;
+ 199   
+ 200  SET     chk(child,parent);
+ 201  chk(child,parent) = NO;
+ 202  chk(canc(child,parent)) = YES;
+ 203  chk(sanc(child,parent)) = NO;
+ 204  abort$[sum{chk, 1}] "Error in reduced tree: inconsistent output", chk;
+ 205   
+ 206  chk(sanc(child,parent)) = YES;
+ 207  chk(canc(child,parent)) = NO;
+ 208  abort$[sum{chk, 1}] "Error in reduced tree: inconsistent output", chk;
+ 209   
+ 210  tmp1 = sum {leaf(nn), snprob(leaf)} - 1;
+ 211  abort$[abs(tmp1) gt 1e-8]
+ 212   "Error in tree: leaf probabilities do not sum to 1", tmp1;
+ 213  * -- END consistency check of output -- *
+ 214   
+ 216   
+ 217  solve mincost using lp min ec;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 6
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/clearlak/clearlak.gms
+     2      135 LIBINCLUDE     1     135  ./opt/gams/gams24.7_linux_x64_64_sfx/inclib/scenred.gms
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 7
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+E x e c u t i o n
+
+
+----    189 PARAMETER ScenRedReport  
+
+red_percentage       0.524,    reduction_method     2.000,    ScenRedWarnings      1.000,    orig_nodes         121.000,    orig_leaves         81.000,    red_nodes           23.000,    red_leaves          10.000,    red_absolute     24444.181
+
+
+----    190 PARAMETER snprob  probabilities for reduced tree
+
+n1   1.000,    n3   0.750,    n4   0.250,    n9   0.562,    n10  0.187,    n12  0.187,    n13  0.062,    n26  0.141,    n27  0.281,    n28  0.141,    n30  0.187,    n36  0.187,    n39  0.062,    n78  0.141,    n80  0.070,    n81  0.141,    n82  0.070
+n84  0.141,    n89  0.047,    n90  0.094,    n91  0.047,    n108 0.187,    n117 0.062
+
+
+----    193 SET nn  nodes in reduced tree
+
+n1  ,    n3  ,    n4  ,    n9  ,    n10 ,    n12 ,    n13 ,    n26 ,    n27 ,    n28 ,    n30 ,    n36 ,    n39 ,    n78 ,    n80 ,    n81 ,    n82 ,    n84 ,    n89 ,    n90 ,    n91 ,    n108,    n117
+
+
+----    198 SET canc  computed ancestor mapping for reduced tree
+
+              n1          n3          n4          n9         n10         n12         n13         n26         n27         n28         n30         n36         n39
+
+n3           YES
+n4           YES
+n9                       YES
+n10                      YES
+n12                                  YES
+n13                                  YES
+n26                                              YES
+n27                                              YES
+n28                                              YES
+n30                                                          YES
+n36                                                                      YES
+n39                                                                                  YES
+n78                                                                                              YES
+n80                                                                                                          YES
+n81                                                                                                          YES
+n82                                                                                                          YES
+n84                                                                                                                      YES
+n89                                                                                                                                  YES
+n90                                                                                                                                  YES
+n91                                                                                                                                  YES
+n108                                                                                                                                             YES
+n117                                                                                                                                                         YES
+
+
+----    198 SET sanc  ancestor mapping for reduced tree
+
+              n1          n3          n4          n9         n10         n12         n13         n26         n27         n28         n30         n36         n39
+
+n3           YES
+n4           YES
+n9                       YES
+n10                      YES
+n12                                  YES
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 8
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+E x e c u t i o n
+
+
+        198 SET sanc  ancestor mapping for reduced tree
+
+              n1          n3          n4          n9         n10         n12         n13         n26         n27         n28         n30         n36         n39
+
+n13                                  YES
+n26                                              YES
+n27                                              YES
+n28                                              YES
+n30                                                          YES
+n36                                                                      YES
+n39                                                                                  YES
+n78                                                                                              YES
+n80                                                                                                          YES
+n81                                                                                                          YES
+n82                                                                                                          YES
+n84                                                                                                                      YES
+n89                                                                                                                                  YES
+n90                                                                                                                                  YES
+n91                                                                                                                                  YES
+n108                                                                                                                                             YES
+n117                                                                                                                                                         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 9
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+Equation Listing    SOLVE mincost Using LP From line 217
+
+
+---- ecdef  =E=  
+
+ecdef..  ec - 10*f(dec,n1) - 7.5*f(jan,n3) - 2.5*f(jan,n4) - 5.625*f(feb,n9) - 1.875*f(feb,n10) - 1.875*f(feb,n12) - 0.625*f(feb,n13) - 1.40625*f(mar,n26) - 2.8125*f(mar,n27) - 1.40625*f(mar,n28) - 1.875*f(mar,n30) - 1.875*f(mar,n36) - 0.625*f(mar,n39)
+     
+      - 1.40625*f(apr,n78) - 0.703125*f(apr,n80) - 1.40625*f(apr,n81) - 0.703125*f(apr,n82) - 1.40625*f(apr,n84) - 0.46875*f(apr,n89) - 0.9375*f(apr,n90) - 0.46875*f(apr,n91) - 1.875*f(apr,n108) - 0.625*f(apr,n117) - 5*z(dec,n1) - 3.75*z(jan,n3)
+     
+      - 1.25*z(jan,n4) - 2.8125*z(feb,n9) - 0.9375*z(feb,n10) - 0.9375*z(feb,n12) - 0.3125*z(feb,n13) - 0.703125*z(mar,n26) - 1.40625*z(mar,n27) - 0.703125*z(mar,n28) - 0.9375*z(mar,n30) - 0.9375*z(mar,n36) - 0.3125*z(mar,n39) - 0.703125*z(apr,n78)
+     
+      - 0.3515625*z(apr,n80) - 0.703125*z(apr,n81) - 0.3515625*z(apr,n82) - 0.703125*z(apr,n84) - 0.234375*z(apr,n89) - 0.46875*z(apr,n90) - 0.234375*z(apr,n91) - 0.9375*z(apr,n108) - 0.3125*z(apr,n117) =E= 0 ; (LHS = 0)
+     
+
+---- ldef  =E=  
+
+ldef(jan,n3)..  - l(dec,n1) + l(jan,n3) + r(jan,n3) + f(jan,n3) - z(jan,n3) =E= 150 ; (LHS = -100, INFES = 250 ****)
+     
+ldef(jan,n4)..  - l(dec,n1) + l(jan,n4) + r(jan,n4) + f(jan,n4) - z(jan,n4) =E= 350 ; (LHS = -100, INFES = 450 ****)
+     
+ldef(feb,n9)..  - l(jan,n3) + l(feb,n9) + r(feb,n9) + f(feb,n9) - z(feb,n9) =E= 150 ; (LHS = 0, INFES = 150 ****)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 10
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+Column Listing      SOLVE mincost Using LP From line 217
+
+
+---- ec  Expected value of cost
+
+ec
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ecdef
+
+
+---- l  level of water in dam, EOP
+
+l(dec,n1)
+                (.LO, .L, .UP, .M = 100, 100, 100, 0)
+       -1       ldef(jan,n3)
+       -1       ldef(jan,n4)
+
+l(jan,n3)
+                (.LO, .L, .UP, .M = 0, 0, 250, 0)
+        1       ldef(jan,n3)
+       -1       ldef(feb,n9)
+       -1       ldef(feb,n10)
+
+l(jan,n4)
+                (.LO, .L, .UP, .M = 0, 0, 250, 0)
+        1       ldef(jan,n4)
+       -1       ldef(feb,n12)
+       -1       ldef(feb,n13)
+
+REMAINING 20 ENTRIES SKIPPED
+
+---- r  mm released normally
+
+r(jan,n3)
+                (.LO, .L, .UP, .M = 0, 0, 200, 0)
+        1       ldef(jan,n3)
+
+r(jan,n4)
+                (.LO, .L, .UP, .M = 0, 0, 200, 0)
+        1       ldef(jan,n4)
+
+r(feb,n9)
+                (.LO, .L, .UP, .M = 0, 0, 200, 0)
+        1       ldef(feb,n9)
+
+REMAINING 19 ENTRIES SKIPPED
+
+---- f  mm of floodwater released
+
+f(dec,n1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -10       ecdef
+
+f(jan,n3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -7.5     ecdef
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 11
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+Column Listing      SOLVE mincost Using LP From line 217
+
+
+     f  mm of floodwater released
+
+        1       ldef(jan,n3)
+
+f(jan,n4)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -2.5     ecdef
+        1       ldef(jan,n4)
+
+REMAINING 20 ENTRIES SKIPPED
+
+---- z  mm of water imported
+
+z(dec,n1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       ecdef
+
+z(jan,n3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.75    ecdef
+       -1       ldef(jan,n3)
+
+z(jan,n4)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.25    ecdef
+       -1       ldef(jan,n4)
+
+REMAINING 20 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 12
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+Model Statistics    SOLVE mincost Using LP From line 217
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           92
+NON ZERO ELEMENTS           157
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.022 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 13
+Scenario Reduction: ClearLake exercise (CLEARLAK,SEQ=249)
+Solution Report     SOLVE mincost Using LP From line 217
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mincost             OBJECTIVE  ec
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  217
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/clearlak/convert.opt"
+>>  gams clearlak-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/clearlak/convert.opt"
+Gams      : clearlak-scalar.gms
+
+
+No solution returned
+
+**** REPORT FILE SUMMARY
+
+opts /home/renigijus/gams/opt-mod-lib/gamslib/clearlak/scenred.opt
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/clearlak/clearlak.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/clearlak/clearlak-scalar.gms.lst

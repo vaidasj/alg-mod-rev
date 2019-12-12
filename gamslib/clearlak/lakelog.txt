@@ -1,0 +1,824 @@
+
+
+ SCENRED -- Reduction of scenario trees 
+
+ Command line version: 05/08/2002
+
+ Developed by
+ N. Groewe-Kuska, H. Heitsch, W. Roemisch,
+ Humboldt-University Berlin, Germany
+
+Date: 12/13/2018
+Time: 11:22:40
+
+
+FILE SUMMARY 
+------------ 
+OPTION FILE: scenred.opt
+LOG    FILE: lakelog.txt
+INPUT   GDX: lakein.gdx
+OUTPUT  GDX: lakeout.gdx
+
+
+Start reading the parameters......................
+
+SCENRED PARAMETERS 
+------------------ 
+
+num_time_steps = 5
+    num_leaves = 81
+     num_nodes = 121
+    num_random = 1
+red_percentage = 0.5
+
+
+
+**** SCENRED Warning ... 
+**** Parameter where_random changed to default value
+
+
+    where_random = 10
+  run_time_limit = 60
+
+
+
+INPUT of SCENRED PARAMETERS AND SCENARIOS FINISHED
+
+ ScenRedParms  read 
+ NODE NAMES n read 
+ ANCESTOR SET anc read 
+ PROBABILITIES nprob read 
+ RANDOM VALUES 
+  ndelta read 
+
+
+TIME SPEND FOR INPUT :0 seconds
+
+Start check of input......................
+
+ORIGINAL SCENARIOS 
+------------------ 
+
+             Scenario1    Scenario2    Scenario3    Scenario4
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n2
+TimeStep3           n5           n5           n5           n5
+TimeStep4          n14          n14          n14          n15
+TimeStep5          n41          n42          n43          n44
+
+
+             Scenario5    Scenario6    Scenario7    Scenario8
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n2
+TimeStep3           n5           n5           n5           n5
+TimeStep4          n15          n15          n16          n16
+TimeStep5          n45          n46          n47          n48
+
+
+             Scenario9   Scenario10   Scenario11   Scenario12
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n2
+TimeStep3           n5           n6           n6           n6
+TimeStep4          n16          n17          n17          n17
+TimeStep5          n49          n50          n51          n52
+
+
+            Scenario13   Scenario14   Scenario15   Scenario16
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n2
+TimeStep3           n6           n6           n6           n6
+TimeStep4          n18          n18          n18          n19
+TimeStep5          n53          n54          n55          n56
+
+
+            Scenario17   Scenario18   Scenario19   Scenario20
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n2
+TimeStep3           n6           n6           n7           n7
+TimeStep4          n19          n19          n20          n20
+TimeStep5          n57          n58          n59          n60
+
+
+            Scenario21   Scenario22   Scenario23   Scenario24
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n2
+TimeStep3           n7           n7           n7           n7
+TimeStep4          n20          n21          n21          n21
+TimeStep5          n61          n62          n63          n64
+
+
+            Scenario25   Scenario26   Scenario27   Scenario28
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n2           n2           n2           n3
+TimeStep3           n7           n7           n7           n8
+TimeStep4          n22          n22          n22          n23
+TimeStep5          n65          n66          n67          n68
+
+
+            Scenario29   Scenario30   Scenario31   Scenario32
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n3           n3
+TimeStep3           n8           n8           n8           n8
+TimeStep4          n23          n23          n24          n24
+TimeStep5          n69          n70          n71          n72
+
+
+            Scenario33   Scenario34   Scenario35   Scenario36
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n3           n3
+TimeStep3           n8           n8           n8           n8
+TimeStep4          n24          n25          n25          n25
+TimeStep5          n73          n74          n75          n76
+
+
+            Scenario37   Scenario38   Scenario39   Scenario40
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n3           n3
+TimeStep3           n9           n9           n9           n9
+TimeStep4          n26          n26          n26          n27
+TimeStep5          n77          n78          n79          n80
+
+
+            Scenario41   Scenario42   Scenario43   Scenario44
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n3           n3
+TimeStep3           n9           n9           n9           n9
+TimeStep4          n27          n27          n28          n28
+TimeStep5          n81          n82          n83          n84
+
+
+            Scenario45   Scenario46   Scenario47   Scenario48
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n3           n3
+TimeStep3           n9          n10          n10          n10
+TimeStep4          n28          n29          n29          n29
+TimeStep5          n85          n86          n87          n88
+
+
+            Scenario49   Scenario50   Scenario51   Scenario52
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n3           n3
+TimeStep3          n10          n10          n10          n10
+TimeStep4          n30          n30          n30          n31
+TimeStep5          n89          n90          n91          n92
+
+
+            Scenario53   Scenario54   Scenario55   Scenario56
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n3           n3           n4           n4
+TimeStep3          n10          n10          n11          n11
+TimeStep4          n31          n31          n32          n32
+TimeStep5          n93          n94          n95          n96
+
+
+            Scenario57   Scenario58   Scenario59   Scenario60
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n4           n4           n4           n4
+TimeStep3          n11          n11          n11          n11
+TimeStep4          n32          n33          n33          n33
+TimeStep5          n97          n98          n99         n100
+
+
+            Scenario61   Scenario62   Scenario63   Scenario64
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n4           n4           n4           n4
+TimeStep3          n11          n11          n11          n12
+TimeStep4          n34          n34          n34          n35
+TimeStep5         n101         n102         n103         n104
+
+
+            Scenario65   Scenario66   Scenario67   Scenario68
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n4           n4           n4           n4
+TimeStep3          n12          n12          n12          n12
+TimeStep4          n35          n35          n36          n36
+TimeStep5         n105         n106         n107         n108
+
+
+            Scenario69   Scenario70   Scenario71   Scenario72
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n4           n4           n4           n4
+TimeStep3          n12          n12          n12          n12
+TimeStep4          n36          n37          n37          n37
+TimeStep5         n109         n110         n111         n112
+
+
+            Scenario73   Scenario74   Scenario75   Scenario76
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n4           n4           n4           n4
+TimeStep3          n13          n13          n13          n13
+TimeStep4          n38          n38          n38          n39
+TimeStep5         n113         n114         n115         n116
+
+
+            Scenario77   Scenario78   Scenario79   Scenario80
+TimeStep1           n1           n1           n1           n1
+TimeStep2           n4           n4           n4           n4
+TimeStep3          n13          n13          n13          n13
+TimeStep4          n39          n39          n40          n40
+TimeStep5         n117         n118         n119         n120
+
+
+            Scenario81
+TimeStep1           n1
+TimeStep2           n4
+TimeStep3          n13
+TimeStep4          n40
+TimeStep5         n121
+
+
+ORIGINAL SCENARIO PROBABILITIES 
+------------------------------- 
+
+           Scenario1    Scenario2    Scenario3    Scenario4
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+           Scenario5    Scenario6    Scenario7    Scenario8
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+           Scenario9   Scenario10   Scenario11   Scenario12
+  Prob.   0.00390625    0.0078125     0.015625    0.0078125
+
+
+          Scenario13   Scenario14   Scenario15   Scenario16
+  Prob.     0.015625      0.03125     0.015625    0.0078125
+
+
+          Scenario17   Scenario18   Scenario19   Scenario20
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+          Scenario21   Scenario22   Scenario23   Scenario24
+  Prob.   0.00390625    0.0078125     0.015625    0.0078125
+
+
+          Scenario25   Scenario26   Scenario27   Scenario28
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+          Scenario29   Scenario30   Scenario31   Scenario32
+  Prob.     0.015625    0.0078125     0.015625      0.03125
+
+
+          Scenario33   Scenario34   Scenario35   Scenario36
+  Prob.     0.015625    0.0078125     0.015625    0.0078125
+
+
+          Scenario37   Scenario38   Scenario39   Scenario40
+  Prob.     0.015625      0.03125     0.015625      0.03125
+
+
+          Scenario41   Scenario42   Scenario43   Scenario44
+  Prob.       0.0625      0.03125     0.015625      0.03125
+
+
+          Scenario45   Scenario46   Scenario47   Scenario48
+  Prob.     0.015625    0.0078125     0.015625    0.0078125
+
+
+          Scenario49   Scenario50   Scenario51   Scenario52
+  Prob.     0.015625      0.03125     0.015625    0.0078125
+
+
+          Scenario53   Scenario54   Scenario55   Scenario56
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+          Scenario57   Scenario58   Scenario59   Scenario60
+  Prob.   0.00390625    0.0078125     0.015625    0.0078125
+
+
+          Scenario61   Scenario62   Scenario63   Scenario64
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+          Scenario65   Scenario66   Scenario67   Scenario68
+  Prob.     0.015625    0.0078125     0.015625      0.03125
+
+
+          Scenario69   Scenario70   Scenario71   Scenario72
+  Prob.     0.015625    0.0078125     0.015625    0.0078125
+
+
+          Scenario73   Scenario74   Scenario75   Scenario76
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+          Scenario77   Scenario78   Scenario79   Scenario80
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+          Scenario81
+  Prob.   0.00390625
+
+
+ORIGINAL NODE PROBABILITIES 
+---------------------------- 
+
+                  n1           n2           n3           n4
+  Prob.            1         0.25          0.5         0.25
+
+
+                  n5           n6           n7           n8
+  Prob.       0.0625        0.125       0.0625        0.125
+
+
+                  n9          n10          n11          n12
+  Prob.         0.25        0.125       0.0625        0.125
+
+
+                 n13          n14          n15          n16
+  Prob.       0.0625     0.015625      0.03125     0.015625
+
+
+                 n17          n18          n19          n20
+  Prob.      0.03125       0.0625      0.03125     0.015625
+
+
+                 n21          n22          n23          n24
+  Prob.      0.03125     0.015625      0.03125       0.0625
+
+
+                 n25          n26          n27          n28
+  Prob.      0.03125       0.0625        0.125       0.0625
+
+
+                 n29          n30          n31          n32
+  Prob.      0.03125       0.0625      0.03125     0.015625
+
+
+                 n33          n34          n35          n36
+  Prob.      0.03125     0.015625      0.03125       0.0625
+
+
+                 n37          n38          n39          n40
+  Prob.      0.03125     0.015625      0.03125     0.015625
+
+
+                 n41          n42          n43          n44
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+                 n45          n46          n47          n48
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+                 n49          n50          n51          n52
+  Prob.   0.00390625    0.0078125     0.015625    0.0078125
+
+
+                 n53          n54          n55          n56
+  Prob.     0.015625      0.03125     0.015625    0.0078125
+
+
+                 n57          n58          n59          n60
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+                 n61          n62          n63          n64
+  Prob.   0.00390625    0.0078125     0.015625    0.0078125
+
+
+                 n65          n66          n67          n68
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+                 n69          n70          n71          n72
+  Prob.     0.015625    0.0078125     0.015625      0.03125
+
+
+                 n73          n74          n75          n76
+  Prob.     0.015625    0.0078125     0.015625    0.0078125
+
+
+                 n77          n78          n79          n80
+  Prob.     0.015625      0.03125     0.015625      0.03125
+
+
+                 n81          n82          n83          n84
+  Prob.       0.0625      0.03125     0.015625      0.03125
+
+
+                 n85          n86          n87          n88
+  Prob.     0.015625    0.0078125     0.015625    0.0078125
+
+
+                 n89          n90          n91          n92
+  Prob.     0.015625      0.03125     0.015625    0.0078125
+
+
+                 n93          n94          n95          n96
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+                 n97          n98          n99         n100
+  Prob.   0.00390625    0.0078125     0.015625    0.0078125
+
+
+                n101         n102         n103         n104
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+                n105         n106         n107         n108
+  Prob.     0.015625    0.0078125     0.015625      0.03125
+
+
+                n109         n110         n111         n112
+  Prob.     0.015625    0.0078125     0.015625    0.0078125
+
+
+                n113         n114         n115         n116
+  Prob.   0.00390625    0.0078125   0.00390625    0.0078125
+
+
+                n117         n118         n119         n120
+  Prob.     0.015625    0.0078125   0.00390625    0.0078125
+
+
+                n121
+  Prob.   0.00390625
+
+
+RANDOM VALUES 
+-------------- 
+
+                       n1           n2           n3           n4
+  RandomVal1            0           50          150          350
+
+
+                       n5           n6           n7           n8
+  RandomVal1           50          150          350           50
+
+
+                       n9          n10          n11          n12
+  RandomVal1          150          350           50          150
+
+
+                      n13          n14          n15          n16
+  RandomVal1          350          -50          100          250
+
+
+                      n17          n18          n19          n20
+  RandomVal1          -50          100          250          -50
+
+
+                      n21          n22          n23          n24
+  RandomVal1          100          250          -50          100
+
+
+                      n25          n26          n27          n28
+  RandomVal1          250          -50          100          250
+
+
+                      n29          n30          n31          n32
+  RandomVal1          -50          100          250          -50
+
+
+                      n33          n34          n35          n36
+  RandomVal1          100          250          -50          100
+
+
+                      n37          n38          n39          n40
+  RandomVal1          250          -50          100          250
+
+
+                      n41          n42          n43          n44
+  RandomVal1          -50          100          250          -50
+
+
+                      n45          n46          n47          n48
+  RandomVal1          100          250          -50          100
+
+
+                      n49          n50          n51          n52
+  RandomVal1          250          -50          100          250
+
+
+                      n53          n54          n55          n56
+  RandomVal1          -50          100          250          -50
+
+
+                      n57          n58          n59          n60
+  RandomVal1          100          250          -50          100
+
+
+                      n61          n62          n63          n64
+  RandomVal1          250          -50          100          250
+
+
+                      n65          n66          n67          n68
+  RandomVal1          -50          100          250          -50
+
+
+                      n69          n70          n71          n72
+  RandomVal1          100          250          -50          100
+
+
+                      n73          n74          n75          n76
+  RandomVal1          250          -50          100          250
+
+
+                      n77          n78          n79          n80
+  RandomVal1          -50          100          250          -50
+
+
+                      n81          n82          n83          n84
+  RandomVal1          100          250          -50          100
+
+
+                      n85          n86          n87          n88
+  RandomVal1          250          -50          100          250
+
+
+                      n89          n90          n91          n92
+  RandomVal1          -50          100          250          -50
+
+
+                      n93          n94          n95          n96
+  RandomVal1          100          250          -50          100
+
+
+                      n97          n98          n99         n100
+  RandomVal1          250          -50          100          250
+
+
+                     n101         n102         n103         n104
+  RandomVal1          -50          100          250          -50
+
+
+                     n105         n106         n107         n108
+  RandomVal1          100          250          -50          100
+
+
+                     n109         n110         n111         n112
+  RandomVal1          250          -50          100          250
+
+
+                     n113         n114         n115         n116
+  RandomVal1          -50          100          250          -50
+
+
+                     n117         n118         n119         n120
+  RandomVal1          100          250          -50          100
+
+
+                     n121
+  RandomVal1          250
+
+
+CHECK OF SCENARIOS COMPLETED
+
+TIME SPEND FOR CHECK OF SCENARIOS: 0 seconds
+
+START TO COMPUTE THE SCENARIO DISTANCES
+SCENARIO DISTANCES COMPUTED
+TIME SPEND FOR COMPUTATION OF SCENARIO DISTANCES: 0 seconds
+
+START SCENARIO REDUCTION..........................
+
+FAST BACKWARD ALGORITHM 
+
+FORWARD ALGORITHM 
+
+SCENARIO REDUCTION COMPLETED
+TIME SPEND FOR SCENARIO REDUCTION: 0 seconds
+
+REDUCED SCENARIO PROBABILITIES 
+------------------------------ 
+
+           Scenario1    Scenario2    Scenario3    Scenario4
+  Prob.            0            0            0            0
+
+
+           Scenario5    Scenario6    Scenario7    Scenario8
+  Prob.            0            0            0            0
+
+
+           Scenario9   Scenario10   Scenario11   Scenario12
+  Prob.            0            0            0            0
+
+
+          Scenario13   Scenario14   Scenario15   Scenario16
+  Prob.            0            0            0            0
+
+
+          Scenario17   Scenario18   Scenario19   Scenario20
+  Prob.            0            0            0            0
+
+
+          Scenario21   Scenario22   Scenario23   Scenario24
+  Prob.            0            0            0            0
+
+
+          Scenario25   Scenario26   Scenario27   Scenario28
+  Prob.            0            0            0            0
+
+
+          Scenario29   Scenario30   Scenario31   Scenario32
+  Prob.            0            0            0            0
+
+
+          Scenario33   Scenario34   Scenario35   Scenario36
+  Prob.            0            0            0            0
+
+
+          Scenario37   Scenario38   Scenario39   Scenario40
+  Prob.            0     0.140625            0    0.0703125
+
+
+          Scenario41   Scenario42   Scenario43   Scenario44
+  Prob.     0.140625    0.0703125            0     0.140625
+
+
+          Scenario45   Scenario46   Scenario47   Scenario48
+  Prob.            0            0            0            0
+
+
+          Scenario49   Scenario50   Scenario51   Scenario52
+  Prob.     0.046875      0.09375     0.046875            0
+
+
+          Scenario53   Scenario54   Scenario55   Scenario56
+  Prob.            0            0            0            0
+
+
+          Scenario57   Scenario58   Scenario59   Scenario60
+  Prob.            0            0            0            0
+
+
+          Scenario61   Scenario62   Scenario63   Scenario64
+  Prob.            0            0            0            0
+
+
+          Scenario65   Scenario66   Scenario67   Scenario68
+  Prob.            0            0            0       0.1875
+
+
+          Scenario69   Scenario70   Scenario71   Scenario72
+  Prob.            0            0            0            0
+
+
+          Scenario73   Scenario74   Scenario75   Scenario76
+  Prob.            0            0            0            0
+
+
+          Scenario77   Scenario78   Scenario79   Scenario80
+  Prob.       0.0625            0            0            0
+
+
+          Scenario81
+  Prob.            0
+
+
+REDUCED NODE PROBABILITIES 
+-------------------------- 
+                  n1           n2           n3           n4
+  Prob.            1            0         0.75         0.25
+
+
+                  n5           n6           n7           n8
+  Prob.            0            0            0            0
+
+
+                  n9          n10          n11          n12
+  Prob.       0.5625       0.1875            0       0.1875
+
+
+                 n13          n14          n15          n16
+  Prob.       0.0625            0            0            0
+
+
+                 n17          n18          n19          n20
+  Prob.            0            0            0            0
+
+
+                 n21          n22          n23          n24
+  Prob.            0            0            0            0
+
+
+                 n25          n26          n27          n28
+  Prob.            0     0.140625      0.28125     0.140625
+
+
+                 n29          n30          n31          n32
+  Prob.            0       0.1875            0            0
+
+
+                 n33          n34          n35          n36
+  Prob.            0            0            0       0.1875
+
+
+                 n37          n38          n39          n40
+  Prob.            0            0       0.0625            0
+
+
+                 n41          n42          n43          n44
+  Prob.            0            0            0            0
+
+
+                 n45          n46          n47          n48
+  Prob.            0            0            0            0
+
+
+                 n49          n50          n51          n52
+  Prob.            0            0            0            0
+
+
+                 n53          n54          n55          n56
+  Prob.            0            0            0            0
+
+
+                 n57          n58          n59          n60
+  Prob.            0            0            0            0
+
+
+                 n61          n62          n63          n64
+  Prob.            0            0            0            0
+
+
+                 n65          n66          n67          n68
+  Prob.            0            0            0            0
+
+
+                 n69          n70          n71          n72
+  Prob.            0            0            0            0
+
+
+                 n73          n74          n75          n76
+  Prob.            0            0            0            0
+
+
+                 n77          n78          n79          n80
+  Prob.            0     0.140625            0    0.0703125
+
+
+                 n81          n82          n83          n84
+  Prob.     0.140625    0.0703125            0     0.140625
+
+
+                 n85          n86          n87          n88
+  Prob.            0            0            0            0
+
+
+                 n89          n90          n91          n92
+  Prob.     0.046875      0.09375     0.046875            0
+
+
+                 n93          n94          n95          n96
+  Prob.            0            0            0            0
+
+
+                 n97          n98          n99         n100
+  Prob.            0            0            0            0
+
+
+                n101         n102         n103         n104
+  Prob.            0            0            0            0
+
+
+                n105         n106         n107         n108
+  Prob.            0            0            0       0.1875
+
+
+                n109         n110         n111         n112
+  Prob.            0            0            0            0
+
+
+                n113         n114         n115         n116
+  Prob.            0            0            0            0
+
+
+                n117         n118         n119         n120
+  Prob.       0.0625            0            0            0
+
+
+                n121
+  Prob.            0
+
+
+**************************************************
+********          SCENRED REPORT          ********
+**************************************************
+
+REDUCTION OF THE SCENARIOS WAS SUCCESSFULL
+
+
+         ORIGINAL TREE    REDUCED TREE
+NODES              121            23
+LEAVES              81            10
+
+
+REDUCTION PERCENTAGE 0.523583
+          ABSOLUTE   24444.2
+
+METHOD   FAST BACKWARD + FORWARD
+
+SCENRED WARNINGS 1
+
+SCENRED ERRORS   0
+
+**************************************************
+
+SCENRED EXECUTION TIME = 0s

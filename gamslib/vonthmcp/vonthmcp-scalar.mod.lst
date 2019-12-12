@@ -1,0 +1,677 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 2
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+C o m p i l a t i o n
+
+
+       
+      General Equilibrium Variant of the von Thunen Model
+       
+       
+      Rowse, Mackinnon, Samuelson, and von Thunen, General Equilibrium Variant
+      of the von Thunen Model.
+       
+  12   
+  13   
+  14   
+  15   
+  16  set     r       regions /r1*r12/,
+  17          c       commodities /wheat, rice, corn, barley/,
+  18          h       households /worker, owner, porter/;
+  19   
+  20  scalar          ltot    labor endowment /30/,
+  21                  trns    transport endowment /20/;
+  22   
+  23  parameter       d(r)            distance to region r,
+  24                  a(r)            area of region r,
+  25                  t(c)            transport requirement
+  26                  phi(c)          cost function scale parameter
+  27                  beta(c)         cost function share parameter,
+  28                  alpha(*,h)      demand function share;
+  29   
+  30  d(r) = 5 * (2 * ord(r) - 1);
+  31  a(r) = 2 * 3.1415 * d(r);
+  32   
+  33  table  misc(*,*)
+  34                  wheat   rice    corn    barley  leisure
+  35  phi             1       2       3       4
+  36  beta            0.9     0.7     0.5     0.3
+  37  t               0.015   0.006   0.004   0.01
+  38  worker          0.2     0.3     0.1     0.3     0.1
+  39  owner           0.3     0.3     0.2     0.2
+  40  porter          0.6     0.2     0.1     0.1;
+  41   
+  42   
+  43  phi(c)  = misc("phi",c);
+  44  beta(c) = misc("beta",c);
+  45  t(c)    = misc("t",c);
+  46  alpha(c,h) = misc(h,c);
+  47  alpha("leisure",h) = misc(h,"leisure");
+  48   
+  49  positive variables
+  50                  cst(r,c)        unit cost function
+  51                  y(r,c)          output level
+  52                  ip(r)           intervention purchase
+  53                  pk(r)           rental rate
+  54                  wp              porter wage
+  55                  wl              worker wage
+  56                  p(c)            market price;
+  57   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 3
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+C o m p i l a t i o n
+
+
+  58  equation        def_cst(r,c)
+  59                  prf_y(r,c)
+  60                  pkbnd(r)
+  61                  mkt_k(r)
+  62                  mkt_t
+  63                  mkt_l
+  64                  mkt_g(c);
+  65   
+  66  def_cst(r,c)..  phi(c) * cst(r,c) =g=
+  67   
+  68                  (wl/beta(c))**beta(c) * (pk(r)/(1-beta(c)))**(1-beta(c));
+  69   
+  70  prf_y(r,c)..    cst(r,c) + t(c) * d(r) * wp =g= p(c);
+  71   
+  72  pkbnd(r)..      pk(r) =g= 0.0001 * wl;
+  73   
+  74  mkt_k(r)..      a(r) - ip(r) =g=
+  75   
+  76                  sum(c, y(r,c) * (1-beta(c)) * cst(r,c)) / pk(r) ;
+  77   
+  78  mkt_t..         trns =g= sum((r,c), t(c) * d(r) * y(r,c));
+  79   
+  80  mkt_l..         wl * ltot  =g= sum((r,c), y(r,c) * beta(c) * cst(r,c))
+  81                                  + alpha("leisure","porter") * ltot;
+  82   
+  83  mkt_g(c)..      p(c) * sum(r, y(r,c)) =g=
+  84                     alpha(c,"porter") * trns * wp
+  85                  +  alpha(c,"worker") * ltot * wl
+  86                  +  alpha(c,"owner") * sum(r, pk(r) * (a(r) - ip(r)));
+  87   
+  88  p.lo(c)     = 0.1;
+  89  pk.lo(r)    = 0.001;
+  90   
+  91  model vonthun / def_cst.cst,
+  92                  prf_y.y,
+  93                  pkbnd.ip,
+  94                  mkt_k.pk,
+  95                  mkt_t.wp,
+  96                  mkt_l.wl,
+  97                  mkt_g.p /;
+  98   
+  99  cst.l(r,c) = 1;
+ 100  y.l(r,c) = 1;
+ 101  ip.l(r)  = 0;
+ 102  pk.l(r)  = 1;
+ 103  wp.l     = 1;
+ 104  wl.l     = 1;
+ 105  p.l(c)   = 1;
+ 106   
+ 107  *       use the labor wage as numeraire:
+ 108   
+ 109  wl.fx = 1;
+ 110   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 4
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+C o m p i l a t i o n
+
+
+ 111  solve vonthun using mcp;
+ 112   
+ 113  display y.l, cst.l;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 5
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Equation Listing    SOLVE vonthun Using MCP From line 111
+
+
+---- def_cst  =G=  
+
+def_cst(r1,wheat)..  cst(r1,wheat) - (0.138414548846169)*pk(r1) - (1.24573093961552)*wl =G= 0 ; (LHS = -0.384145488461686, INFES = 0.384145488461686 ****)
+     
+def_cst(r1,rice)..  2*cst(r1,rice) - (0.552606832511194)*pk(r1) - (1.28941594252612)*wl =G= 0 ; (LHS = 0.157977224962687)
+     
+def_cst(r1,corn)..  3*cst(r1,corn) - (1)*pk(r1) - (1)*wl =G= 0 ; (LHS = 1)
+     
+REMAINING 45 ENTRIES SKIPPED
+
+
+---- prf_y  =G=  
+
+prf_y(r1,wheat)..  cst(r1,wheat) + 0.075*wp - p(wheat) =G= 0 ; (LHS = 0.075)
+     
+prf_y(r1,rice)..  cst(r1,rice) + 0.03*wp - p(rice) =G= 0 ; (LHS = 0.03)
+     
+prf_y(r1,corn)..  cst(r1,corn) + 0.02*wp - p(corn) =G= 0 ; (LHS = 0.02)
+     
+REMAINING 45 ENTRIES SKIPPED
+
+
+---- pkbnd  =G=  
+
+pkbnd(r1)..  pk(r1) - 0.0001*wl =G= 0 ; (LHS = 0.9999)
+     
+pkbnd(r2)..  pk(r2) - 0.0001*wl =G= 0 ; (LHS = 0.9999)
+     
+pkbnd(r3)..  pk(r3) - 0.0001*wl =G= 0 ; (LHS = 0.9999)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- mkt_k  =G=  
+
+mkt_k(r1)..  - (0.1)*cst(r1,wheat) - (0.3)*cst(r1,rice) - (0.5)*cst(r1,corn) - (0.7)*cst(r1,barley) - (0.1)*y(r1,wheat) - (0.3)*y(r1,rice) - (0.5)*y(r1,corn) - (0.7)*y(r1,barley) - ip(r1) + (1.6)*pk(r1) =G= -31.415 ; (LHS = -1.6)
+     
+mkt_k(r2)..  - (0.1)*cst(r2,wheat) - (0.3)*cst(r2,rice) - (0.5)*cst(r2,corn) - (0.7)*cst(r2,barley) - (0.1)*y(r2,wheat) - (0.3)*y(r2,rice) - (0.5)*y(r2,corn) - (0.7)*y(r2,barley) - ip(r2) + (1.6)*pk(r2) =G= -94.245 ; (LHS = -1.59999999999999)
+     
+mkt_k(r3)..  - (0.1)*cst(r3,wheat) - (0.3)*cst(r3,rice) - (0.5)*cst(r3,corn) - (0.7)*cst(r3,barley) - (0.1)*y(r3,wheat) - (0.3)*y(r3,rice) - (0.5)*y(r3,corn) - (0.7)*y(r3,barley) - ip(r3) + (1.6)*pk(r3) =G= -157.075 ; (LHS = -1.59999999999999)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- mkt_t  =G=  
+
+mkt_t..  - 0.075*y(r1,wheat) - 0.03*y(r1,rice) - 0.02*y(r1,corn) - 0.05*y(r1,barley) - 0.225*y(r2,wheat) - 0.09*y(r2,rice) - 0.06*y(r2,corn) - 0.15*y(r2,barley) - 0.375*y(r3,wheat) - 0.15*y(r3,rice) - 0.1*y(r3,corn) - 0.25*y(r3,barley) - 0.525*y(r4,wheat)
+     
+      - 0.21*y(r4,rice) - 0.14*y(r4,corn) - 0.35*y(r4,barley) - 0.675*y(r5,wheat) - 0.27*y(r5,rice) - 0.18*y(r5,corn) - 0.45*y(r5,barley) - 0.825*y(r6,wheat) - 0.33*y(r6,rice) - 0.22*y(r6,corn) - 0.55*y(r6,barley) - 0.975*y(r7,wheat) - 0.39*y(r7,rice)
+     
+      - 0.26*y(r7,corn) - 0.65*y(r7,barley) - 1.125*y(r8,wheat) - 0.45*y(r8,rice) - 0.3*y(r8,corn) - 0.75*y(r8,barley) - 1.275*y(r9,wheat) - 0.51*y(r9,rice) - 0.34*y(r9,corn) - 0.85*y(r9,barley) - 1.425*y(r10,wheat) - 0.57*y(r10,rice) - 0.38*y(r10,corn)
+     
+      - 0.95*y(r10,barley) - 1.575*y(r11,wheat) - 0.63*y(r11,rice) - 0.42*y(r11,corn) - 1.05*y(r11,barley) - 1.725*y(r12,wheat) - 0.69*y(r12,rice) - 0.46*y(r12,corn) - 1.15*y(r12,barley) =G= -20 ; (LHS = -25.2, INFES = 5.2 ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 6
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Equation Listing    SOLVE vonthun Using MCP From line 111
+
+
+---- mkt_l  =G=  
+
+mkt_l..  - (0.9)*cst(r1,wheat) - (0.7)*cst(r1,rice) - (0.5)*cst(r1,corn) - (0.3)*cst(r1,barley) - (0.9)*cst(r2,wheat) - (0.7)*cst(r2,rice) - (0.5)*cst(r2,corn) - (0.3)*cst(r2,barley) - (0.9)*cst(r3,wheat) - (0.7)*cst(r3,rice) - (0.5)*cst(r3,corn)
+     
+      - (0.3)*cst(r3,barley) - (0.9)*cst(r4,wheat) - (0.7)*cst(r4,rice) - (0.5)*cst(r4,corn) - (0.3)*cst(r4,barley) - (0.9)*cst(r5,wheat) - (0.7)*cst(r5,rice) - (0.5)*cst(r5,corn) - (0.3)*cst(r5,barley) - (0.9)*cst(r6,wheat) - (0.7)*cst(r6,rice)
+     
+      - (0.5)*cst(r6,corn) - (0.3)*cst(r6,barley) - (0.9)*cst(r7,wheat) - (0.7)*cst(r7,rice) - (0.5)*cst(r7,corn) - (0.3)*cst(r7,barley) - (0.9)*cst(r8,wheat) - (0.7)*cst(r8,rice) - (0.5)*cst(r8,corn) - (0.3)*cst(r8,barley) - (0.9)*cst(r9,wheat)
+     
+      - (0.7)*cst(r9,rice) - (0.5)*cst(r9,corn) - (0.3)*cst(r9,barley) - (0.9)*cst(r10,wheat) - (0.7)*cst(r10,rice) - (0.5)*cst(r10,corn) - (0.3)*cst(r10,barley) - (0.9)*cst(r11,wheat) - (0.7)*cst(r11,rice) - (0.5)*cst(r11,corn) - (0.3)*cst(r11,barley)
+     
+      - (0.9)*cst(r12,wheat) - (0.7)*cst(r12,rice) - (0.5)*cst(r12,corn) - (0.3)*cst(r12,barley) - (0.9)*y(r1,wheat) - (0.7)*y(r1,rice) - (0.5)*y(r1,corn) - (0.3)*y(r1,barley) - (0.9)*y(r2,wheat) - (0.7)*y(r2,rice) - (0.5)*y(r2,corn) - (0.3)*y(r2,barley)
+     
+      - (0.9)*y(r3,wheat) - (0.7)*y(r3,rice) - (0.5)*y(r3,corn) - (0.3)*y(r3,barley) - (0.9)*y(r4,wheat) - (0.7)*y(r4,rice) - (0.5)*y(r4,corn) - (0.3)*y(r4,barley) - (0.9)*y(r5,wheat) - (0.7)*y(r5,rice) - (0.5)*y(r5,corn) - (0.3)*y(r5,barley)
+     
+      - (0.9)*y(r6,wheat) - (0.7)*y(r6,rice) - (0.5)*y(r6,corn) - (0.3)*y(r6,barley) - (0.9)*y(r7,wheat) - (0.7)*y(r7,rice) - (0.5)*y(r7,corn) - (0.3)*y(r7,barley) - (0.9)*y(r8,wheat) - (0.7)*y(r8,rice) - (0.5)*y(r8,corn) - (0.3)*y(r8,barley)
+     
+      - (0.9)*y(r9,wheat) - (0.7)*y(r9,rice) - (0.5)*y(r9,corn) - (0.3)*y(r9,barley) - (0.9)*y(r10,wheat) - (0.7)*y(r10,rice) - (0.5)*y(r10,corn) - (0.3)*y(r10,barley) - (0.9)*y(r11,wheat) - (0.7)*y(r11,rice) - (0.5)*y(r11,corn) - (0.3)*y(r11,barley)
+     
+      - (0.9)*y(r12,wheat) - (0.7)*y(r12,rice) - (0.5)*y(r12,corn) - (0.3)*y(r12,barley) + 30*wl =G= 0 ; (LHS = 1.20000000000001)
+     
+
+---- mkt_g  =G=  
+
+mkt_g(wheat)..  (1)*y(r1,wheat) + (1)*y(r2,wheat) + (1)*y(r3,wheat) + (1)*y(r4,wheat) + (1)*y(r5,wheat) + (1)*y(r6,wheat) + (1)*y(r7,wheat) + (1)*y(r8,wheat) + (1)*y(r9,wheat) + (1)*y(r10,wheat) + (1)*y(r11,wheat) + (1)*y(r12,wheat) + (0.3)*ip(r1)
+     
+      + (0.3)*ip(r2) + (0.3)*ip(r3) + (0.3)*ip(r4) + (0.3)*ip(r5) + (0.3)*ip(r6) + (0.3)*ip(r7) + (0.3)*ip(r8) + (0.3)*ip(r9) + (0.3)*ip(r10) + (0.3)*ip(r11) + (0.3)*ip(r12) - (9.4245)*pk(r1) - (28.2735)*pk(r2) - (47.1225)*pk(r3) - (65.9715)*pk(r4)
+     
+      - (84.8205)*pk(r5) - (103.6695)*pk(r6) - (122.5185)*pk(r7) - (141.3675)*pk(r8) - (160.2165)*pk(r9) - (179.0655)*pk(r10) - (197.9145)*pk(r11) - (216.7635)*pk(r12) - 12*wp - 6*wl + (12)*p(wheat) =G= 0 ; (LHS = -1363.128, INFES = 1363.128 ****)
+     
+mkt_g(rice)..  (1)*y(r1,rice) + (1)*y(r2,rice) + (1)*y(r3,rice) + (1)*y(r4,rice) + (1)*y(r5,rice) + (1)*y(r6,rice) + (1)*y(r7,rice) + (1)*y(r8,rice) + (1)*y(r9,rice) + (1)*y(r10,rice) + (1)*y(r11,rice) + (1)*y(r12,rice) + (0.3)*ip(r1) + (0.3)*ip(r2)
+     
+      + (0.3)*ip(r3) + (0.3)*ip(r4) + (0.3)*ip(r5) + (0.3)*ip(r6) + (0.3)*ip(r7) + (0.3)*ip(r8) + (0.3)*ip(r9) + (0.3)*ip(r10) + (0.3)*ip(r11) + (0.3)*ip(r12) - (9.4245)*pk(r1) - (28.2735)*pk(r2) - (47.1225)*pk(r3) - (65.9715)*pk(r4) - (84.8205)*pk(r5)
+     
+      - (103.6695)*pk(r6) - (122.5185)*pk(r7) - (141.3675)*pk(r8) - (160.2165)*pk(r9) - (179.0655)*pk(r10) - (197.9145)*pk(r11) - (216.7635)*pk(r12) - 4*wp - 9*wl + (12)*p(rice) =G= 0 ; (LHS = -1358.128, INFES = 1358.128 ****)
+     
+mkt_g(corn)..  (1)*y(r1,corn) + (1)*y(r2,corn) + (1)*y(r3,corn) + (1)*y(r4,corn) + (1)*y(r5,corn) + (1)*y(r6,corn) + (1)*y(r7,corn) + (1)*y(r8,corn) + (1)*y(r9,corn) + (1)*y(r10,corn) + (1)*y(r11,corn) + (1)*y(r12,corn) + (0.2)*ip(r1) + (0.2)*ip(r2)
+     
+      + (0.2)*ip(r3) + (0.2)*ip(r4) + (0.2)*ip(r5) + (0.2)*ip(r6) + (0.2)*ip(r7) + (0.2)*ip(r8) + (0.2)*ip(r9) + (0.2)*ip(r10) + (0.2)*ip(r11) + (0.2)*ip(r12) - (6.283)*pk(r1) - (18.849)*pk(r2) - (31.415)*pk(r3) - (43.981)*pk(r4) - (56.547)*pk(r5)
+     
+      - (69.113)*pk(r6) - (81.679)*pk(r7) - (94.245)*pk(r8) - (106.811)*pk(r9) - (119.377)*pk(r10) - (131.943)*pk(r11) - (144.509)*pk(r12) - 2*wp - 3*wl + (12)*p(corn) =G= 0 ; (LHS = -897.752, INFES = 897.752 ****)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 7
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Column Listing      SOLVE vonthun Using MCP From line 111
+
+
+---- cst  unit cost function
+
+cst(r1,wheat)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       def_cst(r1,wheat)
+        1       prf_y(r1,wheat)
+      (-0.1)    mkt_k(r1)
+      (-0.9)    mkt_l
+
+cst(r1,rice)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        2       def_cst(r1,rice)
+        1       prf_y(r1,rice)
+      (-0.3)    mkt_k(r1)
+      (-0.7)    mkt_l
+
+cst(r1,corn)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        3       def_cst(r1,corn)
+        1       prf_y(r1,corn)
+      (-0.5)    mkt_k(r1)
+      (-0.5)    mkt_l
+
+REMAINING 45 ENTRIES SKIPPED
+
+---- y  output level
+
+y(r1,wheat)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      (-0.1)    mkt_k(r1)
+       -0.075   mkt_t
+      (-0.9)    mkt_l
+       (1)      mkt_g(wheat)
+
+y(r1,rice)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      (-0.3)    mkt_k(r1)
+       -0.03    mkt_t
+      (-0.7)    mkt_l
+       (1)      mkt_g(rice)
+
+y(r1,corn)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      (-0.5)    mkt_k(r1)
+       -0.02    mkt_t
+      (-0.5)    mkt_l
+       (1)      mkt_g(corn)
+
+REMAINING 45 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 8
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Column Listing      SOLVE vonthun Using MCP From line 111
+
+
+---- ip  intervention purchase
+
+ip(r1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mkt_k(r1)
+       (0.3)    mkt_g(wheat)
+       (0.3)    mkt_g(rice)
+       (0.2)    mkt_g(corn)
+       (0.2)    mkt_g(barley)
+
+ip(r2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mkt_k(r2)
+       (0.3)    mkt_g(wheat)
+       (0.3)    mkt_g(rice)
+       (0.2)    mkt_g(corn)
+       (0.2)    mkt_g(barley)
+
+ip(r3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mkt_k(r3)
+       (0.3)    mkt_g(wheat)
+       (0.3)    mkt_g(rice)
+       (0.2)    mkt_g(corn)
+       (0.2)    mkt_g(barley)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- pk  rental rate
+
+pk(r1)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (-0.1384) def_cst(r1,wheat)
+      (-0.5526) def_cst(r1,rice)
+      (-1)      def_cst(r1,corn)
+      (-1.2894) def_cst(r1,barley)
+        1       pkbnd(r1)
+       (1.6)    mkt_k(r1)
+      (-9.4245) mkt_g(wheat)
+      (-9.4245) mkt_g(rice)
+      (-6.283)  mkt_g(corn)
+      (-6.283)  mkt_g(barley)
+
+pk(r2)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (-0.1384) def_cst(r2,wheat)
+      (-0.5526) def_cst(r2,rice)
+      (-1)      def_cst(r2,corn)
+      (-1.2894) def_cst(r2,barley)
+        1       pkbnd(r2)
+       (1.6)    mkt_k(r2)
+     (-28.2735) mkt_g(wheat)
+     (-28.2735) mkt_g(rice)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 9
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Column Listing      SOLVE vonthun Using MCP From line 111
+
+
+     pk  rental rate
+
+     (-18.849)  mkt_g(corn)
+     (-18.849)  mkt_g(barley)
+
+pk(r3)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (-0.1384) def_cst(r3,wheat)
+      (-0.5526) def_cst(r3,rice)
+      (-1)      def_cst(r3,corn)
+      (-1.2894) def_cst(r3,barley)
+        1       pkbnd(r3)
+       (1.6)    mkt_k(r3)
+     (-47.1225) mkt_g(wheat)
+     (-47.1225) mkt_g(rice)
+     (-31.415)  mkt_g(corn)
+     (-31.415)  mkt_g(barley)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- wp  porter wage
+
+wp
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.075   prf_y(r1,wheat)
+        0.03    prf_y(r1,rice)
+        0.02    prf_y(r1,corn)
+        0.05    prf_y(r1,barley)
+        0.225   prf_y(r2,wheat)
+        0.09    prf_y(r2,rice)
+        0.06    prf_y(r2,corn)
+        0.15    prf_y(r2,barley)
+        0.375   prf_y(r3,wheat)
+        0.15    prf_y(r3,rice)
+        0.1     prf_y(r3,corn)
+        0.25    prf_y(r3,barley)
+        0.525   prf_y(r4,wheat)
+        0.21    prf_y(r4,rice)
+        0.14    prf_y(r4,corn)
+        0.35    prf_y(r4,barley)
+        0.675   prf_y(r5,wheat)
+        0.27    prf_y(r5,rice)
+        0.18    prf_y(r5,corn)
+        0.45    prf_y(r5,barley)
+        0.825   prf_y(r6,wheat)
+        0.33    prf_y(r6,rice)
+        0.22    prf_y(r6,corn)
+        0.55    prf_y(r6,barley)
+        0.975   prf_y(r7,wheat)
+        0.39    prf_y(r7,rice)
+        0.26    prf_y(r7,corn)
+        0.65    prf_y(r7,barley)
+        1.125   prf_y(r8,wheat)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 10
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Column Listing      SOLVE vonthun Using MCP From line 111
+
+
+     wp  porter wage
+
+        0.45    prf_y(r8,rice)
+        0.3     prf_y(r8,corn)
+        0.75    prf_y(r8,barley)
+        1.275   prf_y(r9,wheat)
+        0.51    prf_y(r9,rice)
+        0.34    prf_y(r9,corn)
+        0.85    prf_y(r9,barley)
+        1.425   prf_y(r10,wheat)
+        0.57    prf_y(r10,rice)
+        0.38    prf_y(r10,corn)
+        0.95    prf_y(r10,barley)
+        1.575   prf_y(r11,wheat)
+        0.63    prf_y(r11,rice)
+        0.42    prf_y(r11,corn)
+        1.05    prf_y(r11,barley)
+        1.725   prf_y(r12,wheat)
+        0.69    prf_y(r12,rice)
+        0.46    prf_y(r12,corn)
+        1.15    prf_y(r12,barley)
+      -12       mkt_g(wheat)
+       -4       mkt_g(rice)
+       -2       mkt_g(corn)
+       -2       mkt_g(barley)
+
+
+---- wl  worker wage
+
+wl
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (-1.2457) def_cst(r1,wheat)
+      (-1.2894) def_cst(r1,rice)
+      (-1)      def_cst(r1,corn)
+      (-0.5526) def_cst(r1,barley)
+      (-1.2457) def_cst(r2,wheat)
+      (-1.2894) def_cst(r2,rice)
+      (-1)      def_cst(r2,corn)
+      (-0.5526) def_cst(r2,barley)
+      (-1.2457) def_cst(r3,wheat)
+      (-1.2894) def_cst(r3,rice)
+      (-1)      def_cst(r3,corn)
+      (-0.5526) def_cst(r3,barley)
+      (-1.2457) def_cst(r4,wheat)
+      (-1.2894) def_cst(r4,rice)
+      (-1)      def_cst(r4,corn)
+      (-0.5526) def_cst(r4,barley)
+      (-1.2457) def_cst(r5,wheat)
+      (-1.2894) def_cst(r5,rice)
+      (-1)      def_cst(r5,corn)
+      (-0.5526) def_cst(r5,barley)
+      (-1.2457) def_cst(r6,wheat)
+      (-1.2894) def_cst(r6,rice)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 11
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Column Listing      SOLVE vonthun Using MCP From line 111
+
+
+     wl  worker wage
+
+      (-1)      def_cst(r6,corn)
+      (-0.5526) def_cst(r6,barley)
+      (-1.2457) def_cst(r7,wheat)
+      (-1.2894) def_cst(r7,rice)
+      (-1)      def_cst(r7,corn)
+      (-0.5526) def_cst(r7,barley)
+      (-1.2457) def_cst(r8,wheat)
+      (-1.2894) def_cst(r8,rice)
+      (-1)      def_cst(r8,corn)
+      (-0.5526) def_cst(r8,barley)
+      (-1.2457) def_cst(r9,wheat)
+      (-1.2894) def_cst(r9,rice)
+      (-1)      def_cst(r9,corn)
+      (-0.5526) def_cst(r9,barley)
+      (-1.2457) def_cst(r10,wheat)
+      (-1.2894) def_cst(r10,rice)
+      (-1)      def_cst(r10,corn)
+      (-0.5526) def_cst(r10,barley)
+      (-1.2457) def_cst(r11,wheat)
+      (-1.2894) def_cst(r11,rice)
+      (-1)      def_cst(r11,corn)
+      (-0.5526) def_cst(r11,barley)
+      (-1.2457) def_cst(r12,wheat)
+      (-1.2894) def_cst(r12,rice)
+      (-1)      def_cst(r12,corn)
+      (-0.5526) def_cst(r12,barley)
+       -0.0001  pkbnd(r1)
+       -0.0001  pkbnd(r2)
+       -0.0001  pkbnd(r3)
+       -0.0001  pkbnd(r4)
+       -0.0001  pkbnd(r5)
+       -0.0001  pkbnd(r6)
+       -0.0001  pkbnd(r7)
+       -0.0001  pkbnd(r8)
+       -0.0001  pkbnd(r9)
+       -0.0001  pkbnd(r10)
+       -0.0001  pkbnd(r11)
+       -0.0001  pkbnd(r12)
+       30       mkt_l
+       -6       mkt_g(wheat)
+       -9       mkt_g(rice)
+       -3       mkt_g(corn)
+       -9       mkt_g(barley)
+
+
+---- p  market price
+
+p(wheat)
+                (.LO, .L, .UP, .M = 0.1, 1, +INF, 0)
+       -1       prf_y(r1,wheat)
+       -1       prf_y(r2,wheat)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 12
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Column Listing      SOLVE vonthun Using MCP From line 111
+
+
+     p  market price
+
+       -1       prf_y(r3,wheat)
+       -1       prf_y(r4,wheat)
+       -1       prf_y(r5,wheat)
+       -1       prf_y(r6,wheat)
+       -1       prf_y(r7,wheat)
+       -1       prf_y(r8,wheat)
+       -1       prf_y(r9,wheat)
+       -1       prf_y(r10,wheat)
+       -1       prf_y(r11,wheat)
+       -1       prf_y(r12,wheat)
+      (12)      mkt_g(wheat)
+
+p(rice)
+                (.LO, .L, .UP, .M = 0.1, 1, +INF, 0)
+       -1       prf_y(r1,rice)
+       -1       prf_y(r2,rice)
+       -1       prf_y(r3,rice)
+       -1       prf_y(r4,rice)
+       -1       prf_y(r5,rice)
+       -1       prf_y(r6,rice)
+       -1       prf_y(r7,rice)
+       -1       prf_y(r8,rice)
+       -1       prf_y(r9,rice)
+       -1       prf_y(r10,rice)
+       -1       prf_y(r11,rice)
+       -1       prf_y(r12,rice)
+      (12)      mkt_g(rice)
+
+p(corn)
+                (.LO, .L, .UP, .M = 0.1, 1, +INF, 0)
+       -1       prf_y(r1,corn)
+       -1       prf_y(r2,corn)
+       -1       prf_y(r3,corn)
+       -1       prf_y(r4,corn)
+       -1       prf_y(r5,corn)
+       -1       prf_y(r6,corn)
+       -1       prf_y(r7,corn)
+       -1       prf_y(r8,corn)
+       -1       prf_y(r9,corn)
+       -1       prf_y(r10,corn)
+       -1       prf_y(r11,corn)
+       -1       prf_y(r12,corn)
+      (12)      mkt_g(corn)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 13
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Model Statistics    SOLVE vonthun Using MCP From line 111
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS          126
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES          126
+NON ZERO ELEMENTS           733     NON LINEAR N-Z            448
+DERIVATIVE POOL              20     CONSTANT POOL              39
+CODE LENGTH               1,319
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 14
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+Solution Report     SOLVE vonthun Using MCP From line 111
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   vonthun             
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  111
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/vonthmcp/convert.opt"
+>>  ampl vonthmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/vonthmcp/convert.opt"
+Ampl      : vonthmcp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 15
+General Equilibrium Variant of the Vonthunen Model (VONTHMCP,SEQ=136)
+E x e c u t i o n
+
+
+----    113 VARIABLE y.L  output level
+
+          wheat        rice        corn      barley
+
+r1        1.000       1.000       1.000       1.000
+r2        1.000       1.000       1.000       1.000
+r3        1.000       1.000       1.000       1.000
+r4        1.000       1.000       1.000       1.000
+r5        1.000       1.000       1.000       1.000
+r6        1.000       1.000       1.000       1.000
+r7        1.000       1.000       1.000       1.000
+r8        1.000       1.000       1.000       1.000
+r9        1.000       1.000       1.000       1.000
+r10       1.000       1.000       1.000       1.000
+r11       1.000       1.000       1.000       1.000
+r12       1.000       1.000       1.000       1.000
+
+
+----    113 VARIABLE cst.L  unit cost function
+
+          wheat        rice        corn      barley
+
+r1        1.000       1.000       1.000       1.000
+r2        1.000       1.000       1.000       1.000
+r3        1.000       1.000       1.000       1.000
+r4        1.000       1.000       1.000       1.000
+r5        1.000       1.000       1.000       1.000
+r6        1.000       1.000       1.000       1.000
+r7        1.000       1.000       1.000       1.000
+r8        1.000       1.000       1.000       1.000
+r9        1.000       1.000       1.000       1.000
+r10       1.000       1.000       1.000       1.000
+r11       1.000       1.000       1.000       1.000
+r12       1.000       1.000       1.000       1.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/vonthmcp/vonthmcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/vonthmcp/vonthmcp-scalar.mod.lst

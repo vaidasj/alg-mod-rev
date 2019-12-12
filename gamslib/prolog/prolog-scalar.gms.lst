@@ -1,0 +1,1301 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 2
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+C o m p i l a t i o n
+
+
+   4   
+       
+      A nonlinear programming model is used to find the market
+      equilibrium for a model with activity analysis containing
+      multiple production technologies. The calibration or reconciliation
+      calculations are not shown in this version. In practice it may
+      be necessary to solve another nlp in order to find a consistent
+      initial point. Also, the shadow prices on commodity balances
+      and resource constraints are not always as reported in the reference.
+      only if some variables (and equations) are substituted out and
+      all constraints are set to =e= will the reported relationship hold.
+       
+       
+      Norton, R D, and Scandizzo, P L, Market Equilibrium Computations in
+      Activity Analysis Models. Operations Research 29, 2 (1981).
+       
+  22   
+  23   Sets  i     commodities     / food, h-industry, l-industry /
+  24         g(i)  goods demanded  / food, l-industry /
+  25         k     resources       / labor, capital /
+  26         h     households      / workers, enterpr /
+  27         t     technologies    / tech-1, tech-2, tech-3 /
+  28   
+  29   Alias (i,j), (g,gp) ;
+  30   
+  31   Table  a(i,j)  input-output matrix
+  32   
+  33               food  h-industry  l-industry
+  34   food        .060                 .244
+  35   h-industry  .064       .420      .172
+  36   l-industry  .048       .247      .084
+  37   
+  38   Table d(i,k,t)  resource technology matrix
+  39   
+  40               labor.tech-1  capital.tech-1  labor.tech-2  capital.tech-2  labor.tech-3  capital.tech-3
+  41   food            1.0            2.0              1.2            1.8           .8           2.2
+  42   h-industry      2.0            3.0              1.8            3.5          2.4           2.3
+  43   l-industry      3.0            3.0              2.7            3.2          3.2           2.7
+  44   
+  45   Table  bb(h,k)  resource endowment and ownership
+  46   
+  47             labor  capital
+  48   workers   .900     .100
+  49   enterpr   .100     .900
+  50   
+  51   Table  x0(i,h)  initial consumption
+  52   
+  53              workers  enterpr
+  54   food        352.0    430.0
+  55   l-industry  222.0    292.0
+  56   
+  57   Parameters b(k)   total resource endowment  / labor = 3712, capital = 5000 /
+  58              p0(i)  initial prices            / food = .5942, h-industry = 1.6167, l-industry = 1.31077 /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 3
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+C o m p i l a t i o n
+
+
+  59              y0(h)  initial income
+  60              q0(i)  initial production
+  61              r0     initial marginal product ;
+  62   
+  63   y0(h) = sum(g, x0(g,h)*p0(g));
+  64   r0    = sum(h, y0(h))/sum(k, b(k));  display y0, r0;
+  65   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 4
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+calibration of demand system and aggregation tests
+
+
+  67   
+  68   Parameters  gamma(g,h)   les parameter
+  69               beta(g,h)    les parameter
+  70               alpha(g,h)   budget shares
+  71               al(g,h)      linear demand intercept
+  72               cl(g,h)      income demand slope
+  73               s(g,gp,h)    cross price demand slope
+  74               an(g,h)      nonlinear demand constant
+  75               eta(g,gp,h)  price elasticities
+  76   
+  77   
+  78   Table epsi(i,h)  income elasticities
+  79   
+  80               workers  enterpr
+  81   food          .8       .6
+  82   l-industry   1.14     1.26
+  83   
+  84   Scalar  omega  money flexibility - frish / -2 / ;
+  85   
+  86   
+  87    alpha(g,h) = p0(g)*x0(g,h)/y0(h);
+  88    epsi(g,h)  = epsi(g,h)/sum(gp, epsi(gp,h)*alpha(gp,h));
+  89    beta(g,h)  = epsi(g,h)*alpha(g,h);
+  90    gamma(g,h) = x0(g,h) + beta(g,h)*y0(h)/p0(g)/omega;
+  91    eta(g,gp,h) = -gamma(gp,h)*p0(gp)*beta(g,h)/p0(g)/x0(g,h);
+  92    eta(g,g ,h) =  gamma(g ,h)*(1-beta(g,h))/x0(g,h) - 1;
+  93   
+  94   Display alpha, epsi, beta, gamma, eta;
+  95   
+  96    an(g,h) = x0(g,h)/prod(gp, p0(gp)**eta(g,gp,h))/y0(h)**epsi(g,h);
+  97    cl(g,h) = epsi(g,h)*x0(g,h)/y0(h);
+  98    s(g,gp,h) = eta(g,gp,h)*x0(g,h)/p0(gp);
+  99    al(g,h) = x0(g,h) - sum(gp, s(g,gp,h)*p0(gp)) - cl(g,h)*y0(h);
+ 100   
+ 101   Display an, cl, s, al;
+ 102   
+ 103   Parameters etest(h)   engel aggregation test
+ 104              htest(g,h) homogeneity test
+ 105              ctest(g,h) cournot aggregation test ;
+ 106   
+ 107    etest(h) = sum(g, epsi(g,h)*alpha(g,h)) -1 ;
+ 108    htest(g,h) = sum(gp, eta(g,gp,h)) + epsi(g,h) ;
+ 109    ctest(g,h) = sum(gp, alpha(gp,h)*eta(gp,g,h)) + alpha(g,h) ;
+ 110   
+ 111   Display etest, htest, ctest;
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 5
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+model definitions
+
+
+ 114   
+ 115   Variables  z      expenditure minus factor income
+ 116              p(i)   prices of goods
+ 117              x(i,h) quantities consumed
+ 118              r(k)   marginal product
+ 119              q(i,t) quantities produced
+ 120              y(h)   income
+ 121   
+ 122   Positive variables x, q, p, r, y;
+ 123   
+ 124   Equations  cb(i)    commodity balances
+ 125              rc(k)    resource constraint
+ 126              de(g,h)  demand - linear expenditure system
+ 127              dl(g,h)  demand - linear demand function
+ 128              dn(g,h)  demand - nonlinear demand function
+ 129              bc(h)    budget constraint
+ 130              id(h)    income definition
+ 131              mp(i,t)  marginal pricing condition
+ 132              zdef     objective definition ;
+ 133   
+ 134   cb(i)..   sum(h$g(i), x(i,h)) =l= sum(t, q(i,t) - sum(j, a(i,j)*q(j,t)));
+ 135   
+ 136   rc(k)..   sum((i,t), d(i,k,t)*q(i,t)) =l= b(k);
+ 137   
+ 138   de(g,h).. x(g,h) =l= gamma(g,h) + beta(g,h)*( y(h) - sum(gp, gamma(gp,h)*p(gp)) )/p(g);
+ 139   
+ 140   dl(g,h).. x(g,h) =l= al(g,h) + sum(gp, s(g,gp,h)*p(gp)) + cl(g,h)*y(h);
+ 141   
+ 142   dn(g,h).. x(g,h) =l= an(g,h)*prod(gp, p(gp)**eta(g,gp,h))*y(h)**epsi(g,h);
+ 143   
+ 144   bc(h)..   sum(g, x(g,h)*p(g)) =l= y(h);
+ 145   
+ 146   id(h)..   y(h) =l= sum(k, bb(h,k)*b(k)*r(k));
+ 147   
+ 148   mp(i,t).. p(i) =l= sum(j, a(j,i)*p(j)) + sum(k, d(i,k,t)*r(k));
+ 149   
+ 150   zdef..    z =e= sum((g,h), x(g,h)*p(g)) - sum(k, b(k)*r(k));
+ 151   
+ 152   Model nortone  eles version      / cb, rc, de, bc, id, mp, zdef /
+ 153         nortonl  linear version    / cb, rc, dl, bc, id, mp, zdef /
+ 154         nortonn  nonlinear version / cb, rc, dn, bc, id, mp, zdef / ;
+ 155   
+ 156   x.l(i,h) = x0(i,h); p.l(i) = p0(i); y.l(h) = y0(h); r.l(k) = r0;
+ 157   
+ 158  *  lower bounds are placed on price to avoid the trivial solution p=0.
+ 159   
+ 160    p.lo(i) = .2;
+ 161   
+ 162   Parameters  wp(g)   weights for price index
+ 163               pi      price index
+ 164               yp      real income;
+ 165   
+ 166    wp(g) = sum(h, x0(g,h)*p0(g))/sum(h, y0(h)); display wp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 6
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+model definitions
+
+
+ 167   
+ 168   Solve nortonl maximizing z using nlp;
+ 169   
+ 170    pi("linear")   = sum(g, wp(g)*p.l(g))/sum(g, wp(g)*p0(g));
+ 171    yp("linear")   = sum(h, y.l(h))/pi("linear");
+ 172   
+ 173    Display pi, yp;
+ 174   
+ 175   Solve nortone maximizing z using nlp;
+ 176   
+ 177    pi("les")   = sum(g, wp(g)*p.l(g))/sum(g, wp(g)*p0(g));
+ 178    yp("les")   = sum(h, y.l(h))/pi("les");
+ 179   
+ 180      Display pi, yp;
+ 181   
+ 182   Solve nortonn maximizing z using nlp;
+ 183   
+ 184    pi("nonlin")   = sum(g, wp(g)*p.l(g))/sum(g, wp(g)*p0(g));
+ 185    yp("nonlin")   = sum(h, y.l(h))/pi("nonlin");
+ 186   
+ 187      Display pi, yp;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 7
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+E x e c u t i o n
+
+
+----     64 PARAMETER y0  initial income
+
+workers 500.149,    enterpr 638.251
+
+
+----     64 PARAMETER r0                   =        0.131  initial marginal product
+
+----     94 PARAMETER alpha  budget shares
+
+               workers     enterpr
+
+food             0.418       0.400
+l-industry       0.582       0.600
+
+
+----     94 PARAMETER epsi  income elasticities
+
+               workers     enterpr
+
+food             0.802       0.603
+l-industry       1.142       1.265
+
+
+----     94 PARAMETER beta  les parameter
+
+               workers     enterpr
+
+food             0.335       0.241
+l-industry       0.665       0.759
+
+
+----     94 PARAMETER gamma  les parameter
+
+               workers     enterpr
+
+food           210.892     300.454
+l-industry      95.183     107.262
+
+
+----     94 PARAMETER eta  price elasticities
+
+                          workers     enterpr
+
+food      .food            -0.602      -0.470
+food      .l-industry      -0.200      -0.133
+l-industry.food            -0.286      -0.354
+l-industry.l-industry      -0.856      -0.911
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 8
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+E x e c u t i o n
+
+
+----    101 PARAMETER an  nonlinear demand constant
+
+               workers     enterpr
+
+food             1.862       7.124
+l-industry       0.199       0.088
+
+
+----    101 PARAMETER cl  income demand slope
+
+               workers     enterpr
+
+food             0.564       0.406
+l-industry       0.507       0.579
+
+
+----    101 PARAMETER s  cross price demand slope
+
+                          workers     enterpr
+
+food      .food          -356.475    -339.983
+food      .l-industry     -53.708     -43.542
+l-industry.food          -106.947    -173.930
+l-industry.l-industry    -145.019    -203.031
+
+
+----    101 PARAMETER al  linear demand intercept
+
+               workers     enterpr
+
+food           352.000     430.000
+l-industry     222.000     292.000
+
+
+----    111 PARAMETER etest  engel aggregation test
+
+                      ( ALL       0.000 )
+
+
+----    111 PARAMETER htest  homogeneity test
+
+               workers
+
+food       1.11022E-16
+l-industry -2.2204E-16
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 9
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+E x e c u t i o n
+
+
+----    111 PARAMETER ctest  cournot aggregation test
+
+               workers     enterpr
+
+food       -1.1102E-16 -5.5511E-17
+l-industry 1.11022E-16
+
+
+----    166 PARAMETER wp  weights for price index
+
+food       0.408,    l-industry 0.592
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 10
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Equation Listing    SOLVE nortonl Using NLP From line 168
+
+
+---- cb  =L=  commodity balances
+
+cb(food)..  x(food,workers) + x(food,enterpr) - 0.94*q(food,tech-1) - 0.94*q(food,tech-2) - 0.94*q(food,tech-3) + 0.244*q(l-industry,tech-1) + 0.244*q(l-industry,tech-2) + 0.244*q(l-industry,tech-3) =L= 0 ; (LHS = 782, INFES = 782 ****)
+     
+cb(h-industry)..  0.064*q(food,tech-1) + 0.064*q(food,tech-2) + 0.064*q(food,tech-3) - 0.58*q(h-industry,tech-1) - 0.58*q(h-industry,tech-2) - 0.58*q(h-industry,tech-3) + 0.172*q(l-industry,tech-1) + 0.172*q(l-industry,tech-2) + 0.172*q(l-industry,tech-3)
+      =L= 0 ; (LHS = 0)
+     
+cb(l-industry)..  x(l-industry,workers) + x(l-industry,enterpr) + 0.048*q(food,tech-1) + 0.048*q(food,tech-2) + 0.048*q(food,tech-3) + 0.247*q(h-industry,tech-1) + 0.247*q(h-industry,tech-2) + 0.247*q(h-industry,tech-3) - 0.916*q(l-industry,tech-1)
+     
+      - 0.916*q(l-industry,tech-2) - 0.916*q(l-industry,tech-3) =L= 0 ; (LHS = 514, INFES = 514 ****)
+     
+
+---- rc  =L=  resource constraint
+
+rc(labor)..  q(food,tech-1) + 1.2*q(food,tech-2) + 0.8*q(food,tech-3) + 2*q(h-industry,tech-1) + 1.8*q(h-industry,tech-2) + 2.4*q(h-industry,tech-3) + 3*q(l-industry,tech-1) + 2.7*q(l-industry,tech-2) + 3.2*q(l-industry,tech-3) =L= 3712 ; (LHS = 0)
+     
+rc(capital)..  2*q(food,tech-1) + 1.8*q(food,tech-2) + 2.2*q(food,tech-3) + 3*q(h-industry,tech-1) + 3.5*q(h-industry,tech-2) + 2.3*q(h-industry,tech-3) + 3*q(l-industry,tech-1) + 3.2*q(l-industry,tech-2) + 2.7*q(l-industry,tech-3) =L= 5000 ; (LHS = 0)
+     
+
+---- dl  =L=  demand - linear demand function
+
+dl(food,workers)..  356.474947137148*p(food) + 53.7083537310174*p(l-industry) + x(food,workers) - 0.564264890180399*y(workers) =L= 352 ; (LHS = 352)
+     
+dl(food,enterpr)..  339.983422262764*p(food) + 43.5418249774113*p(l-industry) + x(food,enterpr) - 0.405939876920766*y(enterpr) =L= 430 ; (LHS = 430)
+     
+dl(l-industry,workers)..  106.946746119538*p(food) + 145.018955433089*p(l-industry) + x(l-industry,workers) - 0.507117039797071*y(workers) =L= 222 ; (LHS = 222)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- bc  =L=  budget constraint
+
+bc(workers)..  (352)*p(food) + (222)*p(l-industry) + (0.5942)*x(food,workers) + (1.31077)*x(l-industry,workers) - y(workers) =L= 0 ; (LHS = 0)
+     
+bc(enterpr)..  (430)*p(food) + (292)*p(l-industry) + (0.5942)*x(food,enterpr) + (1.31077)*x(l-industry,enterpr) - y(enterpr) =L= 0 ; (LHS = 0)
+     
+
+---- id  =L=  income definition
+
+id(workers)..  - 3340.8*r(labor) - 500*r(capital) + y(workers) =L= 0 ; (LHS = -1.72938031037654)
+     
+id(enterpr)..  - 371.2*r(labor) - 4500*r(capital) + y(enterpr) =L= 0 ; (LHS = 1.72938031037643, INFES = 1.72938031037643 ****)
+     
+
+---- mp  =L=  marginal pricing condition
+
+mp(food,tech-1)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - r(labor) - 2*r(capital) =L= 0 ; (LHS = 0.000151158732782375, INFES = 0.000151158732782375 ****)
+     
+mp(food,tech-2)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - 1.2*r(labor) - 1.8*r(capital) =L= 0 ; (LHS = 0.000151158732782375, INFES = 0.000151158732782375 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 11
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Equation Listing    SOLVE nortonl Using NLP From line 168
+
+
+     mp  =L=  marginal pricing condition
+
+mp(food,tech-3)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - 0.8*r(labor) - 2.2*r(capital) =L= 0 ; (LHS = 0.000151158732782264, INFES = 0.000151158732782264 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- zdef  =E=  objective definition
+
+zdef..  z - (782)*p(food) - (514)*p(l-industry) - (0.5942)*x(food,workers) - (0.5942)*x(food,enterpr) - (1.31077)*x(l-industry,workers) - (1.31077)*x(l-industry,enterpr) + 3712*r(labor) + 5000*r(capital) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 12
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonl Using NLP From line 168
+
+
+---- z  expenditure minus factor income
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       zdef
+
+
+---- p  prices of goods
+
+p(food)
+                (.LO, .L, .UP, .M = 0.2, 0.5942, +INF, 0)
+      356.4749  dl(food,workers)
+      339.9834  dl(food,enterpr)
+      106.9467  dl(l-industry,workers)
+      173.9297  dl(l-industry,enterpr)
+     (352)      bc(workers)
+     (430)      bc(enterpr)
+        0.94    mp(food,tech-1)
+        0.94    mp(food,tech-2)
+        0.94    mp(food,tech-3)
+       -0.244   mp(l-industry,tech-1)
+       -0.244   mp(l-industry,tech-2)
+       -0.244   mp(l-industry,tech-3)
+    (-782)      zdef
+
+p(h-industry)
+                (.LO, .L, .UP, .M = 0.2, 1.6167, +INF, 0)
+       -0.064   mp(food,tech-1)
+       -0.064   mp(food,tech-2)
+       -0.064   mp(food,tech-3)
+        0.58    mp(h-industry,tech-1)
+        0.58    mp(h-industry,tech-2)
+        0.58    mp(h-industry,tech-3)
+       -0.172   mp(l-industry,tech-1)
+       -0.172   mp(l-industry,tech-2)
+       -0.172   mp(l-industry,tech-3)
+
+p(l-industry)
+                (.LO, .L, .UP, .M = 0.2, 1.31077, +INF, 0)
+       53.7084  dl(food,workers)
+       43.5418  dl(food,enterpr)
+      145.019   dl(l-industry,workers)
+      203.0314  dl(l-industry,enterpr)
+     (222)      bc(workers)
+     (292)      bc(enterpr)
+       -0.048   mp(food,tech-1)
+       -0.048   mp(food,tech-2)
+       -0.048   mp(food,tech-3)
+       -0.247   mp(h-industry,tech-1)
+       -0.247   mp(h-industry,tech-2)
+       -0.247   mp(h-industry,tech-3)
+        0.916   mp(l-industry,tech-1)
+        0.916   mp(l-industry,tech-2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 13
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonl Using NLP From line 168
+
+
+     p  prices of goods
+
+        0.916   mp(l-industry,tech-3)
+    (-514)      zdef
+
+
+---- x  quantities consumed
+
+x(food,workers)
+                (.LO, .L, .UP, .M = 0, 352, +INF, 0)
+        1       cb(food)
+        1       dl(food,workers)
+       (0.5942) bc(workers)
+      (-0.5942) zdef
+
+x(food,enterpr)
+                (.LO, .L, .UP, .M = 0, 430, +INF, 0)
+        1       cb(food)
+        1       dl(food,enterpr)
+       (0.5942) bc(enterpr)
+      (-0.5942) zdef
+
+x(l-industry,workers)
+                (.LO, .L, .UP, .M = 0, 222, +INF, 0)
+        1       cb(l-industry)
+        1       dl(l-industry,workers)
+       (1.3108) bc(workers)
+      (-1.3108) zdef
+
+REMAINING ENTRY SKIPPED
+
+---- r  marginal product
+
+r(labor)
+                (.LO, .L, .UP, .M = 0, 0.130670360422406, +INF, 0)
+    -3340.8     id(workers)
+     -371.2     id(enterpr)
+       -1       mp(food,tech-1)
+       -1.2     mp(food,tech-2)
+       -0.8     mp(food,tech-3)
+       -2       mp(h-industry,tech-1)
+       -1.8     mp(h-industry,tech-2)
+       -2.4     mp(h-industry,tech-3)
+       -3       mp(l-industry,tech-1)
+       -2.7     mp(l-industry,tech-2)
+       -3.2     mp(l-industry,tech-3)
+     3712       zdef
+
+r(capital)
+                (.LO, .L, .UP, .M = 0, 0.130670360422406, +INF, 0)
+     -500       id(workers)
+    -4500       id(enterpr)
+       -2       mp(food,tech-1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 14
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonl Using NLP From line 168
+
+
+     r  marginal product
+
+       -1.8     mp(food,tech-2)
+       -2.2     mp(food,tech-3)
+       -3       mp(h-industry,tech-1)
+       -3.5     mp(h-industry,tech-2)
+       -2.3     mp(h-industry,tech-3)
+       -3       mp(l-industry,tech-1)
+       -3.2     mp(l-industry,tech-2)
+       -2.7     mp(l-industry,tech-3)
+     5000       zdef
+
+
+---- q  quantities produced
+
+q(food,tech-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        1       rc(labor)
+        2       rc(capital)
+
+q(food,tech-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        1.2     rc(labor)
+        1.8     rc(capital)
+
+q(food,tech-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        0.8     rc(labor)
+        2.2     rc(capital)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- y  income
+
+y(workers)
+                (.LO, .L, .UP, .M = 0, 500.14934, +INF, 0)
+       -0.5643  dl(food,workers)
+       -0.5071  dl(l-industry,workers)
+       -1       bc(workers)
+        1       id(workers)
+
+y(enterpr)
+                (.LO, .L, .UP, .M = 0, 638.25084, +INF, 0)
+       -0.4059  dl(food,enterpr)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 15
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonl Using NLP From line 168
+
+
+     y  income
+
+       -0.5789  dl(l-industry,enterpr)
+       -1       bc(enterpr)
+        1       id(enterpr)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 16
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Model Statistics    SOLVE nortonl Using NLP From line 168
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           21
+NON ZERO ELEMENTS           129     NON LINEAR N-Z             14
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  29
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 17
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Solution Report     SOLVE nortonl Using NLP From line 168
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nortonl             OBJECTIVE  z
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  168
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+>>  gams prolog-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+Gams      : prolog-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 18
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+E x e c u t i o n
+
+
+----    173 PARAMETER pi  price index
+
+linear 1.000
+
+
+----    173 PARAMETER yp  real income
+
+linear 1138.400
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 19
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Equation Listing    SOLVE nortone Using NLP From line 175
+
+
+---- cb  =L=  commodity balances
+
+cb(food)..  x(food,workers) + x(food,enterpr) - 0.94*q(food,tech-1) - 0.94*q(food,tech-2) - 0.94*q(food,tech-3) + 0.244*q(l-industry,tech-1) + 0.244*q(l-industry,tech-2) + 0.244*q(l-industry,tech-3) =L= 0 ; (LHS = 782, INFES = 782 ****)
+     
+cb(h-industry)..  0.064*q(food,tech-1) + 0.064*q(food,tech-2) + 0.064*q(food,tech-3) - 0.58*q(h-industry,tech-1) - 0.58*q(h-industry,tech-2) - 0.58*q(h-industry,tech-3) + 0.172*q(l-industry,tech-1) + 0.172*q(l-industry,tech-2) + 0.172*q(l-industry,tech-3)
+      =L= 0 ; (LHS = 0)
+     
+cb(l-industry)..  x(l-industry,workers) + x(l-industry,enterpr) + 0.048*q(food,tech-1) + 0.048*q(food,tech-2) + 0.048*q(food,tech-3) + 0.247*q(h-industry,tech-1) + 0.247*q(h-industry,tech-2) + 0.247*q(h-industry,tech-3) - 0.916*q(l-industry,tech-1)
+     
+      - 0.916*q(l-industry,tech-2) - 0.916*q(l-industry,tech-3) =L= 0 ; (LHS = 514, INFES = 514 ****)
+     
+
+---- rc  =L=  resource constraint
+
+rc(labor)..  q(food,tech-1) + 1.2*q(food,tech-2) + 0.8*q(food,tech-3) + 2*q(h-industry,tech-1) + 1.8*q(h-industry,tech-2) + 2.4*q(h-industry,tech-3) + 3*q(l-industry,tech-1) + 2.7*q(l-industry,tech-2) + 3.2*q(l-industry,tech-3) =L= 3712 ; (LHS = 0)
+     
+rc(capital)..  2*q(food,tech-1) + 1.8*q(food,tech-2) + 2.2*q(food,tech-3) + 3*q(h-industry,tech-1) + 3.5*q(h-industry,tech-2) + 2.3*q(h-industry,tech-3) + 3*q(l-industry,tech-1) + 3.2*q(l-industry,tech-2) + 2.7*q(l-industry,tech-3) =L= 5000 ; (LHS = 0)
+     
+
+---- de  =L=  demand - linear expenditure system
+
+de(food,workers)..  (356.474947137148)*p(food) + (53.7083537310174)*p(l-industry) + x(food,workers) - (0.564264890180398)*y(workers) =L= 210.891643795551 ; (LHS = 210.891643795551)
+     
+de(food,enterpr)..  (339.983422262764)*p(food) + (43.5418249774113)*p(l-industry) + x(food,enterpr) - (0.405939876920766)*y(enterpr) =L= 300.454266282912 ; (LHS = 300.454266282912)
+     
+de(l-industry,workers)..  (106.946746119538)*p(food) + (145.018955433089)*p(l-industry) + x(l-industry,workers) - (0.507117039797071)*y(workers) =L= 95.1828736213705 ; (LHS = 95.1828736213705)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- bc  =L=  budget constraint
+
+bc(workers)..  (352)*p(food) + (222)*p(l-industry) + (0.5942)*x(food,workers) + (1.31077)*x(l-industry,workers) - y(workers) =L= 0 ; (LHS = 0)
+     
+bc(enterpr)..  (430)*p(food) + (292)*p(l-industry) + (0.5942)*x(food,enterpr) + (1.31077)*x(l-industry,enterpr) - y(enterpr) =L= 0 ; (LHS = 0)
+     
+
+---- id  =L=  income definition
+
+id(workers)..  - 3340.8*r(labor) - 500*r(capital) + y(workers) =L= 0 ; (LHS = -1.72938031037654)
+     
+id(enterpr)..  - 371.2*r(labor) - 4500*r(capital) + y(enterpr) =L= 0 ; (LHS = 1.72938031037643, INFES = 1.72938031037643 ****)
+     
+
+---- mp  =L=  marginal pricing condition
+
+mp(food,tech-1)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - r(labor) - 2*r(capital) =L= 0 ; (LHS = 0.000151158732782375, INFES = 0.000151158732782375 ****)
+     
+mp(food,tech-2)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - 1.2*r(labor) - 1.8*r(capital) =L= 0 ; (LHS = 0.000151158732782375, INFES = 0.000151158732782375 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 20
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Equation Listing    SOLVE nortone Using NLP From line 175
+
+
+     mp  =L=  marginal pricing condition
+
+mp(food,tech-3)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - 0.8*r(labor) - 2.2*r(capital) =L= 0 ; (LHS = 0.000151158732782264, INFES = 0.000151158732782264 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- zdef  =E=  objective definition
+
+zdef..  z - (782)*p(food) - (514)*p(l-industry) - (0.5942)*x(food,workers) - (0.5942)*x(food,enterpr) - (1.31077)*x(l-industry,workers) - (1.31077)*x(l-industry,enterpr) + 3712*r(labor) + 5000*r(capital) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 21
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortone Using NLP From line 175
+
+
+---- z  expenditure minus factor income
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       zdef
+
+
+---- p  prices of goods
+
+p(food)
+                (.LO, .L, .UP, .M = 0.2, 0.5942, +INF, 0)
+     (356.4749) de(food,workers)
+     (339.9834) de(food,enterpr)
+     (106.9467) de(l-industry,workers)
+     (173.9297) de(l-industry,enterpr)
+     (352)      bc(workers)
+     (430)      bc(enterpr)
+        0.94    mp(food,tech-1)
+        0.94    mp(food,tech-2)
+        0.94    mp(food,tech-3)
+       -0.244   mp(l-industry,tech-1)
+       -0.244   mp(l-industry,tech-2)
+       -0.244   mp(l-industry,tech-3)
+    (-782)      zdef
+
+p(h-industry)
+                (.LO, .L, .UP, .M = 0.2, 1.6167, +INF, 0)
+       -0.064   mp(food,tech-1)
+       -0.064   mp(food,tech-2)
+       -0.064   mp(food,tech-3)
+        0.58    mp(h-industry,tech-1)
+        0.58    mp(h-industry,tech-2)
+        0.58    mp(h-industry,tech-3)
+       -0.172   mp(l-industry,tech-1)
+       -0.172   mp(l-industry,tech-2)
+       -0.172   mp(l-industry,tech-3)
+
+p(l-industry)
+                (.LO, .L, .UP, .M = 0.2, 1.31077, +INF, 0)
+      (53.7084) de(food,workers)
+      (43.5418) de(food,enterpr)
+     (145.019)  de(l-industry,workers)
+     (203.0314) de(l-industry,enterpr)
+     (222)      bc(workers)
+     (292)      bc(enterpr)
+       -0.048   mp(food,tech-1)
+       -0.048   mp(food,tech-2)
+       -0.048   mp(food,tech-3)
+       -0.247   mp(h-industry,tech-1)
+       -0.247   mp(h-industry,tech-2)
+       -0.247   mp(h-industry,tech-3)
+        0.916   mp(l-industry,tech-1)
+        0.916   mp(l-industry,tech-2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 22
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortone Using NLP From line 175
+
+
+     p  prices of goods
+
+        0.916   mp(l-industry,tech-3)
+    (-514)      zdef
+
+
+---- x  quantities consumed
+
+x(food,workers)
+                (.LO, .L, .UP, .M = 0, 352, +INF, 0)
+        1       cb(food)
+        1       de(food,workers)
+       (0.5942) bc(workers)
+      (-0.5942) zdef
+
+x(food,enterpr)
+                (.LO, .L, .UP, .M = 0, 430, +INF, 0)
+        1       cb(food)
+        1       de(food,enterpr)
+       (0.5942) bc(enterpr)
+      (-0.5942) zdef
+
+x(l-industry,workers)
+                (.LO, .L, .UP, .M = 0, 222, +INF, 0)
+        1       cb(l-industry)
+        1       de(l-industry,workers)
+       (1.3108) bc(workers)
+      (-1.3108) zdef
+
+REMAINING ENTRY SKIPPED
+
+---- r  marginal product
+
+r(labor)
+                (.LO, .L, .UP, .M = 0, 0.130670360422406, +INF, 0)
+    -3340.8     id(workers)
+     -371.2     id(enterpr)
+       -1       mp(food,tech-1)
+       -1.2     mp(food,tech-2)
+       -0.8     mp(food,tech-3)
+       -2       mp(h-industry,tech-1)
+       -1.8     mp(h-industry,tech-2)
+       -2.4     mp(h-industry,tech-3)
+       -3       mp(l-industry,tech-1)
+       -2.7     mp(l-industry,tech-2)
+       -3.2     mp(l-industry,tech-3)
+     3712       zdef
+
+r(capital)
+                (.LO, .L, .UP, .M = 0, 0.130670360422406, +INF, 0)
+     -500       id(workers)
+    -4500       id(enterpr)
+       -2       mp(food,tech-1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 23
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortone Using NLP From line 175
+
+
+     r  marginal product
+
+       -1.8     mp(food,tech-2)
+       -2.2     mp(food,tech-3)
+       -3       mp(h-industry,tech-1)
+       -3.5     mp(h-industry,tech-2)
+       -2.3     mp(h-industry,tech-3)
+       -3       mp(l-industry,tech-1)
+       -3.2     mp(l-industry,tech-2)
+       -2.7     mp(l-industry,tech-3)
+     5000       zdef
+
+
+---- q  quantities produced
+
+q(food,tech-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        1       rc(labor)
+        2       rc(capital)
+
+q(food,tech-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        1.2     rc(labor)
+        1.8     rc(capital)
+
+q(food,tech-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        0.8     rc(labor)
+        2.2     rc(capital)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- y  income
+
+y(workers)
+                (.LO, .L, .UP, .M = 0, 500.14934, +INF, 0)
+      (-0.5643) de(food,workers)
+      (-0.5071) de(l-industry,workers)
+       -1       bc(workers)
+        1       id(workers)
+
+y(enterpr)
+                (.LO, .L, .UP, .M = 0, 638.25084, +INF, 0)
+      (-0.4059) de(food,enterpr)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 24
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortone Using NLP From line 175
+
+
+     y  income
+
+      (-0.5789) de(l-industry,enterpr)
+       -1       bc(enterpr)
+        1       id(enterpr)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 25
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Model Statistics    SOLVE nortone Using NLP From line 175
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           21
+NON ZERO ELEMENTS           129     NON LINEAR N-Z             26
+DERIVATIVE POOL              20     CONSTANT POOL              28
+CODE LENGTH                  73
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 26
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Solution Report     SOLVE nortone Using NLP From line 175
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nortone             OBJECTIVE  z
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  175
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+>>  gams prolog-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+Gams      : prolog-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 27
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+E x e c u t i o n
+
+
+----    180 PARAMETER pi  price index
+
+linear 1.000,    les    1.000
+
+
+----    180 PARAMETER yp  real income
+
+linear 1138.400,    les    1138.400
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 28
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Equation Listing    SOLVE nortonn Using NLP From line 182
+
+
+---- cb  =L=  commodity balances
+
+cb(food)..  x(food,workers) + x(food,enterpr) - 0.94*q(food,tech-1) - 0.94*q(food,tech-2) - 0.94*q(food,tech-3) + 0.244*q(l-industry,tech-1) + 0.244*q(l-industry,tech-2) + 0.244*q(l-industry,tech-3) =L= 0 ; (LHS = 782, INFES = 782 ****)
+     
+cb(h-industry)..  0.064*q(food,tech-1) + 0.064*q(food,tech-2) + 0.064*q(food,tech-3) - 0.58*q(h-industry,tech-1) - 0.58*q(h-industry,tech-2) - 0.58*q(h-industry,tech-3) + 0.172*q(l-industry,tech-1) + 0.172*q(l-industry,tech-2) + 0.172*q(l-industry,tech-3)
+      =L= 0 ; (LHS = 0)
+     
+cb(l-industry)..  x(l-industry,workers) + x(l-industry,enterpr) + 0.048*q(food,tech-1) + 0.048*q(food,tech-2) + 0.048*q(food,tech-3) + 0.247*q(h-industry,tech-1) + 0.247*q(h-industry,tech-2) + 0.247*q(h-industry,tech-3) - 0.916*q(l-industry,tech-1)
+     
+      - 0.916*q(l-industry,tech-2) - 0.916*q(l-industry,tech-3) =L= 0 ; (LHS = 514, INFES = 514 ****)
+     
+
+---- rc  =L=  resource constraint
+
+rc(labor)..  q(food,tech-1) + 1.2*q(food,tech-2) + 0.8*q(food,tech-3) + 2*q(h-industry,tech-1) + 1.8*q(h-industry,tech-2) + 2.4*q(h-industry,tech-3) + 3*q(l-industry,tech-1) + 2.7*q(l-industry,tech-2) + 3.2*q(l-industry,tech-3) =L= 3712 ; (LHS = 0)
+     
+rc(capital)..  2*q(food,tech-1) + 1.8*q(food,tech-2) + 2.2*q(food,tech-3) + 3*q(h-industry,tech-1) + 3.5*q(h-industry,tech-2) + 2.3*q(h-industry,tech-3) + 3*q(l-industry,tech-1) + 3.2*q(l-industry,tech-2) + 2.7*q(l-industry,tech-3) =L= 5000 ; (LHS = 0)
+     
+
+---- dn  =L=  demand - nonlinear demand function
+
+dn(food,workers)..  (356.474947137148)*p(food) + (53.7083537310174)*p(l-industry) + x(food,workers) - (0.564264890180399)*y(workers) =L= 0 ; (LHS = 0)
+     
+dn(food,enterpr)..  (339.983422262764)*p(food) + (43.5418249774113)*p(l-industry) + x(food,enterpr) - (0.405939876920766)*y(enterpr) =L= 0 ; (LHS = 0)
+     
+dn(l-industry,workers)..  (106.946746119538)*p(food) + (145.018955433089)*p(l-industry) + x(l-industry,workers) - (0.507117039797071)*y(workers) =L= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- bc  =L=  budget constraint
+
+bc(workers)..  (352)*p(food) + (222)*p(l-industry) + (0.5942)*x(food,workers) + (1.31077)*x(l-industry,workers) - y(workers) =L= 0 ; (LHS = 0)
+     
+bc(enterpr)..  (430)*p(food) + (292)*p(l-industry) + (0.5942)*x(food,enterpr) + (1.31077)*x(l-industry,enterpr) - y(enterpr) =L= 0 ; (LHS = 0)
+     
+
+---- id  =L=  income definition
+
+id(workers)..  - 3340.8*r(labor) - 500*r(capital) + y(workers) =L= 0 ; (LHS = -1.72938031037654)
+     
+id(enterpr)..  - 371.2*r(labor) - 4500*r(capital) + y(enterpr) =L= 0 ; (LHS = 1.72938031037643, INFES = 1.72938031037643 ****)
+     
+
+---- mp  =L=  marginal pricing condition
+
+mp(food,tech-1)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - r(labor) - 2*r(capital) =L= 0 ; (LHS = 0.000151158732782375, INFES = 0.000151158732782375 ****)
+     
+mp(food,tech-2)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - 1.2*r(labor) - 1.8*r(capital) =L= 0 ; (LHS = 0.000151158732782375, INFES = 0.000151158732782375 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 29
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Equation Listing    SOLVE nortonn Using NLP From line 182
+
+
+     mp  =L=  marginal pricing condition
+
+mp(food,tech-3)..  0.94*p(food) - 0.064*p(h-industry) - 0.048*p(l-industry) - 0.8*r(labor) - 2.2*r(capital) =L= 0 ; (LHS = 0.000151158732782264, INFES = 0.000151158732782264 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- zdef  =E=  objective definition
+
+zdef..  z - (782)*p(food) - (514)*p(l-industry) - (0.5942)*x(food,workers) - (0.5942)*x(food,enterpr) - (1.31077)*x(l-industry,workers) - (1.31077)*x(l-industry,enterpr) + 3712*r(labor) + 5000*r(capital) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 30
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonn Using NLP From line 182
+
+
+---- z  expenditure minus factor income
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       zdef
+
+
+---- p  prices of goods
+
+p(food)
+                (.LO, .L, .UP, .M = 0.2, 0.5942, +INF, 0)
+     (356.4749) dn(food,workers)
+     (339.9834) dn(food,enterpr)
+     (106.9467) dn(l-industry,workers)
+     (173.9297) dn(l-industry,enterpr)
+     (352)      bc(workers)
+     (430)      bc(enterpr)
+        0.94    mp(food,tech-1)
+        0.94    mp(food,tech-2)
+        0.94    mp(food,tech-3)
+       -0.244   mp(l-industry,tech-1)
+       -0.244   mp(l-industry,tech-2)
+       -0.244   mp(l-industry,tech-3)
+    (-782)      zdef
+
+p(h-industry)
+                (.LO, .L, .UP, .M = 0.2, 1.6167, +INF, 0)
+       -0.064   mp(food,tech-1)
+       -0.064   mp(food,tech-2)
+       -0.064   mp(food,tech-3)
+        0.58    mp(h-industry,tech-1)
+        0.58    mp(h-industry,tech-2)
+        0.58    mp(h-industry,tech-3)
+       -0.172   mp(l-industry,tech-1)
+       -0.172   mp(l-industry,tech-2)
+       -0.172   mp(l-industry,tech-3)
+
+p(l-industry)
+                (.LO, .L, .UP, .M = 0.2, 1.31077, +INF, 0)
+      (53.7084) dn(food,workers)
+      (43.5418) dn(food,enterpr)
+     (145.019)  dn(l-industry,workers)
+     (203.0314) dn(l-industry,enterpr)
+     (222)      bc(workers)
+     (292)      bc(enterpr)
+       -0.048   mp(food,tech-1)
+       -0.048   mp(food,tech-2)
+       -0.048   mp(food,tech-3)
+       -0.247   mp(h-industry,tech-1)
+       -0.247   mp(h-industry,tech-2)
+       -0.247   mp(h-industry,tech-3)
+        0.916   mp(l-industry,tech-1)
+        0.916   mp(l-industry,tech-2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 31
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonn Using NLP From line 182
+
+
+     p  prices of goods
+
+        0.916   mp(l-industry,tech-3)
+    (-514)      zdef
+
+
+---- x  quantities consumed
+
+x(food,workers)
+                (.LO, .L, .UP, .M = 0, 352, +INF, 0)
+        1       cb(food)
+        1       dn(food,workers)
+       (0.5942) bc(workers)
+      (-0.5942) zdef
+
+x(food,enterpr)
+                (.LO, .L, .UP, .M = 0, 430, +INF, 0)
+        1       cb(food)
+        1       dn(food,enterpr)
+       (0.5942) bc(enterpr)
+      (-0.5942) zdef
+
+x(l-industry,workers)
+                (.LO, .L, .UP, .M = 0, 222, +INF, 0)
+        1       cb(l-industry)
+        1       dn(l-industry,workers)
+       (1.3108) bc(workers)
+      (-1.3108) zdef
+
+REMAINING ENTRY SKIPPED
+
+---- r  marginal product
+
+r(labor)
+                (.LO, .L, .UP, .M = 0, 0.130670360422406, +INF, 0)
+    -3340.8     id(workers)
+     -371.2     id(enterpr)
+       -1       mp(food,tech-1)
+       -1.2     mp(food,tech-2)
+       -0.8     mp(food,tech-3)
+       -2       mp(h-industry,tech-1)
+       -1.8     mp(h-industry,tech-2)
+       -2.4     mp(h-industry,tech-3)
+       -3       mp(l-industry,tech-1)
+       -2.7     mp(l-industry,tech-2)
+       -3.2     mp(l-industry,tech-3)
+     3712       zdef
+
+r(capital)
+                (.LO, .L, .UP, .M = 0, 0.130670360422406, +INF, 0)
+     -500       id(workers)
+    -4500       id(enterpr)
+       -2       mp(food,tech-1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 32
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonn Using NLP From line 182
+
+
+     r  marginal product
+
+       -1.8     mp(food,tech-2)
+       -2.2     mp(food,tech-3)
+       -3       mp(h-industry,tech-1)
+       -3.5     mp(h-industry,tech-2)
+       -2.3     mp(h-industry,tech-3)
+       -3       mp(l-industry,tech-1)
+       -3.2     mp(l-industry,tech-2)
+       -2.7     mp(l-industry,tech-3)
+     5000       zdef
+
+
+---- q  quantities produced
+
+q(food,tech-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        1       rc(labor)
+        2       rc(capital)
+
+q(food,tech-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        1.2     rc(labor)
+        1.8     rc(capital)
+
+q(food,tech-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.94    cb(food)
+        0.064   cb(h-industry)
+        0.048   cb(l-industry)
+        0.8     rc(labor)
+        2.2     rc(capital)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- y  income
+
+y(workers)
+                (.LO, .L, .UP, .M = 0, 500.14934, +INF, 0)
+      (-0.5643) dn(food,workers)
+      (-0.5071) dn(l-industry,workers)
+       -1       bc(workers)
+        1       id(workers)
+
+y(enterpr)
+                (.LO, .L, .UP, .M = 0, 638.25084, +INF, 0)
+      (-0.4059) dn(food,enterpr)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 33
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Column Listing      SOLVE nortonn Using NLP From line 182
+
+
+     y  income
+
+      (-0.5789) dn(l-industry,enterpr)
+       -1       bc(enterpr)
+        1       id(enterpr)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 34
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Model Statistics    SOLVE nortonn Using NLP From line 182
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           21
+NON ZERO ELEMENTS           129     NON LINEAR N-Z             26
+DERIVATIVE POOL              20     CONSTANT POOL              32
+CODE LENGTH                  89
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 35
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+Solution Report     SOLVE nortonn Using NLP From line 182
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nortonn             OBJECTIVE  z
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  182
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+>>  gams prolog-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+Gams      : prolog-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 36
+Market Equilibrium and Activity Analysis  (PROLOG,SEQ=41)
+E x e c u t i o n
+
+
+----    187 PARAMETER pi  price index
+
+linear 1.000,    les    1.000,    nonlin 1.000
+
+
+----    187 PARAMETER yp  real income
+
+linear 1138.400,    les    1138.400,    nonlin 1138.400
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/prolog/prolog.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/prolog/prolog-scalar.gms.lst

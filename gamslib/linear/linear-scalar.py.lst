@@ -1,0 +1,1307 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option DNLP=convert;
+   2  option DNLP=convert;
+   3  option DNLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 2
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+C o m p i l a t i o n
+
+
+       
+      This example solves linear models with differing objective functions.
+      Absolute deviations cannot be solved in a reliable manner with
+      most NLP systems and one has to resort to a formulation with
+      negative and positive deviations (models ending with the letter a).
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 8.2. In Selected Applications of
+      Nonlinear Programming. John Wiley and Sons, New York, 1968, pp. 86-88.
+       
+  17   
+  18  sets i  observation number /1*20 /
+  19       n  index of independent variables / a, b, c, d /
+  20   
+  21             table dat(i,*)
+  22   
+  23              y   a    b    c    d
+  24         1   99   1   85   76   44
+  25         2   93   1   82   78   42
+  26         3   99   1   75   73   42
+  27         4   97   1   74   72   44
+  28         5   90   1   76   73   43
+  29         6   96   1   74   69   46
+  30         7   93   1   73   69   46
+  31         8  130   1   96   80   36
+  32         9  118   1   93   78   36
+  33        10   88   1   70   73   37
+  34        11   89   1   82   71   46
+  35        12   93   1   80   72   45
+  36        13   94   1   77   76   42
+  37        14   75   1   67   76   50
+  38        15   84   1   82   70   48
+  39        16   91   1   76   76   41
+  40        17  100   1   74   78   31
+  41        18   98   1   71   80   29
+  42        19  101   1   70   83   39
+  43        20   80   1   64   79   38
+  44   
+  45  variables  obj  objective value
+  46             dev(i)   total deviation
+  47             devp(i)  positive deviation
+  48             devn(i)  negative deviation
+  49             b(n)     estimates;
+  50  positive variables devp,devn;
+  51   
+  52  equations  ddev   definition of deviations using total deviations
+  53             ddeva  definition of deviations using positive and negative deviations
+  54             ls1,ls1a,ls2,ls3,ls4,ls5,ls5a,ls6,ls7,ls8 ;
+  55   
+  56  ddev(i)..   dev(i) =e= dat(i,"y") - sum(n, b(n)*dat(i,n) );
+  57  ddeva(i)..  devp(i) - devn(i) =e= dat(i,"y") - sum(n, b(n)*dat(i,n) );
+  58   
+  59  ls1..  obj =e= sum(i, abs(dev(i)));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 3
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+C o m p i l a t i o n
+
+
+  60   
+  61  ls1a.. obj =e= sum(i, devp(i)+devn(i));
+  62   
+  63  ls2..  obj =e= sum(i, sqr(dev(i)));
+  64   
+  65  ls3..  obj =e= sum(i, power(abs(dev(i)),3));
+  66   
+  67  ls4..  obj =e= sum(i, power(dev(i),4));
+  68   
+  69  ls5..  obj =e= sum(i, abs(dev(i)/dat(i,"y")));
+  70   
+  71  ls5a.. obj =e= sum(i, (devp(i)+devn(i))/dat(i,"y"));
+  72   
+  73  ls6..  obj =e= sum(i, sqr(dev(i)/dat(i,"y")));
+  74   
+  75  ls7..  obj =e= sum(i, power(abs(dev(i)/dat(i,"y")),3));
+  76   
+  77  ls8..  obj =e= sum(i, power(dev(i)/dat(i,"y"),4));
+  78   
+  79  model mod1 / ddev, ls1 /
+  80        mod1a/ ddeva,ls1a/
+  81        mod2 / ddev, ls2 /
+  82        mod3 / ddev, ls3 /
+  83        mod4 / ddev, ls4 /
+  84        mod5 / ddev, ls5 /
+  85        mod5a/ ddeva,ls5a/
+  86        mod6 / ddev, ls6 /
+  87        mod7 / ddev, ls7 /
+  88        mod8 / ddev, ls8 /
+  89   
+  90  parameter result summary table;
+  91   
+  92  b.l(n) = 1; dev.l(i) = dat(i,"y") - sum(n, b.l(n)*dat(i,n));
+  93   
+  94  dev.up(i)  =  100;
+  95  dev.lo(i)  = -100;
+  96  devp.up(i) =  100;
+  97  devn.up(i) =  100;
+  98   
+  99  option limrow=0, limcol=0;
+ 100   
+ 101  solve mod1  min obj using dnlp; result("mod1" ,n) = b.l(n); result("mod1" ,"obj") = obj.l;
+ 102  solve mod1a min obj using lp;   result("mod1a",n) = b.l(n); result("mod1a","obj") = obj.l;
+ 103  solve mod2  min obj using nlp;  result("mod2" ,n) = b.l(n); result("mod2" ,"obj") = obj.l;
+ 104  solve mod3  min obj using dnlp; result("mod3" ,n) = b.l(n); result("mod3" ,"obj") = obj.l;
+ 105  solve mod4  min obj using nlp;  result("mod4" ,n) = b.l(n); result("mod4" ,"obj") = obj.l;
+ 106  solve mod5  min obj using dnlp; result("mod5" ,n) = b.l(n); result("mod5" ,"obj") = obj.l;
+ 107  solve mod5a min obj using lp;   result("mod5a",n) = b.l(n); result("mod5a","obj") = obj.l;
+ 108  solve mod6  min obj using nlp;  result("mod6" ,n) = b.l(n); result("mod6" ,"obj") = obj.l;
+ 109  solve mod7  min obj using dnlp; result("mod7" ,n) = b.l(n); result("mod7" ,"obj") = obj.l;
+ 110  solve mod8  min obj using nlp;  result("mod8" ,n) = b.l(n); result("mod8" ,"obj") = obj.l;
+ 111   
+ 112  display result;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 4
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+C o m p i l a t i o n
+
+
+ 113   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 5
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod1 Using DNLP From line 101
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25  10 projected
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  63
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 6
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod1 Using DNLP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod1                OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  pyomo linear-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+Pyomo     : linear-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 7
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod1a Using LP From line 102
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           45
+NON ZERO ELEMENTS           161
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 8
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod1a Using LP From line 102
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod1a               OBJECTIVE  obj
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  102
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE               89.0000
+
+ RESOURCE USAGE, LIMIT          0.004      1000.000
+ ITERATION COUNT, LIMIT        20    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.10 ticks)
+Optimal solution found.
+Objective :          89.000000
+
+
+---- EQU ddeva  definition of deviations using positive and negative deviations
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         99.0000        99.0000        99.0000        -1.0000      
+2         93.0000        93.0000        93.0000        -1.0000      
+3         99.0000        99.0000        99.0000         1.0000      
+4         97.0000        97.0000        97.0000         1.0000      
+5         90.0000        90.0000        90.0000        -1.0000      
+6         96.0000        96.0000        96.0000         1.0000      
+7         93.0000        93.0000        93.0000         1.0000      
+8        130.0000       130.0000       130.0000         1.0000      
+9        118.0000       118.0000       118.0000         0.3107      
+10        88.0000        88.0000        88.0000        -0.6893      
+11        89.0000        89.0000        89.0000        -1.0000      
+12        93.0000        93.0000        93.0000        -0.0777      
+13        94.0000        94.0000        94.0000         1.0000      
+14        75.0000        75.0000        75.0000         0.4563      
+15        84.0000        84.0000        84.0000        -1.0000      
+16        91.0000        91.0000        91.0000        -1.0000      
+17       100.0000       100.0000       100.0000         1.0000      
+18        98.0000        98.0000        98.0000        -1.0000      
+19       101.0000       101.0000       101.0000         1.0000      
+20        80.0000        80.0000        80.0000        -1.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 9
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod1a Using LP From line 102
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ls1a                .              .              .             1.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR obj               -INF           89.0000        +INF             .          
+
+  obj  objective value
+
+---- VAR devp  positive deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1           .              .           100.0000         2.0000      
+2           .              .           100.0000         2.0000      
+3           .             9.1250       100.0000          .          
+4           .            10.3125       100.0000          .          
+5           .              .           100.0000         2.0000      
+6           .            12.0625       100.0000          .          
+7           .            10.2500       100.0000          .          
+8           .             7.6875       100.0000          .          
+9           .              .           100.0000         0.6893      
+10          .              .           100.0000         1.6893      
+11          .              .           100.0000         2.0000      
+12          .              .           100.0000         1.0777      
+13          .             0.6250       100.0000          .          
+14          .              .           100.0000         0.5437      
+15          .              .           100.0000         2.0000      
+16          .              .           100.0000         2.0000      
+17          .             0.5000       100.0000          .          
+18          .              .           100.0000         2.0000      
+19          .            10.8750       100.0000          .          
+20          .              .           100.0000         2.0000      
+
+---- VAR devn  negative deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1           .             2.2500       100.0000          .          
+2           .             7.0625       100.0000          .          
+3           .              .           100.0000         2.0000      
+4           .              .           100.0000         2.0000      
+5           .             0.2500       100.0000          .          
+6           .              .           100.0000         2.0000      
+7           .              .           100.0000         2.0000      
+8           .              .           100.0000         2.0000      
+9           .              .           100.0000         1.3107      
+10          .              .           100.0000         0.3107      
+11          .             5.1875       100.0000          .          
+12          .              .           100.0000         0.9223      
+13          .              .           100.0000         2.0000      
+14          .              .           100.0000         1.4563      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 10
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod1a Using LP From line 102
+
+
+     VAR devn  negative deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+15          .             8.1875       100.0000          .          
+16          .             2.0000       100.0000          .          
+17          .              .           100.0000         2.0000      
+18          .             0.3125       100.0000          .          
+19          .              .           100.0000         2.0000      
+20          .             2.3125       100.0000          .          
+
+---- VAR b  estimates
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF            7.5625        +INF             .          
+b        -INF            1.1875        +INF             .          
+c        -INF            0.3750        +INF             .          
+d        -INF           -0.8125        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 11
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod2 Using NLP From line 103
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25  10 projected
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  63
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 12
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod2 Using NLP From line 103
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod2                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  103
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      2 Locally Optimal           
+**** OBJECTIVE VALUE              693.9897
+
+ RESOURCE USAGE, LIMIT          0.010      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 693.989672584803  best solution found during preprocessing
+Best possible = 630.89970235
+Absolute gap  = 63.0899702348034  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 13
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod2 Using NLP From line 103
+
+
+---- EQU ddev  definition of deviations using total deviations
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         99.0000        99.0000        99.0000        -4.9466      
+2         93.0000        93.0000        93.0000       -14.9309      
+3         99.0000        99.0000        99.0000        13.6757      
+4         97.0000        97.0000        97.0000        15.8858      
+5         90.0000        90.0000        90.0000        -4.5906      
+6         96.0000        96.0000        96.0000        18.6128      
+7         93.0000        93.0000        93.0000        14.7511      
+8        130.0000       130.0000       130.0000        17.2443      
+9        118.0000       118.0000       118.0000         0.3146      
+10        88.0000        88.0000        88.0000        -6.9929      
+11        89.0000        89.0000        89.0000       -13.1494      
+12        93.0000        93.0000        93.0000        -3.0723      
+13        94.0000        94.0000        94.0000        -1.5839      
+14        75.0000        75.0000        75.0000        -3.2236      
+15        84.0000        84.0000        84.0000       -19.0776      
+16        91.0000        91.0000        91.0000        -7.3176      
+17       100.0000       100.0000       100.0000        -4.4168      
+18        98.0000        98.0000        98.0000        -6.4011      
+19       101.0000       101.0000       101.0000        19.4752      
+20        80.0000        80.0000        80.0000       -10.2562      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ls2                 .              .              .             1.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR obj               -INF          693.9897        +INF             .          
+
+  obj  objective value
+
+---- VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1       -100.0000        -2.4733       100.0000          .          
+2       -100.0000        -7.4655       100.0000          .          
+3       -100.0000         6.8378       100.0000          .          
+4       -100.0000         7.9429       100.0000          .          
+5       -100.0000        -2.2953       100.0000          .          
+6       -100.0000         9.3064       100.0000          .          
+7       -100.0000         7.3756       100.0000          .          
+8       -100.0000         8.6222       100.0000          .          
+9       -100.0000         0.1573       100.0000          .          
+10      -100.0000        -3.4964       100.0000          .          
+11      -100.0000        -6.5747       100.0000          .          
+12      -100.0000        -1.5362       100.0000          .          
+13      -100.0000        -0.7919       100.0000          .          
+14      -100.0000        -1.6118       100.0000          .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 14
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod2 Using NLP From line 103
+
+
+     VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+15      -100.0000        -9.5388       100.0000          .          
+16      -100.0000        -3.6588       100.0000          .          
+17      -100.0000        -2.2084       100.0000          .          
+18      -100.0000        -3.2005       100.0000          .          
+19      -100.0000         9.7376       100.0000          .          
+20      -100.0000        -5.1281       100.0000          .          
+
+---- VAR b  estimates
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF           39.3295        +INF             .          
+b        -INF            1.0692        +INF             .          
+c        -INF            0.1638        +INF             .          
+d        -INF           -0.9360        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 15
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod3 Using DNLP From line 104
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                 103
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 16
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod3 Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod3                OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  pyomo linear-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+Pyomo     : linear-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 17
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod4 Using NLP From line 105
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  83
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 18
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod4 Using NLP From line 105
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod4                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  105
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      7 Feasible Solution         
+**** OBJECTIVE VALUE            40260.7605
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 40260.7605306331  best solution found during preprocessing
+Best possible = 36600.6913915
+Absolute gap  = 3660.06913913313  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 19
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod4 Using NLP From line 105
+
+
+---- EQU ddev  definition of deviations using total deviations
+
+          LOWER          LEVEL          UPPER
+
+1         99.0000        99.0000        99.0000      
+2         93.0000        93.0000        93.0000      
+3         99.0000        99.0000        99.0000      
+4         97.0000        97.0000        97.0000      
+5         90.0000        90.0000        90.0000      
+6         96.0000        96.0000        96.0000      
+7         93.0000        93.0000        93.0000      
+8        130.0000       130.0000       130.0000      
+9        118.0000       118.0000       118.0000      
+10        88.0000        88.0000        88.0000      
+11        89.0000        89.0000        89.0000      
+12        93.0000        93.0000        93.0000      
+13        94.0000        94.0000        94.0000      
+14        75.0000        75.0000        75.0000      
+15        84.0000        84.0000        84.0000      
+16        91.0000        91.0000        91.0000      
+17       100.0000       100.0000       100.0000      
+18        98.0000        98.0000        98.0000      
+19       101.0000       101.0000       101.0000      
+20        80.0000        80.0000        80.0000      
+
+                           LOWER          LEVEL          UPPER
+
+---- EQU ls4                 .              .              .          
+
+                           LOWER          LEVEL          UPPER
+
+---- VAR obj               -INF        40260.7605        +INF         
+
+  obj  objective value
+
+---- VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER
+
+1       -100.0000        -2.7320       100.0000      
+2       -100.0000        -8.1415       100.0000      
+3       -100.0000         5.9314       100.0000      
+4       -100.0000         7.2290       100.0000      
+5       -100.0000        -3.0423       100.0000      
+6       -100.0000         8.8834       100.0000      
+7       -100.0000         6.9025       100.0000      
+8       -100.0000         7.9442       100.0000      
+9       -100.0000        -0.6228       100.0000      
+10      -100.0000        -5.2002       100.0000      
+11      -100.0000        -6.6446       100.0000      
+12      -100.0000        -1.8398       100.0000      
+13      -100.0000        -1.6705       100.0000      
+14      -100.0000        -2.1175       100.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 20
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod4 Using NLP From line 105
+
+
+     VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER
+
+15      -100.0000        -9.3660       100.0000      
+16      -100.0000        -4.6968       100.0000      
+17      -100.0000        -4.4880       100.0000      
+18      -100.0000        -5.8974       100.0000      
+19      -100.0000         8.0112       100.0000      
+20      -100.0000        -7.1682       100.0000      
+
+---- VAR b  estimates
+
+         LOWER          LEVEL          UPPER
+
+a        -INF           46.8274        +INF         
+b        -INF            1.0190        +INF         
+c        -INF            0.1879        +INF         
+d        -INF           -1.0453        +INF         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 21
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod5 Using DNLP From line 106
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              33
+CODE LENGTH                  83
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 22
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod5 Using DNLP From line 106
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod5                OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  106
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  pyomo linear-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+Pyomo     : linear-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 23
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod5a Using LP From line 107
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           45
+NON ZERO ELEMENTS           161
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 24
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod5a Using LP From line 107
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod5a               OBJECTIVE  obj
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  107
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE                0.9241
+
+ RESOURCE USAGE, LIMIT          0.004      1000.000
+ ITERATION COUNT, LIMIT        23    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.13 ticks)
+Optimal solution found.
+Objective :           0.924085
+
+
+---- EQU ddeva  definition of deviations using positive and negative deviations
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         99.0000        99.0000        99.0000        -0.0101      
+2         93.0000        93.0000        93.0000        -0.0108      
+3         99.0000        99.0000        99.0000         0.0101      
+4         97.0000        97.0000        97.0000         0.0103      
+5         90.0000        90.0000        90.0000        -0.0111      
+6         96.0000        96.0000        96.0000         0.0104      
+7         93.0000        93.0000        93.0000         0.0108      
+8        130.0000       130.0000       130.0000         0.0077      
+9        118.0000       118.0000       118.0000         0.0081      
+10        88.0000        88.0000        88.0000        -0.0052      
+11        89.0000        89.0000        89.0000        -0.0112      
+12        93.0000        93.0000        93.0000        -0.0017      
+13        94.0000        94.0000        94.0000         0.0106      
+14        75.0000        75.0000        75.0000         0.0078      
+15        84.0000        84.0000        84.0000        -0.0119      
+16        91.0000        91.0000        91.0000        -0.0110      
+17       100.0000       100.0000       100.0000         0.0100      
+18        98.0000        98.0000        98.0000        -0.0102      
+19       101.0000       101.0000       101.0000         0.0099      
+20        80.0000        80.0000        80.0000        -0.0125      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 25
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod5a Using LP From line 107
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ls5a                .              .              .             1.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR obj               -INF            0.9241        +INF             .          
+
+  obj  objective value
+
+---- VAR devp  positive deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1           .              .           100.0000         0.0202      
+2           .              .           100.0000         0.0215      
+3           .             9.1250       100.0000          .          
+4           .            10.3125       100.0000          .          
+5           .              .           100.0000         0.0222      
+6           .            12.0625       100.0000          .          
+7           .            10.2500       100.0000          .          
+8           .             7.6875       100.0000          .          
+9           .              .           100.0000         0.0004      
+10          .              .           100.0000         0.0166      
+11          .              .           100.0000         0.0225      
+12          .              .           100.0000         0.0124      
+13          .             0.6250       100.0000          .          
+14          .              .           100.0000         0.0056      
+15          .              .           100.0000         0.0238      
+16          .              .           100.0000         0.0220      
+17          .             0.5000       100.0000          .          
+18          .              .           100.0000         0.0204      
+19          .            10.8750       100.0000          .          
+20          .              .           100.0000         0.0250      
+
+---- VAR devn  negative deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1           .             2.2500       100.0000          .          
+2           .             7.0625       100.0000          .          
+3           .              .           100.0000         0.0202      
+4           .              .           100.0000         0.0206      
+5           .             0.2500       100.0000          .          
+6           .              .           100.0000         0.0208      
+7           .              .           100.0000         0.0215      
+8           .              .           100.0000         0.0154      
+9           .              .           100.0000         0.0166      
+10          .              .           100.0000         0.0062      
+11          .             5.1875       100.0000          .          
+12          .              .           100.0000         0.0091      
+13          .              .           100.0000         0.0213      
+14          .              .           100.0000         0.0211      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 26
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod5a Using LP From line 107
+
+
+     VAR devn  negative deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+15          .             8.1875       100.0000          .          
+16          .             2.0000       100.0000          .          
+17          .              .           100.0000         0.0200      
+18          .             0.3125       100.0000          .          
+19          .              .           100.0000         0.0198      
+20          .             2.3125       100.0000          .          
+
+---- VAR b  estimates
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF            7.5625        +INF             .          
+b        -INF            1.1875        +INF             .          
+c        -INF            0.3750        +INF             .          
+d        -INF           -0.8125        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 27
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod6 Using NLP From line 108
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              33
+CODE LENGTH                  83
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 28
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod6 Using NLP From line 108
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod6                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  108
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      2 Locally Optimal           
+**** OBJECTIVE VALUE                0.0749
+
+ RESOURCE USAGE, LIMIT          0.010      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 0.074943962065297  best solution found during preprocessing
+Best possible = 0.0681308746048
+Absolute gap  = 0.00681308746049704  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 29
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod6 Using NLP From line 108
+
+
+---- EQU ddev  definition of deviations using total deviations
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         99.0000        99.0000        99.0000        -0.0002      
+2         93.0000        93.0000        93.0000        -0.0014      
+3         99.0000        99.0000        99.0000         0.0015      
+4         97.0000        97.0000        97.0000         0.0018      
+5         90.0000        90.0000        90.0000        -0.0004      
+6         96.0000        96.0000        96.0000         0.0020      
+7         93.0000        93.0000        93.0000         0.0017      
+8        130.0000       130.0000       130.0000         0.0013      
+9        118.0000       118.0000       118.0000         0.0003      
+10        88.0000        88.0000        88.0000        -0.0009      
+11        89.0000        89.0000        89.0000        -0.0015      
+12        93.0000        93.0000        93.0000        -0.0002      
+13        94.0000        94.0000        94.0000   1.6614880E-5      
+14        75.0000        75.0000        75.0000        -0.0004      
+15        84.0000        84.0000        84.0000        -0.0025      
+16        91.0000        91.0000        91.0000        -0.0007      
+17       100.0000       100.0000       100.0000        -0.0003      
+18        98.0000        98.0000        98.0000        -0.0006      
+19       101.0000       101.0000       101.0000         0.0021      
+20        80.0000        80.0000        80.0000        -0.0015      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ls6                 .              .              .             1.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR obj               -INF            0.0749        +INF             .          
+
+  obj  objective value
+
+---- VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1       -100.0000        -1.0238       100.0000          .          
+2       -100.0000        -6.0533       100.0000          .          
+3       -100.0000         7.2301       100.0000          .          
+4       -100.0000         8.2356       100.0000          .          
+5       -100.0000        -1.8003       100.0000          .          
+6       -100.0000         9.3315       100.0000          .          
+7       -100.0000         7.3376       100.0000          .          
+8       -100.0000        10.9114       100.0000          .          
+9       -100.0000         2.0260       100.0000          .          
+10      -100.0000        -3.6179       100.0000          .          
+11      -100.0000        -5.8134       100.0000          .          
+12      -100.0000        -0.8251       100.0000          .          
+13      -100.0000         0.0734       100.0000          .          
+14      -100.0000        -1.0606       100.0000          .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 30
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod6 Using NLP From line 108
+
+
+     VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+15      -100.0000        -8.8139       100.0000          .          
+16      -100.0000        -2.8962       100.0000          .          
+17      -100.0000        -1.7370       100.0000          .          
+18      -100.0000        -2.7665       100.0000          .          
+19      -100.0000        10.8516       100.0000          .          
+20      -100.0000        -4.8949       100.0000          .          
+
+---- VAR b  estimates
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF           53.7755        +INF             .          
+b        -INF            1.0061        +INF             .          
+c        -INF            0.0482        +INF             .          
+d        -INF           -0.9757        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 31
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod7 Using DNLP From line 109
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              33
+CODE LENGTH                 123
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 32
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod7 Using DNLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod7                OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  pyomo linear-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+Pyomo     : linear-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 33
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Model Statistics    SOLVE mod8 Using NLP From line 110
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           25
+NON ZERO ELEMENTS           121     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              33
+CODE LENGTH                 103
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 34
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod8 Using NLP From line 110
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mod8                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  110
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      7 Feasible Solution         
+**** OBJECTIVE VALUE                0.0005
+
+ RESOURCE USAGE, LIMIT          0.010      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 0.000505227574583916  best solution found during preprocessing
+Best possible = 0.000459297795076
+Absolute gap  = 4.5929779507916E-5  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 35
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod8 Using NLP From line 110
+
+
+---- EQU ddev  definition of deviations using total deviations
+
+          LOWER          LEVEL          UPPER
+
+1         99.0000        99.0000        99.0000      
+2         93.0000        93.0000        93.0000      
+3         99.0000        99.0000        99.0000      
+4         97.0000        97.0000        97.0000      
+5         90.0000        90.0000        90.0000      
+6         96.0000        96.0000        96.0000      
+7         93.0000        93.0000        93.0000      
+8        130.0000       130.0000       130.0000      
+9        118.0000       118.0000       118.0000      
+10        88.0000        88.0000        88.0000      
+11        89.0000        89.0000        89.0000      
+12        93.0000        93.0000        93.0000      
+13        94.0000        94.0000        94.0000      
+14        75.0000        75.0000        75.0000      
+15        84.0000        84.0000        84.0000      
+16        91.0000        91.0000        91.0000      
+17       100.0000       100.0000       100.0000      
+18        98.0000        98.0000        98.0000      
+19       101.0000       101.0000       101.0000      
+20        80.0000        80.0000        80.0000      
+
+                           LOWER          LEVEL          UPPER
+
+---- EQU ls8                 .              .              .          
+
+                           LOWER          LEVEL          UPPER
+
+---- VAR obj               -INF            0.0005        +INF         
+
+  obj  objective value
+
+---- VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER
+
+1       -100.0000        -1.1617       100.0000      
+2       -100.0000        -6.6366       100.0000      
+3       -100.0000         6.4928       100.0000      
+4       -100.0000         7.6593       100.0000      
+5       -100.0000        -2.3950       100.0000      
+6       -100.0000         9.0764       100.0000      
+7       -100.0000         7.0241       100.0000      
+8       -100.0000        10.5383       100.0000      
+9       -100.0000         1.5796       100.0000      
+10      -100.0000        -5.0682       100.0000      
+11      -100.0000        -5.7033       100.0000      
+12      -100.0000        -0.9669       100.0000      
+13      -100.0000        -0.7000       100.0000      
+14      -100.0000        -1.7441       100.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 36
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+Solution Report     SOLVE mod8 Using NLP From line 110
+
+
+     VAR dev  total deviation
+
+          LOWER          LEVEL          UPPER
+
+15      -100.0000        -8.4844       100.0000      
+16      -100.0000        -3.8121       100.0000      
+17      -100.0000        -3.7137       100.0000      
+18      -100.0000        -5.1887       100.0000      
+19      -100.0000         9.0604       100.0000      
+20      -100.0000        -6.9169       100.0000      
+
+---- VAR b  estimates
+
+         LOWER          LEVEL          UPPER
+
+a        -INF           58.7098        +INF         
+b        -INF            0.9477        +INF         
+c        -INF            0.0991        +INF         
+d        -INF           -1.0599        +INF         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 37
+Linear Regression with Various Criteria  (LINEAR,SEQ=23)
+E x e c u t i o n
+
+
+----    112 PARAMETER result  summary table
+
+                a           b           c           d         obj
+
+mod1        1.000       1.000       1.000       1.000
+mod1a       7.563       1.188       0.375      -0.813      89.000
+mod2       39.329       1.069       0.164      -0.936     693.990
+mod3       39.329       1.069       0.164      -0.936     693.990
+mod4       46.827       1.019       0.188      -1.045   40260.761
+mod5       46.827       1.019       0.188      -1.045   40260.761
+mod5a       7.563       1.188       0.375      -0.813       0.924
+mod6       53.775       1.006       0.048      -0.976       0.075
+mod7       53.775       1.006       0.048      -0.976       0.075
+mod8       58.710       0.948       0.099      -1.060 5.052276E-4
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/linear/linear.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/linear/linear-scalar.py.lst

@@ -1,0 +1,712 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+   2  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 2
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+C o m p i l a t i o n
+
+
+         Dantzig's original transportation model (TRNSPORT) is
+         reformulated as a linear complementarity problem.  We first
+         solve the model with fixed demand and supply quantities, and
+         then we incorporate price-responsiveness on both sides of the
+         market.
+       
+       
+      Dantzig, G B, Chapter 3.3. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  16   
+  17    Sets
+  18         i   canning plants   / seattle, san-diego /
+  19         j   markets          / new-york, chicago, topeka / ;
+  20   
+  21    Parameters
+  22   
+  23         a(i)  capacity of plant i in cases (when prices are unity)
+  24           /    seattle     350
+  25                san-diego   600  /,
+  26   
+  27         b(j)  demand at market j in cases (when prices equal unity)
+  28           /    new-york    325
+  29                chicago     300
+  30                topeka      275  /,
+  31   
+  32          esub(j)  price elasticity of demand (at prices equal to unity)
+  33           /    new-york    1.5
+  34                chicago     1.2
+  35                topeka      2.0  /;
+  36   
+  37    Table d(i,j)  distance in thousands of miles
+  38                      new-york       chicago      topeka
+  39        seattle          2.5           1.7          1.8
+  40        san-diego        2.5           1.8          1.4  ;
+  41   
+  42    Scalar f  freight in dollars per case per thousand miles  /90/ ;
+  43   
+  44    Parameter c(i,j)  transport cost in thousands of dollars per case ;
+  45   
+  46              c(i,j) = f * d(i,j) / 1000 ;
+  47   
+  48    Parameter pbar(j) reference price at demand node j;
+  49   
+  50    Positive variables
+  51         w(i)             shadow price at supply node i,
+  52         p(j)             shadow price at demand node j,
+  53         x(i,j)           shipment quantities in cases;
+  54   
+  55    Equations
+  56         supply(i)        supply limit at plant i,
+  57         fxdemand(j)      fixed demand at market j,
+  58         prdemand(j)      price-responsive demand at market j,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 3
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+C o m p i l a t i o n
+
+
+  59         profit(i,j)      zero profit conditions;
+  60   
+  61  profit(i,j)..   w(i) + c(i,j)   =g= p(j);
+  62   
+  63  supply(i)..     a(i) =g= sum(j, x(i,j));
+  64   
+  65  fxdemand(j)..   sum(i, x(i,j))  =g=  b(j);
+  66   
+  67  prdemand(j)..   sum(i, x(i,j))  =g=  b(j) * (pbar(j)/p(j))**esub(j);
+  68   
+  69  *       declare models including specification of equation-variable
+  70  *       association:
+  71   
+  72    Model fixedqty / profit.x, supply.w, fxdemand.p/ ;
+  73    Model equilqty / profit.x, supply.w, prdemand.p/ ;
+  74   
+  75  *       initial estimate:
+  76   
+  77    p.l(j) = 1;
+  78    w.l(i) = 1;
+  79   
+  80    Parameter report(*,*,*)  summary report;
+  81   
+  82    Solve fixedqty using mcp;
+  83    report(i,j,"fixed") = x.l(i,j);
+  84    report("price",j,"fixed") = p.l(j);
+  85    report(i,"price","fixed") = w.l(i);
+  86   
+  87  *       calibrate the demand functions:
+  88    pbar(j) = p.l(j);
+  89   
+  90  *       replicate the fixed demand equilibrium using flexible demand func:
+  91    Solve equilqty using mcp;
+  92    report(i,j,"flex") = x.l(i,j);
+  93    report("price",j,"flex") = p.l(j);
+  94    report(i,"price","flex") = w.l(i);
+  95   
+  96  *       compute a counter-factual equilibrium using fixed demand func:
+  97    c("seattle","chicago") = 0.5 * c("seattle","chicago");
+  98    Solve fixedqty using mcp;
+  99    report(i,j,"fixed CF") = x.l(i,j);
+ 100    report("price",j,"fixed CF") = p.l(j);
+ 101    report(i,"price","fixed CF") = w.l(i);
+ 102   
+ 103  *       compute a counter-factual equilibrium using flexible demand func:
+ 104    Solve equilqty using mcp;
+ 105    report(i,j,"flex CF") = x.l(i,j);
+ 106    report("price",j,"flex CF") = p.l(j);
+ 107    report(i,"price","flex CF") = w.l(i);
+ 108   
+ 109   
+ 110    Display report;
+ 111  execute_unload 'mcpReport.gdx', report;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 4
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 5
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Equation Listing    SOLVE fixedqty Using MCP From line 82
+
+
+---- profit  =G=  zero profit conditions
+
+profit(seattle,new-york)..  w(seattle) - p(new-york) =G= -0.225 ; (LHS = 0)
+     
+profit(seattle,chicago)..  w(seattle) - p(chicago) =G= -0.153 ; (LHS = 0)
+     
+profit(seattle,topeka)..  w(seattle) - p(topeka) =G= -0.162 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- supply  =G=  supply limit at plant i
+
+supply(seattle)..  - x(seattle,new-york) - x(seattle,chicago) - x(seattle,topeka) =G= -350 ; (LHS = 0)
+     
+supply(san-diego)..  - x(san-diego,new-york) - x(san-diego,chicago) - x(san-diego,topeka) =G= -600 ; (LHS = 0)
+     
+
+---- fxdemand  =G=  fixed demand at market j
+
+fxdemand(new-york)..  x(seattle,new-york) + x(san-diego,new-york) =G= 325 ; (LHS = 0, INFES = 325 ****)
+     
+fxdemand(chicago)..  x(seattle,chicago) + x(san-diego,chicago) =G= 300 ; (LHS = 0, INFES = 300 ****)
+     
+fxdemand(topeka)..  x(seattle,topeka) + x(san-diego,topeka) =G= 275 ; (LHS = 0, INFES = 275 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 6
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Column Listing      SOLVE fixedqty Using MCP From line 82
+
+
+---- w  shadow price at supply node i
+
+w(seattle)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(seattle,new-york)
+        1       profit(seattle,chicago)
+        1       profit(seattle,topeka)
+
+w(san-diego)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(san-diego,new-york)
+        1       profit(san-diego,chicago)
+        1       profit(san-diego,topeka)
+
+
+---- p  shadow price at demand node j
+
+p(new-york)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,new-york)
+       -1       profit(san-diego,new-york)
+
+p(chicago)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,chicago)
+       -1       profit(san-diego,chicago)
+
+p(topeka)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,topeka)
+       -1       profit(san-diego,topeka)
+
+
+---- x  shipment quantities in cases
+
+x(seattle,new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(new-york)
+
+x(seattle,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(chicago)
+
+x(seattle,topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(topeka)
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 7
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Model Statistics    SOLVE fixedqty Using MCP From line 82
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            24     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 8
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Solution Report     SOLVE fixedqty Using MCP From line 82
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixedqty            
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  82
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+Gams      : transmcp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 9
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Equation Listing    SOLVE equilqty Using MCP From line 91
+
+
+---- profit  =G=  zero profit conditions
+
+profit(seattle,new-york)..  w(seattle) - p(new-york) =G= -0.225 ; (LHS = 0)
+     
+profit(seattle,chicago)..  w(seattle) - p(chicago) =G= -0.153 ; (LHS = 0)
+     
+profit(seattle,topeka)..  w(seattle) - p(topeka) =G= -0.162 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- supply  =G=  supply limit at plant i
+
+supply(seattle)..  - x(seattle,new-york) - x(seattle,chicago) - x(seattle,topeka) =G= -350 ; (LHS = 0)
+     
+supply(san-diego)..  - x(san-diego,new-york) - x(san-diego,chicago) - x(san-diego,topeka) =G= -600 ; (LHS = 0)
+     
+
+---- prdemand  =G=  price-responsive demand at market j
+
+prdemand(new-york)..  (487.5)*p(new-york) + x(seattle,new-york) + x(san-diego,new-york) =G= 0 ; (LHS = -325, INFES = 325 ****)
+     
+prdemand(chicago)..  (360)*p(chicago) + x(seattle,chicago) + x(san-diego,chicago) =G= 0 ; (LHS = -300, INFES = 300 ****)
+     
+prdemand(topeka)..  (550)*p(topeka) + x(seattle,topeka) + x(san-diego,topeka) =G= 0 ; (LHS = -275, INFES = 275 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 10
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Column Listing      SOLVE equilqty Using MCP From line 91
+
+
+---- w  shadow price at supply node i
+
+w(seattle)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(seattle,new-york)
+        1       profit(seattle,chicago)
+        1       profit(seattle,topeka)
+
+w(san-diego)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(san-diego,new-york)
+        1       profit(san-diego,chicago)
+        1       profit(san-diego,topeka)
+
+
+---- p  shadow price at demand node j
+
+p(new-york)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,new-york)
+       -1       profit(san-diego,new-york)
+     (487.5)    prdemand(new-york)
+
+p(chicago)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,chicago)
+       -1       profit(san-diego,chicago)
+     (360)      prdemand(chicago)
+
+p(topeka)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,topeka)
+       -1       profit(san-diego,topeka)
+     (550)      prdemand(topeka)
+
+
+---- x  shipment quantities in cases
+
+x(seattle,new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       prdemand(new-york)
+
+x(seattle,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       prdemand(chicago)
+
+x(seattle,topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       prdemand(topeka)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 11
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Column Listing      SOLVE equilqty Using MCP From line 91
+
+
+     x  shipment quantities in cases
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 12
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Model Statistics    SOLVE equilqty Using MCP From line 91
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            27     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                  28
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 13
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Solution Report     SOLVE equilqty Using MCP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   equilqty            
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+Gams      : transmcp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 14
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Equation Listing    SOLVE fixedqty Using MCP From line 98
+
+
+---- profit  =G=  zero profit conditions
+
+profit(seattle,new-york)..  w(seattle) - p(new-york) =G= -0.225 ; (LHS = 0)
+     
+profit(seattle,chicago)..  w(seattle) - p(chicago) =G= -0.0765 ; (LHS = 0)
+     
+profit(seattle,topeka)..  w(seattle) - p(topeka) =G= -0.162 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- supply  =G=  supply limit at plant i
+
+supply(seattle)..  - x(seattle,new-york) - x(seattle,chicago) - x(seattle,topeka) =G= -350 ; (LHS = 0)
+     
+supply(san-diego)..  - x(san-diego,new-york) - x(san-diego,chicago) - x(san-diego,topeka) =G= -600 ; (LHS = 0)
+     
+
+---- fxdemand  =G=  fixed demand at market j
+
+fxdemand(new-york)..  x(seattle,new-york) + x(san-diego,new-york) =G= 325 ; (LHS = 0, INFES = 325 ****)
+     
+fxdemand(chicago)..  x(seattle,chicago) + x(san-diego,chicago) =G= 300 ; (LHS = 0, INFES = 300 ****)
+     
+fxdemand(topeka)..  x(seattle,topeka) + x(san-diego,topeka) =G= 275 ; (LHS = 0, INFES = 275 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 15
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Column Listing      SOLVE fixedqty Using MCP From line 98
+
+
+---- w  shadow price at supply node i
+
+w(seattle)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(seattle,new-york)
+        1       profit(seattle,chicago)
+        1       profit(seattle,topeka)
+
+w(san-diego)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(san-diego,new-york)
+        1       profit(san-diego,chicago)
+        1       profit(san-diego,topeka)
+
+
+---- p  shadow price at demand node j
+
+p(new-york)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,new-york)
+       -1       profit(san-diego,new-york)
+
+p(chicago)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,chicago)
+       -1       profit(san-diego,chicago)
+
+p(topeka)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,topeka)
+       -1       profit(san-diego,topeka)
+
+
+---- x  shipment quantities in cases
+
+x(seattle,new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(new-york)
+
+x(seattle,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(chicago)
+
+x(seattle,topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       fxdemand(topeka)
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 16
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Model Statistics    SOLVE fixedqty Using MCP From line 98
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            24     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 17
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Solution Report     SOLVE fixedqty Using MCP From line 98
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixedqty            
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  98
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+Gams      : transmcp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 18
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Equation Listing    SOLVE equilqty Using MCP From line 104
+
+
+---- profit  =G=  zero profit conditions
+
+profit(seattle,new-york)..  w(seattle) - p(new-york) =G= -0.225 ; (LHS = 0)
+     
+profit(seattle,chicago)..  w(seattle) - p(chicago) =G= -0.0765 ; (LHS = 0)
+     
+profit(seattle,topeka)..  w(seattle) - p(topeka) =G= -0.162 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- supply  =G=  supply limit at plant i
+
+supply(seattle)..  - x(seattle,new-york) - x(seattle,chicago) - x(seattle,topeka) =G= -350 ; (LHS = 0)
+     
+supply(san-diego)..  - x(san-diego,new-york) - x(san-diego,chicago) - x(san-diego,topeka) =G= -600 ; (LHS = 0)
+     
+
+---- prdemand  =G=  price-responsive demand at market j
+
+prdemand(new-york)..  (487.5)*p(new-york) + x(seattle,new-york) + x(san-diego,new-york) =G= 0 ; (LHS = -325, INFES = 325 ****)
+     
+prdemand(chicago)..  (360)*p(chicago) + x(seattle,chicago) + x(san-diego,chicago) =G= 0 ; (LHS = -300, INFES = 300 ****)
+     
+prdemand(topeka)..  (550)*p(topeka) + x(seattle,topeka) + x(san-diego,topeka) =G= 0 ; (LHS = -275, INFES = 275 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 19
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Column Listing      SOLVE equilqty Using MCP From line 104
+
+
+---- w  shadow price at supply node i
+
+w(seattle)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(seattle,new-york)
+        1       profit(seattle,chicago)
+        1       profit(seattle,topeka)
+
+w(san-diego)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       profit(san-diego,new-york)
+        1       profit(san-diego,chicago)
+        1       profit(san-diego,topeka)
+
+
+---- p  shadow price at demand node j
+
+p(new-york)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,new-york)
+       -1       profit(san-diego,new-york)
+     (487.5)    prdemand(new-york)
+
+p(chicago)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,chicago)
+       -1       profit(san-diego,chicago)
+     (360)      prdemand(chicago)
+
+p(topeka)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       profit(seattle,topeka)
+       -1       profit(san-diego,topeka)
+     (550)      prdemand(topeka)
+
+
+---- x  shipment quantities in cases
+
+x(seattle,new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       prdemand(new-york)
+
+x(seattle,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       prdemand(chicago)
+
+x(seattle,topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(seattle)
+        1       prdemand(topeka)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 20
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Column Listing      SOLVE equilqty Using MCP From line 104
+
+
+     x  shipment quantities in cases
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 21
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Model Statistics    SOLVE equilqty Using MCP From line 104
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            27     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                  28
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 22
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+Solution Report     SOLVE equilqty Using MCP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   equilqty            
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+Gams      : transmcp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 23
+Transportation model as equilibrium problem (TRANSMCP,SEQ=126)
+E x e c u t i o n
+
+
+----    110 PARAMETER report  summary report
+
+                         fixed        flex    fixed CF     flex CF
+
+seattle  .price          1.000       1.000       1.000       1.000
+san-diego.price          1.000       1.000       1.000       1.000
+price    .new-york       1.000       1.000       1.000       1.000
+price    .chicago        1.000       1.000       1.000       1.000
+price    .topeka         1.000       1.000       1.000       1.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/transmcp/transmcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/transmcp/transmcp-scalar.gms.lst

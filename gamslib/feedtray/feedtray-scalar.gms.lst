@@ -1,0 +1,1172 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 2
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+   5   
+       
+      This model determines the optimum location of feed plates in
+      a distillation column with 7 ideal stages, a total condenser and
+      a kettle-type reboiler. The feed consists of a mixture of benzene
+      and toluene entering at bubble point.
+       
+       
+      Morari, M, and Grossmann, I E, Eds, Chemical Engineering Optimization
+      Models with GAMS. Computer Aids for Chemical Engineering Corporation,
+      1991.
+       
+      Vishwanathan, J, and Grossmann, I E, A Combined Penalty Function and
+      Outer Approximation Method for Mixed Integer Nonlinear Programming.
+      Computers and Chemical Engineering 14, 7 (1990), 769-782.
+       
+       
+                                      Section 1
+                                      Basic Data
+                                      ___________
+       
+              Basic Thermodynamic Data have been taken from
+       
+              R.C. Reid, J.M. Prausnitz and B.E. Poling :
+       
+              " The Properties of gases and liquids "
+       
+              4th Edition, McGraw-Hill (1987)
+       
+       
+              Units:  Pressure : in bars i.e. 0.1 Mpa
+                      Temperature : in kelvins
+                      Heat capacity : kJ/kmol K
+              Abbreviations :  mm   Molar mass
+                               Tb   Normal boiling point
+                               Tc   Critical temperature
+                               Pc   Critical Pressure
+  44   
+  45   Set  j  components  / benzene , toluene /;
+  46   
+  47   Table  prcon (j,*)    basic physical properties
+  48   
+  49                  mm        tb      tc        pc       omega    liq-den  tden
+  50   
+  51    benzene    78.114     353.2   562.2      48.9      0.212    0.885    289
+  52    toluene    92.141     383.8   591.8      41.0      0.263    0.867    293
+  53   
+  54   Table  vpcon(j,*)    constants in the weird equation for vap.pressure
+  55              a            b             c             d         tmin
+  56   benzene   -6.98273    1.33213      -2.62863       -3.33399     288
+  57   toluene   -7.28607    1.38091      -2.83433       -2.79168     309
+  58   
+  59   Table  cpcon(j,*)  constants for the isobaric heat capacity equation
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 3
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+  60                a           b             c           d
+  61   benzene   -3.392e+1    4.739e-1     -3.017e-4   7.130e-8
+  62   toluene   -2.435e+1    5.125e-1     -2.765e-4   4.911e-8
+  63   
+  64    Scalars       treb    guess temperature for reboiler
+  65                  tbot    guess temperature for bottom-most tray
+  66                  ttop    guess temperature for top-most tray
+  67                  tcon    guess temperature for condenser  ;
+  68                  treb = 380; tbot = 375; ttop = 360; tcon = 355;
+  69    Scalar      rg  universal gas constant  /8.314/ ;
+  70    Parameters   h0(j)   integration constant for enthalpy  ;
+  71   
+  72                h0(j) =  tcon * ( cpcon(j,'a') + tcon *  ( cpcon(j,'b')/2
+  73   
+  74                         + tcon*( cpcon(j,'c')/3 + tcon *cpcon(j,'d')/4 ))) ;
+  75   
+                              section 2
+                              _________
+                      thermal condition of the feed stream
+  81   
+  82   Scalars    f  total no. of moles of feed
+  83              tf  temperature of the feed (in kelvins)
+  84              pf  pressure of the feed stream
+  85              vf  vapour fraction in feed(before expansion)
+  86              shf specific enthalpy of feed
+  87              preb  pressure in the reboiler
+  88              pbot  pressure in the bottom-most tray
+  89              ptop  pressure in the top-most tray
+  90              pcon  pressure in the condenser   ;
+  91              f = 100 ;  preb = 1.2 ; pbot = 1.12 ; ptop = 1.08; pcon = 1.05;
+  92   
+  93               pf = 1.12 ;  vf = 0.0 ;
+  94   
+  95   
+  96   Parameters    xf(j)   molefractions in feed-stream
+  97                   /  benzene      0.70
+  98                      toluene      0.30   / ;
+  99   
+       
+             assume that feed enters at bubble point
+               determination of bubble temperature
+               use nlp to solve equation
+               commented out for convenience
+       
+                variable  tbub, z1 ;
+                equation bubble , obj1 ;
+       
+       
+       
+       bubble..      sum ( j, xf(j)* prcon(j,'pc')*  exp (  prcon(j,'tc')/tbub *
+       
+            ( vpcon(j,'a') * (1-tbub/prcon(j,'tc') )
+       
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 4
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+          +  vpcon(j,'b')*(1-tbub/prcon(j,'tc'))**1.5
+       
+          +  vpcon(j,'c')*(1-tbub/prcon(j,'tc'))**3
+       
+          +  vpcon(j,'d')*(1-tbub/prcon(j,'tc'))**6 ) ) / pf )  =e= 1 ;
+       
+       
+       obj1..                z1 =e= 1;
+                                                                                                tbub.lo = prcon('benzene','tb') ;
+                 tbub.up  = prcon('toluene','tb') ;
+                 tbub.l = 0.5 *(tbub.lo +tbub.up) ;
+       
+       Model  bubt  /all/ ;  solve bubt minimizing z1 using nlp ;
+       
+ 131   
+ 132  *$Ontext
+ 133  * note : solution of the above step indicates tbub = 363.368
+ 134   
+ 135             tf = 363.368 ;
+ 136   
+ 137             shf = sum (j, xf(j) *
+ 138   
+ 139   ( tf * ( cpcon(j,'a') + tf *  ( cpcon(j,'b')/2
+ 140   
+ 141    + tf*( cpcon(j,'c')/3 + tf *cpcon(j,'d')/4 )))  - h0(j)
+ 142   
+ 143     + rg *   prcon(j,'tc') *
+ 144   
+ 145        ( vpcon(j,'a') * (1-tf/prcon(j,'tc') )
+ 146   
+ 147      +  vpcon(j,'b')*(1-tf/prcon(j,'tc'))**1.5
+ 148   
+ 149      +  vpcon(j,'c')*(1-tf/prcon(j,'tc'))**3
+ 150   
+ 151      +  vpcon(j,'d')*(1-tf/prcon(j,'tc'))**6 )
+ 152   
+ 153     + rg * tf * ( vpcon(j,'a')
+ 154   
+ 155      +  1.5 * vpcon(j,'b')*(1-tf/prcon(j,'tc'))**0.5
+ 156   
+ 157      +  3 * vpcon(j,'c')*(1-tf/prcon(j,'tc'))**2
+ 158   
+ 159      +  6 * vpcon(j,'d')*(1-tf/prcon(j,'tc'))**5 ) ) )  ;
+ 160   
+ 161   
+ 162           Display shf ;
+ 163   
+ 164  *$Offtext
+ 165   
+       
+                                      section 3
+                                      _________
+       
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 5
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+                                modeling equations
+       
+       
+                             description of the column
+       
+              note: the stages are numbered bottom upwards (like the
+              floors of a building). reboiler is stage (tray) no. 1 and the
+              condenser is the last tray.
+       
+ 181   
+ 182   
+ 183   Sets      i     stages    /1*9  /
+ 184   
+ 185           reb(i)  reboiler
+ 186   
+ 187           con(i)  condenser
+ 188   
+ 189           col(i)   stages in the col
+ 190   
+ 191           floc(i)  possible locations of feed stage   / 2*8  /
+ 192   
+ 193           abovef(i) stages above the feed stage
+ 194   
+ 195           belowf(i)  feed stage and those below it ;
+ 196   
+ 197           reb(i) = yes$(ord(i) eq 1) ;
+ 198   
+ 199           con(i) = yes$(ord(i) eq card(i)) ;
+ 200   
+ 201           col(i) = yes - (reb(i)+con(i)) ;
+ 202   
+ 203   
+ 204   Parameter   p(i)    pressure prevailing in tray i ;
+ 205   
+ 206               p(i)$reb(i) = preb ;
+ 207   
+ 208               p(i)$con(i)= pcon ;
+ 209   
+ 210               p(i)$col(i)  =
+ 211   
+ 212               pbot - ((pbot-ptop)/(card(i)-1-2)) * (ord(i)-2)  ;
+ 213   
+ 214   
+ 215  Scalars
+ 216   
+ 217   hllo,hlhi,hvlo,hvhi,hscale  limits on enthalpies and scaling ;
+ 218   
+ 219   
+ 220     hllo =
+ 221   
+ 222     tcon * ( cpcon('benzene','a') + tcon *  ( cpcon('benzene','b')/2
+ 223   
+ 224    + tcon*( cpcon('benzene','c')/3 + tcon *cpcon('benzene','d')/4 )))
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 6
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 225   
+ 226    - h0('benzene')
+ 227   
+ 228    + rg *   prcon('benzene','tc') *
+ 229   
+ 230     ( vpcon('benzene','a') * (1-tcon/prcon('benzene','tc') )
+ 231   
+ 232    +  vpcon('benzene','b')*(1-tcon/prcon('benzene','tc'))**1.5
+ 233   
+ 234    +  vpcon('benzene','c')*(1-tcon/prcon('benzene','tc'))**3
+ 235   
+ 236    +  vpcon('benzene','d')*(1-tcon/prcon('benzene','tc'))**6 )
+ 237   
+ 238    + rg * tcon * ( vpcon('benzene','a')
+ 239   
+ 240    +  1.5 * vpcon('benzene','b')*(1-tcon/prcon('benzene','tc'))**0.5
+ 241   
+ 242    +  3 * vpcon('benzene','c')*(1-tcon/prcon('benzene','tc'))**2
+ 243   
+ 244    +  6 * vpcon('benzene','d')*(1-tcon/prcon('benzene','tc'))**5 )  ;
+ 245   
+ 246   
+ 247     hlhi =
+ 248   
+ 249      treb * ( cpcon('toluene','a') + treb *  ( cpcon('toluene','b')/2
+ 250   
+ 251    + treb*( cpcon('toluene','c')/3 + treb *cpcon('toluene','d')/4 )))
+ 252   
+ 253    - h0('toluene')
+ 254   
+ 255    + rg *   prcon('toluene','tc') *
+ 256   
+ 257     ( vpcon('toluene','a') * (1-treb/prcon('toluene','tc') )
+ 258   
+ 259    +  vpcon('toluene','b')*(1-treb/prcon('toluene','tc'))**1.5
+ 260   
+ 261    +  vpcon('toluene','c')*(1-treb/prcon('toluene','tc'))**3
+ 262   
+ 263    +  vpcon('toluene','d')*(1-treb/prcon('toluene','tc'))**6 )
+ 264   
+ 265    + rg * treb * ( vpcon('toluene','a')
+ 266   
+ 267    +  1.5 * vpcon('toluene','b')*(1-treb/prcon('toluene','tc'))**0.5
+ 268   
+ 269    +  3 * vpcon('toluene','c')*(1-treb/prcon('toluene','tc'))**2
+ 270   
+ 271    +  6 * vpcon('toluene','d')*(1-treb/prcon('toluene','tc'))**5 )  ;
+ 272   
+ 273   
+ 274     hvlo =
+ 275   
+ 276     tcon * ( cpcon('benzene','a') + tcon *  ( cpcon('benzene','b')/2
+ 277   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 7
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 278    + tcon*( cpcon('benzene','c')/3 + tcon *cpcon('benzene','d')/4 )))
+ 279   
+ 280    - h0('benzene') ;
+ 281   
+ 282   
+ 283     hvhi =
+ 284   
+ 285     treb * ( cpcon('toluene','a') + treb *  ( cpcon('toluene','b')/2
+ 286   
+ 287    + treb*( cpcon('toluene','c')/3 + treb *cpcon('toluene','d')/4 )))
+ 288   
+ 289    - h0('toluene') ;
+ 290   
+ 291   
+ 292    hscale = max( abs(hllo), abs(hlhi), abs(hvlo), abs(hvhi) ) ;
+ 293   
+ 294   
+ 295   
+ 296   Positive Variables
+ 297   
+ 298                x(i,j)   mole-fraction of j-th component in liquid on i-th tray.
+ 299   
+ 300                y(i,j)   mole-fraction of j-th component in vapour on i-th tray
+ 301   
+ 302                l(i)     molar flow rate of liquid leaving tray i
+ 303   
+ 304                v(i)     molar flow rate of vapour leaving tray i
+ 305   
+ 306                t(i)     temperature of tray i
+ 307   
+ 308                feed(i)  feed stream entering tray i
+ 309   
+ 310                r         reflux ratio
+ 311   
+ 312                p1        top product rate
+ 313   
+ 314                p2        bottom product rate  ;
+ 315   
+ 316   
+ 317   Variables
+ 318   
+ 319                hl(i)     molar sp.enthalpy of liquid in tray i.
+ 320   
+ 321                hv(i)     molar sp.enthalpy of vapour in tray i.  ;
+ 322   
+ 323   
+ 324   
+ 325   Equations
+ 326   
+ 327               phe(i,j)    phase equilibrium relation
+ 328   
+ 329               errk(i)     phase equilibrium error function
+ 330   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 8
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 331               cmb(i,j)    component material balance(1<i<n)
+ 332   
+ 333               cmb1(i,j)    component material balance(i=1)
+ 334   
+ 335               cmbn(i,j)    component material balance(i=n)
+ 336   
+ 337               tmb(i)      total material balance for trays in the column
+ 338   
+ 339               tmb1(i)     total material balance for reboiler
+ 340   
+ 341               tmbn(i)     total material balance for condenser
+ 342   
+ 343               defln(i)    definition of l(n)
+ 344   
+ 345               defp2(i)    definition of p2
+ 346   
+ 347   
+ 348               defhl(i)    definition of hl(i)
+ 349   
+ 350               defhv(i)    definition of hv(i)
+ 351   
+ 352               eb(i)       enthalpy balance
+ 353   
+ 354   
+ 355               purcon      purity constraint
+ 356   
+ 357               sumf        sum of feeds  ;
+ 358   
+ 359   
+ 360   phe(i,j)..  y(i,j)* p(i)  -   x(i,j) *  prcon(j,'pc') *
+ 361   
+ 362        exp (  prcon(j,'tc')/t(i) *
+ 363   
+ 364        ( vpcon(j,'a') * (1-t(i)/prcon(j,'tc') )
+ 365   
+ 366      +  vpcon(j,'b')*(1-t(i)/prcon(j,'tc'))**1.5
+ 367   
+ 368      +  vpcon(j,'c')*(1-t(i)/prcon(j,'tc'))**3
+ 369   
+ 370      +  vpcon(j,'d')*(1-t(i)/prcon(j,'tc'))**6 ) )    =e=  0 ;
+ 371   
+ 372   
+ 373   errk(i)..    sum(j,y(i,j)) - sum(j,x(i,j))  =e= 0.0  ;
+ 374   
+ 375   
+ 376   cmb(i,j)$col(i)..
+ 377   
+ 378         l(i)*x(i,j) + v(i) *y(i,j) - l(i+1)*x(i+1,j) -v(i-1)*y(i-1,j)
+ 379   
+ 380         - (feed(i)*xf(j))$floc(i)   =e= 0    ;
+ 381   
+ 382   cmb1(i,j)$reb(i)..
+ 383   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 9
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 384          l(i)*x(i,j) +v(i)*y(i,j)- l(i+1)*x(i+1,j) =e= 0  ;
+ 385   
+ 386   cmbn(i,j)$con(i)..
+ 387   
+ 388          (l(i)+ p1) * x(i,j) -  v(i-1)*y(i-1,j)   =e= 0  ;
+ 389   
+ 390   
+ 391   
+ 392   tmb(i)$col(i)..
+ 393   
+ 394           l(i) +v(i) - l(i+1) -v(i-1) - feed(i)$floc(i)  =e= 0 ;
+ 395   
+ 396   tmb1(i)$reb(i)..               l(i)+v(i)- l(i+1) =e= 0    ;
+ 397   
+ 398   tmbn(i)$con(i)..            (l(i) +p1) -  v(i-1) =e= 0 ;
+ 399   
+ 400   
+ 401   
+ 402   defln(i)$con(i)..     l(i)=e= r * p1 ;
+ 403   
+ 404   defp2(i)$reb(i)..     l(i)- p2 =e= 0 ;
+ 405   
+ 406   
+ 407   defhl(i).. hl(i)-sum( j, x(i,j) *
+ 408   
+ 409   ( t(i) * ( cpcon(j,'a') + t(i) *  ( cpcon(j,'b')/2
+ 410   
+ 411    + t(i)*( cpcon(j,'c')/3 + t(i) *cpcon(j,'d')/4 )))  - h0(j)
+ 412   
+ 413     + rg *   prcon(j,'tc') *
+ 414   
+ 415        ( vpcon(j,'a') * (1-t(i)/prcon(j,'tc') )
+ 416   
+ 417      +  vpcon(j,'b')*(1-t(i)/prcon(j,'tc'))**1.5
+ 418   
+ 419      +  vpcon(j,'c')*(1-t(i)/prcon(j,'tc'))**3
+ 420   
+ 421      +  vpcon(j,'d')*(1-t(i)/prcon(j,'tc'))**6 )
+ 422   
+ 423     +  rg * t(i) * ( vpcon(j,'a')
+ 424   
+ 425      +  1.5 * vpcon(j,'b')*(1-t(i)/prcon(j,'tc'))**0.5
+ 426   
+ 427      +  3 * vpcon(j,'c')*(1-t(i)/prcon(j,'tc'))**2
+ 428   
+ 429      +  6 * vpcon(j,'d')*(1-t(i)/prcon(j,'tc'))**5 ) ) )/ hscale   =e=  0 ;
+ 430   
+ 431   
+ 432   
+ 433   defhv(i).. hv(i) - sum( j, y(i,j)*
+ 434   
+ 435   ( t(i) * ( cpcon(j,'a') + t(i) *  ( cpcon(j,'b')/2
+ 436   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 10
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 437   + t(i)*( cpcon(j,'c')/3 + t(i) *cpcon(j,'d')/4 )))-h0(j)) )/ hscale =e= 0 ;
+ 438   
+ 439   
+ 440   eb(i)$col(i)..
+ 441   
+ 442       l(i)*hl(i) +v(i)*hv(i) - l(i+1)*hl(i+1) - v(i-1)*hv(i-1)
+ 443   
+ 444       - ( feed(i)* shf/hscale) $floc(i)    =e=  0  ;
+ 445   
+ 446   
+ 447   
+ 448   purcon..     x('9','benzene') =g= 0.95 ;
+ 449   
+ 450   
+ 451   sumf..      sum(i$floc(i), feed(i)) =e=  f ;
+ 452   
+ 453   
+ 454   
+ 455  *                initialization of variables
+ 456   
+ 457   
+ 458   
+ 459       r.l = 0.45  ;  r.up = 0.95 ;  r.lo = 0.1 ;
+ 460   
+ 461       p1.l = 60 ;  p1.up = 80;  p1.lo = 50 ;
+ 462   
+ 463       p2.l  = 40 ; p2.up =50 ;     p2.lo = 20 ;
+ 464   
+ 465       x.up(i,j) = 1.0 ;  y.up(i,j) = 1.0 ;
+ 466   
+ 467       set ifeed(i)  /6/ ;
+ 468   
+ 469       feed.l(i)$ifeed(i) = f ;
+ 470   
+ 471       belowf(i) = yes $ (ord(i) le 6 ) ;
+ 472   
+ 473       abovef(i) = yes -belowf(i) ;
+ 474   
+ 475       v.l(i) = ((r.l + 1) * p1.l );
+ 476   
+ 477       l.l(i)$reb(i) = p2.l ;
+ 478   
+ 479       l.l(i)$(belowf(i)-reb(i)) = p1.l * r.l + (1-vf)*f ;
+ 480   
+ 481       l.l(i)$abovef(i) = p1.l * r.l ;
+ 482   
+ 483   
+ 484       t.l(i)$reb(i) = treb ;
+ 485   
+ 486       t.l(i)$con(i) = tcon ;
+ 487   
+ 488       t.l(i)$col(i) = tbot + (ttop -tbot) *(ord(i)-2)/(card(i)-1-2) ;
+ 489   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 11
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 490   
+ 491   
+ 492   
+ 493   
+ 494   
+ 495       t.lo(i) = tcon - 10 ;  t.up(i) = treb + 10 ;
+ 496   
+ 497       x.l(i,'benzene') =0.90 - 0.5 * (ord(i)- card(i))/(1-card(i));
+ 498   
+ 499       x.l(i,'toluene') = 1 - x.l(i,'benzene') ;
+ 500   
+ 501       y.l(i,'benzene') =1.0 - 0.8*(ord(i) -card(i))/(1-card(i)) ;
+ 502   
+ 503       y.l(i,'toluene') = 1 - y.l(i,'benzene') ;
+ 504   
+ 505    hl.l(i) =
+ 506   
+ 507     sum( j, x.l(i,j) *
+ 508   
+ 509   ( t.l(i) * ( cpcon(j,'a') + t.l(i) *  ( cpcon(j,'b')/2
+ 510   
+ 511    + t.l(i)*( cpcon(j,'c')/3 + t.l(i) *cpcon(j,'d')/4 )))  - h0(j)
+ 512   
+ 513     + rg *   prcon(j,'tc') *
+ 514   
+ 515        ( vpcon(j,'a') * (1-t.l(i)/prcon(j,'tc') )
+ 516   
+ 517      +  vpcon(j,'b')*(1-t.l(i)/prcon(j,'tc'))**1.5
+ 518   
+ 519      +  vpcon(j,'c')*(1-t.l(i)/prcon(j,'tc'))**3
+ 520   
+ 521      +  vpcon(j,'d')*(1-t.l(i)/prcon(j,'tc'))**6 )
+ 522   
+ 523     +  rg * t.l(i) * ( vpcon(j,'a')
+ 524   
+ 525      +  1.5 * vpcon(j,'b')*(1-t.l(i)/prcon(j,'tc'))**0.5
+ 526   
+ 527      +  3 * vpcon(j,'c')*(1-t.l(i)/prcon(j,'tc'))**2
+ 528   
+ 529      +  6 * vpcon(j,'d')*(1-t.l(i)/prcon(j,'tc'))**5 ) ) )/  hscale  ;
+ 530   
+ 531    hv.l(i) =
+ 532   
+ 533    sum( j, y.l(i,j)*
+ 534   
+ 535    ( t.l(i) * ( cpcon(j,'a') + t.l(i) *  ( cpcon(j,'b')/2
+ 536   
+ 537   + t.l(i)*( cpcon(j,'c')/3 + t.l(i) *cpcon(j,'d')/4 ))) - h0(j)))/ hscale ;
+ 538   
+ 539   
+ 540     hl.lo(i) = ( 1 - 0.5*sign(hllo))*hllo/ hscale  ;
+ 541   
+ 542     hv.lo(i) = ( 1 - 0.5*sign(hvlo))*hvlo/ hscale  ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 12
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+System  ---  Benzene - Toluene at about 1 bar
+
+
+ 543   
+ 544     hl.up(i) = ( 1 + 0.5*sign(hlhi))* hlhi/ hscale  ;
+ 545   
+ 546     hv.up(i)=  ( 1 + 0.5*sign(hvhi))* hvhi/ hscale  ;
+ 547   
+ 548   
+ 549   
+ 550  * additional variables and equations for the feed traylocation problem ;
+ 551   
+ 552   
+ 553   
+ 554   Binary Variables   yf(i)  ;
+ 555   
+ 556   Variable   zf ;
+ 557   
+ 558   Equations   sumb        sum of binary variables
+ 559   
+ 560               confeed(i)     constraint on feed
+ 561   
+ 562               obj2        second objective function ;
+ 563   
+ 564   
+ 565   sumb..      sum(i$floc(i),yf(i)) =e=  1 ;
+ 566   
+ 567   confeed(i)$floc(i)..   feed(i) - f*yf(i)  =l= 0 ;
+ 568   
+ 569   obj2..       zf =e= p1 - 50 * r ;
+ 570   
+ 571   zf.up = 100 ;
+ 572   
+ 573       yf.l(i)$floc(i) = 1.0/7.0 ;
+ 574   
+ 575       feed.l(i)$floc(i) = f/7.0 ;
+ 576   
+ 577       feed.up(i)$floc(i) = f ;
+ 578   
+ 579    Model  column  optimization case /all/ ;
+ 580   
+ 581    Solve column using minlp  maximizing  zf ;
+ 582   
+ 583   
+
+
+COMPILATION TIME     =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 13
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+E x e c u t i o n
+
+
+----    162 PARAMETER shf                  =   -31864.023  specific enthalpy of feed
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 14
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Equation Listing    SOLVE column Using MINLP From line 581
+
+
+---- phe  =E=  phase equilibrium relation
+
+phe(1,benzene)..  - (2.15386676951775)*x(1,benzene) + 1.2*y(1,benzene) - (0.022371822010613)*t(1) =E= 0 ; (LHS = -0.621546707807099, INFES = 0.621546707807099 ****)
+     
+phe(1,toluene)..  - (0.906209580168831)*x(1,toluene) + 1.2*y(1,toluene) - (0.0158058462679908)*t(1) =E= 0 ; (LHS = 0.416274251898701, INFES = 0.416274251898701 ****)
+     
+phe(2,benzene)..  - (1.88783044226907)*x(2,benzene) + 1.12*y(2,benzene) - (0.0233769796359064)*t(2) =E= 0 ; (LHS = -0.537121579549445, INFES = 0.537121579549445 ****)
+     
+REMAINING 15 ENTRIES SKIPPED
+
+
+---- errk  =E=  phase equilibrium error function
+
+errk(1)..  - x(1,benzene) - x(1,toluene) + y(1,benzene) + y(1,toluene) =E= 0 ; (LHS = 0)
+     
+errk(2)..  - x(2,benzene) - x(2,toluene) + y(2,benzene) + y(2,toluene) =E= 0 ; (LHS = 0)
+     
+errk(3)..  - x(3,benzene) - x(3,toluene) + y(3,benzene) + y(3,toluene) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- cmb  =E=  component material balance(1<i<n)
+
+cmb(2,benzene)..  (127)*x(2,benzene) - (127)*x(3,benzene) - (87)*y(1,benzene) + (87)*y(2,benzene) + (0.4625)*l(2) - (0.525)*l(3) - (0.2)*v(1) + (0.3)*v(2) - 0.7*feed(2) =E= 0 ; (LHS = -9.23749999999998, INFES = 9.23749999999998 ****)
+     
+cmb(2,toluene)..  (127)*x(2,toluene) - (127)*x(3,toluene) - (87)*y(1,toluene) + (87)*y(2,toluene) + (0.5375)*l(2) - (0.475)*l(3) - (0.8)*v(1) + (0.7)*v(2) - 0.3*feed(2) =E= 0 ; (LHS = -5.04821428571426, INFES = 5.04821428571426 ****)
+     
+cmb(3,benzene)..  (127)*x(3,benzene) - (127)*x(4,benzene) - (87)*y(2,benzene) + (87)*y(3,benzene) + (0.525)*l(3) - (0.5875)*l(4) - (0.3)*v(2) + (0.4)*v(3) - 0.7*feed(3) =E= 0 ; (LHS = -9.2375, INFES = 9.2375 ****)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- cmb1  =E=  component material balance(i=1)
+
+cmb1(1,benzene)..  (40)*x(1,benzene) - (127)*x(2,benzene) + (87)*y(1,benzene) + (0.4)*l(1) - (0.4625)*l(2) + (0.2)*v(1) =E= 0 ; (LHS = -25.3375, INFES = 25.3375 ****)
+     
+cmb1(1,toluene)..  (40)*x(1,toluene) - (127)*x(2,toluene) + (87)*y(1,toluene) + (0.6)*l(1) - (0.5375)*l(2) + (0.8)*v(1) =E= 0 ; (LHS = 25.3375, INFES = 25.3375 ****)
+     
+
+---- cmbn  =E=  component material balance(i=n)
+
+cmbn(9,benzene)..  (87)*x(9,benzene) - (87)*y(8,benzene) + (0.9)*l(9) - (0.9)*v(8) + (0.9)*p1 =E= 0 ; (LHS = 0)
+     
+cmbn(9,toluene)..  (87)*x(9,toluene) - (87)*y(8,toluene) + (0.1)*l(9) - (0.1)*v(8) + (0.1)*p1 =E= 0 ; (LHS = 0)
+     
+
+---- tmb  =E=  total material balance for trays in the column
+
+tmb(2)..  l(2) - l(3) - v(1) + v(2) - feed(2) =E= 0 ; (LHS = -14.2857142857143, INFES = 14.2857142857143 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 15
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Equation Listing    SOLVE column Using MINLP From line 581
+
+
+     tmb  =E=  total material balance for trays in the column
+
+tmb(3)..  l(3) - l(4) - v(2) + v(3) - feed(3) =E= 0 ; (LHS = -14.2857142857143, INFES = 14.2857142857143 ****)
+     
+tmb(4)..  l(4) - l(5) - v(3) + v(4) - feed(4) =E= 0 ; (LHS = -14.2857142857143, INFES = 14.2857142857143 ****)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- tmb1  =E=  total material balance for reboiler
+
+tmb1(1)..  l(1) - l(2) + v(1) =E= 0 ; (LHS = 0)
+     
+
+---- tmbn  =E=  total material balance for condenser
+
+tmbn(9)..  l(9) - v(8) + p1 =E= 0 ; (LHS = 0)
+     
+
+---- defln  =E=  definition of l(n)
+
+defln(9)..  l(9) - (60)*r - (0.45)*p1 =E= 0 ; (LHS = 0)
+     
+
+---- defp2  =E=  definition of p2
+
+defp2(1)..  l(1) - p2 =E= 0 ; (LHS = 0)
+     
+
+---- defhl  =E=  definition of hl(i)
+
+defhl(1)..  (0.897035038633023)*x(1,benzene) + (0.993429073307637)*x(1,toluene) - (0.00473248775025708)*t(1) + hl(1) =E= 0 ; (LHS = 0)
+     
+defhl(2)..  (0.917661058851039)*x(2,benzene) + (1.01907475017518)*x(2,toluene) - (0.00466021149189148)*t(2) + hl(2) =E= 0 ; (LHS = 0)
+     
+defhl(3)..  (0.927967904246623)*x(3,benzene) + (1.0318706833477)*x(3,toluene) - (0.00459351434814007)*t(3) + hl(3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- defhv  =E=  definition of hv(i)
+
+defhv(1)..  - (0.0807821253353201)*y(1,benzene) - (0.101215131462122)*y(1,toluene) - (0.00400970239942842)*t(1) + hv(1) =E= 0 ; (LHS = 0)
+     
+defhv(2)..  - (0.0641866854843962)*y(2,benzene) - (0.08045760420211)*y(2,toluene) - (0.00387741950678442)*t(2) + hv(2) =E= 0 ; (LHS = 0)
+     
+defhv(3)..  - (0.0559705177751303)*y(3,benzene) - (0.0701745482573938)*y(3,toluene) - (0.00377047080191558)*t(3) + hv(3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 16
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Equation Listing    SOLVE column Using MINLP From line 581
+
+
+---- eb  =E=  enthalpy balance
+
+eb(2)..  - (0.972170917937763)*l(2) + (0.977321724319633)*l(3) - (0.0971285302367615)*v(1) + (0.0755763285867959)*v(2) + 0.999444137682208*feed(2) + (127)*hl(2) - (127)*hl(3) - (87)*hv(1) + (87)*hv(2) =E= 0 ;
+     
+      (LHS = 13.0568842624106, INFES = 13.0568842624106 ****)
+     
+eb(3)..  - (0.977321724319633)*l(3) + (0.982151492959225)*l(4) - (0.0755763285867959)*v(2) + (0.0644929360644884)*v(3) + 0.999444137682208*feed(3) + (127)*hl(3) - (127)*hl(4) - (87)*hv(2) + (87)*hv(3) =E= 0 ;
+     
+      (LHS = 13.9268988632475, INFES = 13.9268988632475 ****)
+     
+eb(4)..  - (0.982151492959225)*l(4) + (0.986662793667597)*l(5) - (0.0644929360644884)*v(3) + (0.0538822972811404)*v(4) + 0.999444137682208*feed(4) + (127)*hl(4) - (127)*hl(5) - (87)*hv(3) + (87)*hv(4) =E= 0 ;
+     
+      (LHS = 13.9275830112721, INFES = 13.9275830112721 ****)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- purcon  =G=  purity constraint
+
+purcon..  x(9,benzene) =G= 0.95 ; (LHS = 0.9, INFES = 0.0499999999999999 ****)
+     
+
+---- sumf  =E=  sum of feeds
+
+sumf..  feed(2) + feed(3) + feed(4) + feed(5) + feed(6) + feed(7) + feed(8) =E= 100 ; (LHS = 100)
+     
+
+---- sumb  =E=  sum of binary variables
+
+sumb..  yf(2) + yf(3) + yf(4) + yf(5) + yf(6) + yf(7) + yf(8) =E= 1 ; (LHS = 1)
+     
+
+---- confeed  =L=  constraint on feed
+
+confeed(2)..  feed(2) - 100*yf(2) =L= 0 ; (LHS = 0)
+     
+confeed(3)..  feed(3) - 100*yf(3) =L= 0 ; (LHS = 0)
+     
+confeed(4)..  feed(4) - 100*yf(4) =L= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- obj2  =E=  second objective function
+
+obj2..  50*r - p1 + zf =E= 0 ; (LHS = -37.5, INFES = 37.5 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 17
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Column Listing      SOLVE column Using MINLP From line 581
+
+
+---- x  mole-fraction of j-th component in liquid on i-th tray.
+
+x(1,benzene)
+                (.LO, .L, .UP, .M = 0, 0.4, 1, 0)
+      (-2.1539) phe(1,benzene)
+       -1       errk(1)
+      (40)      cmb1(1,benzene)
+       (0.897)  defhl(1)
+
+x(1,toluene)
+                (.LO, .L, .UP, .M = 0, 0.6, 1, 0)
+      (-0.9062) phe(1,toluene)
+       -1       errk(1)
+      (40)      cmb1(1,toluene)
+       (0.9934) defhl(1)
+
+x(2,benzene)
+                (.LO, .L, .UP, .M = 0, 0.4625, 1, 0)
+      (-1.8878) phe(2,benzene)
+       -1       errk(2)
+     (127)      cmb(2,benzene)
+    (-127)      cmb1(1,benzene)
+       (0.9177) defhl(2)
+
+REMAINING 15 ENTRIES SKIPPED
+
+---- y  mole-fraction of j-th component in vapour on i-th tray
+
+y(1,benzene)
+                (.LO, .L, .UP, .M = 0, 0.2, 1, 0)
+        1.2     phe(1,benzene)
+        1       errk(1)
+     (-87)      cmb(2,benzene)
+      (87)      cmb1(1,benzene)
+      (-0.0808) defhv(1)
+
+y(1,toluene)
+                (.LO, .L, .UP, .M = 0, 0.8, 1, 0)
+        1.2     phe(1,toluene)
+        1       errk(1)
+     (-87)      cmb(2,toluene)
+      (87)      cmb1(1,toluene)
+      (-0.1012) defhv(1)
+
+y(2,benzene)
+                (.LO, .L, .UP, .M = 0, 0.3, 1, 0)
+        1.12    phe(2,benzene)
+        1       errk(2)
+      (87)      cmb(2,benzene)
+     (-87)      cmb(3,benzene)
+      (-0.0642) defhv(2)
+
+REMAINING 15 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 18
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Column Listing      SOLVE column Using MINLP From line 581
+
+
+---- l  molar flow rate of liquid leaving tray i
+
+l(1)
+                (.LO, .L, .UP, .M = 0, 40, +INF, 0)
+       (0.4)    cmb1(1,benzene)
+       (0.6)    cmb1(1,toluene)
+        1       tmb1(1)
+        1       defp2(1)
+
+l(2)
+                (.LO, .L, .UP, .M = 0, 127, +INF, 0)
+       (0.4625) cmb(2,benzene)
+       (0.5375) cmb(2,toluene)
+      (-0.4625) cmb1(1,benzene)
+      (-0.5375) cmb1(1,toluene)
+        1       tmb(2)
+       -1       tmb1(1)
+      (-0.9722) eb(2)
+
+l(3)
+                (.LO, .L, .UP, .M = 0, 127, +INF, 0)
+      (-0.525)  cmb(2,benzene)
+      (-0.475)  cmb(2,toluene)
+       (0.525)  cmb(3,benzene)
+       (0.475)  cmb(3,toluene)
+       -1       tmb(2)
+        1       tmb(3)
+       (0.9773) eb(2)
+      (-0.9773) eb(3)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- v  molar flow rate of vapour leaving tray i
+
+v(1)
+                (.LO, .L, .UP, .M = 0, 87, +INF, 0)
+      (-0.2)    cmb(2,benzene)
+      (-0.8)    cmb(2,toluene)
+       (0.2)    cmb1(1,benzene)
+       (0.8)    cmb1(1,toluene)
+       -1       tmb(2)
+        1       tmb1(1)
+      (-0.0971) eb(2)
+
+v(2)
+                (.LO, .L, .UP, .M = 0, 87, +INF, 0)
+       (0.3)    cmb(2,benzene)
+       (0.7)    cmb(2,toluene)
+      (-0.3)    cmb(3,benzene)
+      (-0.7)    cmb(3,toluene)
+        1       tmb(2)
+       -1       tmb(3)
+       (0.0756) eb(2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 19
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Column Listing      SOLVE column Using MINLP From line 581
+
+
+     v  molar flow rate of vapour leaving tray i
+
+      (-0.0756) eb(3)
+
+v(3)
+                (.LO, .L, .UP, .M = 0, 87, +INF, 0)
+       (0.4)    cmb(3,benzene)
+       (0.6)    cmb(3,toluene)
+      (-0.4)    cmb(4,benzene)
+      (-0.6)    cmb(4,toluene)
+        1       tmb(3)
+       -1       tmb(4)
+       (0.0645) eb(3)
+      (-0.0645) eb(4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- t  temperature of tray i
+
+t(1)
+                (.LO, .L, .UP, .M = 345, 380, 390, 0)
+      (-0.0224) phe(1,benzene)
+      (-0.0158) phe(1,toluene)
+      (-0.0047) defhl(1)
+      (-0.004)  defhv(1)
+
+t(2)
+                (.LO, .L, .UP, .M = 345, 375, 390, 0)
+      (-0.0234) phe(2,benzene)
+      (-0.0126) phe(2,toluene)
+      (-0.0047) defhl(2)
+      (-0.0039) defhv(2)
+
+t(3)
+                (.LO, .L, .UP, .M = 345, 372.5, 390, 0)
+      (-0.0252) phe(3,benzene)
+      (-0.0105) phe(3,toluene)
+      (-0.0046) defhl(3)
+      (-0.0038) defhv(3)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- feed  feed stream entering tray i
+
+feed(2)
+                (.LO, .L, .UP, .M = 0, 14.2857142857143, 100, 0)
+       -0.7     cmb(2,benzene)
+       -0.3     cmb(2,toluene)
+       -1       tmb(2)
+        0.9994  eb(2)
+        1       sumf
+        1       confeed(2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 20
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Column Listing      SOLVE column Using MINLP From line 581
+
+
+     feed  feed stream entering tray i
+
+feed(3)
+                (.LO, .L, .UP, .M = 0, 14.2857142857143, 100, 0)
+       -0.7     cmb(3,benzene)
+       -0.3     cmb(3,toluene)
+       -1       tmb(3)
+        0.9994  eb(3)
+        1       sumf
+        1       confeed(3)
+
+feed(4)
+                (.LO, .L, .UP, .M = 0, 14.2857142857143, 100, 0)
+       -0.7     cmb(4,benzene)
+       -0.3     cmb(4,toluene)
+       -1       tmb(4)
+        0.9994  eb(4)
+        1       sumf
+        1       confeed(4)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- r  reflux ratio
+
+r
+                (.LO, .L, .UP, .M = 0.1, 0.45, 0.95, 0)
+     (-60)      defln(9)
+       50       obj2
+
+
+---- p1  top product rate
+
+p1
+                (.LO, .L, .UP, .M = 50, 60, 80, 0)
+       (0.9)    cmbn(9,benzene)
+       (0.1)    cmbn(9,toluene)
+        1       tmbn(9)
+      (-0.45)   defln(9)
+       -1       obj2
+
+
+---- p2  bottom product rate
+
+p2
+                (.LO, .L, .UP, .M = 20, 40, 50, 0)
+       -1       defp2(1)
+
+
+---- hl  molar sp.enthalpy of liquid in tray i.
+
+hl(1)
+                (.LO, .L, .UP, .M = -1.5, -0.954871459437791, -0.496714536653818, 0)
+        1       defhl(1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 21
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Column Listing      SOLVE column Using MINLP From line 581
+
+
+     hl  molar sp.enthalpy of liquid in tray i.
+
+
+hl(2)
+                (.LO, .L, .UP, .M = -1.5, -0.972170917937763, -0.496714536653818, 0)
+        1       defhl(2)
+     (127)      eb(2)
+
+hl(3)
+                (.LO, .L, .UP, .M = -1.5, -0.977321724319633, -0.496714536653818, 0)
+        1       defhl(3)
+    (-127)      eb(2)
+     (127)      eb(3)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- hv  molar sp.enthalpy of vapour in tray i.
+
+hv(1)
+                (.LO, .L, .UP, .M = 0, 0.0971285302367615, 0.151822697193183, 0)
+        1       defhv(1)
+     (-87)      eb(2)
+
+hv(2)
+                (.LO, .L, .UP, .M = 0, 0.0755763285867959, 0.151822697193183, 0)
+        1       defhv(2)
+      (87)      eb(2)
+     (-87)      eb(3)
+
+hv(3)
+                (.LO, .L, .UP, .M = 0, 0.0644929360644884, 0.151822697193183, 0)
+        1       defhv(3)
+      (87)      eb(3)
+     (-87)      eb(4)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- yf  
+
+yf(2)
+                (.LO, .L, .UP, .M = 0, 0.142857142857143, 1, 0)
+        1       sumb
+     -100       confeed(2)
+
+yf(3)
+                (.LO, .L, .UP, .M = 0, 0.142857142857143, 1, 0)
+        1       sumb
+     -100       confeed(3)
+
+yf(4)
+                (.LO, .L, .UP, .M = 0, 0.142857142857143, 1, 0)
+        1       sumb
+     -100       confeed(4)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 22
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Column Listing      SOLVE column Using MINLP From line 581
+
+
+     yf  
+
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- zf  
+
+zf
+                (.LO, .L, .UP, .M = -INF, 0, 100, 0)
+        1       obj2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 23
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Model Statistics    SOLVE column Using MINLP From line 581
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS           92
+BLOCKS OF VARIABLES          13     SINGLE VARIABLES           98
+NON ZERO ELEMENTS           451     NON LINEAR N-Z            282
+DERIVATIVE POOL              20     CONSTANT POOL              56
+CODE LENGTH               2,168     DISCRETE VARIABLES          7
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:47 Page 24
+Optimum feed plate location (FEEDTRAY,SEQ=122)
+Solution Report     SOLVE column Using MINLP From line 581
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   column              OBJECTIVE  zf
+     TYPE    MINLP               DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  581
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/feedtray/convert.opt"
+>>  gams feedtray-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/feedtray/convert.opt"
+Gams      : feedtray-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/feedtray/feedtray.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/feedtray/feedtray-scalar.gms.lst

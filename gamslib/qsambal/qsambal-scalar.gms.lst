@@ -1,0 +1,265 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option QCP=convert;
+   2  option QCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 2
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+C o m p i l a t i o n
+
+
+   4   
+         This is a QCP version of the gamslib model SAMBAL.
+       
+         A Social Accounting Matrix captures all the circular flows in an
+         economy and is called balanced if the row totals equal the column
+         totals. A sample problem illustrates the use of Nonlinear Programming
+         to balance such matrices.
+       
+       
+      Zenios, S A, Drud, A S, and Mulvey, J, Balancing some large Social
+      Accounting Matrices with Nonlinear Programming. Tech. rep.,
+      Department of Civil Engineering, Princeton University, 1986.
+       
+  19   
+  20  Set i accounts / lab, h1, h2, p1, p2 / ; alias (i,j);
+  21   
+  22  Table xb(i,j) original estimate
+  23   
+  24        lab   h1   h2   p1   p2
+  25  lab         15    3  130   80
+  26  h1     na
+  27  h2     na
+  28  p1          15  130        20
+  29  p2          25   40   55
+  30   
+  31  Parameter tb(i) original totals / lab 220, (h1,h2)  na, p1 190, p2 105 /
+  32            tw(i) weights for totals
+  33            xw(i,j) weights for cells;
+  34   
+  35  tw(i) = 1; tw(i)$(tb(i)=na) = 0;
+  36  xw(i,j) = 1$xb(i,j); xw(i,j)$(xb(i,j)=na) = 0;
+  37   
+  38  Display tw, xw;
+  39  Variables x(i,j) estimated cells
+  40            t(i)   estimated totals
+  41            dev    deviations;
+  42   
+  43  Equations rbal(i) row balance
+  44            cbal(j) column balance
+  45            devsqr  definition of square deviations;
+  46   
+  47  rbal(i).. t(i) =e= sum(j$xb(i,j), x(i,j));
+  48   
+  49  cbal(j).. t(j) =e= sum(i$xb(i,j), x(i,j));
+  50   
+  51  devsqr..  dev  =e= sum((i,j)$xw(i,j), xw(i,j)*sqr(xb(i,j) - x(i,j))/xb(i,j))
+  52                   + sum(i$tw(i), tw(i)*sqr(tb(i) - t(i))/tb(i));
+  53   
+  54  Model bal / all /;
+  55   
+  56  x.l(i,j) = xb(i,j)$xw(i,j); t.l(i) = tb(i)$tw(i);
+  57   
+  58  Solve bal using qcp minimizing dev;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 3
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+C o m p i l a t i o n
+
+
+  59   
+  60  parameter rep balancing summary report;
+  61   
+  62  rep(i,j,'original') = xb(i,j); rep(i,j,'estimate') = x.l(i,j);
+  63   
+  64  display rep;
+  65   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 4
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+E x e c u t i o n
+
+
+----     38 PARAMETER tw  weights for totals
+
+lab 1.000,    p1  1.000,    p2  1.000
+
+
+----     38 PARAMETER xw  weights for cells
+
+             h1          h2          p1          p2
+
+lab       1.000       1.000       1.000       1.000
+p1        1.000       1.000                   1.000
+p2        1.000       1.000       1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 5
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+Equation Listing    SOLVE bal Using QCP From line 58
+
+
+---- rbal  =E=  row balance
+
+rbal(lab)..  - x(lab,h1) - x(lab,h2) - x(lab,p1) - x(lab,p2) + t(lab) =E= 0 ; (LHS = -8, INFES = 8 ****)
+     
+rbal(h1)..  - x(h1,lab) + t(h1) =E= 0 ; (LHS = 0)
+     
+rbal(h2)..  - x(h2,lab) + t(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- cbal  =E=  column balance
+
+cbal(lab)..  - x(h1,lab) - x(h2,lab) + t(lab) =E= 0 ; (LHS = 220, INFES = 220 ****)
+     
+cbal(h1)..  - x(lab,h1) - x(p1,h1) - x(p2,h1) + t(h1) =E= 0 ; (LHS = -55, INFES = 55 ****)
+     
+cbal(h2)..  - x(lab,h2) - x(p1,h2) - x(p2,h2) + t(h2) =E= 0 ; (LHS = -173, INFES = 173 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- devsqr  =E=  definition of square deviations
+
+devsqr..  (0)*x(lab,h1) + (0)*x(lab,h2) + (0)*x(lab,p1) + (0)*x(lab,p2) + (0)*x(p1,h1) + (0)*x(p1,h2) + (0)*x(p1,p2) + (0)*x(p2,h1) + (0)*x(p2,h2) + (0)*x(p2,p1) + (0)*t(lab) + (0)*t(p1) + (0)*t(p2) + dev =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 6
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+Column Listing      SOLVE bal Using QCP From line 58
+
+
+---- x  estimated cells
+
+x(lab,h1)
+                (.LO, .L, .UP, .M = -INF, 15, +INF, 0)
+       -1       rbal(lab)
+       -1       cbal(h1)
+       (0)      devsqr
+
+x(lab,h2)
+                (.LO, .L, .UP, .M = -INF, 3, +INF, 0)
+       -1       rbal(lab)
+       -1       cbal(h2)
+       (0)      devsqr
+
+x(lab,p1)
+                (.LO, .L, .UP, .M = -INF, 130, +INF, 0)
+       -1       rbal(lab)
+       -1       cbal(p1)
+       (0)      devsqr
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- t  estimated totals
+
+t(lab)
+                (.LO, .L, .UP, .M = -INF, 220, +INF, 0)
+        1       rbal(lab)
+        1       cbal(lab)
+       (0)      devsqr
+
+t(h1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       rbal(h1)
+        1       cbal(h1)
+
+t(h2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       rbal(h2)
+        1       cbal(h2)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- dev  deviations
+
+dev
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       devsqr
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 7
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+Model Statistics    SOLVE bal Using QCP From line 58
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           18
+NON ZERO ELEMENTS            48     NON LINEAR N-Z             13
+DERIVATIVE POOL              20     CONSTANT POOL              26
+CODE LENGTH                  68
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 8
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+Solution Report     SOLVE bal Using QCP From line 58
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   bal                 OBJECTIVE  dev
+     TYPE    QCP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  58
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qsambal/convert.opt"
+>>  gams qsambal-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qsambal/convert.opt"
+Gams      : qsambal-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:26 Page 9
+Social Accounting Matrix Balancing Problem (QSAMBAL,SEQ=285)
+E x e c u t i o n
+
+
+----     64 PARAMETER rep  balancing summary report
+
+           original    estimate
+
+lab.h1       15.000      15.000
+lab.h2        3.000       3.000
+lab.p1      130.000     130.000
+lab.p2       80.000      80.000
+h1 .lab          NA
+h2 .lab          NA
+p1 .h1       15.000      15.000
+p1 .h2      130.000     130.000
+p1 .p2       20.000      20.000
+p2 .h1       25.000      25.000
+p2 .h2       40.000      40.000
+p2 .p1       55.000      55.000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qsambal/qsambal.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qsambal/qsambal-scalar.gms.lst

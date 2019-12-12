@@ -1,0 +1,825 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 2
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+C o m p i l a t i o n
+
+
+   5   
+       
+         A Contingency Planning Model (CPM) of international petroleum
+         production, transportation and refining had been developed jointly
+         at Stanford University, Sobotka and Company, and the US Department
+         of Energy. The model is designed to examine the effects of various
+         contingencies (crude supply interruptions) and policies (e.g. ban
+         of Alaskan exports). The following representation is the single-
+         region version discussed in Chapter 3.
+       
+       
+      Manne, A S, Nelson, C R, So, K C, and Weyant, J P, CPM: A Contingency
+      Planning Model of the International Oil Market, International Energy
+      Program Report. Tech. rep., Stanford University, 1982.
+       
+  22   
+  23   Sets  c      all commodities   /
+  24   
+  25                ls-light      low sulfur  light  crude
+  26                ls-medium     low sulfur  medium crude
+  27                ls-heavy      low sulfur  heavy  crude
+  28                hs-light      high sulfur  light  crude
+  29                hs-medium     high sulfur  medium crude
+  30                hs-heavy      high sulfur  heavy  crude
+  31                ngl           natural gas liquids
+  32                ls-feed       low sulfur feed
+  33                hs-feed       high sulfur feed
+  34                gasoline      motor gasoline
+  35                distillat     heating oil + diesel + kerosene
+  36                naphtha       primary naphtha lpg + others
+  37                ls-resid      low sulfur fuel oil + lubes and waxes
+  38                hs-resid      high sulfur fuel oil + asphalt
+  39                                               /
+  40         cr(c)  crude types / ls-light, ls-medium, ls-heavy, hs-light, hs-medium, hs-heavy, ngl /
+  41   
+  42         ci(c)  intermediate products / ls-feed, hs-feed /
+  43   
+  44         cf(c)  final products   / gasoline, distillat, naphtha, ls-resid, hs-resid /
+  45   
+  46         p      processes   /
+  47   
+  48                d-lsl        distillation of low sulfur light crude
+  49                d-lsm        distillation of low sulfur medium crude
+  50                d-lsh        distillation of low sulfur heavy crude
+  51                d-hsl        distillation of high sulfur light crude
+  52                d-hsm        distillation of high sulfur medium crude
+  53                d-hsh        distillation of high sulfur heavy crude
+  54                ngl          natural gas liquids processing
+  55                reform       reforming
+  56                ls-hc        low sulfur heavy ends conversion
+  57                hs-hc        high sulfur heavy ends conversion
+  58                desulf       desulferization
+  59                                             /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 3
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+C o m p i l a t i o n
+
+
+  60         pt     transfer processes   /
+  61   
+  62                t-gas        transfer of gasoline to distillate
+  63                t-nap        transfer of naphtha to distillate
+  64                t-lsr        transfer of low sulfur resid
+  65                t-hsr        transfer of high sulfur resid
+  66                                  /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 4
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+C o m p i l a t i o n
+
+
+  68   
+  69         m      productive units  /
+  70   
+  71                p-still      primary distillation
+  72                ngl          ngl facilities
+  73                reformer
+  74                he-conv      heavy ends converter
+  75                desulf       desulfurizer
+  76                                    /
+  77         l      cost level of facilities  / b  base or low cost, m marginal or high cost /
+  78   
+  79   Table   a(c,l,p)   input output coefficients
+  80   
+  81                   d-lsl  d-lsm  d-lsh  d-hsl  d-hsm  d-hsh  ngl  reform  ls-hc  hs-hc  desulf
+  82   ls-light.(b,m)   -1.0
+  83   ls-medium.(b,m)        -1.0
+  84   ls-heavy.(b,m)                -1.0
+  85   hs-light.(b,m)                       -1.0
+  86   hs-medium.(b,m)                             -1.0
+  87   hs-heavy.(b,m)                                     -1.0
+  88   ngl.(b,m)                                                -1.0
+  89   
+  90   ls-feed.b       .35    .50    .68                                     -1.0            .99
+  91   ls-feed.m       .34    .49    .67                                     -1.0            .99
+  92   hs-feed.b                           .38    .48    .66                        -1.0   -1.0
+  93   hs-feed.m                           .38    .47    .65                        -1.0   -1.0
+  94   gasoline.b                                               .20   .96      .67    .61
+  95   gasoline.m                                               .20   .96      .36    .25
+  96   distillat.b     .28    .25    .20    .26    .23    .18                  .07    .02
+  97   distillat.m     .28    .25    .20    .26    .23    .18                  .18    .10
+  98   naphtha.b       .35    .23    .10    .33    .27    .14   .80   -1.0     .04    .06
+  99   naphtha.m       .35    .23    .10    .33    .27    .14   .80   -1.0     .03    .04
+ 100   ls-resid.b                                                              .23
+ 101   ls-resid.m                                                              .42
+ 102   hs-resid.b                                                                     .30
+ 103   hs-resid.m                                                                     .60
+ 104   
+ 105   Table  tr(c,pt)  transfer processes
+ 106   
+ 107                  t-gas  t-nap  t-lsr  t-hsr
+ 108   gasoline       -1.0
+ 109   distillat       1.0     .93
+ 110   naphtha               -1.0
+ 111   ls-feed                      -1.0
+ 112   hs-feed                             -1.0
+ 113   ls-resid                      1.0
+ 114   hs-resid                             1.0
+ 115   
+ 116   Parameter loss(p,l) process losses ;
+ 117   loss(p,l) = sum(c, a(c,l,p));
+ 118   Display loss;
+ 119   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 5
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+C o m p i l a t i o n
+
+
+ 121   
+ 122   Table  b(m,p)   capacity utilization matrix
+ 123   
+ 124                   d-lsl  d-lsm  d-lsh  d-hsl  d-hsm  d-hsh  ngl  reform  ls-hc  hs-hc  desulf
+ 125   p-still           1      1      1      1      1      1
+ 126   ngl                                                        1
+ 127   reformer                                                         1
+ 128   he-conv                                                                  1      1
+ 129   desulf                                                                                 1
+ 130   
+ 131   Table  k(m,l)  initial capacities (mbd)
+ 132   
+ 133                b       m
+ 134   p-still    50.5     7.5
+ 135   ngl         3.4
+ 136   reformer    7.1      .8
+ 137   he-conv     7.3     2.9
+ 138   desulf      2.7      .3
+ 139   
+ 140   Parameters  hecr(l,p)  heavy ends conversion restriction       / b.ls-hc  -.83, (b,m).hs-hc  1.0 /
+ 141               hecc(l)    heavy ends conversion capacity (mbd)    / b  3.9,  m  2.5 /
+ 142               trb(pt)    transfer bounds (mbd)      / t-gas  1.7, t-nap  1.9,  (t-lsr,t-hsr)  inf  /
+ 143               trc(pt)    transfer costs ($ per b)   / t-gas  -.3 /
+ 144               mcpe(c)    imports from cpe + drawdowns (mbd) / hs-light  .7, distillat  .5, hs-resid  .1 /
+ 145   
+ 146   Table  crd(cr,*)  crude oil data
+ 147   
+ 148               limit      price
+ 149  *            (mbd)      ($/b)
+ 150   ls-light     13.6       32.0
+ 151   ls-medium     1.1       32.0
+ 152   ls-heavy      1.0       32.0
+ 153   hs-light     16.2       32.0
+ 154   hs-medium     8.9       32.0
+ 155   hs-heavy      4.4       32.0
+ 156   ngl           3.1       32.0
+ 157   
+ 158   
+ 159   Table  pc(l,p)  process cost (us$ per barrel)
+ 160   
+ 161             d-lsl  d-lsm  d-lsh  d-hsl  d-hsm  d-hsh  ngl  reform  ls-hc  hs-hc  desulf
+ 162   b          .45    .45    .45    .50    .50    .50         .41     .27    .32     .9
+ 163   m          .50    .50    .50    .55    .55    .55         .50     .45    .28    1.0
+ 164   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 6
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+C o m p i l a t i o n
+
+
+ 166   
+ 167   Table ddat(cf,*)  demand data
+ 168   
+ 169               ref-q    ref-p    ref-t     elas
+ 170  *            (mbd)    ($/b)    ($/b)
+ 171   gasoline     12.8     45.0      0.0     -.20
+ 172   distillat    13.8     41.0      0.0     -.20
+ 173   naphtha       8.3     43.0      0.0     -.20
+ 174   ls-resid      4.2     35.3      0.0     -.30
+ 175   hs-resid      8.6     31.0      0.0     -.30
+ 176   
+ 177   Parameters  dema(cf)   demand parameter a
+ 178               demb(cf)   demand parameter b ;
+ 179   
+ 180    demb(cf) = 1/ddat(cf,"elas") + 1;
+ 181    dema(cf) = ddat(cf,"ref-p")/demb(cf)/ddat(cf,"ref-q")**(demb(cf)-1);
+ 182    Display dema,demb,ddat;
+ 183   
+ 184   
+ 185   Variables  z(p,l)     process level                     (mbd)
+ 186              u(c)       supply of crude                   (mbd)
+ 187              w(pt)      transfer activities               (mbd)
+ 188              xf(c)      shipment of final products        (mbd)
+ 189              pcost      production cost                   (mill $ per day)
+ 190              scps       consumers and producers surplus   (mill $ per day)
+ 191              positive variables z, u, w, xf;
+ 192   
+ 193   Equations  mb(c)      material balance                  (mbd)
+ 194              cc(m,l)    capacity constraint               (mbd)
+ 195              ccr(l)     capacity restriction - heavy ends (mbd)
+ 196              pcdef      production cost definition        (mill $ per day)
+ 197              dcps       definition of surplus             (mill $ per day) ;
+ 198   
+ 199   mb(c).. mcpe(c) +sum((p,l), a(c,l,p)*z(p,l)) + u(c)$cr(c) + sum(pt, tr(c,pt)*w(pt)) =g= xf(c)$cf(c);
+ 200   
+ 201   cc(m,l)..  sum(p, b(m,p)*z(p,l)) =l= k(m,l);
+ 202   
+ 203   ccr(l)..   sum(p, hecr(l,p)*z(p,l)) =l= hecc(l);
+ 204   
+ 205   pcdef..  pcost =e= sum((p,l), pc(l,p)*z(p,l)) + sum(pt, trc(pt)*w(pt)) + sum(cr, crd(cr,"price")*u(cr));
+ 206   
+ 207   dcps..   scps  =e= sum(cf, dema(cf)*xf(cf)**demb(cf) - ddat(cf,"ref-t")*xf(cf)) - pcost ;
+ 208   
+ 209   u.up(cr) = crd(cr,"limit");   w.up(pt) = trb(pt);
+ 210   
+ 211   Model refnlp world ref model nlp / mb,cc,ccr,pcdef,dcps /
+ 212         reflp  world ref model lp  / mb,cc,ccr,pcdef / ;
+ 213   
+ 214   xf.fx(cf) = ddat(cf,"ref-q");
+ 215   Solve reflp minimizing pcost using lp ;
+ 216   
+ 217   xf.lo(cf) = 2; xf.up(cf) = +inf;
+ 218   Solve refnlp maximizing scps using nlp ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 7
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 8
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+E x e c u t i o n
+
+
+----    118 PARAMETER loss  process losses
+
+                 b           m
+
+d-lsl       -0.020      -0.030
+d-lsm       -0.020      -0.030
+d-lsh       -0.020      -0.030
+d-hsl       -0.030      -0.030
+d-hsm       -0.020      -0.030
+d-hsh       -0.020      -0.030
+reform      -0.040      -0.040
+ls-hc        0.010      -0.010
+hs-hc       -0.010      -0.010
+desulf      -0.010      -0.010
+
+
+----    182 PARAMETER dema  demand parameter a
+
+gasoline  -3.86547E+6,    distillat -5.13002E+6,    naphtha   -423446.869,    ls-resid    -1808.404,    hs-resid   -17313.296
+
+
+----    182 PARAMETER demb  demand parameter b
+
+gasoline  -4.000,    distillat -4.000,    naphtha   -4.000,    ls-resid  -2.333,    hs-resid  -2.333
+
+
+----    182 PARAMETER ddat  demand data
+
+                ref-q       ref-p        elas
+
+gasoline       12.800      45.000      -0.200
+distillat      13.800      41.000      -0.200
+naphtha         8.300      43.000      -0.200
+ls-resid        4.200      35.300      -0.300
+hs-resid        8.600      31.000      -0.300
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 9
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Equation Listing    SOLVE reflp Using LP From line 215
+
+
+---- mb  =G=  material balance                  (mbd)
+
+mb(ls-light)..  - z(d-lsl,b) - z(d-lsl,m) + u(ls-light) =G= 0 ; (LHS = 0)
+     
+mb(ls-medium)..  - z(d-lsm,b) - z(d-lsm,m) + u(ls-medium) =G= 0 ; (LHS = 0)
+     
+mb(ls-heavy)..  - z(d-lsh,b) - z(d-lsh,m) + u(ls-heavy) =G= 0 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraint               (mbd)
+
+cc(ngl,b)..  z(ngl,b) =L= 3.4 ; (LHS = 0)
+     
+cc(ngl,m)..  z(ngl,m) =L= 0 ; (LHS = 0)
+     
+cc(desulf,b)..  z(desulf,b) =L= 2.7 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- ccr  =L=  capacity restriction - heavy ends (mbd)
+
+ccr(b)..  - 0.83*z(ls-hc,b) + z(hs-hc,b) =L= 3.9 ; (LHS = 0)
+     
+ccr(m)..  z(hs-hc,m) =L= 2.5 ; (LHS = 0)
+     
+
+---- pcdef  =E=  production cost definition        (mill $ per day)
+
+pcdef..  - 0.45*z(d-lsl,b) - 0.5*z(d-lsl,m) - 0.45*z(d-lsm,b) - 0.5*z(d-lsm,m) - 0.45*z(d-lsh,b) - 0.5*z(d-lsh,m) - 0.5*z(d-hsl,b) - 0.55*z(d-hsl,m) - 0.5*z(d-hsm,b) - 0.55*z(d-hsm,m) - 0.5*z(d-hsh,b) - 0.55*z(d-hsh,m) - 0.41*z(reform,b) - 0.5*z(reform,m)
+     
+      - 0.27*z(ls-hc,b) - 0.45*z(ls-hc,m) - 0.32*z(hs-hc,b) - 0.28*z(hs-hc,m) - 0.9*z(desulf,b) - z(desulf,m) - 32*u(ls-light) - 32*u(ls-medium) - 32*u(ls-heavy) - 32*u(hs-light) - 32*u(hs-medium) - 32*u(hs-heavy) - 32*u(ngl) + 0.3*w(t-gas) + pcost =E= 0
+      ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 10
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Column Listing      SOLVE reflp Using LP From line 215
+
+
+---- z  process level                     (mbd)
+
+z(ngl,b)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(ngl)
+        0.2     mb(gasoline)
+        0.8     mb(naphtha)
+        1       cc(ngl,b)
+
+z(ngl,m)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(ngl)
+        0.2     mb(gasoline)
+        0.8     mb(naphtha)
+        1       cc(ngl,m)
+
+z(d-lsl,b)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(ls-light)
+        0.35    mb(ls-feed)
+        0.28    mb(distillat)
+        0.35    mb(naphtha)
+        1       cc(p-still,b)
+       -0.45    pcdef
+
+REMAINING 19 ENTRIES SKIPPED
+
+---- u  supply of crude                   (mbd)
+
+u(ls-light)
+                (.LO, .L, .UP, .M = 0, 0, 13.6, 0)
+        1       mb(ls-light)
+      -32       pcdef
+
+u(ls-medium)
+                (.LO, .L, .UP, .M = 0, 0, 1.1, 0)
+        1       mb(ls-medium)
+      -32       pcdef
+
+u(ls-heavy)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       mb(ls-heavy)
+      -32       pcdef
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- w  transfer activities               (mbd)
+
+w(t-gas)
+                (.LO, .L, .UP, .M = 0, 0, 1.7, 0)
+       -1       mb(gasoline)
+        1       mb(distillat)
+        0.3     pcdef
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 11
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Column Listing      SOLVE reflp Using LP From line 215
+
+
+     w  transfer activities               (mbd)
+
+
+w(t-nap)
+                (.LO, .L, .UP, .M = 0, 0, 1.9, 0)
+        0.93    mb(distillat)
+       -1       mb(naphtha)
+
+w(t-lsr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(ls-feed)
+        1       mb(ls-resid)
+
+REMAINING ENTRY SKIPPED
+
+---- xf  shipment of final products        (mbd)
+
+xf(gasoline)
+                (.LO, .L, .UP, .M = 12.8, 12.8, 12.8, 0)
+       -1       mb(gasoline)
+
+xf(distillat)
+                (.LO, .L, .UP, .M = 13.8, 13.8, 13.8, 0)
+       -1       mb(distillat)
+
+xf(naphtha)
+                (.LO, .L, .UP, .M = 8.3, 8.3, 8.3, 0)
+       -1       mb(naphtha)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- pcost  production cost                   (mill $ per day)
+
+pcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pcdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 12
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Model Statistics    SOLVE reflp Using LP From line 215
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           27
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           39
+NON ZERO ELEMENTS           156
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 13
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Solution Report     SOLVE reflp Using LP From line 215
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   reflp               OBJECTIVE  pcost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  215
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE             1560.6692
+
+ RESOURCE USAGE, LIMIT          0.005      1000.000
+ ITERATION COUNT, LIMIT        25    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/srcpm/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.11 ticks)
+Optimal solution found.
+Objective :        1560.669168
+
+
+---- EQU mb  material balance                  (mbd)
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+ls-light           .              .            +INF           32.8925      
+ls-medium          .              .            +INF           32.9906      
+ls-heavy           .              .            +INF           33.0735      
+hs-light         -0.7000        -0.7000        +INF           32.0000      
+hs-medium          .              .            +INF           32.2385      
+hs-heavy           .              .            +INF           32.0854      
+ngl                .              .            +INF           33.4604      
+ls-feed            .              .            +INF           34.0539      
+hs-feed            .              .            +INF           32.7424      
+gasoline           .              .            +INF           35.6817      
+distillat        -0.5000        -0.5000        +INF           35.3817      
+naphtha            .              .            +INF           32.9050      
+ls-resid           .              .            +INF           34.0539      
+hs-resid         -0.1000        -0.1000        +INF           32.7424      
+
+---- EQU cc  capacity constraint               (mbd)
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+ngl     .b        -INF            3.1000         3.4000          .          
+ngl     .m        -INF             .              .              .          
+desulf  .b        -INF            2.7000         2.7000        -0.0711      
+desulf  .m        -INF             .             0.3000          .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 14
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Solution Report     SOLVE reflp Using LP From line 215
+
+
+     EQU cc  capacity constraint               (mbd)
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+p-still .b        -INF           45.4244        50.5000          .          
+p-still .m        -INF             .             7.5000          .          
+reformer.b        -INF            7.1000         7.1000        -0.9395      
+reformer.m        -INF            0.8000         0.8000        -0.8495      
+he-conv .b        -INF            7.3000         7.3000        -1.2081      
+he-conv .m        -INF            2.8121         2.9000          .          
+
+---- EQU ccr  capacity restriction - heavy ends (mbd)
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+b        -INF           -2.8767         3.9000          .          
+m        -INF            2.5000         2.5000        -0.3979      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU pcdef               .              .              .             1.0000      
+
+  pcdef  production cost definition        (mill $ per day)
+
+---- VAR z  process level                     (mbd)
+
+                LOWER          LEVEL          UPPER         MARGINAL
+
+ngl   .b          .             3.1000        +INF             .          
+ngl   .m          .              .            +INF            EPS         
+d-lsl .b          .            13.6000        +INF             .          
+d-lsl .m          .              .            +INF            0.3905      
+d-lsm .b          .             1.1000        +INF             .          
+d-lsm .m          .              .            +INF            0.3905      
+d-lsh .b          .             1.0000        +INF             .          
+d-lsh .m          .              .            +INF            0.3905      
+d-hsl .b          .            16.4244        +INF             .          
+d-hsl .m          .              .            +INF            0.0500      
+d-hsm .b          .             8.9000        +INF             .          
+d-hsm .m          .              .            +INF            0.3774      
+d-hsh .b          .             4.4000        +INF             .          
+d-hsh .m          .              .            +INF            0.3774      
+reform.b          .             7.1000        +INF             .          
+reform.m          .             0.8000        +INF             .          
+ls-hc .b          .             5.5610        +INF             .          
+ls-hc .m          .             0.3121        +INF             .          
+hs-hc .b          .             1.7390        +INF             .          
+hs-hc .m          .             2.5000        +INF             .          
+desulf.b          .             2.7000        +INF             .          
+desulf.m          .              .            +INF            0.0289      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 15
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Solution Report     SOLVE reflp Using LP From line 215
+
+
+---- VAR u  supply of crude                   (mbd)
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+ls-light           .            13.6000        13.6000        -0.8925      
+ls-medium          .             1.1000         1.1000        -0.9906      
+ls-heavy           .             1.0000         1.0000        -1.0735      
+hs-light           .            15.7244        16.2000          .          
+hs-medium          .             8.9000         8.9000        -0.2385      
+hs-heavy           .             4.4000         4.4000        -0.0854      
+ngl                .             3.1000         3.1000        -1.4604      
+
+---- VAR w  transfer activities               (mbd)
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t-gas          .             0.9280         1.7000          .          
+t-nap          .             0.2682         1.9000          .          
+t-lsr          .             2.7899        +INF             .          
+t-hsr          .             6.4783        +INF             .          
+
+---- VAR xf  shipment of final products        (mbd)
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+gasoline         12.8000        12.8000        12.8000        35.6817      
+distillat        13.8000        13.8000        13.8000        35.3817      
+naphtha           8.3000         8.3000         8.3000        32.9050      
+ls-resid          4.2000         4.2000         4.2000        34.0539      
+hs-resid          8.6000         8.6000         8.6000        32.7424      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR pcost             -INF         1560.6692        +INF             .          
+
+  pcost  production cost                   (mill $ per day)
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 16
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Equation Listing    SOLVE refnlp Using NLP From line 218
+
+
+---- mb  =G=  material balance                  (mbd)
+
+mb(ls-light)..  - z(d-lsl,b) - z(d-lsl,m) + u(ls-light) =G= 0 ; (LHS = 0)
+     
+mb(ls-medium)..  - z(d-lsm,b) - z(d-lsm,m) + u(ls-medium) =G= 0 ; (LHS = 0)
+     
+mb(ls-heavy)..  - z(d-lsh,b) - z(d-lsh,m) + u(ls-heavy) =G= 0 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraint               (mbd)
+
+cc(ngl,b)..  z(ngl,b) =L= 3.4 ; (LHS = 3.1)
+     
+cc(ngl,m)..  z(ngl,m) =L= 0 ; (LHS = 0)
+     
+cc(desulf,b)..  z(desulf,b) =L= 2.7 ; (LHS = 2.7)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- ccr  =L=  capacity restriction - heavy ends (mbd)
+
+ccr(b)..  - 0.83*z(ls-hc,b) + z(hs-hc,b) =L= 3.9 ; (LHS = -2.87669740838255)
+     
+ccr(m)..  z(hs-hc,m) =L= 2.5 ; (LHS = 2.5)
+     
+
+---- pcdef  =E=  production cost definition        (mill $ per day)
+
+pcdef..  - 0.45*z(d-lsl,b) - 0.5*z(d-lsl,m) - 0.45*z(d-lsm,b) - 0.5*z(d-lsm,m) - 0.45*z(d-lsh,b) - 0.5*z(d-lsh,m) - 0.5*z(d-hsl,b) - 0.55*z(d-hsl,m) - 0.5*z(d-hsm,b) - 0.55*z(d-hsm,m) - 0.5*z(d-hsh,b) - 0.55*z(d-hsh,m) - 0.41*z(reform,b) - 0.5*z(reform,m)
+     
+      - 0.27*z(ls-hc,b) - 0.45*z(ls-hc,m) - 0.32*z(hs-hc,b) - 0.28*z(hs-hc,m) - 0.9*z(desulf,b) - z(desulf,m) - 32*u(ls-light) - 32*u(ls-medium) - 32*u(ls-heavy) - 32*u(hs-light) - 32*u(hs-medium) - 32*u(hs-heavy) - 32*u(ngl) + 0.3*w(t-gas) + pcost =E= 0
+      ; (LHS = -2.27373675443232E-13, INFES = 2.27373675443232E-13 ****)
+     
+
+---- dcps  =E=  definition of surplus             (mill $ per day)
+
+dcps..  - (45)*xf(gasoline) - (41)*xf(distillat) - (43)*xf(naphtha) - (35.3)*xf(ls-resid) - (31)*xf(hs-resid) + pcost + scps =E= 0 ; (LHS = 2113.14131037644, INFES = 2113.14131037644 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 17
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Column Listing      SOLVE refnlp Using NLP From line 218
+
+
+---- z  process level                     (mbd)
+
+z(ngl,b)
+                (.LO, .L, .UP, .M = 0, 3.1, +INF, 0)
+       -1       mb(ngl)
+        0.2     mb(gasoline)
+        0.8     mb(naphtha)
+        1       cc(ngl,b)
+
+z(ngl,m)
+                (.LO, .L, .UP, .M = 0, 0, +INF, EPS)
+       -1       mb(ngl)
+        0.2     mb(gasoline)
+        0.8     mb(naphtha)
+        1       cc(ngl,m)
+
+z(d-lsl,b)
+                (.LO, .L, .UP, .M = 0, 13.6, +INF, 0)
+       -1       mb(ls-light)
+        0.35    mb(ls-feed)
+        0.28    mb(distillat)
+        0.35    mb(naphtha)
+        1       cc(p-still,b)
+       -0.45    pcdef
+
+REMAINING 19 ENTRIES SKIPPED
+
+---- u  supply of crude                   (mbd)
+
+u(ls-light)
+                (.LO, .L, .UP, .M = 0, 13.6, 13.6, -0.892521710231556)
+        1       mb(ls-light)
+      -32       pcdef
+
+u(ls-medium)
+                (.LO, .L, .UP, .M = 0, 1.1, 1.1, -0.990559583999733)
+        1       mb(ls-medium)
+      -32       pcdef
+
+u(ls-heavy)
+                (.LO, .L, .UP, .M = 0, 1, 1, -1.0735309312949)
+        1       mb(ls-heavy)
+      -32       pcdef
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- w  transfer activities               (mbd)
+
+w(t-gas)
+                (.LO, .L, .UP, .M = 0, 0.928008053710257, 1.7, 0)
+       -1       mb(gasoline)
+        1       mb(distillat)
+        0.3     pcdef
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 18
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Column Listing      SOLVE refnlp Using NLP From line 218
+
+
+     w  transfer activities               (mbd)
+
+
+w(t-nap)
+                (.LO, .L, .UP, .M = 0, 0.268195340806018, 1.9, 0)
+        0.93    mb(distillat)
+       -1       mb(naphtha)
+
+w(t-lsr)
+                (.LO, .L, .UP, .M = 0, 2.78989137704229, +INF, 0)
+       -1       mb(ls-feed)
+        1       mb(ls-resid)
+
+REMAINING ENTRY SKIPPED
+
+---- xf  shipment of final products        (mbd)
+
+xf(gasoline)
+                (.LO, .L, .UP, .M = 2, 12.8, +INF, 35.6817359455488)
+       -1       mb(gasoline)
+     (-45)      dcps
+
+xf(distillat)
+                (.LO, .L, .UP, .M = 2, 13.8, +INF, 35.3817359455488)
+       -1       mb(distillat)
+     (-41)      dcps
+
+xf(naphtha)
+                (.LO, .L, .UP, .M = 2, 8.3, +INF, 32.9050144293604)
+       -1       mb(naphtha)
+     (-43)      dcps
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- pcost  production cost                   (mill $ per day)
+
+pcost
+                (.LO, .L, .UP, .M = -INF, 1560.6691675193, +INF, 0)
+        1       pcdef
+        1       dcps
+
+
+---- scps  consumers and producers surplus   (mill $ per day)
+
+scps
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dcps
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 19
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Model Statistics    SOLVE refnlp Using NLP From line 218
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           28
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           40
+NON ZERO ELEMENTS           163     NON LINEAR N-Z              5
+DERIVATIVE POOL              20     CONSTANT POOL              23
+CODE LENGTH                  24
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 20
+Single-Region Contingency Planning Model (SRCPM,SEQ=52)
+Solution Report     SOLVE refnlp Using NLP From line 218
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   refnlp              OBJECTIVE  scps
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  218
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/srcpm/convert.opt"
+>>  pyomo srcpm-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/srcpm/convert.opt"
+Pyomo     : srcpm-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/srcpm/srcpm.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/srcpm/srcpm-scalar.py.lst

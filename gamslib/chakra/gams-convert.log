@@ -1,0 +1,31 @@
+--- Job chakra.gms Start 12/13/18 10:24:36 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- chakra.gms(71) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- chakra.gms(62) 4 Mb
+--- Generating NLP model growth
+--- chakra.gms(65) 6 Mb
+---   42 rows  63 columns  143 non-zeroes
+---   231 nl-code  41 nl-non-zeroes
+--- chakra.gms(65) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/chakra/convert.opt"
+>>  gams chakra-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/chakra/convert.opt"
+--- Writing Gams      : chakra-scalar.gms
+
+--- Restarting execution
+--- chakra.gms(65) 2 Mb
+--- Reading solution for model growth
+--- chakra.gms(70) 3 Mb
+*** Status: Normal completion
+--- Job chakra.gms Stop 12/13/18 10:24:36 elapsed 0:00:00.012

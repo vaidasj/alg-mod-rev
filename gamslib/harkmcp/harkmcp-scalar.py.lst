@@ -1,0 +1,1380 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+   2  option MCP=convert;
+   3  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 2
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+C o m p i l a t i o n
+
+
+       
+        A spatial equilibrium model is used to demonstrate different
+        ways of modeling market behavior. An earlier version (HARKER)
+        used optimization to solve these problems. In this version,
+        the problems are solved as complementarity problems.
+       
+       
+      Harker, P T, Alternative Models of Spatial Competition. Operations
+      Research 34, 3 (1986), 410-425.
+       
+  17   
+  18  sets  n     nodes    / one, two, three, four, five, six /
+  19        l(n)  regions  / one, two, three /;
+  20   
+  21  alias (l,lp),(n,np);
+  22   
+  23  *       linear demand function:
+  24   
+  25  *               d(p) = (rho - p) / eta
+  26   
+  27  *       linear marginal cost function:
+  28   
+  29  *               c(y) = alpha + 2 * beta * y
+  30   
+  31   
+  32  table coefs(l,*)  demand and supply data
+  33   
+  34              alpha   beta     rho      eta
+  35   
+  36  one         1       0.5      19       0.2
+  37  two         2       0.4      27       0.01
+  38  three       1.5     0.3      30       0.3
+  39   
+  40   
+  41  *       the market is structured on a network.  the total transport cost
+  42  *       on the ij link is given by:
+  43   
+  44  *               tcij = kappaij  * xij + nuij * xij^3
+  45   
+  46  table pairs(n,np,*)  transport data
+  47   
+  48             kappa     nu
+  49  one.four     1       .5
+  50  one.five     2       .2
+  51  two.six      3       .3
+  52  three.six    1       .4
+  53  four.one     2       .3
+  54  four.five    1       .1
+  55  four.six     1       .1
+  56  five.one     3       .5
+  57  five.four    2       .2
+  58  five.six     1      1.0
+  59  six.two      2       .25
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 3
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+C o m p i l a t i o n
+
+
+  60  six.three    2       .2
+  61  six.four     1       .9
+  62  six.five     3       .8
+  63   
+  64  set arc(n,np) active arcs;
+  65  arc(n,np) = yes$pairs(n,np,"kappa");
+  66   
+  67  positive variables
+  68   
+  69                  d(l)            consumer demand,
+  70                  c(n)            marginal cost,
+  71                  y(n)            production,
+  72                  x(n)            total sales,
+  73                  p(l)            consumer price,
+  74                  t(n,np)         transport;
+  75   
+  76  equations
+  77   
+  78  *       equations for basic model:
+  79   
+  80                  demand(l)       inverse demand function (linear),
+  81                  supply(n)       node balance condition,
+  82                  mkt(l)          market clearance,
+  83                  mrmc(l)         pricing equation,
+  84                  tcost(n,np)     transport cost equation,
+  85                  cost(n)         marginal cost of supply;
+  86   
+  87  *       market structure flags:
+  88   
+  89  scalar  monopoly        indicator for monopoly pricing /0/,
+  90          acp             indicator for average cost pricing of transport/0/;
+  91   
+  92   
+  93  *       in these equations the associated variable is listed after
+  94  *       the description:
+  95   
+  96   
+  97  *       inverse demand functions (d):
+  98   
+  99  demand(l)..     coefs(l,"eta") * d(l) =g= coefs(l,"rho") - p(l);
+ 100   
+ 101   
+ 102  *       node balance (c):
+ 103   
+ 104  supply(n)..     y(n)$l(n) + sum(np$arc(np,n), t(np,n)) =g=
+ 105   
+ 106                  x(n)$l(n) + sum(np$arc(n,np), t(n,np));
+ 107   
+ 108  *       supply-demand balance (p):
+ 109   
+ 110  mkt(l)..        x(l) =g= d(l);
+ 111   
+ 112  *       pricing equation relating marginal cost to consumer price (x):
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 4
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+C o m p i l a t i o n
+
+
+ 113   
+ 114  mrmc(l)..       c(l) =g= p(l) - (x(l) * coefs(l,"eta"))$monopoly;
+ 115   
+ 116  *       transport activity zero profit condition (with adjustment
+ 117  *       depending on whether suppliers use average or marginal cost):
+ 118   
+ 119  tcost(n,np)$arc(n,np)..
+ 120   
+ 121          c(n) + pairs(n,np,"kappa") + (3 - (2)$acp) *
+ 122   
+ 123                   pairs(n,np,"nu") * t(n,np) * t(n,np) =g= c(np);
+ 124   
+ 125  *       marginal cost equations:
+ 126   
+ 127  cost(l)..        coefs(l,"alpha") + 2 * coefs(l,"beta") * y(l) =g= c(l);
+ 128   
+ 129   
+ 130  *       define the model and the equation.variable associations:
+ 131   
+ 132  model harker    /demand.d,supply.c,mkt.p, mrmc.x,tcost.t,cost.y/;
+ 133   
+ 134   
+ 135  *       additional variables for oligopoly model:
+ 136   
+ 137  positive
+ 138  variables
+ 139          cc(l,n)         cost of supply to node n by producer l,
+ 140          xx(l,n)         supply from producer l to market lp,
+ 141          tt(l,n,np)      shipments by producer l from node n to np;
+ 142   
+ 143  *       revised equations for oligopoly model:
+ 144   
+ 145  equations
+ 146                  altsupply(l,n)          node balance equation,
+ 147                  altmkt(l)               demand balance,
+ 148                  altmrmc(lp,n)           pricing equations,
+ 149                  alttcost(l,n,np)        transport margins,
+ 150                  altcost(l)              supply price equation,
+ 151                  tdef(n,np)              total transport demand;
+ 152   
+ 153  set  prd(l,n)   indicator set for producer type l operating at node n;
+ 154  prd(l,n) = no;
+ 155  prd(l,l) = yes;
+ 156   
+ 157  *       material balance:
+ 158   
+ 159  altsupply(lp,n)..
+ 160   
+ 161          y(lp)$prd(lp,n) + sum(np$arc(np,n), tt(lp,np,n)) =g=
+ 162   
+ 163                  xx(lp,n)$l(n) + sum(np$arc(n,np), tt(lp,n,np));
+ 164   
+ 165  *       demand balance:
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 5
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+C o m p i l a t i o n
+
+
+ 166   
+ 167  altmkt(l)..     sum(lp, xx(lp,l)) =g= d(l);
+ 168   
+ 169  *       pricing equation:
+ 170   
+ 171  altmrmc(lp,l)..   cc(lp,l) =g=
+ 172                                  p(l) - xx(lp,l) * coefs(l,"eta");
+ 173   
+ 174  *       transport activity zero profit condition:
+ 175   
+ 176  alttcost(l,n,np)$arc(n,np)..
+ 177   
+ 178          cc(l,n) + pairs(n,np,"kappa") + (3 - (2)$acp) *
+ 179   
+ 180                   pairs(n,np,"nu") * t(n,np) * t(n,np) =g= cc(l,np);
+ 181   
+ 182  *       total transport demand (this equation and variable t is
+ 183  *       included in the monopoly model only to improve sparsity of
+ 184  *       the alttcost constraint).
+ 185   
+ 186  tdef(n,np)$arc(n,np)..
+ 187   
+ 188          t(n,np) =e= sum(l, tt(l,n,np));
+ 189   
+ 190  *       marginal cost of supply:
+ 191   
+ 192  altcost(l)..
+ 193   
+ 194          coefs(l,"alpha") + 2 * coefs(l,"beta") * y(l) =g= cc(l,l);
+ 195   
+ 196  model harkoli  /demand.d,    altsupply.cc, altmkt.p, altmrmc.xx,
+ 197                  alttcost.tt, altcost.y, tdef.t/;
+ 198   
+ 199  parameters rep1 transport summary,
+ 200             rep2 supply demand and price summary;
+ 201   
+ 202  t.l(n,np) = 0;
+ 203  y.l(l) = 25;
+ 204  x.l(n) = 1;
+ 205  c.l(n) = 1;
+ 206  d.l(l) = 1;
+ 207  p.l(l) = 1;
+ 208  t.fx(n,np)   $(not arc(n,np)) = 0;
+ 209  tt.fx(l,n,np)$(not arc(n,np)) = 0;
+ 210   
+ 211  *       solve four alternative models, all based on the same data:
+ 212   
+ 213  *       1. classical spatial price equilibrium: perfectly competitive
+ 214  *       producers and suppliers facing average cost pricing
+ 215  *       of transportation:
+ 216   
+ 217          monopoly=0; acp=1;
+ 218          solve harker using mcp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 6
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+C o m p i l a t i o n
+
+
+ 219          rep1(n,np,      "cspe2") = t.l(n,np);
+ 220          rep2("supply",l,"cspe2") = y.l(l);
+ 221          rep2("demand",l,"cspe2") = d.l(l);
+ 222          rep2("price ",l,"cspe2") = p.l(l);
+ 223   
+ 224  *       2. monopoly pricing equilibrium in which the firm owns both
+ 225  *       means of production and distribution network (hence, marginal
+ 226  *       cost pricing prevails at both the factory and the railhead):
+ 227   
+ 228          monopoly=1; acp=0;
+ 229          solve harker using mcp;
+ 230          rep1(n,np,      "monop1") = t.l(n,np);
+ 231          rep2("supply",l,"monop1") = y.l(l);
+ 232          rep2("demand",l,"monop1") = d.l(l);
+ 233          rep2("price ",l,"monop1") = p.l(l);
+ 234   
+ 235  *       3. monopoly pricing equilibrium in which the firm uses the
+ 236  *       distribution network with average cost pricing:
+ 237   
+ 238          monopoly=1; acp=1;
+ 239          solve harker using mcp;
+ 240          rep1(n,np,      "monop2") = t.l(n,np);
+ 241          rep2("supply",l,"monop2") = y.l(l);
+ 242          rep2("demand",l,"monop2") = d.l(l);
+ 243          rep2("price ",l,"monop2") = p.l(l);
+ 244   
+ 245  *       4. multi-producer oligopoly model with average cost pricing
+ 246  *       of transportation links:
+ 247   
+ 248          monopoly=0;  acp=1;
+ 249          solve harkoli using mcp;
+ 250          rep1(n,np,      "oligop") = t.l(n,np);
+ 251          rep2("supply",l,"oligop") = y.l(l);
+ 252          rep2("demand",l,"oligop") = d.l(l);
+ 253          rep2("price ",l,"oligop") = p.l(l);
+ 254   
+ 255  *       compare the results from these computations with those
+ 256  *       which are reported by gams test problem harker.85 in which
+ 257  *       a consumer-producer surplus methods and a diagonalization
+ 258  *       algorithm use minos to solve the equilibrium system:
+ 259   
+ 260   
+ 261          display rep1, rep2;
+ 262   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 7
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harker Using MCP From line 218
+
+
+---- demand  =G=  inverse demand function (linear)
+
+demand(one)..  0.2*d(one) + p(one) =G= 19 ; (LHS = 1.2, INFES = 17.8 ****)
+     
+demand(two)..  0.01*d(two) + p(two) =G= 27 ; (LHS = 1.01, INFES = 25.99 ****)
+     
+demand(three)..  0.3*d(three) + p(three) =G= 30 ; (LHS = 1.3, INFES = 28.7 ****)
+     
+
+---- supply  =G=  node balance condition
+
+supply(one)..  y(one) - x(one) - t(one,four) - t(one,five) + t(four,one) + t(five,one) =G= 0 ; (LHS = 24)
+     
+supply(two)..  y(two) - x(two) - t(two,six) + t(six,two) =G= 0 ; (LHS = 24)
+     
+supply(three)..  y(three) - x(three) - t(three,six) + t(six,three) =G= 0 ; (LHS = 24)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- mkt  =G=  market clearance
+
+mkt(one)..  - d(one) + x(one) =G= 0 ; (LHS = 0)
+     
+mkt(two)..  - d(two) + x(two) =G= 0 ; (LHS = 0)
+     
+mkt(three)..  - d(three) + x(three) =G= 0 ; (LHS = 0)
+     
+
+---- mrmc  =G=  pricing equation
+
+mrmc(one)..  c(one) - p(one) =G= 0 ; (LHS = 0)
+     
+mrmc(two)..  c(two) - p(two) =G= 0 ; (LHS = 0)
+     
+mrmc(three)..  c(three) - p(three) =G= 0 ; (LHS = 0)
+     
+
+---- tcost  =G=  transport cost equation
+
+tcost(one,four)..  c(one) - c(four) + (0)*t(one,four) =G= -1 ; (LHS = 0)
+     
+tcost(one,five)..  c(one) - c(five) + (0)*t(one,five) =G= -2 ; (LHS = 0)
+     
+tcost(two,six)..  c(two) - c(six) + (0)*t(two,six) =G= -3 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 8
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harker Using MCP From line 218
+
+
+---- cost  =G=  marginal cost of supply
+
+cost(one)..  - c(one) + y(one) =G= -1 ; (LHS = 24)
+     
+cost(two)..  - c(two) + 0.8*y(two) =G= -2 ; (LHS = 19)
+     
+cost(three)..  - c(three) + 0.6*y(three) =G= -1.5 ; (LHS = 14)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 9
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 218
+
+
+---- d  consumer demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.2     demand(one)
+       -1       mkt(one)
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.01    demand(two)
+       -1       mkt(two)
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.3     demand(three)
+       -1       mkt(three)
+
+
+---- c  marginal cost
+
+c(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(one)
+        1       tcost(one,four)
+        1       tcost(one,five)
+       -1       tcost(four,one)
+       -1       tcost(five,one)
+       -1       cost(one)
+
+c(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(two)
+        1       tcost(two,six)
+       -1       tcost(six,two)
+       -1       cost(two)
+
+c(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(three)
+        1       tcost(three,six)
+       -1       tcost(six,three)
+       -1       cost(three)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- y  production
+
+y(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(one)
+        1       cost(one)
+
+y(two)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 10
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 218
+
+
+     y  production
+
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(two)
+        0.8     cost(two)
+
+y(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(three)
+        0.6     cost(three)
+
+
+---- x  total sales
+
+x(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(one)
+        1       mkt(one)
+
+x(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(two)
+        1       mkt(two)
+
+x(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(three)
+        1       mkt(three)
+
+
+---- p  consumer price
+
+p(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(one)
+       -1       mrmc(one)
+
+p(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(two)
+       -1       mrmc(two)
+
+p(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(three)
+       -1       mrmc(three)
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(one)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 11
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 218
+
+
+     t  transport
+
+        1       supply(four)
+       (0)      tcost(one,four)
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(one)
+        1       supply(five)
+       (0)      tcost(one,five)
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(two)
+        1       supply(six)
+       (0)      tcost(two,six)
+
+REMAINING 11 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 12
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Model Statistics    SOLVE harker Using MCP From line 218
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           32
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           32
+NON ZERO ELEMENTS           100     NON LINEAR N-Z             14
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                  69
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 13
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Solution Report     SOLVE harker Using MCP From line 218
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   harker              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  218
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+Pyomo     : harkmcp-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 14
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harker Using MCP From line 229
+
+
+---- demand  =G=  inverse demand function (linear)
+
+demand(one)..  0.2*d(one) + p(one) =G= 19 ; (LHS = 1.2, INFES = 17.8 ****)
+     
+demand(two)..  0.01*d(two) + p(two) =G= 27 ; (LHS = 1.01, INFES = 25.99 ****)
+     
+demand(three)..  0.3*d(three) + p(three) =G= 30 ; (LHS = 1.3, INFES = 28.7 ****)
+     
+
+---- supply  =G=  node balance condition
+
+supply(one)..  y(one) - x(one) - t(one,four) - t(one,five) + t(four,one) + t(five,one) =G= 0 ; (LHS = 24)
+     
+supply(two)..  y(two) - x(two) - t(two,six) + t(six,two) =G= 0 ; (LHS = 24)
+     
+supply(three)..  y(three) - x(three) - t(three,six) + t(six,three) =G= 0 ; (LHS = 24)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- mkt  =G=  market clearance
+
+mkt(one)..  - d(one) + x(one) =G= 0 ; (LHS = 0)
+     
+mkt(two)..  - d(two) + x(two) =G= 0 ; (LHS = 0)
+     
+mkt(three)..  - d(three) + x(three) =G= 0 ; (LHS = 0)
+     
+
+---- mrmc  =G=  pricing equation
+
+mrmc(one)..  c(one) + 0.2*x(one) - p(one) =G= 0 ; (LHS = 0.2)
+     
+mrmc(two)..  c(two) + 0.01*x(two) - p(two) =G= 0 ; (LHS = 0.01)
+     
+mrmc(three)..  c(three) + 0.3*x(three) - p(three) =G= 0 ; (LHS = 0.3)
+     
+
+---- tcost  =G=  transport cost equation
+
+tcost(one,four)..  c(one) - c(four) + (0)*t(one,four) =G= -1 ; (LHS = 0)
+     
+tcost(one,five)..  c(one) - c(five) + (0)*t(one,five) =G= -2 ; (LHS = 0)
+     
+tcost(two,six)..  c(two) - c(six) + (0)*t(two,six) =G= -3 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 15
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harker Using MCP From line 229
+
+
+---- cost  =G=  marginal cost of supply
+
+cost(one)..  - c(one) + y(one) =G= -1 ; (LHS = 24)
+     
+cost(two)..  - c(two) + 0.8*y(two) =G= -2 ; (LHS = 19)
+     
+cost(three)..  - c(three) + 0.6*y(three) =G= -1.5 ; (LHS = 14)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 16
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 229
+
+
+---- d  consumer demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.2     demand(one)
+       -1       mkt(one)
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.01    demand(two)
+       -1       mkt(two)
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.3     demand(three)
+       -1       mkt(three)
+
+
+---- c  marginal cost
+
+c(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(one)
+        1       tcost(one,four)
+        1       tcost(one,five)
+       -1       tcost(four,one)
+       -1       tcost(five,one)
+       -1       cost(one)
+
+c(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(two)
+        1       tcost(two,six)
+       -1       tcost(six,two)
+       -1       cost(two)
+
+c(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(three)
+        1       tcost(three,six)
+       -1       tcost(six,three)
+       -1       cost(three)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- y  production
+
+y(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(one)
+        1       cost(one)
+
+y(two)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 17
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 229
+
+
+     y  production
+
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(two)
+        0.8     cost(two)
+
+y(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(three)
+        0.6     cost(three)
+
+
+---- x  total sales
+
+x(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(one)
+        1       mkt(one)
+        0.2     mrmc(one)
+
+x(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(two)
+        1       mkt(two)
+        0.01    mrmc(two)
+
+x(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(three)
+        1       mkt(three)
+        0.3     mrmc(three)
+
+
+---- p  consumer price
+
+p(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(one)
+       -1       mrmc(one)
+
+p(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(two)
+       -1       mrmc(two)
+
+p(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(three)
+       -1       mrmc(three)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 18
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 229
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(one)
+        1       supply(four)
+       (0)      tcost(one,four)
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(one)
+        1       supply(five)
+       (0)      tcost(one,five)
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(two)
+        1       supply(six)
+       (0)      tcost(two,six)
+
+REMAINING 11 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 19
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Model Statistics    SOLVE harker Using MCP From line 229
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           32
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           32
+NON ZERO ELEMENTS           103     NON LINEAR N-Z             14
+DERIVATIVE POOL              20     CONSTANT POOL              24
+CODE LENGTH                  70
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 20
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Solution Report     SOLVE harker Using MCP From line 229
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   harker              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  229
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+Pyomo     : harkmcp-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 21
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harker Using MCP From line 239
+
+
+---- demand  =G=  inverse demand function (linear)
+
+demand(one)..  0.2*d(one) + p(one) =G= 19 ; (LHS = 1.2, INFES = 17.8 ****)
+     
+demand(two)..  0.01*d(two) + p(two) =G= 27 ; (LHS = 1.01, INFES = 25.99 ****)
+     
+demand(three)..  0.3*d(three) + p(three) =G= 30 ; (LHS = 1.3, INFES = 28.7 ****)
+     
+
+---- supply  =G=  node balance condition
+
+supply(one)..  y(one) - x(one) - t(one,four) - t(one,five) + t(four,one) + t(five,one) =G= 0 ; (LHS = 24)
+     
+supply(two)..  y(two) - x(two) - t(two,six) + t(six,two) =G= 0 ; (LHS = 24)
+     
+supply(three)..  y(three) - x(three) - t(three,six) + t(six,three) =G= 0 ; (LHS = 24)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- mkt  =G=  market clearance
+
+mkt(one)..  - d(one) + x(one) =G= 0 ; (LHS = 0)
+     
+mkt(two)..  - d(two) + x(two) =G= 0 ; (LHS = 0)
+     
+mkt(three)..  - d(three) + x(three) =G= 0 ; (LHS = 0)
+     
+
+---- mrmc  =G=  pricing equation
+
+mrmc(one)..  c(one) + 0.2*x(one) - p(one) =G= 0 ; (LHS = 0.2)
+     
+mrmc(two)..  c(two) + 0.01*x(two) - p(two) =G= 0 ; (LHS = 0.01)
+     
+mrmc(three)..  c(three) + 0.3*x(three) - p(three) =G= 0 ; (LHS = 0.3)
+     
+
+---- tcost  =G=  transport cost equation
+
+tcost(one,four)..  c(one) - c(four) + (0)*t(one,four) =G= -1 ; (LHS = 0)
+     
+tcost(one,five)..  c(one) - c(five) + (0)*t(one,five) =G= -2 ; (LHS = 0)
+     
+tcost(two,six)..  c(two) - c(six) + (0)*t(two,six) =G= -3 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 22
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harker Using MCP From line 239
+
+
+---- cost  =G=  marginal cost of supply
+
+cost(one)..  - c(one) + y(one) =G= -1 ; (LHS = 24)
+     
+cost(two)..  - c(two) + 0.8*y(two) =G= -2 ; (LHS = 19)
+     
+cost(three)..  - c(three) + 0.6*y(three) =G= -1.5 ; (LHS = 14)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 23
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 239
+
+
+---- d  consumer demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.2     demand(one)
+       -1       mkt(one)
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.01    demand(two)
+       -1       mkt(two)
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.3     demand(three)
+       -1       mkt(three)
+
+
+---- c  marginal cost
+
+c(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(one)
+        1       tcost(one,four)
+        1       tcost(one,five)
+       -1       tcost(four,one)
+       -1       tcost(five,one)
+       -1       cost(one)
+
+c(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(two)
+        1       tcost(two,six)
+       -1       tcost(six,two)
+       -1       cost(two)
+
+c(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       mrmc(three)
+        1       tcost(three,six)
+       -1       tcost(six,three)
+       -1       cost(three)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- y  production
+
+y(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(one)
+        1       cost(one)
+
+y(two)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 24
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 239
+
+
+     y  production
+
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(two)
+        0.8     cost(two)
+
+y(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       supply(three)
+        0.6     cost(three)
+
+
+---- x  total sales
+
+x(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(one)
+        1       mkt(one)
+        0.2     mrmc(one)
+
+x(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(two)
+        1       mkt(two)
+        0.01    mrmc(two)
+
+x(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -1       supply(three)
+        1       mkt(three)
+        0.3     mrmc(three)
+
+
+---- p  consumer price
+
+p(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(one)
+       -1       mrmc(one)
+
+p(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(two)
+       -1       mrmc(two)
+
+p(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(three)
+       -1       mrmc(three)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 25
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harker Using MCP From line 239
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(one)
+        1       supply(four)
+       (0)      tcost(one,four)
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(one)
+        1       supply(five)
+       (0)      tcost(one,five)
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       supply(two)
+        1       supply(six)
+       (0)      tcost(two,six)
+
+REMAINING 11 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 26
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Model Statistics    SOLVE harker Using MCP From line 239
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           32
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           32
+NON ZERO ELEMENTS           103     NON LINEAR N-Z             14
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                  69
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 27
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Solution Report     SOLVE harker Using MCP From line 239
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   harker              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  239
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+Pyomo     : harkmcp-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 28
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harkoli Using MCP From line 249
+
+
+---- demand  =G=  inverse demand function (linear)
+
+demand(one)..  0.2*d(one) + p(one) =G= 19 ; (LHS = 1.2, INFES = 17.8 ****)
+     
+demand(two)..  0.01*d(two) + p(two) =G= 27 ; (LHS = 1.01, INFES = 25.99 ****)
+     
+demand(three)..  0.3*d(three) + p(three) =G= 30 ; (LHS = 1.3, INFES = 28.7 ****)
+     
+
+---- altsupply  =G=  node balance equation
+
+altsupply(one,one)..  y(one) - xx(one,one) - tt(one,one,four) - tt(one,one,five) + tt(one,four,one) + tt(one,five,one) =G= 0 ; (LHS = 25)
+     
+altsupply(one,two)..  - xx(one,two) - tt(one,two,six) + tt(one,six,two) =G= 0 ; (LHS = 0)
+     
+altsupply(one,three)..  - xx(one,three) - tt(one,three,six) + tt(one,six,three) =G= 0 ; (LHS = 0)
+     
+REMAINING 15 ENTRIES SKIPPED
+
+
+---- altmkt  =G=  demand balance
+
+altmkt(one)..  - d(one) + xx(one,one) + xx(two,one) + xx(three,one) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+altmkt(two)..  - d(two) + xx(one,two) + xx(two,two) + xx(three,two) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+altmkt(three)..  - d(three) + xx(one,three) + xx(two,three) + xx(three,three) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- altmrmc  =G=  pricing equations
+
+altmrmc(one,one)..  - p(one) + cc(one,one) + 0.2*xx(one,one) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+altmrmc(one,two)..  - p(two) + cc(one,two) + 0.01*xx(one,two) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+altmrmc(one,three)..  - p(three) + cc(one,three) + 0.3*xx(one,three) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- alttcost  =G=  transport margins
+
+alttcost(one,one,four)..  (0)*t(one,four) + cc(one,one) - cc(one,four) =G= -1 ; (LHS = 0)
+     
+alttcost(one,one,five)..  (0)*t(one,five) + cc(one,one) - cc(one,five) =G= -2 ; (LHS = 0)
+     
+alttcost(one,two,six)..  (0)*t(two,six) + cc(one,two) - cc(one,six) =G= -3 ; (LHS = 0)
+     
+REMAINING 39 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 29
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Equation Listing    SOLVE harkoli Using MCP From line 249
+
+
+---- altcost  =G=  supply price equation
+
+altcost(one)..  y(one) - cc(one,one) =G= -1 ; (LHS = 25)
+     
+altcost(two)..  0.8*y(two) - cc(two,two) =G= -2 ; (LHS = 20)
+     
+altcost(three)..  0.6*y(three) - cc(three,three) =G= -1.5 ; (LHS = 15)
+     
+
+---- tdef  =E=  total transport demand
+
+tdef(one,four)..  t(one,four) - tt(one,one,four) - tt(two,one,four) - tt(three,one,four) =E= 0 ; (LHS = 0)
+     
+tdef(one,five)..  t(one,five) - tt(one,one,five) - tt(two,one,five) - tt(three,one,five) =E= 0 ; (LHS = 0)
+     
+tdef(two,six)..  t(two,six) - tt(one,two,six) - tt(two,two,six) - tt(three,two,six) =E= 0 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 30
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harkoli Using MCP From line 249
+
+
+---- d  consumer demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.2     demand(one)
+       -1       altmkt(one)
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.01    demand(two)
+       -1       altmkt(two)
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        0.3     demand(three)
+       -1       altmkt(three)
+
+
+---- y  production
+
+y(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       altsupply(one,one)
+        1       altcost(one)
+
+y(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       altsupply(two,two)
+        0.8     altcost(two)
+
+y(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       altsupply(three,three)
+        0.6     altcost(three)
+
+
+---- p  consumer price
+
+p(one)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(one)
+       -1       altmrmc(one,one)
+       -1       altmrmc(two,one)
+       -1       altmrmc(three,one)
+
+p(two)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(two)
+       -1       altmrmc(one,two)
+       -1       altmrmc(two,two)
+       -1       altmrmc(three,two)
+
+p(three)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 31
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harkoli Using MCP From line 249
+
+
+     p  consumer price
+
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       demand(three)
+       -1       altmrmc(one,three)
+       -1       altmrmc(two,three)
+       -1       altmrmc(three,three)
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      alttcost(one,one,four)
+       (0)      alttcost(two,one,four)
+       (0)      alttcost(three,one,four)
+        1       tdef(one,four)
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      alttcost(one,one,five)
+       (0)      alttcost(two,one,five)
+       (0)      alttcost(three,one,five)
+        1       tdef(one,five)
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      alttcost(one,two,six)
+       (0)      alttcost(two,two,six)
+       (0)      alttcost(three,two,six)
+        1       tdef(two,six)
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- cc  cost of supply to node n by producer l
+
+cc(one,one)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       altmrmc(one,one)
+        1       alttcost(one,one,four)
+        1       alttcost(one,one,five)
+       -1       alttcost(one,four,one)
+       -1       alttcost(one,five,one)
+       -1       altcost(one)
+
+cc(one,two)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       altmrmc(one,two)
+        1       alttcost(one,two,six)
+       -1       alttcost(one,six,two)
+
+cc(one,three)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 32
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Column Listing      SOLVE harkoli Using MCP From line 249
+
+
+     cc  cost of supply to node n by producer l
+
+        1       altmrmc(one,three)
+        1       alttcost(one,three,six)
+       -1       alttcost(one,six,three)
+
+REMAINING 15 ENTRIES SKIPPED
+
+---- xx  supply from producer l to market lp
+
+xx(one,one)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       altsupply(one,one)
+        1       altmkt(one)
+        0.2     altmrmc(one,one)
+
+xx(one,two)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       altsupply(one,two)
+        1       altmkt(two)
+        0.01    altmrmc(one,two)
+
+xx(one,three)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       altsupply(one,three)
+        1       altmkt(three)
+        0.3     altmrmc(one,three)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- tt  shipments by producer l from node n to np
+
+tt(one,one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       altsupply(one,one)
+        1       altsupply(one,four)
+       -1       tdef(one,four)
+
+tt(one,one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       altsupply(one,one)
+        1       altsupply(one,five)
+       -1       tdef(one,five)
+
+tt(one,two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       altsupply(one,two)
+        1       altsupply(one,six)
+       -1       tdef(two,six)
+
+REMAINING 39 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 33
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Model Statistics    SOLVE harkoli Using MCP From line 249
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           92
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           92
+NON ZERO ELEMENTS           329     NON LINEAR N-Z             42
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                 207
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 34
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+Solution Report     SOLVE harkoli Using MCP From line 249
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   harkoli             
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  249
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+Pyomo     : harkmcp-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 35
+Models of Spatial Competition in MCP Form (HARKMCP,SEQ=128)
+E x e c u t i o n
+
+
+----    261 PARAMETER rep1  transport summary
+
+                      ( ALL       0.000 )
+
+
+----    261 PARAMETER rep2  supply demand and price summary
+
+                   cspe2      monop1      monop2      oligop
+
+supply.one        25.000      25.000      25.000      25.000
+supply.two        25.000      25.000      25.000      25.000
+supply.three      25.000      25.000      25.000      25.000
+demand.one         1.000       1.000       1.000       1.000
+demand.two         1.000       1.000       1.000       1.000
+demand.three       1.000       1.000       1.000       1.000
+price .one         1.000       1.000       1.000       1.000
+price .two         1.000       1.000       1.000       1.000
+price .three       1.000       1.000       1.000       1.000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/harkmcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/harkmcp-scalar.py.lst

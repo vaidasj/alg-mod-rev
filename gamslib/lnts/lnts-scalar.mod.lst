@@ -1,0 +1,489 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 2
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+C o m p i l a t i o n
+
+
+   3   
+       
+      Minimize the time take for a particle, acted upon by a thrust of
+      constant magnitude, to achieve a given altitude and terminal
+      velocity.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of discretization points can be specified using the command
+      line parameter --nh. COPS performance tests have been reported for nh
+      = 50, 100, 200, 400
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Betts, J, Eldersveld, S, and Huffman, W, Sparse
+      Nonlinear Programming Test Problems. Tech. rep.,
+      Boeing Computer Services, 1993.
+       
+      Bryson, A, and Ho, Y, Applied Optimal Control:
+      Optimization, Estimation, and Control. John Wiley and Sons,
+      1975.
+       
+  31   
+  32   
+  35   
+  36  sets  h intervals    / h0 * h50 /
+  37        c coordinates  / y1 first position coordinate
+  38                         y2 second position coordinate
+  39                         y3 first velocity coordinate
+  40                         y4 second velocity coordinate /
+  41   
+  42  scalars
+  43      pi  a famous constant
+  44      nh  number of intervals / 50  /
+  45      a   magnitude of force  / 100.0 / ;
+  46   
+  47   
+  48  variables
+  49      u(h)   control
+  50      y(c,h) coordinates
+  51      tf     final time ;
+  52   
+  53  positive variables
+  54      step   step size
+  55   
+  56  equations tf_eqn, pos_eqn(c,h), velo1_eqn(h), velo2_eqn(h);
+  57   
+  58  tf_eqn.. tf =e= step*nh;
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 3
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+C o m p i l a t i o n
+
+
+  60  pos_eqn(c+2,h+1).. y(c,h+1) =e= y(c,h) + 0.5*step*(y(c+2,h) + y(c+2,h+1));
+  61   
+  62  velo1_eqn(h+1).. y('y3',h+1) =e=
+  63                             y('y3',h) + 0.5*step*(a*cos(u(h)) + a*cos(u(h+1)));
+  64   
+  65  velo2_eqn(h+1).. y('y4',h+1) =e=
+  66                             y('y4',h) + 0.5*step*(a*sin(u(h)) + a*sin(u(h+1)));
+  67   
+  68   
+  69  pi = 2*arctan(inf);
+  70   
+  71  u.lo(h) = -pi/2;
+  72  u.up(h) =  pi/2;
+  73   
+  74  y.fx(c,'h0')       =  0;
+  75  y.fx('y2','h50') =  5;
+  76  y.fx('y3','h50') = 45;
+  77  y.fx('y4','h50') =  0;
+  78   
+  79  step.l      = 1.0/nh;
+  80  y.l('y2',h) =  5*(ord(h)-1)/nh;
+  81  y.l('y3',h) = 45*(ord(h)-1)/nh;
+  82   
+  83  model lnts /all/;
+  84   
+  86   
+  87  solve lnts using nlp minimizing tf;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 4
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Equation Listing    SOLVE lnts Using NLP From line 87
+
+
+---- tf_eqn  =E=  
+
+tf_eqn..  tf - 50*step =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- pos_eqn  =E=  
+
+pos_eqn(y3,h1)..  - y(y1,h0) + y(y1,h1) - (0.01)*y(y3,h0) - (0.01)*y(y3,h1) - (0.45)*step =E= 0 ; (LHS = -0.009, INFES = 0.009 ****)
+     
+pos_eqn(y3,h2)..  - y(y1,h1) + y(y1,h2) - (0.01)*y(y3,h1) - (0.01)*y(y3,h2) - (1.35)*step =E= 0 ; (LHS = -0.027, INFES = 0.027 ****)
+     
+pos_eqn(y3,h3)..  - y(y1,h2) + y(y1,h3) - (0.01)*y(y3,h2) - (0.01)*y(y3,h3) - (2.25)*step =E= 0 ; (LHS = -0.045, INFES = 0.045 ****)
+     
+REMAINING 97 ENTRIES SKIPPED
+
+
+---- velo1_eqn  =E=  
+
+velo1_eqn(h1)..  (0)*u(h0) + (0)*u(h1) - y(y3,h0) + y(y3,h1) - (100)*step =E= 0 ; (LHS = -1.1, INFES = 1.1 ****)
+     
+velo1_eqn(h2)..  (0)*u(h1) + (0)*u(h2) - y(y3,h1) + y(y3,h2) - (100)*step =E= 0 ; (LHS = -1.1, INFES = 1.1 ****)
+     
+velo1_eqn(h3)..  (0)*u(h2) + (0)*u(h3) - y(y3,h2) + y(y3,h3) - (100)*step =E= 0 ; (LHS = -1.1, INFES = 1.1 ****)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- velo2_eqn  =E=  
+
+velo2_eqn(h1)..  - (1)*u(h0) - (1)*u(h1) - y(y4,h0) + y(y4,h1) + (0)*step =E= 0 ; (LHS = 0)
+     
+velo2_eqn(h2)..  - (1)*u(h1) - (1)*u(h2) - y(y4,h1) + y(y4,h2) + (0)*step =E= 0 ; (LHS = 0)
+     
+velo2_eqn(h3)..  - (1)*u(h2) - (1)*u(h3) - y(y4,h2) + y(y4,h3) + (0)*step =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 5
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Column Listing      SOLVE lnts Using NLP From line 87
+
+
+---- u  control
+
+u(h0)
+                (.LO, .L, .UP, .M = -1.5707963267949, 0, 1.5707963267949, 0)
+       (0)      velo1_eqn(h1)
+      (-1)      velo2_eqn(h1)
+
+u(h1)
+                (.LO, .L, .UP, .M = -1.5707963267949, 0, 1.5707963267949, 0)
+       (0)      velo1_eqn(h1)
+       (0)      velo1_eqn(h2)
+      (-1)      velo2_eqn(h1)
+      (-1)      velo2_eqn(h2)
+
+u(h2)
+                (.LO, .L, .UP, .M = -1.5707963267949, 0, 1.5707963267949, 0)
+       (0)      velo1_eqn(h2)
+       (0)      velo1_eqn(h3)
+      (-1)      velo2_eqn(h2)
+      (-1)      velo2_eqn(h3)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- y  coordinates
+
+y(y1,h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       pos_eqn(y3,h1)
+
+y(y1,h1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pos_eqn(y3,h1)
+       -1       pos_eqn(y3,h2)
+
+y(y1,h2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pos_eqn(y3,h2)
+       -1       pos_eqn(y3,h3)
+
+REMAINING 201 ENTRIES SKIPPED
+
+---- tf  final time
+
+tf
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tf_eqn
+
+
+---- step  step size
+
+step
+                (.LO, .L, .UP, .M = 0, 0.02, +INF, 0)
+      -50       tf_eqn
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 6
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Column Listing      SOLVE lnts Using NLP From line 87
+
+
+     step  step size
+
+      (-0.45)   pos_eqn(y3,h1)
+      (-1.35)   pos_eqn(y3,h2)
+      (-2.25)   pos_eqn(y3,h3)
+      (-3.15)   pos_eqn(y3,h4)
+      (-4.05)   pos_eqn(y3,h5)
+      (-4.95)   pos_eqn(y3,h6)
+      (-5.85)   pos_eqn(y3,h7)
+      (-6.75)   pos_eqn(y3,h8)
+      (-7.65)   pos_eqn(y3,h9)
+      (-8.55)   pos_eqn(y3,h10)
+      (-9.45)   pos_eqn(y3,h11)
+     (-10.35)   pos_eqn(y3,h12)
+     (-11.25)   pos_eqn(y3,h13)
+     (-12.15)   pos_eqn(y3,h14)
+     (-13.05)   pos_eqn(y3,h15)
+     (-13.95)   pos_eqn(y3,h16)
+     (-14.85)   pos_eqn(y3,h17)
+     (-15.75)   pos_eqn(y3,h18)
+     (-16.65)   pos_eqn(y3,h19)
+     (-17.55)   pos_eqn(y3,h20)
+     (-18.45)   pos_eqn(y3,h21)
+     (-19.35)   pos_eqn(y3,h22)
+     (-20.25)   pos_eqn(y3,h23)
+     (-21.15)   pos_eqn(y3,h24)
+     (-22.05)   pos_eqn(y3,h25)
+     (-22.95)   pos_eqn(y3,h26)
+     (-23.85)   pos_eqn(y3,h27)
+     (-24.75)   pos_eqn(y3,h28)
+     (-25.65)   pos_eqn(y3,h29)
+     (-26.55)   pos_eqn(y3,h30)
+     (-27.45)   pos_eqn(y3,h31)
+     (-28.35)   pos_eqn(y3,h32)
+     (-29.25)   pos_eqn(y3,h33)
+     (-30.15)   pos_eqn(y3,h34)
+     (-31.05)   pos_eqn(y3,h35)
+     (-31.95)   pos_eqn(y3,h36)
+     (-32.85)   pos_eqn(y3,h37)
+     (-33.75)   pos_eqn(y3,h38)
+     (-34.65)   pos_eqn(y3,h39)
+     (-35.55)   pos_eqn(y3,h40)
+     (-36.45)   pos_eqn(y3,h41)
+     (-37.35)   pos_eqn(y3,h42)
+     (-38.25)   pos_eqn(y3,h43)
+     (-39.15)   pos_eqn(y3,h44)
+     (-40.05)   pos_eqn(y3,h45)
+     (-40.95)   pos_eqn(y3,h46)
+     (-41.85)   pos_eqn(y3,h47)
+     (-42.75)   pos_eqn(y3,h48)
+     (-43.65)   pos_eqn(y3,h49)
+     (-44.55)   pos_eqn(y3,h50)
+       (0)      pos_eqn(y4,h1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 7
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Column Listing      SOLVE lnts Using NLP From line 87
+
+
+     step  step size
+
+       (0)      pos_eqn(y4,h2)
+       (0)      pos_eqn(y4,h3)
+       (0)      pos_eqn(y4,h4)
+       (0)      pos_eqn(y4,h5)
+       (0)      pos_eqn(y4,h6)
+       (0)      pos_eqn(y4,h7)
+       (0)      pos_eqn(y4,h8)
+       (0)      pos_eqn(y4,h9)
+       (0)      pos_eqn(y4,h10)
+       (0)      pos_eqn(y4,h11)
+       (0)      pos_eqn(y4,h12)
+       (0)      pos_eqn(y4,h13)
+       (0)      pos_eqn(y4,h14)
+       (0)      pos_eqn(y4,h15)
+       (0)      pos_eqn(y4,h16)
+       (0)      pos_eqn(y4,h17)
+       (0)      pos_eqn(y4,h18)
+       (0)      pos_eqn(y4,h19)
+       (0)      pos_eqn(y4,h20)
+       (0)      pos_eqn(y4,h21)
+       (0)      pos_eqn(y4,h22)
+       (0)      pos_eqn(y4,h23)
+       (0)      pos_eqn(y4,h24)
+       (0)      pos_eqn(y4,h25)
+       (0)      pos_eqn(y4,h26)
+       (0)      pos_eqn(y4,h27)
+       (0)      pos_eqn(y4,h28)
+       (0)      pos_eqn(y4,h29)
+       (0)      pos_eqn(y4,h30)
+       (0)      pos_eqn(y4,h31)
+       (0)      pos_eqn(y4,h32)
+       (0)      pos_eqn(y4,h33)
+       (0)      pos_eqn(y4,h34)
+       (0)      pos_eqn(y4,h35)
+       (0)      pos_eqn(y4,h36)
+       (0)      pos_eqn(y4,h37)
+       (0)      pos_eqn(y4,h38)
+       (0)      pos_eqn(y4,h39)
+       (0)      pos_eqn(y4,h40)
+       (0)      pos_eqn(y4,h41)
+       (0)      pos_eqn(y4,h42)
+       (0)      pos_eqn(y4,h43)
+       (0)      pos_eqn(y4,h44)
+       (0)      pos_eqn(y4,h45)
+       (0)      pos_eqn(y4,h46)
+       (0)      pos_eqn(y4,h47)
+       (0)      pos_eqn(y4,h48)
+       (0)      pos_eqn(y4,h49)
+       (0)      pos_eqn(y4,h50)
+    (-100)      velo1_eqn(h1)
+    (-100)      velo1_eqn(h2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 8
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Column Listing      SOLVE lnts Using NLP From line 87
+
+
+     step  step size
+
+    (-100)      velo1_eqn(h3)
+    (-100)      velo1_eqn(h4)
+    (-100)      velo1_eqn(h5)
+    (-100)      velo1_eqn(h6)
+    (-100)      velo1_eqn(h7)
+    (-100)      velo1_eqn(h8)
+    (-100)      velo1_eqn(h9)
+    (-100)      velo1_eqn(h10)
+    (-100)      velo1_eqn(h11)
+    (-100)      velo1_eqn(h12)
+    (-100)      velo1_eqn(h13)
+    (-100)      velo1_eqn(h14)
+    (-100)      velo1_eqn(h15)
+    (-100)      velo1_eqn(h16)
+    (-100)      velo1_eqn(h17)
+    (-100)      velo1_eqn(h18)
+    (-100)      velo1_eqn(h19)
+    (-100)      velo1_eqn(h20)
+    (-100)      velo1_eqn(h21)
+    (-100)      velo1_eqn(h22)
+    (-100)      velo1_eqn(h23)
+    (-100)      velo1_eqn(h24)
+    (-100)      velo1_eqn(h25)
+    (-100)      velo1_eqn(h26)
+    (-100)      velo1_eqn(h27)
+    (-100)      velo1_eqn(h28)
+    (-100)      velo1_eqn(h29)
+    (-100)      velo1_eqn(h30)
+    (-100)      velo1_eqn(h31)
+    (-100)      velo1_eqn(h32)
+    (-100)      velo1_eqn(h33)
+    (-100)      velo1_eqn(h34)
+    (-100)      velo1_eqn(h35)
+    (-100)      velo1_eqn(h36)
+    (-100)      velo1_eqn(h37)
+    (-100)      velo1_eqn(h38)
+    (-100)      velo1_eqn(h39)
+    (-100)      velo1_eqn(h40)
+    (-100)      velo1_eqn(h41)
+    (-100)      velo1_eqn(h42)
+    (-100)      velo1_eqn(h43)
+    (-100)      velo1_eqn(h44)
+    (-100)      velo1_eqn(h45)
+    (-100)      velo1_eqn(h46)
+    (-100)      velo1_eqn(h47)
+    (-100)      velo1_eqn(h48)
+    (-100)      velo1_eqn(h49)
+    (-100)      velo1_eqn(h50)
+       (0)      velo2_eqn(h1)
+       (0)      velo2_eqn(h2)
+       (0)      velo2_eqn(h3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 9
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Column Listing      SOLVE lnts Using NLP From line 87
+
+
+     step  step size
+
+       (0)      velo2_eqn(h4)
+       (0)      velo2_eqn(h5)
+       (0)      velo2_eqn(h6)
+       (0)      velo2_eqn(h7)
+       (0)      velo2_eqn(h8)
+       (0)      velo2_eqn(h9)
+       (0)      velo2_eqn(h10)
+       (0)      velo2_eqn(h11)
+       (0)      velo2_eqn(h12)
+       (0)      velo2_eqn(h13)
+       (0)      velo2_eqn(h14)
+       (0)      velo2_eqn(h15)
+       (0)      velo2_eqn(h16)
+       (0)      velo2_eqn(h17)
+       (0)      velo2_eqn(h18)
+       (0)      velo2_eqn(h19)
+       (0)      velo2_eqn(h20)
+       (0)      velo2_eqn(h21)
+       (0)      velo2_eqn(h22)
+       (0)      velo2_eqn(h23)
+       (0)      velo2_eqn(h24)
+       (0)      velo2_eqn(h25)
+       (0)      velo2_eqn(h26)
+       (0)      velo2_eqn(h27)
+       (0)      velo2_eqn(h28)
+       (0)      velo2_eqn(h29)
+       (0)      velo2_eqn(h30)
+       (0)      velo2_eqn(h31)
+       (0)      velo2_eqn(h32)
+       (0)      velo2_eqn(h33)
+       (0)      velo2_eqn(h34)
+       (0)      velo2_eqn(h35)
+       (0)      velo2_eqn(h36)
+       (0)      velo2_eqn(h37)
+       (0)      velo2_eqn(h38)
+       (0)      velo2_eqn(h39)
+       (0)      velo2_eqn(h40)
+       (0)      velo2_eqn(h41)
+       (0)      velo2_eqn(h42)
+       (0)      velo2_eqn(h43)
+       (0)      velo2_eqn(h44)
+       (0)      velo2_eqn(h45)
+       (0)      velo2_eqn(h46)
+       (0)      velo2_eqn(h47)
+       (0)      velo2_eqn(h48)
+       (0)      velo2_eqn(h49)
+       (0)      velo2_eqn(h50)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 10
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Model Statistics    SOLVE lnts Using NLP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          201
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          257
+NON ZERO ELEMENTS         1,002     NON LINEAR N-Z            600
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH               2,001
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 11
+Particle steering COPS 2.0 #9 (LNTS,SEQ=237)
+Solution Report     SOLVE lnts Using NLP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lnts                OBJECTIVE  tf
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lnts/convert.opt"
+>>  ampl lnts-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lnts/convert.opt"
+Ampl      : lnts-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/lnts/lnts.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/lnts/lnts-scalar.mod.lst

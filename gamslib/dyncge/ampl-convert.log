@@ -1,0 +1,621 @@
+--- Job dyncge.gms Start 12/13/18 11:43:44 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- dyncge.gms(766) 3 Mb
+--- Starting execution: elapsed 0:00:00.007
+--- dyncge.gms(538) 4 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(543) 6 Mb
+---   116 rows  117 columns  529 non-zeroes
+---   823 nl-code  296 nl-non-zeroes
+--- dyncge.gms(543) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.013
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Restarting execution
+--- dyncge.gms(543) 2 Mb
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 0
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.030
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 1
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.037
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 2
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.043
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 3
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.050
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 4
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.057
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 5
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.063
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 6
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.069
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 7
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.076
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 8
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.083
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 9
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.090
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 10
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.097
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 11
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.102
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 12
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.107
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 13
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.113
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 14
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.120
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 15
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.126
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 16
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.134
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 17
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.142
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 18
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.150
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 19
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.157
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 20
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.165
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 21
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.171
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 22
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.176
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 23
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.182
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 24
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.188
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 25
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.195
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 26
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.201
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 27
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.207
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 28
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.214
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 29
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.220
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(554) 3 Mb
+--- Generating NLP model dyncge
+--- dyncge.gms(555) 5 Mb
+--- Reset Solvelink = 2
+--- LOOPS t = 30
+---   116 rows  117 columns  521 non-zeroes
+---   795 nl-code  288 nl-non-zeroes
+--- dyncge.gms(555) 3 Mb
+--- Executing CONVERT (Solvelink=2): elapsed 0:00:00.227
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+>>  ampl dyncge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dyncge/convert.opt"
+--- Writing Ampl      : dyncge-scalar.mod
+
+--- Reading solution for model dyncge
+--- dyncge.gms(763) 3 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/dyncge/result.gdx
+*** Status: Normal completion
+--- Job dyncge.gms Stop 12/13/18 11:43:44 elapsed 0:00:00.237

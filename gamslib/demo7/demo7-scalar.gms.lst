@@ -1,0 +1,1713 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 2
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This is the last in a series of agricultural farm level and sector
+         models, this model simulates the market behavior of the sector
+         using a partial equilibrium framework. The technique is
+         the maximization of consumers and producers surplus.
+       
+       
+      Kutcher, G P, Meeraus, A, and O'Mara, G T, Agriculture Sector and
+      Policy Models. The World Bank, 1988.
+       
+  17   
+  18  Sets
+  19   
+  20    c  crop   / wheat, clover, beans, onions, cotton, maize, tomato/
+  21    cl livestock  feed  / clover, straw /
+  22    t  month  / jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec  /
+  23    r  feeding recipes / rec-1, rec-2 /
+  24    s  seasons / summer, winter /
+  25    sc(s,c) season crop mapping / summer.(cotton,maize,tomato)
+  26                                  winter.(wheat,clover,beans,onions) /
+  27    cn(c)  crops sold in national market
+  28    ce(c)  export commodities
+  29    cm(c)  import commodities
+  30   
+  31  Table a(t,c)  months of land occupation by crop (hectares)
+  32   
+  33      wheat  clover  beans  onions cotton maize  tomato
+  34  jan   1.     1.      1.     1.
+  35  feb   1.     1.      1.     1.
+  36  mar   1.      .5     1.     1.     .5
+  37  apr   1.             1.     1.     1.
+  38  may   1.                    .25    1.     .25
+  39  jun                                1.     1.
+  40  jul                                1.     1.     .75
+  41  aug                                1.     1.     1.
+  42  sep                                1.     1.     1.
+  43  oct                                1.     .5     1.
+  44  nov   .5     .25     .25    .5     .75           .75
+  45  dec   1.     1.      1.     1.
+  46   
+  47   
+  48  Table lc(t,c)  crop labor requirements (man-days per hectare)
+  49   
+  50       wheat  clover beans  onions cotton maize  tomato
+  51  jan   1.72   4.5    .75    5.16
+  52  feb   .5     1.     .75    5.
+  53  mar   1.     8.     .75    5.     5.
+  54  apr   1.            16.    19.58  5.
+  55  may   17.16                2.42   9.     4.3
+  56  jun   2.34                        2.     5.04
+  57  jul                               1.5    7.16   17.
+  58  aug                               2.     7.97   15.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 3
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+C o m p i l a t i o n
+
+
+  59  sep                               1.     4.41   12.
+  60  oct                              26.    1.12   7.
+  61  nov   2.43   2.5    7.5    11.16 12.           6.
+  62  dec   1.35   7.5    .75    4.68
+  63   
+  64  Table lio(cl,r)  livestock input output matrix
+  65   
+  66             rec-1   rec-2
+  67  clover     1.3     2.0
+  68  straw      1.6      .8
+  69   
+  70  Table demdat(c,*)  demand data
+  71   
+  72              ref-p  ref-q  elas   exp-p  imp-p
+  73  *            ($)  (1000t)        ($)     ($)
+  74   wheat       100    2700   -.8           140
+  75   beans       200     900   -.4           270
+  76   onions       125   700    -1.   40     inf
+  77   cotton      350    2100    -1.  300    inf
+  78   maize        70    3800   -.5           85
+  79   tomato       120    500   -1.2   60     inf
+  80   
+  81   
+  82  Scalars  fnum    number  of  farms in sector                /1000/
+  83           land    farm size (hectares)                        / 4.   /
+  84           famlab  family labor available (days per month)   / 25   /
+  85           dpm     work days per month                      /  25  /
+  86           rwage   reservation wage rate (dollars per day)     /  3 /
+  87           twage   temporary labor wage  (dollars per day)   /  4   /
+  88           llab    livestock labor requirements (days per month)  /   2 /
+  89           trent   tractor rental cost (dollar per hectare)       / 40 /
+  90           hpa     land plowed by animals (hectares per animal)     / 2 /
+  91           straw   straw yield from wheat                         /1.75 /
+  92   
+  93  Parameters yield(c) crop yield (tons per hectare) /
+  94                      wheat  = 1.5, clover = 6 , beans  = 1, onions = 3
+  95                      cotton = 1.5, maize  = 2, tomato = 3  /
+  96   
+  97             miscost(c) misc cash costs (dollars per hectare) /
+  98                      wheat  = 10, beans  = 5, onions = 50
+  99                      cotton = 80, maize  =  5, tomato = 50 /
+ 100             price(c)     reference (observed) price (dollars)
+ 101             pe(c)        commodity export prices (dollars)
+ 102             pm(c)        commodity import prices (dollars)
+ 103             alpha(c)     demand curve intercept
+ 104             beta(c)      demand curve gradient;
+ 105   
+ 106   cn(c) = yes$demdat(c,"ref-p");
+ 107   ce(c) = yes$demdat(c,"exp-p");
+ 108   cm(c) = yes$(demdat(c,"imp-p") lt inf );
+ 109   cm("clover") = no;
+ 110   price(c) = demdat(c,"ref-p");
+ 111   pe(ce)   = demdat(ce,"exp-p");    pm(cm) = demdat(cm,"imp-p");
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 4
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+C o m p i l a t i o n
+
+
+ 112   
+ 113   beta(cn)$demdat(cn,"ref-q") = demdat(cn,"ref-p")/demdat(cn,"ref-q")/
+ 114                                 demdat(cn,"elas");
+ 115   alpha(cn) = demdat(cn,"ref-p") - beta(cn)*demdat(cn,"ref-q");
+ 116   
+ 117   demdat(cn,"dem-a") = alpha(cn); demdat(cn,"dem-b") = beta(cn);
+ 118   
+ 119   Display cn,cm,ce,price,pe,beta,alpha,demdat;
+ 120   
+ 121  Variables   xcrop(c)     cropping activity    (hectares)
+ 122              yfarm        farm income          (dollars)
+ 123              revenue      value of production  (dollars)
+ 124              mcost        misc cash cost       (dollars)
+ 125              pcost        tractor plowing cost
+ 126              labcost      labor cost           (dollars)
+ 127              rescost      family labor reservation wage cost (dollars)
+ 128              tcost        total farm cost including rescost
+ 129              flab(t)      family labor use     (days)
+ 130              tlab(t)      temporary labor      (days)
+ 131              xlive(r)     livestock activity   (units)
+ 132              natprod(c)   net production       (tons)
+ 133              thire(s)     tractor rental       (hectares plowed)
+ 134              natcon(c)    domestic consumption (1000 tons)
+ 135              natprice(c)  domestic price       (dollars per ton)
+ 136              exports(c)   national exports     (1000 tons)
+ 137              imports(c)   national imports     (1000 tons)
+ 138              cps          consumers and producers surplus
+ 139              valpro       value of net production at ref prices
+ 140              employ       employment generated (man-years)
+ 141              tradebal     net exports          (1000 $)
+ 142   
+ 143   Positive Variable xcrop,xlive,thire,flab,tlab,natcon,natprod,
+ 144                         exports,imports
+ 145  Equations   landbal(t)   land balance            (hectares)
+ 146              laborbal(t)  labor balance           (days)
+ 147              flabor(t)    family labor balance    (days)
+ 148              plow(s)      land plowed             (hectares per season)
+ 149              arev         revenue accounting      (dollars)
+ 150              ares         reservation labor cost    (dollars)
+ 151              acost        total cost accounting    (dollars)
+ 152              amisc        misc cost accounting
+ 153              aplow
+ 154              alab         labor cost accounting   (dollars)
+ 155              lclover      clover balance
+ 156              lstraw       straw balance
+ 157              income      income definition       (dollars)
+ 158              dem(c)        national demand balance    (1000 tons)
+ 159              pdef(c)       price definition
+ 160              arevn         revenue accounting                    (1000 $)
+ 161              arevf         revenue accounting: fixed price model (1000 $)
+ 162              valproc       value of net production definition    (1000 $)
+ 163              proc(c)       net production definition             (tons)
+ 164              employc       employment definition                 (man-years)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 5
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+C o m p i l a t i o n
+
+
+ 165              tradebalc     trade balance definition               (1000 $)
+ 166              objn          objective function;
+ 167   
+ 168   
+ 169  landbal(t)..   sum(c, xcrop(c)*a(t,c))  =l= land*fnum;
+ 170   
+ 171  laborbal(t)..  sum(c, xcrop(c)*lc(t,c)) + sum(r, xlive(r))*llab  =l= flab(t) +                     tlab(t);
+ 172   
+ 173  amisc.. mcost =e= sum(c, xcrop(c)*miscost(c));
+ 174   
+ 175  alab..  labcost =e= sum(t, tlab(t)*twage);
+ 176   
+ 177  ares..  rescost =e= sum(t, flab(t)*rwage);
+ 178   
+ 179  aplow.. pcost =e= sum(s, thire(s)*trent);
+ 180   
+ 181  acost.. tcost =e= mcost + labcost + rescost + pcost;
+ 182   
+ 183  lclover..  xcrop("clover")*yield("clover") =g= sum(r,xlive(r)*lio("clover",r));
+ 184   
+ 185  lstraw..   xcrop("wheat")*straw =g= sum(r,xlive(r)*lio("straw",r));
+ 186   
+ 187  plow(s)..  sum(c$sc(s,c), xcrop(c)) =l= sum(r, xlive(r))*hpa + thire(s);
+ 188   
+ 189  proc(c)..   natprod(c) =e= xcrop(c)*yield(c);
+ 190   
+ 191  dem(cn)..   natcon(cn) =e= natprod(cn)
+ 192                            + imports(cn)$cm(cn) - exports(cn)$ce(cn);
+ 193   
+ 194  objn..
+ 195        cps =e= sum(cn, alpha(cn)*natcon(cn) + .5*beta(cn)*sqr(natcon(cn)))
+ 196                + sum(ce, exports(ce)*pe(ce))
+ 197                - sum(cm, imports(cm)*pm(cm))
+ 198                - tcost;
+ 199   
+ 200   
+ 201  * the next 5 equations are only reporting or accounting definitions.
+ 202  * they do not effect the model.
+ 203   
+ 204  arevn..
+ 205      revenue =e= sum(cn, alpha(cn)*natcon(cn) + beta(cn)*sqr(natcon(cn))
+ 206                        + exports(cn)*pe(cn)$ce(cn));
+ 207   
+ 208  arevf..
+ 209      revenue =e= sum(cn, natprod(cn)*price(cn)
+ 210                        + (exports(cn)*(pe(cn)-price(cn)))$ce(cn));
+ 211   
+ 212  valproc..   valpro =e= sum(c, natprod(c)*price(c));
+ 213   
+ 214  income.. yfarm =e= revenue - tcost + rescost;
+ 215   
+ 216  employc..
+ 217           employ =e= (sum(t, sum(c, xcrop(c)*lc(t,c)))
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 6
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+C o m p i l a t i o n
+
+
+ 218                          + sum(r, xlive(r)*llab))/dpm/12;
+ 219   
+ 220  tradebalc.. tradebal =e= sum(cn, exports(cn)*pe(cn)$ce(cn)
+ 221                                  - imports(cn)*pm(cn)$cm(cn));
+ 222   
+ 223  pdef(cn)..  natprice(cn) =e= alpha(cn) + beta(cn)*natcon(cn);
+ 224   
+ 225  flab.up(t) = famlab*fnum;
+ 226   
+ 227   
+ 228  Models
+ 229   
+ 230     demo7f fixed price / landbal, laborbal, plow, ares, arevf,
+ 231                          alab, acost, dem, employc, proc, valproc,
+ 232                          amisc, aplow, lclover, lstraw, income,
+ 233                          tradebalc /
+ 234   
+ 235     demo7n nonlinear   / landbal, laborbal, plow, ares, arevn,
+ 236                          alab, acost, dem, employc, proc, valproc
+ 237                          amisc, aplow, lclover, lstraw, income,
+ 238                          tradebalc, pdef, objn /;
+ 239   
+ 240  * find a good starting point for the nlp by solving a fixed price
+ 241  * lp model.
+ 242   
+ 243  Solve demo7f maximizing yfarm using lp;
+ 244   
+ 245  natprice.l(cn) =  demdat(cn,"ref-p");
+ 246   
+ 247  * the first lp found a good primal starting point. we can help
+ 248  * the nlp step to provide some additional dual information.
+ 249  * the equation arevf is replaced by arevn and pdef is new and
+ 250  * should be binding.
+ 251   
+ 252  pdef.m(cn) = 1;
+ 253  arevn.m = arevf.m;
+ 254   
+ 255  Solve demo7n maximizing cps using nlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 7
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+E x e c u t i o n
+
+
+----    119 SET cn  crops sold in national market
+
+wheat ,    beans ,    onions,    cotton,    maize ,    tomato
+
+
+----    119 SET cm  import commodities
+
+wheat,    beans,    maize
+
+
+----    119 SET ce  export commodities
+
+onions,    cotton,    tomato
+
+
+----    119 PARAMETER price  reference (observed) price (dollars)
+
+wheat  100.000,    beans  200.000,    onions 125.000,    cotton 350.000,    maize   70.000,    tomato 120.000
+
+
+----    119 PARAMETER pe  commodity export prices (dollars)
+
+onions  40.000,    cotton 300.000,    tomato  60.000
+
+
+----    119 PARAMETER beta  demand curve gradient
+
+wheat  -0.046,    beans  -0.556,    onions -0.179,    cotton -0.167,    maize  -0.037,    tomato -0.200
+
+
+----    119 PARAMETER alpha  demand curve intercept
+
+wheat  225.000,    beans  700.000,    onions 250.000,    cotton 700.000,    maize  210.000,    tomato 220.000
+
+
+----    119 PARAMETER demdat  demand data
+
+             ref-p       ref-q        elas       exp-p       imp-p       dem-a       dem-b
+
+wheat      100.000    2700.000      -0.800                 140.000     225.000      -0.046
+beans      200.000     900.000      -0.400                 270.000     700.000      -0.556
+onions     125.000     700.000      -1.000      40.000        +INF     250.000      -0.179
+cotton     350.000    2100.000      -1.000     300.000        +INF     700.000      -0.167
+maize       70.000    3800.000      -0.500                  85.000     210.000      -0.037
+tomato     120.000     500.000      -1.200      60.000        +INF     220.000      -0.200
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 8
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Equation Listing    SOLVE demo7f Using LP From line 243
+
+
+---- landbal  =L=  land balance            (hectares)
+
+landbal(jan)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) =L= 4000 ; (LHS = 0)
+     
+landbal(feb)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) =L= 4000 ; (LHS = 0)
+     
+landbal(mar)..  xcrop(wheat) + 0.5*xcrop(clover) + xcrop(beans) + xcrop(onions) + 0.5*xcrop(cotton) =L= 4000 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- laborbal  =L=  labor balance           (days)
+
+laborbal(jan)..  1.72*xcrop(wheat) + 4.5*xcrop(clover) + 0.75*xcrop(beans) + 5.16*xcrop(onions) - flab(jan) - tlab(jan) + 2*xlive(rec-1) + 2*xlive(rec-2) =L= 0 ; (LHS = 0)
+     
+laborbal(feb)..  0.5*xcrop(wheat) + xcrop(clover) + 0.75*xcrop(beans) + 5*xcrop(onions) - flab(feb) - tlab(feb) + 2*xlive(rec-1) + 2*xlive(rec-2) =L= 0 ; (LHS = 0)
+     
+laborbal(mar)..  xcrop(wheat) + 8*xcrop(clover) + 0.75*xcrop(beans) + 5*xcrop(onions) + 5*xcrop(cotton) - flab(mar) - tlab(mar) + 2*xlive(rec-1) + 2*xlive(rec-2) =L= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- plow  =L=  land plowed             (hectares per season)
+
+plow(summer)..  xcrop(cotton) + xcrop(maize) + xcrop(tomato) - 2*xlive(rec-1) - 2*xlive(rec-2) - thire(summer) =L= 0 ; (LHS = 0)
+     
+plow(winter)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) - 2*xlive(rec-1) - 2*xlive(rec-2) - thire(winter) =L= 0 ; (LHS = 0)
+     
+
+---- ares  =E=  reservation labor cost    (dollars)
+
+ares..  rescost - 3*flab(jan) - 3*flab(feb) - 3*flab(mar) - 3*flab(apr) - 3*flab(may) - 3*flab(jun) - 3*flab(jul) - 3*flab(aug) - 3*flab(sep) - 3*flab(oct) - 3*flab(nov) - 3*flab(dec) =E= 0 ; (LHS = 0)
+     
+
+---- arevf  =E=  revenue accounting: fixed price model (1000 $)
+
+arevf..  revenue - 100*natprod(wheat) - 200*natprod(beans) - 125*natprod(onions) - 350*natprod(cotton) - 70*natprod(maize) - 120*natprod(tomato) + 85*exports(onions) + 50*exports(cotton) + 60*exports(tomato) =E= 0 ; (LHS = 0)
+     
+
+---- alab  =E=  labor cost accounting   (dollars)
+
+alab..  labcost - 4*tlab(jan) - 4*tlab(feb) - 4*tlab(mar) - 4*tlab(apr) - 4*tlab(may) - 4*tlab(jun) - 4*tlab(jul) - 4*tlab(aug) - 4*tlab(sep) - 4*tlab(oct) - 4*tlab(nov) - 4*tlab(dec) =E= 0 ; (LHS = 0)
+     
+
+---- acost  =E=  total cost accounting    (dollars)
+
+acost..  - mcost - pcost - labcost - rescost + tcost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 9
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Equation Listing    SOLVE demo7f Using LP From line 243
+
+
+---- dem  =E=  national demand balance    (1000 tons)
+
+dem(wheat)..  - natprod(wheat) + natcon(wheat) - imports(wheat) =E= 0 ; (LHS = 0)
+     
+dem(beans)..  - natprod(beans) + natcon(beans) - imports(beans) =E= 0 ; (LHS = 0)
+     
+dem(onions)..  - natprod(onions) + natcon(onions) + exports(onions) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- employc  =E=  employment definition                 (man-years)
+
+employc..  - 0.0916666666666667*xcrop(wheat) - 0.0783333333333333*xcrop(clover) - 0.0883333333333333*xcrop(beans) - 0.176666666666667*xcrop(onions) - 0.211666666666667*xcrop(cotton) - 0.1*xcrop(maize) - 0.19*xcrop(tomato)
+     
+      - 0.00666666666666667*xlive(rec-1) - 0.00666666666666667*xlive(rec-2) + employ =E= 0 ; (LHS = 0)
+     
+
+---- proc  =E=  net production definition             (tons)
+
+proc(wheat)..  - 1.5*xcrop(wheat) + natprod(wheat) =E= 0 ; (LHS = 0)
+     
+proc(clover)..  - 6*xcrop(clover) + natprod(clover) =E= 0 ; (LHS = 0)
+     
+proc(beans)..  - xcrop(beans) + natprod(beans) =E= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- valproc  =E=  value of net production definition    (1000 $)
+
+valproc..  - 100*natprod(wheat) - 200*natprod(beans) - 125*natprod(onions) - 350*natprod(cotton) - 70*natprod(maize) - 120*natprod(tomato) + valpro =E= 0 ; (LHS = 0)
+     
+
+---- amisc  =E=  misc cost accounting
+
+amisc..  - 10*xcrop(wheat) - 5*xcrop(beans) - 50*xcrop(onions) - 80*xcrop(cotton) - 5*xcrop(maize) - 50*xcrop(tomato) + mcost =E= 0 ; (LHS = 0)
+     
+
+---- aplow  =E=  
+
+aplow..  pcost - 40*thire(summer) - 40*thire(winter) =E= 0 ; (LHS = 0)
+     
+
+---- lclover  =G=  clover balance
+
+lclover..  6*xcrop(clover) - 1.3*xlive(rec-1) - 2*xlive(rec-2) =G= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 10
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Equation Listing    SOLVE demo7f Using LP From line 243
+
+
+---- lstraw  =G=  straw balance
+
+lstraw..  1.75*xcrop(wheat) - 1.6*xlive(rec-1) - 0.8*xlive(rec-2) =G= 0 ; (LHS = 0)
+     
+
+---- income  =E=  income definition       (dollars)
+
+income..  yfarm - revenue - rescost + tcost =E= 0 ; (LHS = 0)
+     
+
+---- tradebalc  =E=  trade balance definition               (1000 $)
+
+tradebalc..  - 40*exports(onions) - 300*exports(cotton) - 60*exports(tomato) + 140*imports(wheat) + 270*imports(beans) + 85*imports(maize) + tradebal =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 11
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+---- xcrop  cropping activity    (hectares)
+
+xcrop(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        1       landbal(mar)
+        1       landbal(apr)
+        1       landbal(may)
+        0.5     landbal(nov)
+        1       landbal(dec)
+        1.72    laborbal(jan)
+        0.5     laborbal(feb)
+        1       laborbal(mar)
+        1       laborbal(apr)
+       17.16    laborbal(may)
+        2.34    laborbal(jun)
+        2.43    laborbal(nov)
+        1.35    laborbal(dec)
+        1       plow(winter)
+       -0.0917  employc
+       -1.5     proc(wheat)
+      -10       amisc
+        1.75    lstraw
+
+xcrop(clover)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        0.5     landbal(mar)
+        0.25    landbal(nov)
+        1       landbal(dec)
+        4.5     laborbal(jan)
+        1       laborbal(feb)
+        8       laborbal(mar)
+        2.5     laborbal(nov)
+        7.5     laborbal(dec)
+        1       plow(winter)
+       -0.0783  employc
+       -6       proc(clover)
+        6       lclover
+
+xcrop(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        1       landbal(mar)
+        1       landbal(apr)
+        0.25    landbal(nov)
+        1       landbal(dec)
+        0.75    laborbal(jan)
+        0.75    laborbal(feb)
+        0.75    laborbal(mar)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 12
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+     xcrop  cropping activity    (hectares)
+
+       16       laborbal(apr)
+        7.5     laborbal(nov)
+        0.75    laborbal(dec)
+        1       plow(winter)
+       -0.0883  employc
+       -1       proc(beans)
+       -5       amisc
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- yfarm  farm income          (dollars)
+
+yfarm
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+
+
+---- revenue  value of production  (dollars)
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       arevf
+       -1       income
+
+
+---- mcost  misc cash cost       (dollars)
+
+mcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       acost
+        1       amisc
+
+
+---- pcost  tractor plowing cost
+
+pcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       acost
+        1       aplow
+
+
+---- labcost  labor cost           (dollars)
+
+labcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       alab
+       -1       acost
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 13
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+---- rescost  family labor reservation wage cost (dollars)
+
+rescost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ares
+       -1       acost
+       -1       income
+
+
+---- tcost  total farm cost including rescost
+
+tcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acost
+        1       income
+
+
+---- flab  family labor use     (days)
+
+flab(jan)
+                (.LO, .L, .UP, .M = 0, 0, 25000, 0)
+       -1       laborbal(jan)
+       -3       ares
+
+flab(feb)
+                (.LO, .L, .UP, .M = 0, 0, 25000, 0)
+       -1       laborbal(feb)
+       -3       ares
+
+flab(mar)
+                (.LO, .L, .UP, .M = 0, 0, 25000, 0)
+       -1       laborbal(mar)
+       -3       ares
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- tlab  temporary labor      (days)
+
+tlab(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(jan)
+       -4       alab
+
+tlab(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(feb)
+       -4       alab
+
+tlab(mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(mar)
+       -4       alab
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 14
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+     tlab  temporary labor      (days)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- xlive  livestock activity   (units)
+
+xlive(rec-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        2       laborbal(jan)
+        2       laborbal(feb)
+        2       laborbal(mar)
+        2       laborbal(apr)
+        2       laborbal(may)
+        2       laborbal(jun)
+        2       laborbal(jul)
+        2       laborbal(aug)
+        2       laborbal(sep)
+        2       laborbal(oct)
+        2       laborbal(nov)
+        2       laborbal(dec)
+       -2       plow(summer)
+       -2       plow(winter)
+       -0.0067  employc
+       -1.3     lclover
+       -1.6     lstraw
+
+xlive(rec-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        2       laborbal(jan)
+        2       laborbal(feb)
+        2       laborbal(mar)
+        2       laborbal(apr)
+        2       laborbal(may)
+        2       laborbal(jun)
+        2       laborbal(jul)
+        2       laborbal(aug)
+        2       laborbal(sep)
+        2       laborbal(oct)
+        2       laborbal(nov)
+        2       laborbal(dec)
+       -2       plow(summer)
+       -2       plow(winter)
+       -0.0067  employc
+       -2       lclover
+       -0.8     lstraw
+
+
+---- natprod  net production       (tons)
+
+natprod(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       arevf
+       -1       dem(wheat)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 15
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+     natprod  net production       (tons)
+
+        1       proc(wheat)
+     -100       valproc
+
+natprod(clover)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       proc(clover)
+
+natprod(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -200       arevf
+       -1       dem(beans)
+        1       proc(beans)
+     -200       valproc
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- thire  tractor rental       (hectares plowed)
+
+thire(summer)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       plow(summer)
+      -40       aplow
+
+thire(winter)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       plow(winter)
+      -40       aplow
+
+
+---- natcon  domestic consumption (1000 tons)
+
+natcon(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       dem(wheat)
+
+natcon(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       dem(beans)
+
+natcon(onions)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       dem(onions)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- exports  national exports     (1000 tons)
+
+exports(onions)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       85       arevf
+        1       dem(onions)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 16
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+     exports  national exports     (1000 tons)
+
+      -40       tradebalc
+
+exports(cotton)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       50       arevf
+        1       dem(cotton)
+     -300       tradebalc
+
+exports(tomato)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       60       arevf
+        1       dem(tomato)
+      -60       tradebalc
+
+
+---- imports  national imports     (1000 tons)
+
+imports(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       dem(wheat)
+      140       tradebalc
+
+imports(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       dem(beans)
+      270       tradebalc
+
+imports(maize)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       dem(maize)
+       85       tradebalc
+
+
+---- valpro  value of net production at ref prices
+
+valpro
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       valproc
+
+
+---- employ  employment generated (man-years)
+
+employ
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       employc
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 17
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7f Using LP From line 243
+
+
+---- tradebal  net exports          (1000 $)
+
+tradebal
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tradebalc
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 18
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Model Statistics    SOLVE demo7f Using LP From line 243
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          17     SINGLE EQUATIONS           51
+BLOCKS OF VARIABLES          19     SINGLE VARIABLES           64
+NON ZERO ELEMENTS           269
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 19
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7f Using LP From line 243
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   demo7f              OBJECTIVE  yfarm
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CPLEX               FROM LINE  243
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE          1472022.6995
+
+ RESOURCE USAGE, LIMIT          0.003      1000.000
+ ITERATION COUNT, LIMIT        23    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/demo7/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.14 ticks)
+Optimal solution found.
+Objective :     1472022.699507
+
+
+---- EQU landbal  land balance            (hectares)
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+jan        -INF         3310.3448      4000.0000          .          
+feb        -INF         3310.3448      4000.0000          .          
+mar        -INF         3655.1724      4000.0000          .          
+apr        -INF         4000.0000      4000.0000       137.0000      
+may        -INF         2498.5222      4000.0000          .          
+jun        -INF         1241.3793      4000.0000          .          
+jul        -INF         2793.1034      4000.0000          .          
+aug        -INF         3310.3448      4000.0000          .          
+sep        -INF         3310.3448      4000.0000          .          
+oct        -INF         3310.3448      4000.0000          .          
+nov        -INF         4000.0000      4000.0000        56.0057      
+dec        -INF         3310.3448      4000.0000          .          
+
+---- EQU laborbal  labor balance           (days)
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+jan        -INF        -7575.2906          .              .          
+feb        -INF       -10749.7537          .              .          
+mar        -INF         -302.4631          .              .          
+apr        -INF             .              .             4.0000      
+may        -INF             .              .             4.0000      
+jun        -INF       -17436.3350          .              .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 20
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7f Using LP From line 243
+
+
+     EQU laborbal  labor balance           (days)
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+jul        -INF             .              .             4.0000      
+aug        -INF             .              .             4.0000      
+sep        -INF             .              .             4.0000      
+oct        -INF             .              .             4.0000      
+nov        -INF             .              .             4.0000      
+dec        -INF        -7161.0246          .              .          
+
+---- EQU plow  land plowed             (hectares per season)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+summer        -INF             .              .            39.9957      
+winter        -INF             .              .            27.3572      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ares                .              .              .             EPS         
+---- EQU arevf               .              .              .             1.0000      
+---- EQU alab                .              .              .            -1.0000      
+---- EQU acost               .              .              .            -1.0000      
+
+  ares  reservation labor cost    (dollars)
+  arevf  revenue accounting: fixed price model (1000 $)
+  alab  labor cost accounting   (dollars)
+  acost  total cost accounting    (dollars)
+
+---- EQU dem  national demand balance    (1000 tons)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .              .              .             EPS         
+beans           .              .              .             EPS         
+onions          .              .              .             EPS         
+cotton          .              .              .             EPS         
+maize           .              .              .             EPS         
+tomato          .              .              .             EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU employc             .              .              .             EPS         
+
+  employc  employment definition                 (man-years)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 21
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7f Using LP From line 243
+
+
+---- EQU proc  net production definition             (tons)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .              .              .           100.0000      
+clover          .              .              .             EPS         
+beans           .              .              .           200.0000      
+onions          .              .              .           125.0000      
+cotton          .              .              .           350.0000      
+maize           .              .              .            70.0000      
+tomato          .              .              .           120.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU valproc             .              .              .             EPS         
+---- EQU amisc               .              .              .            -1.0000      
+---- EQU aplow               .              .              .            -1.0000      
+---- EQU lclover             .              .            +INF           -8.5598      
+---- EQU lstraw              .              .            +INF          -76.9829      
+---- EQU income              .              .              .             1.0000      
+---- EQU tradebalc           .              .              .             EPS         
+
+  valproc  value of net production definition    (1000 $)
+  amisc  misc cost accounting
+  lclover  clover balance
+  lstraw  straw balance
+  income  income definition       (dollars)
+  tradebalc  trade balance definition               (1000 $)
+
+---- VAR xcrop  cropping activity    (hectares)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .           756.6502        +INF             .          
+clover          .           551.7241        +INF             .          
+beans           .              .            +INF          -77.3586      
+onions          .          2001.9704        +INF             .          
+cotton          .          1241.3793        +INF             .          
+maize           .              .            +INF           -4.8357      
+tomato          .          2068.9655        +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR yfarm             -INF      1472022.6995        +INF             .          
+---- VAR revenue           -INF      2260788.1773        +INF             .          
+---- VAR mcost             -INF       310423.6453        +INF             .          
+---- VAR pcost             -INF             .            +INF             .          
+---- VAR labcost           -INF       478341.8325        +INF             .          
+---- VAR rescost           -INF       900000.0000        +INF             .          
+---- VAR tcost             -INF      1688765.4778        +INF             .          
+
+  yfarm  farm income          (dollars)
+  revenue  value of production  (dollars)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 22
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7f Using LP From line 243
+
+
+  mcost  misc cash cost       (dollars)
+  pcost  tractor plowing cost
+  labcost  labor cost           (dollars)
+  rescost  family labor reservation wage cost (dollars)
+  tcost  total farm cost including rescost
+
+---- VAR flab  family labor use     (days)
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+jan          .         25000.0000     25000.0000         EPS         
+feb          .         25000.0000     25000.0000         EPS         
+mar          .         25000.0000     25000.0000         EPS         
+apr          .         25000.0000     25000.0000         4.0000      
+may          .         25000.0000     25000.0000         4.0000      
+jun          .         25000.0000     25000.0000         EPS         
+jul          .         25000.0000     25000.0000         4.0000      
+aug          .         25000.0000     25000.0000         4.0000      
+sep          .         25000.0000     25000.0000         4.0000      
+oct          .         25000.0000     25000.0000         4.0000      
+nov          .         25000.0000     25000.0000         4.0000      
+dec          .         25000.0000     25000.0000         EPS         
+
+---- VAR tlab  temporary labor      (days)
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+jan          .              .            +INF           -4.0000      
+feb          .              .            +INF           -4.0000      
+mar          .              .            +INF           -4.0000      
+apr          .         24472.4729        +INF             .          
+may          .          7311.6453        +INF             .          
+jun          .              .            +INF           -4.0000      
+jul          .         15344.8276        +INF             .          
+aug          .         11827.5862        +INF             .          
+sep          .          4379.3103        +INF             .          
+oct          .         25068.9655        +INF             .          
+nov          .         31180.6502        +INF             .          
+dec          .              .            +INF           -4.0000      
+
+---- VAR xlive  livestock activity   (units)
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+rec-1          .              .            +INF          -55.5945      
+rec-2          .          1655.1724        +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 23
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7f Using LP From line 243
+
+
+---- VAR natprod  net production       (tons)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .          1134.9754        +INF             .          
+clover          .          3310.3448        +INF             .          
+beans           .              .            +INF             .          
+onions          .          6005.9113        +INF             .          
+cotton          .          1862.0690        +INF             .          
+maize           .              .            +INF             .          
+tomato          .          6206.8966        +INF             .          
+
+---- VAR thire  tractor rental       (hectares plowed)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+summer          .              .            +INF           -0.0043      
+winter          .              .            +INF          -12.6428      
+
+---- VAR natcon  domestic consumption (1000 tons)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .          1134.9754        +INF             .          
+beans           .              .            +INF             .          
+onions          .          6005.9113        +INF             .          
+cotton          .          1862.0690        +INF             .          
+maize           .              .            +INF             .          
+tomato          .          6206.8966        +INF             .          
+
+---- VAR exports  national exports     (1000 tons)
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+onions          .              .            +INF          -85.0000      
+cotton          .              .            +INF          -50.0000      
+tomato          .              .            +INF          -60.0000      
+
+---- VAR imports  national imports     (1000 tons)
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+wheat          .              .            +INF            EPS         
+beans          .              .            +INF            EPS         
+maize          .              .            +INF            EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR valpro            -INF      2260788.1773        +INF             .          
+---- VAR employ            -INF         1133.1560        +INF             .          
+---- VAR tradebal          -INF             .            +INF             .          
+
+  valpro  value of net production at ref prices
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 24
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7f Using LP From line 243
+
+
+  employ  employment generated (man-years)
+  tradebal  net exports          (1000 $)
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 25
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Equation Listing    SOLVE demo7n Using NLP From line 255
+
+
+---- landbal  =L=  land balance            (hectares)
+
+landbal(jan)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) =L= 4000 ; (LHS = 3310.34482758621)
+     
+landbal(feb)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) =L= 4000 ; (LHS = 3310.34482758621)
+     
+landbal(mar)..  xcrop(wheat) + 0.5*xcrop(clover) + xcrop(beans) + xcrop(onions) + 0.5*xcrop(cotton) =L= 4000 ; (LHS = 3655.1724137931)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- laborbal  =L=  labor balance           (days)
+
+laborbal(jan)..  1.72*xcrop(wheat) + 4.5*xcrop(clover) + 0.75*xcrop(beans) + 5.16*xcrop(onions) - flab(jan) - tlab(jan) + 2*xlive(rec-1) + 2*xlive(rec-2) =L= 0 ; (LHS = -7575.29064039409)
+     
+laborbal(feb)..  0.5*xcrop(wheat) + xcrop(clover) + 0.75*xcrop(beans) + 5*xcrop(onions) - flab(feb) - tlab(feb) + 2*xlive(rec-1) + 2*xlive(rec-2) =L= 0 ; (LHS = -10749.7536945813)
+     
+laborbal(mar)..  xcrop(wheat) + 8*xcrop(clover) + 0.75*xcrop(beans) + 5*xcrop(onions) + 5*xcrop(cotton) - flab(mar) - tlab(mar) + 2*xlive(rec-1) + 2*xlive(rec-2) =L= 0 ; (LHS = -302.463054187192)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- plow  =L=  land plowed             (hectares per season)
+
+plow(summer)..  xcrop(cotton) + xcrop(maize) + xcrop(tomato) - 2*xlive(rec-1) - 2*xlive(rec-2) - thire(summer) =L= 0 ; (LHS = 0)
+     
+plow(winter)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) - 2*xlive(rec-1) - 2*xlive(rec-2) - thire(winter) =L= 0 ; (LHS = 4.54747350886464E-13, INFES = 4.54747350886464E-13 ****)
+     
+
+---- ares  =E=  reservation labor cost    (dollars)
+
+ares..  rescost - 3*flab(jan) - 3*flab(feb) - 3*flab(mar) - 3*flab(apr) - 3*flab(may) - 3*flab(jun) - 3*flab(jul) - 3*flab(aug) - 3*flab(sep) - 3*flab(oct) - 3*flab(nov) - 3*flab(dec) =E= 0 ; (LHS = 0)
+     
+
+---- arevn  =E=  revenue accounting                    (1000 $)
+
+arevn..  revenue - (119.909688013136)*natcon(wheat) - (700)*natcon(beans) + (1894.96833216045)*natcon(onions) - (79.3103448275864)*natcon(cotton) - (210)*natcon(maize) + (2262.75862068966)*natcon(tomato) - 40*exports(onions) - 300*exports(cotton)
+     
+      - 60*exports(tomato) =E= 0 ; (LHS = 12618854.0644727, INFES = 12618854.0644727 ****)
+     
+
+---- alab  =E=  labor cost accounting   (dollars)
+
+alab..  labcost - 4*tlab(jan) - 4*tlab(feb) - 4*tlab(mar) - 4*tlab(apr) - 4*tlab(may) - 4*tlab(jun) - 4*tlab(jul) - 4*tlab(aug) - 4*tlab(sep) - 4*tlab(oct) - 4*tlab(nov) - 4*tlab(dec) =E= 0 ; (LHS = 0)
+     
+
+---- acost  =E=  total cost accounting    (dollars)
+
+acost..  - mcost - pcost - labcost - rescost + tcost =E= 0 ; (LHS = 2.3283064365387E-10, INFES = 2.3283064365387E-10 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 26
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Equation Listing    SOLVE demo7n Using NLP From line 255
+
+
+---- dem  =E=  national demand balance    (1000 tons)
+
+dem(wheat)..  - natprod(wheat) + natcon(wheat) - imports(wheat) =E= 0 ; (LHS = 0)
+     
+dem(beans)..  - natprod(beans) + natcon(beans) - imports(beans) =E= 0 ; (LHS = 0)
+     
+dem(onions)..  - natprod(onions) + natcon(onions) + exports(onions) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- employc  =E=  employment definition                 (man-years)
+
+employc..  - 0.0916666666666667*xcrop(wheat) - 0.0783333333333333*xcrop(clover) - 0.0883333333333333*xcrop(beans) - 0.176666666666667*xcrop(onions) - 0.211666666666667*xcrop(cotton) - 0.1*xcrop(maize) - 0.19*xcrop(tomato)
+     
+      - 0.00666666666666667*xlive(rec-1) - 0.00666666666666667*xlive(rec-2) + employ =E= 0 ; (LHS = 0)
+     
+
+---- proc  =E=  net production definition             (tons)
+
+proc(wheat)..  - 1.5*xcrop(wheat) + natprod(wheat) =E= 0 ; (LHS = 0)
+     
+proc(clover)..  - 6*xcrop(clover) + natprod(clover) =E= 0 ; (LHS = 0)
+     
+proc(beans)..  - xcrop(beans) + natprod(beans) =E= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- valproc  =E=  value of net production definition    (1000 $)
+
+valproc..  - 100*natprod(wheat) - 200*natprod(beans) - 125*natprod(onions) - 350*natprod(cotton) - 70*natprod(maize) - 120*natprod(tomato) + valpro =E= 0 ; (LHS = 0)
+     
+
+---- amisc  =E=  misc cost accounting
+
+amisc..  - 10*xcrop(wheat) - 5*xcrop(beans) - 50*xcrop(onions) - 80*xcrop(cotton) - 5*xcrop(maize) - 50*xcrop(tomato) + mcost =E= 0 ; (LHS = 0)
+     
+
+---- aplow  =E=  
+
+aplow..  pcost - 40*thire(summer) - 40*thire(winter) =E= 0 ; (LHS = 0)
+     
+
+---- lclover  =G=  clover balance
+
+lclover..  6*xcrop(clover) - 1.3*xlive(rec-1) - 2*xlive(rec-2) =G= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 27
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Equation Listing    SOLVE demo7n Using NLP From line 255
+
+
+---- lstraw  =G=  straw balance
+
+lstraw..  1.75*xcrop(wheat) - 1.6*xlive(rec-1) - 0.8*xlive(rec-2) =G= 0 ; (LHS = -2.27373675443232E-13, INFES = 2.27373675443232E-13 ****)
+     
+
+---- income  =E=  income definition       (dollars)
+
+income..  yfarm - revenue - rescost + tcost =E= 0 ; (LHS = 0)
+     
+
+---- tradebalc  =E=  trade balance definition               (1000 $)
+
+tradebalc..  - 40*exports(onions) - 300*exports(cotton) - 60*exports(tomato) + 140*imports(wheat) + 270*imports(beans) + 85*imports(maize) + tradebal =E= 0 ; (LHS = 0)
+     
+
+---- pdef  =E=  price definition
+
+pdef(wheat)..  0.0462962962962963*natcon(wheat) + natprice(wheat) =E= 225 ; (LHS = 152.545155993432, INFES = 72.4548440065682 ****)
+     
+pdef(beans)..  0.555555555555555*natcon(beans) + natprice(beans) =E= 700 ; (LHS = 200, INFES = 500 ****)
+     
+pdef(onions)..  0.178571428571429*natcon(onions) + natprice(onions) =E= 250 ; (LHS = 1197.48416608023, INFES = 947.484166080226 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- objn  =E=  objective function
+
+objn..  tcost - (172.454844006568)*natcon(wheat) - (700)*natcon(beans) + (822.484166080226)*natcon(onions) - (389.655172413793)*natcon(cotton) - (210)*natcon(maize) + (1021.37931034483)*natcon(tomato) - 40*exports(onions) - 300*exports(cotton)
+     
+      - 60*exports(tomato) + 140*imports(wheat) + 270*imports(beans) + 85*imports(maize) + cps =E= 0 ; (LHS = 4654892.01745805, INFES = 4654892.01745805 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 28
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+---- xcrop  cropping activity    (hectares)
+
+xcrop(wheat)
+                (.LO, .L, .UP, .M = 0, 756.650246305419, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        1       landbal(mar)
+        1       landbal(apr)
+        1       landbal(may)
+        0.5     landbal(nov)
+        1       landbal(dec)
+        1.72    laborbal(jan)
+        0.5     laborbal(feb)
+        1       laborbal(mar)
+        1       laborbal(apr)
+       17.16    laborbal(may)
+        2.34    laborbal(jun)
+        2.43    laborbal(nov)
+        1.35    laborbal(dec)
+        1       plow(winter)
+       -0.0917  employc
+       -1.5     proc(wheat)
+      -10       amisc
+        1.75    lstraw
+
+xcrop(clover)
+                (.LO, .L, .UP, .M = 0, 551.724137931034, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        0.5     landbal(mar)
+        0.25    landbal(nov)
+        1       landbal(dec)
+        4.5     laborbal(jan)
+        1       laborbal(feb)
+        8       laborbal(mar)
+        2.5     laborbal(nov)
+        7.5     laborbal(dec)
+        1       plow(winter)
+       -0.0783  employc
+       -6       proc(clover)
+        6       lclover
+
+xcrop(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -77.3585812807882)
+        1       landbal(jan)
+        1       landbal(feb)
+        1       landbal(mar)
+        1       landbal(apr)
+        0.25    landbal(nov)
+        1       landbal(dec)
+        0.75    laborbal(jan)
+        0.75    laborbal(feb)
+        0.75    laborbal(mar)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 29
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+     xcrop  cropping activity    (hectares)
+
+       16       laborbal(apr)
+        7.5     laborbal(nov)
+        0.75    laborbal(dec)
+        1       plow(winter)
+       -0.0883  employc
+       -1       proc(beans)
+       -5       amisc
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- yfarm  farm income          (dollars)
+
+yfarm
+                (.LO, .L, .UP, .M = -INF, 1472022.69950739, +INF, 0)
+        1       income
+
+
+---- revenue  value of production  (dollars)
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 2260788.1773399, +INF, 0)
+        1       arevn
+       -1       income
+
+
+---- mcost  misc cash cost       (dollars)
+
+mcost
+                (.LO, .L, .UP, .M = -INF, 310423.645320197, +INF, 0)
+       -1       acost
+        1       amisc
+
+
+---- pcost  tractor plowing cost
+
+pcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       acost
+        1       aplow
+
+
+---- labcost  labor cost           (dollars)
+
+labcost
+                (.LO, .L, .UP, .M = -INF, 478341.832512315, +INF, 0)
+        1       alab
+       -1       acost
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 30
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+---- rescost  family labor reservation wage cost (dollars)
+
+rescost
+                (.LO, .L, .UP, .M = -INF, 900000, +INF, 0)
+        1       ares
+       -1       acost
+       -1       income
+
+
+---- tcost  total farm cost including rescost
+
+tcost
+                (.LO, .L, .UP, .M = -INF, 1688765.47783251, +INF, 0)
+        1       acost
+        1       income
+        1       objn
+
+
+---- flab  family labor use     (days)
+
+flab(jan)
+                (.LO, .L, .UP, .M = 0, 25000, 25000, EPS)
+       -1       laborbal(jan)
+       -3       ares
+
+flab(feb)
+                (.LO, .L, .UP, .M = 0, 25000, 25000, EPS)
+       -1       laborbal(feb)
+       -3       ares
+
+flab(mar)
+                (.LO, .L, .UP, .M = 0, 25000, 25000, EPS)
+       -1       laborbal(mar)
+       -3       ares
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- tlab  temporary labor      (days)
+
+tlab(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -4)
+       -1       laborbal(jan)
+       -4       alab
+
+tlab(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -4)
+       -1       laborbal(feb)
+       -4       alab
+
+tlab(mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -4)
+       -1       laborbal(mar)
+       -4       alab
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 31
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+     tlab  temporary labor      (days)
+
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- xlive  livestock activity   (units)
+
+xlive(rec-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -55.5944512315271)
+        2       laborbal(jan)
+        2       laborbal(feb)
+        2       laborbal(mar)
+        2       laborbal(apr)
+        2       laborbal(may)
+        2       laborbal(jun)
+        2       laborbal(jul)
+        2       laborbal(aug)
+        2       laborbal(sep)
+        2       laborbal(oct)
+        2       laborbal(nov)
+        2       laborbal(dec)
+       -2       plow(summer)
+       -2       plow(winter)
+       -0.0067  employc
+       -1.3     lclover
+       -1.6     lstraw
+
+xlive(rec-2)
+                (.LO, .L, .UP, .M = 0, 1655.1724137931, +INF, 0)
+        2       laborbal(jan)
+        2       laborbal(feb)
+        2       laborbal(mar)
+        2       laborbal(apr)
+        2       laborbal(may)
+        2       laborbal(jun)
+        2       laborbal(jul)
+        2       laborbal(aug)
+        2       laborbal(sep)
+        2       laborbal(oct)
+        2       laborbal(nov)
+        2       laborbal(dec)
+       -2       plow(summer)
+       -2       plow(winter)
+       -0.0067  employc
+       -2       lclover
+       -0.8     lstraw
+
+
+---- natprod  net production       (tons)
+
+natprod(wheat)
+                (.LO, .L, .UP, .M = 0, 1134.97536945813, +INF, 0)
+       -1       dem(wheat)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 32
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+     natprod  net production       (tons)
+
+        1       proc(wheat)
+     -100       valproc
+
+natprod(clover)
+                (.LO, .L, .UP, .M = 0, 3310.34482758621, +INF, 0)
+        1       proc(clover)
+
+natprod(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       dem(beans)
+        1       proc(beans)
+     -200       valproc
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- thire  tractor rental       (hectares plowed)
+
+thire(summer)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -0.00425615763549558)
+       -1       plow(summer)
+      -40       aplow
+
+thire(winter)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -12.6428374384236)
+       -1       plow(winter)
+      -40       aplow
+
+
+---- natcon  domestic consumption (1000 tons)
+
+natcon(wheat)
+                (.LO, .L, .UP, .M = 0, 1134.97536945813, +INF, 0)
+    (-119.9097) arevn
+        1       dem(wheat)
+        0.0463  pdef(wheat)
+    (-172.4548) objn
+
+natcon(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    (-700)      arevn
+        1       dem(beans)
+        0.5556  pdef(beans)
+    (-700)      objn
+
+natcon(onions)
+                (.LO, .L, .UP, .M = 0, 6005.91133004926, +INF, 0)
+    (1894.9683) arevn
+        1       dem(onions)
+        0.1786  pdef(onions)
+     (822.4842) objn
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 33
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+     natcon  domestic consumption (1000 tons)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- natprice  domestic price       (dollars per ton)
+
+natprice(wheat)
+                (.LO, .L, .UP, .M = -INF, 100, +INF, 0)
+        1       pdef(wheat)
+
+natprice(beans)
+                (.LO, .L, .UP, .M = -INF, 200, +INF, 0)
+        1       pdef(beans)
+
+natprice(onions)
+                (.LO, .L, .UP, .M = -INF, 125, +INF, 0)
+        1       pdef(onions)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- exports  national exports     (1000 tons)
+
+exports(onions)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -85)
+      -40       arevn
+        1       dem(onions)
+      -40       tradebalc
+      -40       objn
+
+exports(cotton)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -50)
+     -300       arevn
+        1       dem(cotton)
+     -300       tradebalc
+     -300       objn
+
+exports(tomato)
+                (.LO, .L, .UP, .M = 0, 0, +INF, -60)
+      -60       arevn
+        1       dem(tomato)
+      -60       tradebalc
+      -60       objn
+
+
+---- imports  national imports     (1000 tons)
+
+imports(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, EPS)
+       -1       dem(wheat)
+      140       tradebalc
+      140       objn
+
+imports(beans)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 34
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Column Listing      SOLVE demo7n Using NLP From line 255
+
+
+     imports  national imports     (1000 tons)
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, EPS)
+       -1       dem(beans)
+      270       tradebalc
+      270       objn
+
+imports(maize)
+                (.LO, .L, .UP, .M = 0, 0, +INF, EPS)
+       -1       dem(maize)
+       85       tradebalc
+       85       objn
+
+
+---- cps  consumers and producers surplus
+
+cps
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objn
+
+
+---- valpro  value of net production at ref prices
+
+valpro
+                (.LO, .L, .UP, .M = -INF, 2260788.1773399, +INF, 0)
+        1       valproc
+
+
+---- employ  employment generated (man-years)
+
+employ
+                (.LO, .L, .UP, .M = -INF, 1133.15599343186, +INF, 0)
+        1       employc
+
+
+---- tradebal  net exports          (1000 $)
+
+tradebal
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tradebalc
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 35
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Model Statistics    SOLVE demo7n Using NLP From line 255
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          19     SINGLE EQUATIONS           58
+BLOCKS OF VARIABLES          21     SINGLE VARIABLES           71
+NON ZERO ELEMENTS           295     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              33
+CODE LENGTH                  77
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 36
+Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+Solution Report     SOLVE demo7n Using NLP From line 255
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   demo7n              OBJECTIVE  cps
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  255
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/demo7/convert.opt"
+>>  gams demo7-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/demo7/convert.opt"
+Gams      : demo7-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/demo7/demo7.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/demo7/demo7-scalar.gms.lst

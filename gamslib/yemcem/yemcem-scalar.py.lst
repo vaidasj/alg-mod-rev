@@ -1,0 +1,1263 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 2
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Set definitions
+
+
+   6   
+       
+        A simple model of the cement sector for the Yemen Arab Republic
+        can be used to explore expansion plans under various assumptions
+        about domestic and world markets and cost structures.
+       
+       
+      World Bank, Yemen Arab Republic - Manufacturing Industry: Performance,
+      Policies and Prospectives. Tech. rep., The World Bank, 1982.
+       
+  18   
+  19   Sets i  plants   / amran, baijil, mafrak /
+  20   
+  21        j  markets  / sanaa, hodeideh, taizz, ibb, dhamar /
+  22   
+  23        m  productive units  /
+  24   
+  25           dry-kiln    dry process kiln and ancillaries
+  26           wet-kiln    wet process kiln and ancillaries
+  27           mills       clinker-gypsum mills storage and packing  /
+  28   
+  29        ms(m) productive units with economies of scale
+  30   
+  31        mp(m) productive units without economies of scale
+  32   
+  33        p  process           /
+  34   
+  35           dry         dry process clinker production
+  36           wet         wet process clinker production
+  37           grind       clinker grinding                         /
+  38   
+  39        ca all commodities       /
+  40   
+  41           limestone               tons
+  42           clay                    tons
+  43           gypsum                  tons
+  44           fuel                    1000*liter
+  45           petrol                  1000*liter
+  46           explosives              kg
+  47           grindparts              kg
+  48           refractory              kg
+  49           bags                    bag
+  50           clinker                 tons
+  51           cement                  tons        /
+  52   
+  53        c(ca)  commodities for material balance constraints / cement, clinker, fuel   /
+  54        cf(c)  final products                               /  cement /
+  55   
+  56        ci(c)  imported intermediate products / clinker, fuel   /
+  57   
+  58        cr(ca) local materials / limestone, clay, gypsum, petrol, explosives, grindparts, refractory, bags /
+  59   
+  60        t  time periods       / 1983-85, 1986-88, 1989-91, 1992-94 /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 3
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Set definitions
+
+
+  61   
+  62        te(t) expansion periods        / 1986-88, 1989-91, 1992-94 /
+  63   
+  64        s  kiln sizes  / small, medium, large /
+  65   
+  66   Alias (te,tp)
+  67   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 4
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+parameters and data modifications
+
+
+  69   
+  70   Parameters pd(cr)  domestic prices (yr per unit)  / limestone   5.0 , clay        2.0
+  71                                                       gypsum     24.6 , petrol   1175.0
+  72                                                       explosives  4.0 , grindparts  3.328
+  73                                                       refractory  4.0 , bags        1.31   /
+  74              pv(ca)  import prices  (yr per ton)
+  75              pe(ca)  export prices  (yr per ton)
+  76   
+  77              ebu(t)  upper bound on exports (1000 tpy)
+  78              vbu(t)  upper bound on imports (1000 tpy)
+  79              vibu(t) bound on klinker import(1000 tpy) ;
+  80   
+  81    pv("cement ") = 280 ;
+  82    pv("clinker") = .8*pv("cement") ;
+  83    pv("fuel   ") = 600 ;                  pe(c) = .75*pv(c) ;
+  84   
+  85    ebu(t) = 1000 ;  vbu(t) = 3000 ;  vibu(t) = na;
+  86   
+  87    Display pd, pv, pe ;
+  88   
+  89   
+  90   Table a(ca,p)    input-output coefficients
+  91   
+  92                         dry         wet         grind
+  93             limestone   -1.3        -1.3
+  94             clay        -.3         -.3
+  95             gypsum                              -.04
+  96             petrol      -.00147     -.00147
+  97             explosives  -.192       -.192
+  98             grindparts                          -.385
+  99             refractory  -.152       -.152
+ 100             bags                                -20.0
+ 101             fuel        -.1127      -.1465
+ 102             clinker      .96         .96        -.96
+ 103             cement                               1.0
+ 104   
+ 105   
+ 106   Table b(m,p)      capacity utilization
+ 107   
+ 108                         dry         wet         grind
+ 109             dry-kiln    1.0
+ 110             wet-kiln                1.0
+ 111             mills                               1.0
+ 112   
+ 113   
+ 114   Table k(m,i)  capacities as of 1982 (1000 tpy)
+ 115   
+ 116                         amran       baijil      mafrak
+ 117             dry-kiln    500.0
+ 118             wet-kiln                320.0
+ 119             mills       500.0       320.0
+ 120   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 5
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+parameters and data modifications
+
+
+ 122   
+ 123   Table inv(m,*)   capital investment data
+ 124   
+ 125  *  cost   millions yr (1978)
+ 126  *  size   1000 tpy
+ 127  *  scale  scale factor  -  cost = constant*size**scale
+ 128   
+ 129                           cost           size      scale
+ 130          dry-kiln        526.296        500.0       .53
+ 131          wet-kiln        447.352        500.0       .56
+ 132          mills           105.259        500.0       1.00
+ 133   
+ 134   Parameters site(i)   site factor              / amran  1.2, baijil  1.15, mafrak  1.05 /
+ 135              size(s)   kiln size (1000 tpy)     / small 500, medium 750, large 1000 /
+ 136              klim(i)   limit of total kiln capacity (1000 tpy)
+ 137              ts(t,t)   time summation matrix
+ 138              midyear(t)
+ 139              delta(t)  discount factor
+ 140   
+ 141              rc(p)     recurrent cost   (yr per process unit)
+ 142              fc(m)     fixed cost (yr per ton) / dry-kiln  55.8, wet-kiln  60 /
+ 143   
+ 144     Scalars  sigma  capital recovery factor
+ 145              zeta   life of productive units (years)
+ 146              rho    discount rate    ;
+ 147   
+ 148      ms(m)$(inv(m,"scale") ne 1) = yes;  mp(m) = not ms(m) ;
+ 149   
+ 150      inv(ms,s)      = inv(ms,"cost")*(size(s)/inv(ms,"size"))**inv(ms,"scale");
+ 151      inv(mp,"prop") = inv(mp,"cost")/inv(mp,"size");
+ 152   
+ 153      klim(i) = 2000 ;
+ 154   
+ 155      midyear(t) = 1981 + 3*ord(t) ;
+ 156      ts(te,tp)$(ord(te) ge ord(tp)) = 1;
+ 157      zeta = 30; rho = .1; sigma = rho/(1-(1+rho)**(-zeta));
+ 158      delta(t) = (1+rho)**(1982-midyear(t));
+ 159   
+ 160      rc(p) = - sum(cr, a(cr,p)*pd(cr));
+ 161   
+ 162          Display ms, mp, midyear, ts, sigma, delta, inv, rc;
+ 163   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 6
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+parameters and data modifications
+
+
+ 165   
+ 166   Set ds   demand scenarios (base year demand and growth rates) / bg-700-06, bg-700-11, bg-900-06, bg-900-11 /
+ 167   
+ 168   Parameters dt(ds,t)    total demand for cement (1000 tpy)
+ 169              d(j,t,cf)   regional demand for cement (1000 tpy)
+ 170              dd(j)       demand distribution  / sanaa 28, hodeideh 27, taizz 20, ibb 12.5, dhamar 12.5 /;
+ 171   
+ 172    dt("bg-700-06",t) = 700*1.06**(midyear(t)-1980);
+ 173    dt("bg-700-11",t) = 700*1.11**(midyear(t)-1980);
+ 174    dt("bg-900-06",t) = 900*1.06**(midyear(t)-1980);
+ 175    dt("bg-900-11",t) = 900*1.11**(midyear(t)-1980);
+ 176   
+ 177    d(j,t,"cement") = na;
+ 178   
+ 179    Display dd,dt;
+ 180   
+ 181   
+ 182   Table rd(*,*)   road distances from plants to markets (km)
+ 183   
+ 184           sanaa     taizz     hodeideh  dhamar    ibb       port
+ 185    amran  48        304       279       146       209       279
+ 186    baijil 171       294       60        270       332       60
+ 187    mafrak 319       63        213       220       157       213
+ 188    port   231       276       5         329       371
+ 189   
+ 190   
+ 191   Table f(*,*)  cost increase factors for motor transport
+ 192   
+ 193           sanaa     hodeideh  taizz     dhamar    ibb       port
+ 194    amran  1.15      1.14      1.16      1.14      1.16      1.14
+ 195    baijil 1.14      1.11      1.13      1.13      1.14      1.11
+ 196    mafrak 1.16      1.11      1.17      1.17      1.16      1.11
+ 197    port   1.14      1.0       1.14      1.16      1.15      1.0
+ 198   
+ 199   
+ 200      Parameters  muf(i,j)  cement transport cost (yr per ton)
+ 201                  muv(j)    import transport cost (yr per ton)
+ 202                  mui(ci,i) import intermediate transport cost (yr per ton)
+ 203                  mue(i)    export transport cost (yr per ton)  ;
+ 204   
+ 205      muf(i,j) = 30 + .47*f(i,j)*rd(i,j);
+ 206      muv(j)   = 30 + .47*f("port",j)*rd("port",j);
+ 207      mue(i)   = 30 + .47*f(i,"port")*rd(i,"port");
+ 208      mui(ci,i)= 30 + .35*f(i,"port")*rd(i,"port");
+ 209      mui("fuel   ",i) = 1.5*mui("clinker",i);
+ 210   
+ 211     Display muf, muv, mue, mui;
+ 212   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 7
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+breakeven analysis
+
+
+ 214   
+ 215   Parameter tpn(i,*) transport protection (yr per ton)
+ 216             vc       variable cost of cement production (yr per ton)
+ 217             fxc(i,s) fixed cost of cement production    (yr per ton)
+ 218             ac(i,s)  average cost of cement production  (yr per ton)
+ 219             mbe(i,*) marginal breakeven price (yr per ton)
+ 220             abe(i,*) average breakeven price  (yr per ton) ;
+ 221   
+ 222    tpn(i,"v-inputs")   = -a("fuel","dry")*mui("fuel",i);
+ 223    tpn(i,"plant-gate") = mue(i) - tpn(i,"v-inputs") ;
+ 224    tpn(i,j)            = muv(j) - (tpn(i,"v-inputs")+muf(i,j));
+ 225   
+ 226    vc = 1.025*(-a("fuel","dry")*pv("fuel") + rc("dry") + rc("grind"));
+ 227   
+ 228    fxc(i,s) = 1000*sigma*site(i)*(inv("dry-kiln",s)/size(s)
+ 229             + inv("mills","prop")) + 1.025*(fc("dry-kiln")+fc("mills"));
+ 230    ac(i,s) = vc + fxc(i,s);
+ 231   
+ 232    mbe(i,j)            = vc - tpn(i,j) ;
+ 233    mbe(i,"plant-gate") = vc - tpn(i,"plant-gate") ;
+ 234    abe(i,j)            = ac(i,"small") - tpn(i,j) ;
+ 235    abe(i,"plant-gate") = ac(i,"small") - tpn(i,"plant-gate") ;
+ 236   
+ 237   Display tpn, vc, fxc, ac, mbe, abe;
+ 238   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 8
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+model specification
+
+
+ 240   
+ 241   Variables z(p,i,t)     process level             (1000 units per year)
+ 242             x(c,i,j,t)   shipment of cement        (1000 tpy)
+ 243             v(cf,j,t)    imports of cement         (1000 tpy)
+ 244             vi(c,i,t)    imports of intermediates  (1000 units per year)
+ 245             e(c,i,t)     export of cement          (1000 tpy)
+ 246             h(m,i,te)    capacity expansion        (1000 tpy)
+ 247             y(m,i,s,te)  binary variable
+ 248   
+ 249             phi          total discounted cost
+ 250             phikap(t)    capital investment charge (mill yr per year)
+ 251             phipsi(t)    recurrent cost            (mill yr per year)
+ 252             philam(t)    transport cost            (mill yr per year)
+ 253             phipi (t)    import cost               (mill yr per year)
+ 254             phieps(t)    export revenue            (mill yr per year)
+ 255             phiw  (t)    working capital charge    (mill yr per year) ;
+ 256   
+ 257   Positive Variables  z, x, v, vi, e, h;
+ 258   Binary Variable y;
+ 259   
+ 260   Equations mb(c,i,t)    material balances         (1000 units per year)
+ 261             cc(m,i,t)    capacity constraints      (1000 tpy)
+ 262             id(m,i,te)   investment definition
+ 263             ich(m,i,te)  investment choice
+ 264             limit(i)     capacity limit(i)         (1000 tpy)
+ 265             mr(cf,j,t)   market requirement        (1000 tpy)
+ 266             eb(t)        export limit              (1000 tpy)
+ 267             vb(t)        import limit: cement      (1000 tpy)
+ 268             vib(t)       import limit: clinker     (1000 tpy)
+ 269   
+ 270             obj     total discounted costs
+ 271             apsi(t) recurrent cost acct       (mill yr per year)
+ 272             akap(t) investment cost acct      (mill yr per year)
+ 273             alam(t) transport cost acct       (mill yr per year)
+ 274             api (t) import cost acct          (mill yr per year)
+ 275             aeps(t) export revenue acct       (mill yr per year)
+ 276             aw  (t) working capital acct      (mill yr per year) ;
+ 277   
+ 278   mb(c,i,t)..  sum(p, a(c,p)*z(p,i,t)) + vi(c,i,t)$ci(c) =g= (sum(j, x(c,i,j,t)) + e(c,i,t))$cf(c) ;
+ 279   
+ 280   cc(m,i,t)..  sum(p, b(m,p)*z(p,i,t)) =l= k(m,i) + sum(tp$ts(t,tp), h(m,i,tp)) ;
+ 281   
+ 282   id(ms,i,te).. h(ms,i,te) =e= sum(s, size(s)*y(ms,i,s,te));
+ 283   
+ 284   ich(ms,i,te).. sum(s, y(ms,i,s,te)) =l= 1.0 ;
+ 285   
+ 286   limit(i)..  sum(ms, k(ms,i) + sum(te, h(ms,i,te))) =l= klim(i) ;
+ 287   
+ 288   mr(cf,j,t)..  sum(i, x(cf,i,j,t)) + v(cf,j,t) =g= d(j,t,cf) ;
+ 289   
+ 290   eb(t)..  sum((cf,i), e(cf,i,t))    =l= ebu(t) ;
+ 291   
+ 292   vb(t)..  sum((cf,j), v(cf,j,t))    =l= vbu(t) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 9
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+model specification
+
+
+ 293   
+ 294   vib(t).. sum(i, vi("clinker",i,t)) =l= vibu(t) ;
+ 295   
+ 296   
+ 297   obj..  phi =e= sum(t, delta(t)*( phikap(t) + phipsi(t) + philam(t) + phipi(t) + phiw(t) - phieps(t) )) ;
+ 298   
+ 299   apsi(t)..  phipsi(t) =e= .001*( sum((p,i), rc(p)*z(p,i,t))
+ 300                          + sum((i,m), fc(m)*( k(m,i) + sum(tp$ts(t,tp), h(m,i,tp))))) ;
+ 301   
+ 302   akap(t)..  phikap(t) =e= sigma*sum(tp$ts(t,tp), sum((ms,i,s), site(i)*inv(ms,s)*y(ms,i,s,tp))
+ 303                                                 + sum((mp,i), site(i)*inv(mp,"prop")*h(mp,i,tp)) ) ;
+ 304   
+ 305   alam(t)..  philam(t) =e= .001*( sum(cf, sum((i,j), muf(i,j)*x(cf,i,j,t))
+ 306                                         + sum(j, muv(j)*v(cf,j,t))
+ 307                                         + sum(i, mue(i)*e(cf,i,t))  )
+ 308                                 + sum((ci,i), mui(ci,i)*vi(ci,i,t)) ) ;
+ 309   
+ 310   aeps(t)..  phieps(t) =e= .001*sum((cf,i), e(cf,i,t)) ;
+ 311   
+ 312   api(t)..   phipi(t)  =e= .001*( sum((cf,j), pv(cf)*v(cf,j,t)) + sum((ci,i), pv(ci)*vi(ci,i,t)) ) ;
+ 313   
+ 314   aw(t)..  phiw(t) =e= .25*.1*(phipsi(t) + phipi(t));
+ 315   
+ 316   Model yemen   yemen cement model  / all /  ;
+ 317   
+ 318  * definition of scenario number 16:
+ 319   
+ 320   d(j,t,"cement") = dt("bg-900-11",t)*dd(j)/100;
+ 321   vibu(t) = 0;
+ 322   y.fx("dry-kiln","mafrak","small","1986-88") = 1;
+ 323   
+ 324   Solve yemen minimizing phi using mip;
+ 325   
+ 326       Display z.l, h.l ;
+ 327   
+ 328   Parameters xx(i,*,t)   cement shipments (1000 tpy)
+ 329              kh(*,t)     total kiln capacity (1000 tpy)
+ 330              mcc(i,t,m)  shadow price on capacity - undiscounted
+ 331              mmr(j,t)    shadow price on requirements - undiscounted ;
+ 332   
+ 333     xx(i,j,t)     = x.l("cement",i,j,t); xx(i,"**total**",t) = sum(j, xx(i,j,t));
+ 334     kh(i,t)       = sum(ms, k(ms,i) + sum(tp$ts(t,tp), h.l(ms,i,tp)));
+ 335     kh("total",t) = sum(i, kh(i,t));
+ 336     mcc(i,t,m)    = cc.m(m,i,t)/delta(t)*1000 ;
+ 337     mmr(j,t)      = mr.m("cement",j,t)/delta(t)*1000 ;
+ 338   
+ 339       Display xx, kh, mcc, mmr ;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 10
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+E x e c u t i o n
+
+
+----     87 PARAMETER pd  domestic prices (yr per unit)
+
+limestone     5.000,    clay          2.000,    gypsum       24.600,    petrol     1175.000,    explosives    4.000,    grindparts    3.328,    refractory    4.000,    bags          1.310
+
+
+----     87 PARAMETER pv  import prices  (yr per ton)
+
+fuel    600.000,    clinker 224.000,    cement  280.000
+
+
+----     87 PARAMETER pe  export prices  (yr per ton)
+
+fuel    450.000,    clinker 168.000,    cement  210.000
+
+
+----    162 SET ms  productive units with economies of scale
+
+dry-kiln,    wet-kiln
+
+
+----    162 SET mp  productive units without economies of scale
+
+mills
+
+
+----    162 PARAMETER midyear  
+
+1983-85 1984.000,    1986-88 1987.000,    1989-91 1990.000,    1992-94 1993.000
+
+
+----    162 PARAMETER ts  time summation matrix
+
+            1986-88     1989-91     1992-94
+
+1986-88       1.000
+1989-91       1.000       1.000
+1992-94       1.000       1.000       1.000
+
+
+----    162 PARAMETER sigma                =        0.106  capital recovery factor
+
+----    162 PARAMETER delta  discount factor
+
+1983-85 0.826,    1986-88 0.621,    1989-91 0.467,    1992-94 0.350
+
+
+----    162 PARAMETER inv  capital investment data
+
+               small      medium       large        cost        size       scale        prop
+
+dry-kiln     526.296     652.467     759.934     526.296     500.000       0.530
+wet-kiln     447.352     561.385     659.517     447.352     500.000       0.560
+mills                                            105.259     500.000       1.000       0.211
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 11
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+E x e c u t i o n
+
+
+----    162 PARAMETER rc  recurrent cost   (yr per process unit)
+
+dry   10.203,    wet   10.203,    grind 28.465
+
+
+----    179 PARAMETER dd  demand distribution
+
+sanaa    28.000,    hodeideh 27.000,    taizz    20.000,    ibb      12.500,    dhamar   12.500
+
+
+----    179 PARAMETER dt  total demand for cement (1000 tpy)
+
+              1983-85     1986-88     1989-91     1992-94
+
+bg-700-06     883.734    1052.541    1253.593    1493.050
+bg-700-11    1062.649    1453.312    1987.595    2718.296
+bg-900-06    1136.229    1353.267    1611.763    1919.635
+bg-900-11    1366.263    1868.544    2555.479    3494.952
+
+
+----    211 PARAMETER muf  cement transport cost (yr per ton)
+
+             sanaa    hodeideh       taizz         ibb      dhamar
+
+amran       55.944     179.488     195.741     143.947     108.227
+baijil     121.622      61.302     186.143     207.886     173.397
+mafrak     203.919     141.122      64.644     115.596     150.978
+
+
+----    211 PARAMETER muv  import transport cost (yr per ton)
+
+sanaa    153.770,    hodeideh  32.350,    taizz    177.881,    ibb      230.525,    dhamar   209.371
+
+
+----    211 PARAMETER mue  export transport cost (yr per ton)
+
+amran  179.488,    baijil  61.302,    mafrak 141.122
+
+
+----    211 PARAMETER mui  import intermediate transport cost (yr per ton)
+
+              amran      baijil      mafrak
+
+fuel        211.981      79.965     169.126
+clinker     141.321      53.310     112.751
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 12
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+E x e c u t i o n
+
+
+----    237 PARAMETER tpn  transport protection (yr per ton)
+
+             sanaa    hodeideh       taizz         ibb      dhamar    v-inputs  plant-gate
+
+amran       73.935    -171.029     -41.750      62.688      77.254      23.890     155.598
+baijil      23.136     -37.964     -17.275      13.628      26.962       9.012      52.290
+mafrak     -69.209    -127.833      94.177      95.869      39.332      19.060     122.062
+
+
+----    237 PARAMETER vc                   =      108.946  variable cost of cement production (yr per ton)
+
+----    237 PARAMETER fxc  fixed cost of cement production    (yr per ton)
+
+             small      medium       large
+
+amran      217.983     194.734     180.729
+baijil     211.283     189.003     175.582
+mafrak     197.884     177.542     165.287
+
+
+----    237 PARAMETER ac  average cost of cement production  (yr per ton)
+
+             small      medium       large
+
+amran      326.928     303.680     289.675
+baijil     320.229     297.949     284.527
+mafrak     306.830     286.487     274.233
+
+
+----    237 PARAMETER mbe  marginal breakeven price (yr per ton)
+
+             sanaa    hodeideh       taizz         ibb      dhamar  plant-gate
+
+amran       35.010     279.974     150.696      46.257      31.692     -46.652
+baijil      85.810     146.910     126.220      95.318      81.984      56.656
+mafrak     178.155     236.778      14.769      13.077      69.613     -13.116
+
+
+----    237 PARAMETER abe  average breakeven price  (yr per ton)
+
+             sanaa    hodeideh       taizz         ibb      dhamar  plant-gate
+
+amran      252.993     497.957     368.679     264.240     249.675     171.331
+baijil     297.093     358.193     337.504     306.601     293.267     267.939
+mafrak     376.039     434.663     212.653     210.961     267.498     184.768
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 13
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Equation Listing    SOLVE yemen Using MIP From line 324
+
+
+---- mb  =G=  material balances         (1000 units per year)
+
+mb(fuel,amran,1983-85)..  - 0.1127*z(dry,amran,1983-85) - 0.1465*z(wet,amran,1983-85) + vi(fuel,amran,1983-85) =G= 0 ; (LHS = 0)
+     
+mb(fuel,amran,1986-88)..  - 0.1127*z(dry,amran,1986-88) - 0.1465*z(wet,amran,1986-88) + vi(fuel,amran,1986-88) =G= 0 ; (LHS = 0)
+     
+mb(fuel,amran,1989-91)..  - 0.1127*z(dry,amran,1989-91) - 0.1465*z(wet,amran,1989-91) + vi(fuel,amran,1989-91) =G= 0 ; (LHS = 0)
+     
+REMAINING 33 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraints      (1000 tpy)
+
+cc(dry-kiln,amran,1983-85)..  z(dry,amran,1983-85) =L= 500 ; (LHS = 0)
+     
+cc(dry-kiln,amran,1986-88)..  z(dry,amran,1986-88) - h(dry-kiln,amran,1986-88) =L= 500 ; (LHS = 0)
+     
+cc(dry-kiln,amran,1989-91)..  z(dry,amran,1989-91) - h(dry-kiln,amran,1986-88) - h(dry-kiln,amran,1989-91) =L= 500 ; (LHS = 0)
+     
+REMAINING 33 ENTRIES SKIPPED
+
+
+---- id  =E=  investment definition
+
+id(dry-kiln,amran,1986-88)..  h(dry-kiln,amran,1986-88) - 500*y(dry-kiln,amran,small,1986-88) - 750*y(dry-kiln,amran,medium,1986-88) - 1000*y(dry-kiln,amran,large,1986-88) =E= 0 ; (LHS = 0)
+     
+id(dry-kiln,amran,1989-91)..  h(dry-kiln,amran,1989-91) - 500*y(dry-kiln,amran,small,1989-91) - 750*y(dry-kiln,amran,medium,1989-91) - 1000*y(dry-kiln,amran,large,1989-91) =E= 0 ; (LHS = 0)
+     
+id(dry-kiln,amran,1992-94)..  h(dry-kiln,amran,1992-94) - 500*y(dry-kiln,amran,small,1992-94) - 750*y(dry-kiln,amran,medium,1992-94) - 1000*y(dry-kiln,amran,large,1992-94) =E= 0 ; (LHS = 0)
+     
+REMAINING 15 ENTRIES SKIPPED
+
+
+---- ich  =L=  investment choice
+
+ich(dry-kiln,amran,1986-88)..  y(dry-kiln,amran,small,1986-88) + y(dry-kiln,amran,medium,1986-88) + y(dry-kiln,amran,large,1986-88) =L= 1 ; (LHS = 0)
+     
+ich(dry-kiln,amran,1989-91)..  y(dry-kiln,amran,small,1989-91) + y(dry-kiln,amran,medium,1989-91) + y(dry-kiln,amran,large,1989-91) =L= 1 ; (LHS = 0)
+     
+ich(dry-kiln,amran,1992-94)..  y(dry-kiln,amran,small,1992-94) + y(dry-kiln,amran,medium,1992-94) + y(dry-kiln,amran,large,1992-94) =L= 1 ; (LHS = 0)
+     
+REMAINING 15 ENTRIES SKIPPED
+
+
+---- limit  =L=  capacity limit(i)         (1000 tpy)
+
+limit(amran)..  h(dry-kiln,amran,1986-88) + h(dry-kiln,amran,1989-91) + h(dry-kiln,amran,1992-94) + h(wet-kiln,amran,1986-88) + h(wet-kiln,amran,1989-91) + h(wet-kiln,amran,1992-94) =L= 1500 ; (LHS = 0)
+     
+limit(baijil)..  h(dry-kiln,baijil,1986-88) + h(dry-kiln,baijil,1989-91) + h(dry-kiln,baijil,1992-94) + h(wet-kiln,baijil,1986-88) + h(wet-kiln,baijil,1989-91) + h(wet-kiln,baijil,1992-94) =L= 1680 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 14
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Equation Listing    SOLVE yemen Using MIP From line 324
+
+
+     limit  =L=  capacity limit(i)         (1000 tpy)
+
+limit(mafrak)..  h(dry-kiln,mafrak,1986-88) + h(dry-kiln,mafrak,1989-91) + h(dry-kiln,mafrak,1992-94) + h(wet-kiln,mafrak,1986-88) + h(wet-kiln,mafrak,1989-91) + h(wet-kiln,mafrak,1992-94) =L= 2000 ; (LHS = 0)
+     
+
+---- mr  =G=  market requirement        (1000 tpy)
+
+mr(cement,sanaa,1983-85)..  x(cement,amran,sanaa,1983-85) + x(cement,baijil,sanaa,1983-85) + x(cement,mafrak,sanaa,1983-85) + v(cement,sanaa,1983-85) =G= 382.55374332 ; (LHS = 0, INFES = 382.55374332 ****)
+     
+mr(cement,sanaa,1986-88)..  x(cement,amran,sanaa,1986-88) + x(cement,baijil,sanaa,1986-88) + x(cement,mafrak,sanaa,1986-88) + v(cement,sanaa,1986-88) =G= 523.192358530475 ; (LHS = 0, INFES = 523.192358530475 ****)
+     
+mr(cement,sanaa,1989-91)..  x(cement,amran,sanaa,1989-91) + x(cement,baijil,sanaa,1989-91) + x(cement,mafrak,sanaa,1989-91) + v(cement,sanaa,1989-91) =G= 715.534088489393 ; (LHS = 0, INFES = 715.534088489393 ****)
+     
+REMAINING 17 ENTRIES SKIPPED
+
+
+---- eb  =L=  export limit              (1000 tpy)
+
+eb(1983-85)..  e(cement,amran,1983-85) + e(cement,baijil,1983-85) + e(cement,mafrak,1983-85) =L= 1000 ; (LHS = 0)
+     
+eb(1986-88)..  e(cement,amran,1986-88) + e(cement,baijil,1986-88) + e(cement,mafrak,1986-88) =L= 1000 ; (LHS = 0)
+     
+eb(1989-91)..  e(cement,amran,1989-91) + e(cement,baijil,1989-91) + e(cement,mafrak,1989-91) =L= 1000 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- vb  =L=  import limit: cement      (1000 tpy)
+
+vb(1983-85)..  v(cement,sanaa,1983-85) + v(cement,hodeideh,1983-85) + v(cement,taizz,1983-85) + v(cement,ibb,1983-85) + v(cement,dhamar,1983-85) =L= 3000 ; (LHS = 0)
+     
+vb(1986-88)..  v(cement,sanaa,1986-88) + v(cement,hodeideh,1986-88) + v(cement,taizz,1986-88) + v(cement,ibb,1986-88) + v(cement,dhamar,1986-88) =L= 3000 ; (LHS = 0)
+     
+vb(1989-91)..  v(cement,sanaa,1989-91) + v(cement,hodeideh,1989-91) + v(cement,taizz,1989-91) + v(cement,ibb,1989-91) + v(cement,dhamar,1989-91) =L= 3000 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- vib  =L=  import limit: clinker     (1000 tpy)
+
+vib(1983-85)..  vi(clinker,amran,1983-85) + vi(clinker,baijil,1983-85) + vi(clinker,mafrak,1983-85) =L= 0 ; (LHS = 0)
+     
+vib(1986-88)..  vi(clinker,amran,1986-88) + vi(clinker,baijil,1986-88) + vi(clinker,mafrak,1986-88) =L= 0 ; (LHS = 0)
+     
+vib(1989-91)..  vi(clinker,amran,1989-91) + vi(clinker,baijil,1989-91) + vi(clinker,mafrak,1989-91) =L= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 15
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Equation Listing    SOLVE yemen Using MIP From line 324
+
+
+---- obj  =E=  total discounted costs
+
+obj..  phi - 0.826446280991735*phikap(1983-85) - 0.620921323059155*phikap(1986-88) - 0.466507380209733*phikap(1989-91) - 0.350493899481392*phikap(1992-94) - 0.826446280991735*phipsi(1983-85) - 0.620921323059155*phipsi(1986-88)
+     
+      - 0.466507380209733*phipsi(1989-91) - 0.350493899481392*phipsi(1992-94) - 0.826446280991735*philam(1983-85) - 0.620921323059155*philam(1986-88) - 0.466507380209733*philam(1989-91) - 0.350493899481392*philam(1992-94)
+     
+      - 0.826446280991735*phipi(1983-85) - 0.620921323059155*phipi(1986-88) - 0.466507380209733*phipi(1989-91) - 0.350493899481392*phipi(1992-94) + 0.826446280991735*phieps(1983-85) + 0.620921323059155*phieps(1986-88) + 0.466507380209733*phieps(1989-91)
+     
+      + 0.350493899481392*phieps(1992-94) - 0.826446280991735*phiw(1983-85) - 0.620921323059155*phiw(1986-88) - 0.466507380209733*phiw(1989-91) - 0.350493899481392*phiw(1992-94) =E= 0 ; (LHS = 0)
+     
+
+---- apsi  =E=  recurrent cost acct       (mill yr per year)
+
+apsi(1983-85)..  - 0.01020325*z(dry,amran,1983-85) - 0.01020325*z(dry,baijil,1983-85) - 0.01020325*z(dry,mafrak,1983-85) - 0.01020325*z(wet,amran,1983-85) - 0.01020325*z(wet,baijil,1983-85) - 0.01020325*z(wet,mafrak,1983-85)
+     
+      - 0.02846528*z(grind,amran,1983-85) - 0.02846528*z(grind,baijil,1983-85) - 0.02846528*z(grind,mafrak,1983-85) + phipsi(1983-85) =E= 47.1 ; (LHS = 0, INFES = 47.1 ****)
+     
+apsi(1986-88)..  - 0.01020325*z(dry,amran,1986-88) - 0.01020325*z(dry,baijil,1986-88) - 0.01020325*z(dry,mafrak,1986-88) - 0.01020325*z(wet,amran,1986-88) - 0.01020325*z(wet,baijil,1986-88) - 0.01020325*z(wet,mafrak,1986-88)
+     
+      - 0.02846528*z(grind,amran,1986-88) - 0.02846528*z(grind,baijil,1986-88) - 0.02846528*z(grind,mafrak,1986-88) - 0.0558*h(dry-kiln,amran,1986-88) - 0.0558*h(dry-kiln,baijil,1986-88) - 0.0558*h(dry-kiln,mafrak,1986-88) - 0.06*h(wet-kiln,amran,1986-88)
+     
+      - 0.06*h(wet-kiln,baijil,1986-88) - 0.06*h(wet-kiln,mafrak,1986-88) + phipsi(1986-88) =E= 47.1 ; (LHS = 0, INFES = 47.1 ****)
+     
+apsi(1989-91)..  - 0.01020325*z(dry,amran,1989-91) - 0.01020325*z(dry,baijil,1989-91) - 0.01020325*z(dry,mafrak,1989-91) - 0.01020325*z(wet,amran,1989-91) - 0.01020325*z(wet,baijil,1989-91) - 0.01020325*z(wet,mafrak,1989-91)
+     
+      - 0.02846528*z(grind,amran,1989-91) - 0.02846528*z(grind,baijil,1989-91) - 0.02846528*z(grind,mafrak,1989-91) - 0.0558*h(dry-kiln,amran,1986-88) - 0.0558*h(dry-kiln,amran,1989-91) - 0.0558*h(dry-kiln,baijil,1986-88)
+     
+      - 0.0558*h(dry-kiln,baijil,1989-91) - 0.0558*h(dry-kiln,mafrak,1986-88) - 0.0558*h(dry-kiln,mafrak,1989-91) - 0.06*h(wet-kiln,amran,1986-88) - 0.06*h(wet-kiln,amran,1989-91) - 0.06*h(wet-kiln,baijil,1986-88) - 0.06*h(wet-kiln,baijil,1989-91)
+     
+      - 0.06*h(wet-kiln,mafrak,1986-88) - 0.06*h(wet-kiln,mafrak,1989-91) + phipsi(1989-91) =E= 47.1 ; (LHS = 0, INFES = 47.1 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- akap  =E=  investment cost acct      (mill yr per year)
+
+akap(1983-85)..  phikap(1983-85) =E= 0 ; (LHS = 0)
+     
+akap(1986-88)..  - 0.0267979094203776*h(mills,amran,1986-88) - 0.0256813298611952*h(mills,baijil,1986-88) - 0.0234481707428304*h(mills,mafrak,1986-88) - 66.9949008460419*y(dry-kiln,amran,small,1986-88) - 83.0558287330283*y(dry-kiln,amran,medium,1986-88)
+     
+      - 96.7358932827346*y(dry-kiln,amran,large,1986-88) - 64.2034466441234*y(dry-kiln,baijil,small,1986-88) - 79.5951692024855*y(dry-kiln,baijil,medium,1986-88) - 92.7052310626207*y(dry-kiln,baijil,large,1986-88)
+     
+      - 58.6205382402866*y(dry-kiln,mafrak,small,1986-88) - 72.6738501413998*y(dry-kiln,mafrak,medium,1986-88) - 84.6439066223928*y(dry-kiln,mafrak,large,1986-88) - 56.9457166371747*y(wet-kiln,amran,small,1986-88)
+     
+      - 71.4615065582968*y(wet-kiln,amran,medium,1986-88) - 83.9533170947684*y(wet-kiln,amran,large,1986-88) - 54.5729784439591*y(wet-kiln,baijil,small,1986-88) - 68.4839437850345*y(wet-kiln,baijil,medium,1986-88)
+     
+      - 80.4552622158197*y(wet-kiln,baijil,large,1986-88) - 49.8275020575279*y(wet-kiln,mafrak,small,1986-88) - 62.5288182385097*y(wet-kiln,mafrak,medium,1986-88) - 73.4591524579224*y(wet-kiln,mafrak,large,1986-88) + phikap(1986-88) =E= 0 ;
+     
+      (LHS = -58.6205382402866, INFES = 58.6205382402866 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 16
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Equation Listing    SOLVE yemen Using MIP From line 324
+
+
+     akap  =E=  investment cost acct      (mill yr per year)
+
+akap(1989-91)..  - 0.0267979094203776*h(mills,amran,1986-88) - 0.0267979094203776*h(mills,amran,1989-91) - 0.0256813298611952*h(mills,baijil,1986-88) - 0.0256813298611952*h(mills,baijil,1989-91) - 0.0234481707428304*h(mills,mafrak,1986-88)
+     
+      - 0.0234481707428304*h(mills,mafrak,1989-91) - 66.9949008460419*y(dry-kiln,amran,small,1986-88) - 66.9949008460419*y(dry-kiln,amran,small,1989-91) - 83.0558287330283*y(dry-kiln,amran,medium,1986-88)
+     
+      - 83.0558287330283*y(dry-kiln,amran,medium,1989-91) - 96.7358932827346*y(dry-kiln,amran,large,1986-88) - 96.7358932827346*y(dry-kiln,amran,large,1989-91) - 64.2034466441234*y(dry-kiln,baijil,small,1986-88)
+     
+      - 64.2034466441234*y(dry-kiln,baijil,small,1989-91) - 79.5951692024855*y(dry-kiln,baijil,medium,1986-88) - 79.5951692024855*y(dry-kiln,baijil,medium,1989-91) - 92.7052310626207*y(dry-kiln,baijil,large,1986-88)
+     
+      - 92.7052310626207*y(dry-kiln,baijil,large,1989-91) - 58.6205382402866*y(dry-kiln,mafrak,small,1986-88) - 58.6205382402866*y(dry-kiln,mafrak,small,1989-91) - 72.6738501413998*y(dry-kiln,mafrak,medium,1986-88)
+     
+      - 72.6738501413998*y(dry-kiln,mafrak,medium,1989-91) - 84.6439066223928*y(dry-kiln,mafrak,large,1986-88) - 84.6439066223928*y(dry-kiln,mafrak,large,1989-91) - 56.9457166371747*y(wet-kiln,amran,small,1986-88)
+     
+      - 56.9457166371747*y(wet-kiln,amran,small,1989-91) - 71.4615065582968*y(wet-kiln,amran,medium,1986-88) - 71.4615065582968*y(wet-kiln,amran,medium,1989-91) - 83.9533170947684*y(wet-kiln,amran,large,1986-88)
+     
+      - 83.9533170947684*y(wet-kiln,amran,large,1989-91) - 54.5729784439591*y(wet-kiln,baijil,small,1986-88) - 54.5729784439591*y(wet-kiln,baijil,small,1989-91) - 68.4839437850345*y(wet-kiln,baijil,medium,1986-88)
+     
+      - 68.4839437850345*y(wet-kiln,baijil,medium,1989-91) - 80.4552622158197*y(wet-kiln,baijil,large,1986-88) - 80.4552622158197*y(wet-kiln,baijil,large,1989-91) - 49.8275020575279*y(wet-kiln,mafrak,small,1986-88)
+     
+      - 49.8275020575279*y(wet-kiln,mafrak,small,1989-91) - 62.5288182385097*y(wet-kiln,mafrak,medium,1986-88) - 62.5288182385097*y(wet-kiln,mafrak,medium,1989-91) - 73.4591524579224*y(wet-kiln,mafrak,large,1986-88)
+     
+      - 73.4591524579224*y(wet-kiln,mafrak,large,1989-91) + phikap(1989-91) =E= 0 ; (LHS = -58.6205382402866, INFES = 58.6205382402866 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- alam  =E=  transport cost acct       (mill yr per year)
+
+alam(1983-85)..  - 0.055944*x(cement,amran,sanaa,1983-85) - 0.1794882*x(cement,amran,hodeideh,1983-85) - 0.1957408*x(cement,amran,taizz,1983-85) - 0.1439468*x(cement,amran,ibb,1983-85) - 0.1082268*x(cement,amran,dhamar,1983-85)
+     
+      - 0.1216218*x(cement,baijil,sanaa,1983-85) - 0.061302*x(cement,baijil,hodeideh,1983-85) - 0.1861434*x(cement,baijil,taizz,1983-85) - 0.2078856*x(cement,baijil,ibb,1983-85) - 0.173397*x(cement,baijil,dhamar,1983-85)
+     
+      - 0.2039188*x(cement,mafrak,sanaa,1983-85) - 0.1411221*x(cement,mafrak,hodeideh,1983-85) - 0.0646437*x(cement,mafrak,taizz,1983-85) - 0.1155964*x(cement,mafrak,ibb,1983-85) - 0.150978*x(cement,mafrak,dhamar,1983-85)
+     
+      - 0.1537698*v(cement,sanaa,1983-85) - 0.03235*v(cement,hodeideh,1983-85) - 0.1778808*v(cement,taizz,1983-85) - 0.2305255*v(cement,ibb,1983-85) - 0.2093708*v(cement,dhamar,1983-85) - 0.2119815*vi(fuel,amran,1983-85) - 0.079965*vi(fuel,baijil,1983-85)
+     
+      - 0.16912575*vi(fuel,mafrak,1983-85) - 0.141321*vi(clinker,amran,1983-85) - 0.05331*vi(clinker,baijil,1983-85) - 0.1127505*vi(clinker,mafrak,1983-85) - 0.1794882*e(cement,amran,1983-85) - 0.061302*e(cement,baijil,1983-85)
+     
+      - 0.1411221*e(cement,mafrak,1983-85) + philam(1983-85) =E= 0 ; (LHS = 0)
+     
+alam(1986-88)..  - 0.055944*x(cement,amran,sanaa,1986-88) - 0.1794882*x(cement,amran,hodeideh,1986-88) - 0.1957408*x(cement,amran,taizz,1986-88) - 0.1439468*x(cement,amran,ibb,1986-88) - 0.1082268*x(cement,amran,dhamar,1986-88)
+     
+      - 0.1216218*x(cement,baijil,sanaa,1986-88) - 0.061302*x(cement,baijil,hodeideh,1986-88) - 0.1861434*x(cement,baijil,taizz,1986-88) - 0.2078856*x(cement,baijil,ibb,1986-88) - 0.173397*x(cement,baijil,dhamar,1986-88)
+     
+      - 0.2039188*x(cement,mafrak,sanaa,1986-88) - 0.1411221*x(cement,mafrak,hodeideh,1986-88) - 0.0646437*x(cement,mafrak,taizz,1986-88) - 0.1155964*x(cement,mafrak,ibb,1986-88) - 0.150978*x(cement,mafrak,dhamar,1986-88)
+     
+      - 0.1537698*v(cement,sanaa,1986-88) - 0.03235*v(cement,hodeideh,1986-88) - 0.1778808*v(cement,taizz,1986-88) - 0.2305255*v(cement,ibb,1986-88) - 0.2093708*v(cement,dhamar,1986-88) - 0.2119815*vi(fuel,amran,1986-88) - 0.079965*vi(fuel,baijil,1986-88)
+     
+      - 0.16912575*vi(fuel,mafrak,1986-88) - 0.141321*vi(clinker,amran,1986-88) - 0.05331*vi(clinker,baijil,1986-88) - 0.1127505*vi(clinker,mafrak,1986-88) - 0.1794882*e(cement,amran,1986-88) - 0.061302*e(cement,baijil,1986-88)
+     
+      - 0.1411221*e(cement,mafrak,1986-88) + philam(1986-88) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 17
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Equation Listing    SOLVE yemen Using MIP From line 324
+
+
+     alam  =E=  transport cost acct       (mill yr per year)
+
+alam(1989-91)..  - 0.055944*x(cement,amran,sanaa,1989-91) - 0.1794882*x(cement,amran,hodeideh,1989-91) - 0.1957408*x(cement,amran,taizz,1989-91) - 0.1439468*x(cement,amran,ibb,1989-91) - 0.1082268*x(cement,amran,dhamar,1989-91)
+     
+      - 0.1216218*x(cement,baijil,sanaa,1989-91) - 0.061302*x(cement,baijil,hodeideh,1989-91) - 0.1861434*x(cement,baijil,taizz,1989-91) - 0.2078856*x(cement,baijil,ibb,1989-91) - 0.173397*x(cement,baijil,dhamar,1989-91)
+     
+      - 0.2039188*x(cement,mafrak,sanaa,1989-91) - 0.1411221*x(cement,mafrak,hodeideh,1989-91) - 0.0646437*x(cement,mafrak,taizz,1989-91) - 0.1155964*x(cement,mafrak,ibb,1989-91) - 0.150978*x(cement,mafrak,dhamar,1989-91)
+     
+      - 0.1537698*v(cement,sanaa,1989-91) - 0.03235*v(cement,hodeideh,1989-91) - 0.1778808*v(cement,taizz,1989-91) - 0.2305255*v(cement,ibb,1989-91) - 0.2093708*v(cement,dhamar,1989-91) - 0.2119815*vi(fuel,amran,1989-91) - 0.079965*vi(fuel,baijil,1989-91)
+     
+      - 0.16912575*vi(fuel,mafrak,1989-91) - 0.141321*vi(clinker,amran,1989-91) - 0.05331*vi(clinker,baijil,1989-91) - 0.1127505*vi(clinker,mafrak,1989-91) - 0.1794882*e(cement,amran,1989-91) - 0.061302*e(cement,baijil,1989-91)
+     
+      - 0.1411221*e(cement,mafrak,1989-91) + philam(1989-91) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- api  =E=  import cost acct          (mill yr per year)
+
+api(1983-85)..  - 0.28*v(cement,sanaa,1983-85) - 0.28*v(cement,hodeideh,1983-85) - 0.28*v(cement,taizz,1983-85) - 0.28*v(cement,ibb,1983-85) - 0.28*v(cement,dhamar,1983-85) - 0.6*vi(fuel,amran,1983-85) - 0.6*vi(fuel,baijil,1983-85)
+     
+      - 0.6*vi(fuel,mafrak,1983-85) - 0.224*vi(clinker,amran,1983-85) - 0.224*vi(clinker,baijil,1983-85) - 0.224*vi(clinker,mafrak,1983-85) + phipi(1983-85) =E= 0 ; (LHS = 0)
+     
+api(1986-88)..  - 0.28*v(cement,sanaa,1986-88) - 0.28*v(cement,hodeideh,1986-88) - 0.28*v(cement,taizz,1986-88) - 0.28*v(cement,ibb,1986-88) - 0.28*v(cement,dhamar,1986-88) - 0.6*vi(fuel,amran,1986-88) - 0.6*vi(fuel,baijil,1986-88)
+     
+      - 0.6*vi(fuel,mafrak,1986-88) - 0.224*vi(clinker,amran,1986-88) - 0.224*vi(clinker,baijil,1986-88) - 0.224*vi(clinker,mafrak,1986-88) + phipi(1986-88) =E= 0 ; (LHS = 0)
+     
+api(1989-91)..  - 0.28*v(cement,sanaa,1989-91) - 0.28*v(cement,hodeideh,1989-91) - 0.28*v(cement,taizz,1989-91) - 0.28*v(cement,ibb,1989-91) - 0.28*v(cement,dhamar,1989-91) - 0.6*vi(fuel,amran,1989-91) - 0.6*vi(fuel,baijil,1989-91)
+     
+      - 0.6*vi(fuel,mafrak,1989-91) - 0.224*vi(clinker,amran,1989-91) - 0.224*vi(clinker,baijil,1989-91) - 0.224*vi(clinker,mafrak,1989-91) + phipi(1989-91) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- aeps  =E=  export revenue acct       (mill yr per year)
+
+aeps(1983-85)..  - 0.001*e(cement,amran,1983-85) - 0.001*e(cement,baijil,1983-85) - 0.001*e(cement,mafrak,1983-85) + phieps(1983-85) =E= 0 ; (LHS = 0)
+     
+aeps(1986-88)..  - 0.001*e(cement,amran,1986-88) - 0.001*e(cement,baijil,1986-88) - 0.001*e(cement,mafrak,1986-88) + phieps(1986-88) =E= 0 ; (LHS = 0)
+     
+aeps(1989-91)..  - 0.001*e(cement,amran,1989-91) - 0.001*e(cement,baijil,1989-91) - 0.001*e(cement,mafrak,1989-91) + phieps(1989-91) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- aw  =E=  working capital acct      (mill yr per year)
+
+aw(1983-85)..  - 0.025*phipsi(1983-85) - 0.025*phipi(1983-85) + phiw(1983-85) =E= 0 ; (LHS = 0)
+     
+aw(1986-88)..  - 0.025*phipsi(1986-88) - 0.025*phipi(1986-88) + phiw(1986-88) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 18
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Equation Listing    SOLVE yemen Using MIP From line 324
+
+
+     aw  =E=  working capital acct      (mill yr per year)
+
+aw(1989-91)..  - 0.025*phipsi(1989-91) - 0.025*phipi(1989-91) + phiw(1989-91) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 19
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Column Listing      SOLVE yemen Using MIP From line 324
+
+
+---- z  process level             (1000 units per year)
+
+z(dry,amran,1983-85)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.1127  mb(fuel,amran,1983-85)
+        0.96    mb(clinker,amran,1983-85)
+        1       cc(dry-kiln,amran,1983-85)
+       -0.0102  apsi(1983-85)
+
+z(dry,amran,1986-88)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.1127  mb(fuel,amran,1986-88)
+        0.96    mb(clinker,amran,1986-88)
+        1       cc(dry-kiln,amran,1986-88)
+       -0.0102  apsi(1986-88)
+
+z(dry,amran,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.1127  mb(fuel,amran,1989-91)
+        0.96    mb(clinker,amran,1989-91)
+        1       cc(dry-kiln,amran,1989-91)
+       -0.0102  apsi(1989-91)
+
+REMAINING 33 ENTRIES SKIPPED
+
+---- x  shipment of cement        (1000 tpy)
+
+x(cement,amran,sanaa,1983-85)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(cement,amran,1983-85)
+        1       mr(cement,sanaa,1983-85)
+       -0.0559  alam(1983-85)
+
+x(cement,amran,sanaa,1986-88)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(cement,amran,1986-88)
+        1       mr(cement,sanaa,1986-88)
+       -0.0559  alam(1986-88)
+
+x(cement,amran,sanaa,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(cement,amran,1989-91)
+        1       mr(cement,sanaa,1989-91)
+       -0.0559  alam(1989-91)
+
+REMAINING 57 ENTRIES SKIPPED
+
+---- v  imports of cement         (1000 tpy)
+
+v(cement,sanaa,1983-85)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mr(cement,sanaa,1983-85)
+        1       vb(1983-85)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 20
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Column Listing      SOLVE yemen Using MIP From line 324
+
+
+     v  imports of cement         (1000 tpy)
+
+       -0.1538  alam(1983-85)
+       -0.28    api(1983-85)
+
+v(cement,sanaa,1986-88)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mr(cement,sanaa,1986-88)
+        1       vb(1986-88)
+       -0.1538  alam(1986-88)
+       -0.28    api(1986-88)
+
+v(cement,sanaa,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mr(cement,sanaa,1989-91)
+        1       vb(1989-91)
+       -0.1538  alam(1989-91)
+       -0.28    api(1989-91)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- vi  imports of intermediates  (1000 units per year)
+
+vi(fuel,amran,1983-85)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(fuel,amran,1983-85)
+       -0.212   alam(1983-85)
+       -0.6     api(1983-85)
+
+vi(fuel,amran,1986-88)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(fuel,amran,1986-88)
+       -0.212   alam(1986-88)
+       -0.6     api(1986-88)
+
+vi(fuel,amran,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(fuel,amran,1989-91)
+       -0.212   alam(1989-91)
+       -0.6     api(1989-91)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- e  export of cement          (1000 tpy)
+
+e(cement,amran,1983-85)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(cement,amran,1983-85)
+        1       eb(1983-85)
+       -0.1795  alam(1983-85)
+       -0.001   aeps(1983-85)
+
+e(cement,amran,1986-88)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 21
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Column Listing      SOLVE yemen Using MIP From line 324
+
+
+     e  export of cement          (1000 tpy)
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(cement,amran,1986-88)
+        1       eb(1986-88)
+       -0.1795  alam(1986-88)
+       -0.001   aeps(1986-88)
+
+e(cement,amran,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(cement,amran,1989-91)
+        1       eb(1989-91)
+       -0.1795  alam(1989-91)
+       -0.001   aeps(1989-91)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- h  capacity expansion        (1000 tpy)
+
+h(dry-kiln,amran,1986-88)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cc(dry-kiln,amran,1986-88)
+       -1       cc(dry-kiln,amran,1989-91)
+       -1       cc(dry-kiln,amran,1992-94)
+        1       id(dry-kiln,amran,1986-88)
+        1       limit(amran)
+       -0.0558  apsi(1986-88)
+       -0.0558  apsi(1989-91)
+       -0.0558  apsi(1992-94)
+
+h(dry-kiln,amran,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cc(dry-kiln,amran,1989-91)
+       -1       cc(dry-kiln,amran,1992-94)
+        1       id(dry-kiln,amran,1989-91)
+        1       limit(amran)
+       -0.0558  apsi(1989-91)
+       -0.0558  apsi(1992-94)
+
+h(dry-kiln,amran,1992-94)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cc(dry-kiln,amran,1992-94)
+        1       id(dry-kiln,amran,1992-94)
+        1       limit(amran)
+       -0.0558  apsi(1992-94)
+
+REMAINING 24 ENTRIES SKIPPED
+
+---- y  binary variable
+
+y(dry-kiln,amran,small,1986-88)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -500       id(dry-kiln,amran,1986-88)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 22
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Column Listing      SOLVE yemen Using MIP From line 324
+
+
+     y  binary variable
+
+        1       ich(dry-kiln,amran,1986-88)
+      -66.9949  akap(1986-88)
+      -66.9949  akap(1989-91)
+      -66.9949  akap(1992-94)
+
+y(dry-kiln,amran,small,1989-91)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -500       id(dry-kiln,amran,1989-91)
+        1       ich(dry-kiln,amran,1989-91)
+      -66.9949  akap(1989-91)
+      -66.9949  akap(1992-94)
+
+y(dry-kiln,amran,small,1992-94)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -500       id(dry-kiln,amran,1992-94)
+        1       ich(dry-kiln,amran,1992-94)
+      -66.9949  akap(1992-94)
+
+REMAINING 51 ENTRIES SKIPPED
+
+---- phi  total discounted cost
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- phikap  capital investment charge (mill yr per year)
+
+phikap(1983-85)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.8264  obj
+        1       akap(1983-85)
+
+phikap(1986-88)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.6209  obj
+        1       akap(1986-88)
+
+phikap(1989-91)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.4665  obj
+        1       akap(1989-91)
+
+REMAINING ENTRY SKIPPED
+
+---- phipsi  recurrent cost            (mill yr per year)
+
+phipsi(1983-85)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.8264  obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 23
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Column Listing      SOLVE yemen Using MIP From line 324
+
+
+     phipsi  recurrent cost            (mill yr per year)
+
+        1       apsi(1983-85)
+       -0.025   aw(1983-85)
+
+phipsi(1986-88)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.6209  obj
+        1       apsi(1986-88)
+       -0.025   aw(1986-88)
+
+phipsi(1989-91)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.4665  obj
+        1       apsi(1989-91)
+       -0.025   aw(1989-91)
+
+REMAINING ENTRY SKIPPED
+
+---- philam  transport cost            (mill yr per year)
+
+philam(1983-85)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.8264  obj
+        1       alam(1983-85)
+
+philam(1986-88)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.6209  obj
+        1       alam(1986-88)
+
+philam(1989-91)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.4665  obj
+        1       alam(1989-91)
+
+REMAINING ENTRY SKIPPED
+
+---- phipi  import cost               (mill yr per year)
+
+phipi(1983-85)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.8264  obj
+        1       api(1983-85)
+       -0.025   aw(1983-85)
+
+phipi(1986-88)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.6209  obj
+        1       api(1986-88)
+       -0.025   aw(1986-88)
+
+phipi(1989-91)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 24
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Column Listing      SOLVE yemen Using MIP From line 324
+
+
+     phipi  import cost               (mill yr per year)
+
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.4665  obj
+        1       api(1989-91)
+       -0.025   aw(1989-91)
+
+REMAINING ENTRY SKIPPED
+
+---- phieps  export revenue            (mill yr per year)
+
+phieps(1983-85)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.8264  obj
+        1       aeps(1983-85)
+
+phieps(1986-88)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.6209  obj
+        1       aeps(1986-88)
+
+phieps(1989-91)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.4665  obj
+        1       aeps(1989-91)
+
+REMAINING ENTRY SKIPPED
+
+---- phiw  working capital charge    (mill yr per year)
+
+phiw(1983-85)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.8264  obj
+        1       aw(1983-85)
+
+phiw(1986-88)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.6209  obj
+        1       aw(1986-88)
+
+phiw(1989-91)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.4665  obj
+        1       aw(1989-91)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 25
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Model Statistics    SOLVE yemen Using MIP From line 324
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          16     SINGLE EQUATIONS          168
+BLOCKS OF VARIABLES          14     SINGLE VARIABLES          258
+NON ZERO ELEMENTS           953     DISCRETE VARIABLES         53
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 26
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+Solution Report     SOLVE yemen Using MIP From line 324
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   yemen               OBJECTIVE  phi
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  324
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/yemcem/convert.opt"
+>>  pyomo yemcem-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/yemcem/convert.opt"
+Pyomo     : yemcem-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 27
+Y E M E N   Cement model  (YEMCEM,SEQ=51)
+E x e c u t i o n
+
+
+----    326 VARIABLE z.L  process level             (1000 units per year)
+
+                      ( ALL       0.000 )
+
+
+----    326 VARIABLE h.L  capacity expansion        (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    339 PARAMETER xx  cement shipments (1000 tpy)
+
+                      ( ALL       0.000 )
+
+
+----    339 PARAMETER kh  total kiln capacity (1000 tpy)
+
+           1983-85     1986-88     1989-91     1992-94
+
+amran      500.000     500.000     500.000     500.000
+baijil     320.000     320.000     320.000     320.000
+total      820.000     820.000     820.000     820.000
+
+
+----    339 PARAMETER mcc  shadow price on capacity - undiscounted
+
+                      ( ALL       0.000 )
+
+
+----    339 PARAMETER mmr  shadow price on requirements - undiscounted
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/yemcem/yemcem.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/yemcem/yemcem-scalar.py.lst

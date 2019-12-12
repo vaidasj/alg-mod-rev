@@ -1,0 +1,210 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 2
+Gear Train Design (GEAR,SEQ=203)
+C o m p i l a t i o n
+
+
+       
+        A compound gear train is to be designed to achieve a specific
+        gear ratio between the driver and driven shafts. The objective
+        of the gear train design is to find the number of teeth of the
+        four gears and to obtain a required gear ratio of 1/6.931.
+       
+       
+      Deb, K, and Goyal, M, Optimizing Engineering Designs Using a
+      Combined Genetic Search. In Back, T, Ed, Proceedings of the
+      Seventh International Conference on Genetic Algorithms. 1997,
+      pp. 521-528.
+       
+  18   
+  19  option optcr=1e-5;
+  20   
+  21  Integer variables
+  22     a,f,b,d 'number of teeth in each of the gears (integer)'
+  23  Variables
+  24     z       'objective variable'
+  25  ;
+  26   
+  27  Equations
+  28     obj  'objective function'
+  29     sym1 'symmetry'
+  30     sym2 'symmetry'
+  31  ;
+  32   
+  33  Scalars
+  34      invgratio    'reciprocal of required gear ratio'     / 6.931 /
+  35      minteeth     'minimum number of teeth'               / 12 /
+  36      maxteeth     'maximum number of teeth'               / 60 /
+  37  ;
+  38   
+  39  a.lo = minteeth; a.up = maxteeth;
+  40  f.lo = minteeth; f.up = maxteeth;
+  41  b.lo = minteeth; b.up = maxteeth;
+  42  d.lo = minteeth; d.up = maxteeth;
+  43   
+  44  obj..   z =e= 1 + sqr(invgratio - (a*f)/(b*d));
+  45  sym1..  d =g= b;
+  46  sym2..  a =g= f;
+  47   
+  48  * A better starting point than just the lower bounds
+  49  a.l = (maxteeth-minteeth)/2;
+  50  f.l = (maxteeth-minteeth)/2;
+  51  b.l = (maxteeth-minteeth)/2;
+  52  d.l = (maxteeth-minteeth)/2;
+  53   
+  54  model m1 /all/;
+  55   
+  56  solve m1 using minlp minimizing z;
+  57   
+  58  Scalar  calcinvratio ratio of solution
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 3
+Gear Train Design (GEAR,SEQ=203)
+C o m p i l a t i o n
+
+
+  59          error        absolute error;
+  60   
+  61  calcinvratio = (a.l*f.l)/(b.l*d.l);
+  62  error        = abs(calcinvratio-invgratio);
+  63  Display calcinvratio, invgratio, error;
+  64   
+
+
+COMPILATION TIME     =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 4
+Gear Train Design (GEAR,SEQ=203)
+Equation Listing    SOLVE m1 Using MINLP From line 56
+
+
+---- obj  =E=  objective function
+
+obj..  (0.49425)*a + (0.49425)*f - (0.49425)*b - (0.49425)*d + z =E= 1 ; (LHS = -35.176761, INFES = 36.176761 ****)
+     
+
+---- sym1  =G=  symmetry
+
+sym1..  - b + d =G= 0 ; (LHS = 0)
+     
+
+---- sym2  =G=  symmetry
+
+sym2..  a - f =G= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 5
+Gear Train Design (GEAR,SEQ=203)
+Column Listing      SOLVE m1 Using MINLP From line 56
+
+
+---- a  
+
+a
+                (.LO, .L, .UP, .M = 12, 24, 60, 0)
+       (0.4942) obj
+        1       sym2
+
+
+---- f  
+
+f
+                (.LO, .L, .UP, .M = 12, 24, 60, 0)
+       (0.4942) obj
+       -1       sym2
+
+
+---- b  
+
+b
+                (.LO, .L, .UP, .M = 12, 24, 60, 0)
+      (-0.4942) obj
+       -1       sym1
+
+
+---- d  number of teeth in each of the gears (integer)
+
+d
+                (.LO, .L, .UP, .M = 12, 24, 60, 0)
+      (-0.4942) obj
+        1       sym1
+
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 6
+Gear Train Design (GEAR,SEQ=203)
+Model Statistics    SOLVE m1 Using MINLP From line 56
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             9     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  11     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 7
+Gear Train Design (GEAR,SEQ=203)
+Solution Report     SOLVE m1 Using MINLP From line 56
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m1                  OBJECTIVE  z
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  56
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gear/convert.opt"
+>>  gams gear-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gear/convert.opt"
+Gams      : gear-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 8
+Gear Train Design (GEAR,SEQ=203)
+E x e c u t i o n
+
+
+----     63 PARAMETER calcinvratio         =        1.000  ratio of solution
+            PARAMETER invgratio            =        6.931  reciprocal of required gear ratio
+            PARAMETER error                =        5.931  absolute error
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/gear/gear.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/gear/gear-scalar.gms.lst

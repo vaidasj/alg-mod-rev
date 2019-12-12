@@ -1,0 +1,152 @@
+--- Job phosdis.gms Start 12/13/18 10:24:43 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- phosdis.gms(641) 3 Mb
+--- Starting execution: elapsed 0:00:00.004
+--- phosdis.gms(607) 4 Mb
+--- Generating LP model route
+--- phosdis.gms(608) 4 Mb
+---   305 rows  2,977 columns  8,899 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.019
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(608) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(610) 3 Mb
+--- Generating LP model route
+--- phosdis.gms(611) 3 Mb
+---   305 rows  2,977 columns  8,879 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.044
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(611) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(613) 3 Mb
+--- Generating LP model route
+--- phosdis.gms(614) 3 Mb
+---   305 rows  2,977 columns  8,813 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.077
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(614) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(616) 3 Mb
+--- Generating LP model route
+--- phosdis.gms(617) 3 Mb
+---   305 rows  2,977 columns  8,859 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.113
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(617) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(619) 3 Mb
+--- Generating LP model route
+--- phosdis.gms(620) 3 Mb
+---   305 rows  2,977 columns  8,867 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.144
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(620) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(622) 3 Mb
+--- Generating LP model route
+--- phosdis.gms(623) 3 Mb
+---   305 rows  2,977 columns  8,873 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.169
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(623) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(625) 3 Mb
+--- Generating LP model route
+--- phosdis.gms(626) 3 Mb
+---   153 rows  1,489 columns  4,427 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.194
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+>>  gams phosdis-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/phosdis/convert.opt"
+--- Writing Gams      : phosdis-scalar.gms
+
+--- Restarting execution
+--- phosdis.gms(626) 2 Mb
+--- Reading solution for model route
+***
+*** Reading with solveopt=REPLACE (0)
+***
+--- phosdis.gms(640) 3 Mb
+*** Status: Normal completion
+--- Job phosdis.gms Stop 12/13/18 10:24:43 elapsed 0:00:00.212

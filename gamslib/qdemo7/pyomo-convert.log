@@ -1,0 +1,30 @@
+--- Job qdemo7.gms Start 12/13/18 11:23:26 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- qdemo7.gms(204) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- qdemo7.gms(202) 4 Mb
+--- Generating QCP model demo7n
+--- qdemo7.gms(204) 6 Mb
+---   47 rows  60 columns  245 non-zeroes
+---   39 nl-code  6 nl-non-zeroes
+--- qdemo7.gms(204) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qdemo7/convert.opt"
+>>  pyomo qdemo7-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qdemo7/convert.opt"
+--- Writing Pyomo     : qdemo7-scalar.py
+
+--- Restarting execution
+--- qdemo7.gms(204) 2 Mb
+--- Reading solution for model demo7n
+*** Status: Normal completion
+--- Job qdemo7.gms Stop 12/13/18 11:23:26 elapsed 0:00:00.021

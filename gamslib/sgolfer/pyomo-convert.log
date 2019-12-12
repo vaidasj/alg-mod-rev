@@ -1,0 +1,31 @@
+--- Job sgolfer.gms Start 12/13/18 11:43:43 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- sgolfer.gms(84) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- sgolfer.gms(63) 4 Mb
+--- Generating MINLP model social_golfer
+--- sgolfer.gms(68) 26 Mb
+---   41,073 rows  43,233 columns  165,825 non-zeroes
+---   241,552 nl-code  79,856 nl-non-zeroes
+---   2,560 discrete-columns
+--- sgolfer.gms(68) 24 Mb
+--- Executing CONVERT: elapsed 0:00:00.126
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sgolfer/convert.opt"
+>>  pyomo sgolfer-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sgolfer/convert.opt"
+--- Writing Pyomo     : sgolfer-scalar.py
+
+--- Restarting execution
+--- sgolfer.gms(68) 4 Mb
+--- Reading solution for model social_golfer
+*** Status: Normal completion
+--- Job sgolfer.gms Stop 12/13/18 11:43:44 elapsed 0:00:00.231

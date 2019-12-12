@@ -1,0 +1,51 @@
+--- Job meanvarx.gms Start 12/13/18 10:24:51 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- meanvarx.gms(143) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- meanvarx.gms(130) 4 Mb
+--- Generating MINLP model mean
+--- meanvarx.gms(132) 6 Mb
+---   45 rows  36 columns  111 non-zeroes
+---   129 nl-code  7 nl-non-zeroes
+---   14 discrete-columns
+--- meanvarx.gms(132) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.007
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+>>  gams meanvarx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+--- Writing Gams      : meanvarx-scalar.gms
+
+--- Restarting execution
+--- meanvarx.gms(132) 2 Mb
+--- Reading solution for model mean
+--- Generating MINLP model marg
+--- meanvarx.gms(134) 5 Mb
+---   52 rows  43 columns  153 non-zeroes
+---   38 nl-code  14 nl-non-zeroes
+---   14 discrete-columns
+--- meanvarx.gms(134) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.025
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+>>  gams meanvarx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+--- Writing Gams      : meanvarx-scalar.gms
+
+--- Restarting execution
+--- meanvarx.gms(134) 2 Mb
+--- Reading solution for model marg
+--- meanvarx.gms(143) 3 Mb
+*** Status: Normal completion
+--- Job meanvarx.gms Stop 12/13/18 10:24:51 elapsed 0:00:00.040

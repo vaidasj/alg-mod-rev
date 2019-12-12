@@ -1,0 +1,99 @@
+--- Job decomp.gms Start 12/13/18 10:30:52 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- decomp.gms(133) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- decomp.gms(89) 4 Mb
+--- Generating LP model sub
+--- decomp.gms(90) 4 Mb
+---   9 rows  11 columns  30 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+>>  gams decomp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+--- Writing Gams      : decomp-scalar.gms
+
+--- Restarting execution
+--- decomp.gms(90) 2 Mb
+--- Reading solution for model sub
+--- decomp.gms(96) 3 Mb
+--- Generating LP model sub
+--- decomp.gms(97) 3 Mb
+---   9 rows  11 columns  30 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.020
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+>>  gams decomp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+--- Writing Gams      : decomp-scalar.gms
+
+--- Restarting execution
+--- decomp.gms(97) 2 Mb
+--- Reading solution for model sub
+--- decomp.gms(103) 3 Mb
+--- Generating LP model master
+--- decomp.gms(105) 3 Mb
+---   2 rows  3 columns  3 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.035
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+>>  gams decomp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+--- Writing Gams      : decomp-scalar.gms
+
+--- Restarting execution
+--- decomp.gms(105) 2 Mb
+--- Reading solution for model master
+--- decomp.gms(114) 3 Mb
+--- Generating LP model sub
+--- decomp.gms(118) 3 Mb
+--- LOOPS ss = 3
+---   9 rows  11 columns  30 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.050
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+>>  gams decomp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+--- Writing Gams      : decomp-scalar.gms
+
+--- Restarting execution
+--- decomp.gms(118) 2 Mb
+--- Reading solution for model sub
+--- decomp.gms(114) 3 Mb
+--- Generating LP model master
+--- decomp.gms(123) 3 Mb
+--- LOOPS ss = 3
+---   2 rows  4 columns  4 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.064
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+>>  gams decomp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/decomp/convert.opt"
+--- Writing Gams      : decomp-scalar.gms
+
+--- Restarting execution
+--- decomp.gms(123) 2 Mb
+--- Reading solution for model master
+--- decomp.gms(133) 3 Mb
+*** Status: Normal completion
+--- Job decomp.gms Stop 12/13/18 10:30:52 elapsed 0:00:00.076

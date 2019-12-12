@@ -1,0 +1,68 @@
+--- Job ps3_s_mn.gms Start 12/13/18 11:30:39 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- ps3_s_mn.gms(72) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- ps3_s_mn.gms(49) 4 Mb
+--- Generating NLP model SB4
+--- ps3_s_mn.gms(53) 6 Mb
+---   13 rows  10 columns  34 non-zeroes
+---   18 nl-code  3 nl-non-zeroes
+--- ps3_s_mn.gms(53) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_mn/convert.opt"
+>>  ampl ps3_s_mn-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_mn/convert.opt"
+--- Writing Ampl      : ps3_s_mn-scalar.mod
+
+--- Restarting execution
+--- ps3_s_mn.gms(53) 2 Mb
+--- Reading solution for model SB4
+--- ps3_s_mn.gms(58) 3 Mb
+--- Generating NLP model SB4
+--- ps3_s_mn.gms(59) 5 Mb
+---   13 rows  10 columns  34 non-zeroes
+---   18 nl-code  3 nl-non-zeroes
+--- ps3_s_mn.gms(59) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.021
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_mn/convert.opt"
+>>  ampl ps3_s_mn-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_mn/convert.opt"
+--- Writing Ampl      : ps3_s_mn-scalar.mod
+
+--- Restarting execution
+--- ps3_s_mn.gms(59) 2 Mb
+--- Reading solution for model SB4
+--- ps3_s_mn.gms(69) 3 Mb
+--- Generating NLP model SB4
+--- ps3_s_mn.gms(70) 5 Mb
+---   13 rows  10 columns  34 non-zeroes
+---   18 nl-code  3 nl-non-zeroes
+--- ps3_s_mn.gms(70) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.034
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_mn/convert.opt"
+>>  ampl ps3_s_mn-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_mn/convert.opt"
+--- Writing Ampl      : ps3_s_mn-scalar.mod
+
+--- Restarting execution
+--- ps3_s_mn.gms(70) 2 Mb
+--- Reading solution for model SB4
+*** Status: Normal completion
+--- Job ps3_s_mn.gms Stop 12/13/18 11:30:39 elapsed 0:00:00.048

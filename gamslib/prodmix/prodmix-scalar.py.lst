@@ -1,0 +1,164 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+   3  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 2
+A Production mix problem  (PRODMIX,SEQ=3)
+C o m p i l a t i o n
+
+
+       
+      A furniture company wants to maximize its profits from the
+      manufacture of different types of desks.
+       
+       
+      Dantzig, G B, Chapter 3.5. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  15   
+  16  Sets  desk / d1, d2, d3, d4 /
+  17        shop / carpentry, finishing /
+  18   
+  19  Table labor(shop,desk)  labor requirements (man-hours)
+  20   
+  21                 d1    d2    d3    d4
+  22    carpentry     4     9     7    10
+  23    finishing     1     1     3    40
+  24   
+  25  Parameters
+  26   
+  27     caplim(shop)  capacity (man hours) / carpentry = 6000, finishing = 4000 /
+  28     price(desk)   per unit sold ($)    / d1 = 12, d2 = 20, d3 = 18, d4 = 40 /
+  29   
+  30  Variables
+  31   
+  32     mix(desk)  mix of desks produced (number of desks)
+  33     profit     total profit                      ( $ )
+  34   
+  35  Positive Variable  mix
+  36   
+  37  Equations
+  38   
+  39     cap(shop) capacity constraint            (man-hours)
+  40     ap        accounting: total profit             ( $ );
+  41   
+  42  cap(shop).. sum(desk, labor(shop,desk)*mix(desk)) =l= caplim(shop);
+  43   
+  44  ap..  profit =e= sum(desk, price(desk)*mix(desk));
+  45   
+  46  Model pmp product mix problem / all /; Solve pmp maximizing profit using lp;
+  47   
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 3
+A Production mix problem  (PRODMIX,SEQ=3)
+Equation Listing    SOLVE pmp Using LP From line 46
+
+
+---- cap  =L=  capacity constraint            (man-hours)
+
+cap(carpentry)..  4*mix(d1) + 9*mix(d2) + 7*mix(d3) + 10*mix(d4) =L= 6000 ; (LHS = 0)
+     
+cap(finishing)..  mix(d1) + mix(d2) + 3*mix(d3) + 40*mix(d4) =L= 4000 ; (LHS = 0)
+     
+
+---- ap  =E=  accounting: total profit             ( $ )
+
+ap..  - 12*mix(d1) - 20*mix(d2) - 18*mix(d3) - 40*mix(d4) + profit =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 4
+A Production mix problem  (PRODMIX,SEQ=3)
+Column Listing      SOLVE pmp Using LP From line 46
+
+
+---- mix  mix of desks produced (number of desks)
+
+mix(d1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        4       cap(carpentry)
+        1       cap(finishing)
+      -12       ap
+
+mix(d2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        9       cap(carpentry)
+        1       cap(finishing)
+      -20       ap
+
+mix(d3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        7       cap(carpentry)
+        3       cap(finishing)
+      -18       ap
+
+REMAINING ENTRY SKIPPED
+
+---- profit  total profit                      ( $ )
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ap
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 5
+A Production mix problem  (PRODMIX,SEQ=3)
+Model Statistics    SOLVE pmp Using LP From line 46
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS            13
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 6
+A Production mix problem  (PRODMIX,SEQ=3)
+Solution Report     SOLVE pmp Using LP From line 46
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   pmp                 OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  46
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodmix/convert.opt"
+>>  pyomo prodmix-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodmix/convert.opt"
+Pyomo     : prodmix-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/prodmix/prodmix.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/prodmix/prodmix-scalar.py.lst

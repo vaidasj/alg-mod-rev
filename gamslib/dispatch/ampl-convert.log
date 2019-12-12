@@ -1,0 +1,130 @@
+--- Job dispatch.gms Start 12/13/18 10:30:52 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- dispatch.gms(102) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- dispatch.gms(57) 4 Mb
+--- Generating NLP model edc
+--- dispatch.gms(74) 6 Mb
+---   3 rows  5 columns  12 non-zeroes
+---   81 nl-code  6 nl-non-zeroes
+--- dispatch.gms(74) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  ampl dispatch-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+--- Writing Ampl      : dispatch-scalar.mod
+
+--- Restarting execution
+--- dispatch.gms(74) 2 Mb
+--- Reading solution for model edc
+--- dispatch.gms(86) 3 Mb
+--- Generating NLP model edc
+--- dispatch.gms(87) 5 Mb
+---   3 rows  5 columns  12 non-zeroes
+---   81 nl-code  6 nl-non-zeroes
+--- dispatch.gms(87) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.021
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  ampl dispatch-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+--- Writing Ampl      : dispatch-scalar.mod
+
+--- Restarting execution
+--- dispatch.gms(87) 2 Mb
+--- Reading solution for model edc
+--- dispatch.gms(94) 3 Mb
+--- Generating NLP model edc
+--- dispatch.gms(98) 5 Mb
+--- LOOPS st = s1
+---   3 rows  5 columns  12 non-zeroes
+---   81 nl-code  6 nl-non-zeroes
+--- dispatch.gms(98) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.037
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  ampl dispatch-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+--- Writing Ampl      : dispatch-scalar.mod
+
+--- Restarting execution
+--- dispatch.gms(98) 2 Mb
+--- Reading solution for model edc
+--- dispatch.gms(94) 3 Mb
+--- Generating NLP model edc
+--- dispatch.gms(98) 5 Mb
+--- LOOPS st = s2
+---   3 rows  5 columns  12 non-zeroes
+---   81 nl-code  6 nl-non-zeroes
+--- dispatch.gms(98) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.048
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  ampl dispatch-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+--- Writing Ampl      : dispatch-scalar.mod
+
+--- Restarting execution
+--- dispatch.gms(98) 2 Mb
+--- Reading solution for model edc
+--- dispatch.gms(94) 3 Mb
+--- Generating NLP model edc
+--- dispatch.gms(98) 5 Mb
+--- LOOPS st = s3
+---   3 rows  5 columns  12 non-zeroes
+---   81 nl-code  6 nl-non-zeroes
+--- dispatch.gms(98) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.063
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  ampl dispatch-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+--- Writing Ampl      : dispatch-scalar.mod
+
+--- Restarting execution
+--- dispatch.gms(98) 2 Mb
+--- Reading solution for model edc
+--- dispatch.gms(94) 3 Mb
+--- Generating NLP model edc
+--- dispatch.gms(98) 5 Mb
+--- LOOPS st = s4
+---   3 rows  5 columns  12 non-zeroes
+---   81 nl-code  6 nl-non-zeroes
+--- dispatch.gms(98) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.079
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  ampl dispatch-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+--- Writing Ampl      : dispatch-scalar.mod
+
+--- Restarting execution
+--- dispatch.gms(98) 2 Mb
+--- Reading solution for model edc
+--- dispatch.gms(102) 3 Mb
+*** Status: Normal completion
+--- Job dispatch.gms Stop 12/13/18 10:30:52 elapsed 0:00:00.093

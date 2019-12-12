@@ -1,0 +1,770 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+   3  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 2
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+C o m p i l a t i o n
+
+
+   5   
+       
+         Minimum and maximum trade constraints are added to the standard
+         mean-variance model. If it is not profitable to trade within these
+         ranges, no trade should take place. A turnover constraint is added
+         to improve stability of the solution to small changes in data. The
+         resulting model is a nonlinear mixed-integer problem.
+       
+         Two important modeling tricks are demonstrated: (1) use of only
+         the triangular part of the Q matrix, and (2) introduction of
+         the marginal variance to improve computational performance of
+         large QP problems.
+       
+       
+      Dahl, H, Meeraus, A, and Zenios, S A, Some Financial Optimization
+      Models: Risk Management. In Zenios, S A, Ed, Financial Optimization.
+      Cambridge University Press, New York, NY, 1993.
+       
+  26   
+  27  Set  i  securities  / cn, fr, gr, jp, sw, uk, us /;  alias (i,j) ;
+  28   
+  29  Parameter  mu(i)  expected return of security /
+  30   
+  31      cn     0.1287
+  32      fr     0.1096
+  33      gr     0.0501
+  34      jp     0.1524
+  35      sw     0.0763
+  36      uk     0.1854
+  37      us     0.0620 /
+  38   
+  39   
+  40  Table  q(i,j)   covariance matrix
+  41   
+  42              cn      fr      gr      jp      sw      uk      us
+  43      cn    42.18
+  44      fr    20.18   70.89
+  45      gr    10.88   21.58   25.51
+  46      jp     5.30   15.41    9.60   22.33
+  47      sw    12.32   23.24   22.63   10.32   30.01
+  48      uk    23.84   23.80   13.22   10.46   16.36   42.23
+  49      us    17.41   12.62    4.70    1.00    7.20    9.90   16.42 ;
+  50   
+  51  *  we will continue to use only the lower triangle of the q-matrix
+  52  *  and adjust the off diagonal entries to give the correct results.
+  53   
+  54  q(i,j) = 2*q(j,i) ;  q(i,i) = q(i,i)/2;
+  55   
+  56   
+  57  Scalars  tau       bounding parameter on turnover of current holdings
+  58           lambda    return versus variance component tradeoff parameter ;
+  59   
+  60  Set pd  portfolio data labels  /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 3
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+C o m p i l a t i o n
+
+
+  61            old       current holdings fraction of the portfolio
+  62            umin      minimum increase of holdings fraction of security i
+  63            umax      maximum increase of holdings fraction of security i
+  64            lmin      minimum decrease of holdings fraction of security i
+  65            lmax      maximum decrease of holdings fraction of security i  /
+  66   
+  67  Table    bdata(i,pd)    portfolio data and trading restrictions
+  68  *                       - increase -        - decrease -
+  69                 old      umin    umax        lmin    lmax
+  70          cn     0.2      0.03    0.11        0.02    0.30
+  71          fr     0.2      0.04    0.10        0.02    0.15
+  72          gr     0.0      0.04    0.07        0.04    0.10
+  73          jp     0.0      0.03    0.11        0.04    0.10
+  74          sw     0.2      0.03    0.20        0.04    0.10
+  75          uk     0.2      0.03    0.10        0.04    0.15
+  76          us     0.2      0.03    0.10        0.04    0.30 ;
+  77   
+  78  bdata(i,'lmax') = min(bdata(i,'old'),bdata(i,'lmax')); ! tighten bound
+  79   
+  80  Abort$(abs(sum(i, bdata(i,'old'))-1) >= 1e5) 'error in bdata', bdata;
+  81   
+  82  Variables
+  83      omega     objective variable definition for minlp
+  84      x(i)      fraction of portfolio of current holdings of i
+  85      xi(i)     fraction of portfolio increase
+  86      xd(i)     fraction of portfolio decrease
+  87      mvar(i)   marginal variance
+  88      y(i)      binary switch for increasing current holdings of i
+  89      z(i)      binary switch for decreasing current holdings of i
+  90   
+  91  Binary Variables  y,z; positive variables x, xi, xd;
+  92   
+  93   
+  94  Equations  budget     budget constraint
+  95             turnover   restrict maximum turnover of portfolio
+  96             maxinc(i)  bound of maximum lot increase of fraction of i
+  97             mininc(i)  bound of minimum lot increase of fraction of i
+  98             maxdec(i)  bound of maximum lot decrease of fraction of i
+  99             mindec(i)  bound of minimum lot decrease of fraction of i
+ 100             binsum(i)  restrict use of binary variables
+ 101             xdef(i)    final portfolio definition
+ 102             mvardef(i) marginal variance definition
+ 103             obj        objective function
+ 104             objx       objective function;
+ 105   
+ 106   
+ 107  budget..   sum(i, x(i))  =e=  1 ;
+ 108   
+ 109  xdef(i)..  x(i) =e= bdata(i,'old') - xd(i) + xi(i);
+ 110   
+ 111  maxinc(i)..  xi(i)  =l=  bdata(i,'umax')*y(i) ;
+ 112  mininc(i)..  xi(i)  =g=  bdata(i,'umin')*y(i) ;
+ 113  maxdec(i)..  xd(i)  =l=  bdata(i,'lmax')*z(i) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 4
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+C o m p i l a t i o n
+
+
+ 114  mindec(i)..  xd(i)  =g=  bdata(i,'lmin')*z(i) ;
+ 115   
+ 116  binsum(i).. y(i) + z(i) =l= 1;
+ 117   
+ 118  turnover.. sum(i, xi(i)) =l=  tau ;
+ 119   
+ 120  mvardef(i)..  mvar(i) =e= sum(j, q(i,j)*x(j)) ;
+ 121   
+ 122  obj..  omega =e= sum((i,j), x(i)*q(i,j)*x(j)) - lambda*sum(i, mu(i)*x(i));
+ 123   
+ 124  objx.. omega =e= sum(i, x(i)*mvar(i))         - lambda*sum(i, mu(i)*x(i));
+ 125   
+ 126  Models
+ 127  mean / budget, xdef, turnover, maxinc, mininc, maxdec, mindec, binsum, obj /
+ 128  marg / budget, xdef, turnover, maxinc, mininc, maxdec, mindec, binsum, mvardef, objx /;
+ 129   
+ 130   
+ 131  lambda = 0.5 ;    tau = .3 ;
+ 132   
+ 133  Solve mean minimizing omega using minlp ;
+ 134   
+ 135  Solve marg minimizing omega using minlp ;
+ 136   
+ 137  Parameter report  summary report;
+ 138   
+ 139  report(i,'old') = bdata(i,'old');
+ 140  report(i,'inc') = xi.l(i);
+ 141  report(i,'dec') = xd.l(i);
+ 142  report(i,'new') = x.l(i);
+ 143   
+ 144  Display report;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 5
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Equation Listing    SOLVE mean Using MINLP From line 133
+
+
+---- budget  =E=  budget constraint
+
+budget..  x(cn) + x(fr) + x(gr) + x(jp) + x(sw) + x(uk) + x(us) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- xdef  =E=  final portfolio definition
+
+xdef(cn)..  x(cn) - xi(cn) + xd(cn) =E= 0.2 ; (LHS = 0, INFES = 0.2 ****)
+     
+xdef(fr)..  x(fr) - xi(fr) + xd(fr) =E= 0.2 ; (LHS = 0, INFES = 0.2 ****)
+     
+xdef(gr)..  x(gr) - xi(gr) + xd(gr) =E= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- turnover  =L=  restrict maximum turnover of portfolio
+
+turnover..  xi(cn) + xi(fr) + xi(gr) + xi(jp) + xi(sw) + xi(uk) + xi(us) =L= 0.3 ; (LHS = 0)
+     
+
+---- maxinc  =L=  bound of maximum lot increase of fraction of i
+
+maxinc(cn)..  xi(cn) - 0.11*y(cn) =L= 0 ; (LHS = 0)
+     
+maxinc(fr)..  xi(fr) - 0.1*y(fr) =L= 0 ; (LHS = 0)
+     
+maxinc(gr)..  xi(gr) - 0.07*y(gr) =L= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- mininc  =G=  bound of minimum lot increase of fraction of i
+
+mininc(cn)..  xi(cn) - 0.03*y(cn) =G= 0 ; (LHS = 0)
+     
+mininc(fr)..  xi(fr) - 0.04*y(fr) =G= 0 ; (LHS = 0)
+     
+mininc(gr)..  xi(gr) - 0.04*y(gr) =G= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- maxdec  =L=  bound of maximum lot decrease of fraction of i
+
+maxdec(cn)..  xd(cn) - 0.2*z(cn) =L= 0 ; (LHS = 0)
+     
+maxdec(fr)..  xd(fr) - 0.15*z(fr) =L= 0 ; (LHS = 0)
+     
+maxdec(gr)..  xd(gr) =L= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 6
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Equation Listing    SOLVE mean Using MINLP From line 133
+
+
+---- mindec  =G=  bound of minimum lot decrease of fraction of i
+
+mindec(cn)..  xd(cn) - 0.02*z(cn) =G= 0 ; (LHS = 0)
+     
+mindec(fr)..  xd(fr) - 0.02*z(fr) =G= 0 ; (LHS = 0)
+     
+mindec(gr)..  xd(gr) - 0.04*z(gr) =G= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- binsum  =L=  restrict use of binary variables
+
+binsum(cn)..  y(cn) + z(cn) =L= 1 ; (LHS = 0)
+     
+binsum(fr)..  y(fr) + z(fr) =L= 1 ; (LHS = 0)
+     
+binsum(gr)..  y(gr) + z(gr) =L= 1 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- obj  =E=  objective function
+
+obj..  omega + (0.06435)*x(cn) + (0.0548)*x(fr) + (0.02505)*x(gr) + (0.0762)*x(jp) + (0.03815)*x(sw) + (0.0927)*x(uk) + (0.031)*x(us) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 7
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Column Listing      SOLVE mean Using MINLP From line 133
+
+
+---- omega  objective variable definition for minlp
+
+omega
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- x  fraction of portfolio of current holdings of i
+
+x(cn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        1       xdef(cn)
+       (0.0644) obj
+
+x(fr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        1       xdef(fr)
+       (0.0548) obj
+
+x(gr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        1       xdef(gr)
+       (0.025)  obj
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- xi  fraction of portfolio increase
+
+xi(cn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       xdef(cn)
+        1       turnover
+        1       maxinc(cn)
+        1       mininc(cn)
+
+xi(fr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       xdef(fr)
+        1       turnover
+        1       maxinc(fr)
+        1       mininc(fr)
+
+xi(gr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       xdef(gr)
+        1       turnover
+        1       maxinc(gr)
+        1       mininc(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 8
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Column Listing      SOLVE mean Using MINLP From line 133
+
+
+---- xd  fraction of portfolio decrease
+
+xd(cn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       xdef(cn)
+        1       maxdec(cn)
+        1       mindec(cn)
+
+xd(fr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       xdef(fr)
+        1       maxdec(fr)
+        1       mindec(fr)
+
+xd(gr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       xdef(gr)
+        1       maxdec(gr)
+        1       mindec(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- y  binary switch for increasing current holdings of i
+
+y(cn)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.11    maxinc(cn)
+       -0.03    mininc(cn)
+        1       binsum(cn)
+
+y(fr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.1     maxinc(fr)
+       -0.04    mininc(fr)
+        1       binsum(fr)
+
+y(gr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.07    maxinc(gr)
+       -0.04    mininc(gr)
+        1       binsum(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- z  binary switch for decreasing current holdings of i
+
+z(cn)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.2     maxdec(cn)
+       -0.02    mindec(cn)
+        1       binsum(cn)
+
+z(fr)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:51 Page 9
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Column Listing      SOLVE mean Using MINLP From line 133
+
+
+     z  binary switch for decreasing current holdings of i
+
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.15    maxdec(fr)
+       -0.02    mindec(fr)
+        1       binsum(fr)
+
+z(gr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.04    mindec(gr)
+        1       binsum(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 10
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Model Statistics    SOLVE mean Using MINLP From line 133
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           9     SINGLE EQUATIONS           45
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           36
+NON ZERO ELEMENTS           111     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              50
+CODE LENGTH                 129     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 11
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Solution Report     SOLVE mean Using MINLP From line 133
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mean                OBJECTIVE  omega
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  133
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+>>  pyomo meanvarx-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+Pyomo     : meanvarx-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 12
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Equation Listing    SOLVE marg Using MINLP From line 135
+
+
+---- budget  =E=  budget constraint
+
+budget..  x(cn) + x(fr) + x(gr) + x(jp) + x(sw) + x(uk) + x(us) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- xdef  =E=  final portfolio definition
+
+xdef(cn)..  x(cn) - xi(cn) + xd(cn) =E= 0.2 ; (LHS = 0, INFES = 0.2 ****)
+     
+xdef(fr)..  x(fr) - xi(fr) + xd(fr) =E= 0.2 ; (LHS = 0, INFES = 0.2 ****)
+     
+xdef(gr)..  x(gr) - xi(gr) + xd(gr) =E= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- turnover  =L=  restrict maximum turnover of portfolio
+
+turnover..  xi(cn) + xi(fr) + xi(gr) + xi(jp) + xi(sw) + xi(uk) + xi(us) =L= 0.3 ; (LHS = 0)
+     
+
+---- maxinc  =L=  bound of maximum lot increase of fraction of i
+
+maxinc(cn)..  xi(cn) - 0.11*y(cn) =L= 0 ; (LHS = 0)
+     
+maxinc(fr)..  xi(fr) - 0.1*y(fr) =L= 0 ; (LHS = 0)
+     
+maxinc(gr)..  xi(gr) - 0.07*y(gr) =L= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- mininc  =G=  bound of minimum lot increase of fraction of i
+
+mininc(cn)..  xi(cn) - 0.03*y(cn) =G= 0 ; (LHS = 0)
+     
+mininc(fr)..  xi(fr) - 0.04*y(fr) =G= 0 ; (LHS = 0)
+     
+mininc(gr)..  xi(gr) - 0.04*y(gr) =G= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- maxdec  =L=  bound of maximum lot decrease of fraction of i
+
+maxdec(cn)..  xd(cn) - 0.2*z(cn) =L= 0 ; (LHS = 0)
+     
+maxdec(fr)..  xd(fr) - 0.15*z(fr) =L= 0 ; (LHS = 0)
+     
+maxdec(gr)..  xd(gr) =L= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 13
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Equation Listing    SOLVE marg Using MINLP From line 135
+
+
+---- mindec  =G=  bound of minimum lot decrease of fraction of i
+
+mindec(cn)..  xd(cn) - 0.02*z(cn) =G= 0 ; (LHS = 0)
+     
+mindec(fr)..  xd(fr) - 0.02*z(fr) =G= 0 ; (LHS = 0)
+     
+mindec(gr)..  xd(gr) - 0.04*z(gr) =G= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- binsum  =L=  restrict use of binary variables
+
+binsum(cn)..  y(cn) + z(cn) =L= 1 ; (LHS = 0)
+     
+binsum(fr)..  y(fr) + z(fr) =L= 1 ; (LHS = 0)
+     
+binsum(gr)..  y(gr) + z(gr) =L= 1 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- mvardef  =E=  marginal variance definition
+
+mvardef(cn)..  - 42.18*x(cn) - 40.36*x(fr) - 21.76*x(gr) - 10.6*x(jp) - 24.64*x(sw) - 47.68*x(uk) - 34.82*x(us) + mvar(cn) =E= 0 ; (LHS = 0)
+     
+mvardef(fr)..  - 70.89*x(fr) - 43.16*x(gr) - 30.82*x(jp) - 46.48*x(sw) - 47.6*x(uk) - 25.24*x(us) + mvar(fr) =E= 0 ; (LHS = 0)
+     
+mvardef(gr)..  - 25.51*x(gr) - 19.2*x(jp) - 45.26*x(sw) - 26.44*x(uk) - 9.4*x(us) + mvar(gr) =E= 0 ; (LHS = 0)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- objx  =E=  objective function
+
+objx..  omega + (0.06435)*x(cn) + (0.0548)*x(fr) + (0.02505)*x(gr) + (0.0762)*x(jp) + (0.03815)*x(sw) + (0.0927)*x(uk) + (0.031)*x(us) + (0)*mvar(cn) + (0)*mvar(fr) + (0)*mvar(gr) + (0)*mvar(jp) + (0)*mvar(sw) + (0)*mvar(uk) + (0)*mvar(us) =E= 0 ;
+     
+      (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 14
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Column Listing      SOLVE marg Using MINLP From line 135
+
+
+---- omega  objective variable definition for minlp
+
+omega
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objx
+
+
+---- x  fraction of portfolio of current holdings of i
+
+x(cn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        1       xdef(cn)
+      -42.18    mvardef(cn)
+       (0.0644) objx
+
+x(fr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        1       xdef(fr)
+      -40.36    mvardef(cn)
+      -70.89    mvardef(fr)
+       (0.0548) objx
+
+x(gr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        1       xdef(gr)
+      -21.76    mvardef(cn)
+      -43.16    mvardef(fr)
+      -25.51    mvardef(gr)
+       (0.025)  objx
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- xi  fraction of portfolio increase
+
+xi(cn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       xdef(cn)
+        1       turnover
+        1       maxinc(cn)
+        1       mininc(cn)
+
+xi(fr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       xdef(fr)
+        1       turnover
+        1       maxinc(fr)
+        1       mininc(fr)
+
+xi(gr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 15
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Column Listing      SOLVE marg Using MINLP From line 135
+
+
+     xi  fraction of portfolio increase
+
+       -1       xdef(gr)
+        1       turnover
+        1       maxinc(gr)
+        1       mininc(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- xd  fraction of portfolio decrease
+
+xd(cn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       xdef(cn)
+        1       maxdec(cn)
+        1       mindec(cn)
+
+xd(fr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       xdef(fr)
+        1       maxdec(fr)
+        1       mindec(fr)
+
+xd(gr)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       xdef(gr)
+        1       maxdec(gr)
+        1       mindec(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- mvar  marginal variance
+
+mvar(cn)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mvardef(cn)
+       (0)      objx
+
+mvar(fr)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mvardef(fr)
+       (0)      objx
+
+mvar(gr)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mvardef(gr)
+       (0)      objx
+
+REMAINING 4 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 16
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Column Listing      SOLVE marg Using MINLP From line 135
+
+
+---- y  binary switch for increasing current holdings of i
+
+y(cn)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.11    maxinc(cn)
+       -0.03    mininc(cn)
+        1       binsum(cn)
+
+y(fr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.1     maxinc(fr)
+       -0.04    mininc(fr)
+        1       binsum(fr)
+
+y(gr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.07    maxinc(gr)
+       -0.04    mininc(gr)
+        1       binsum(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- z  binary switch for decreasing current holdings of i
+
+z(cn)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.2     maxdec(cn)
+       -0.02    mindec(cn)
+        1       binsum(cn)
+
+z(fr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.15    maxdec(fr)
+       -0.02    mindec(fr)
+        1       binsum(fr)
+
+z(gr)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.04    mindec(gr)
+        1       binsum(gr)
+
+REMAINING 4 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 17
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Model Statistics    SOLVE marg Using MINLP From line 135
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           52
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           43
+NON ZERO ELEMENTS           153     NON LINEAR N-Z             14
+DERIVATIVE POOL              20     CONSTANT POOL              23
+CODE LENGTH                  38     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 18
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+Solution Report     SOLVE marg Using MINLP From line 135
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   marg                OBJECTIVE  omega
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  135
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+>>  pyomo meanvarx-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/convert.opt"
+Pyomo     : meanvarx-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:51 Page 19
+Financial Optimization: Risk Management (MEANVARX,SEQ=113)
+E x e c u t i o n
+
+
+----    144 PARAMETER report  summary report
+
+           old
+
+cn       0.200
+fr       0.200
+sw       0.200
+uk       0.200
+us       0.200
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/meanvarx.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/meanvarx/meanvarx-scalar.py.lst

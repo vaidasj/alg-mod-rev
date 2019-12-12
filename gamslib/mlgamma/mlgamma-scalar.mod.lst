@@ -1,0 +1,182 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 2
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+C o m p i l a t i o n
+
+
+       
+      Maximum Likelihood estimation of parameters of the gamma distribution
+       
+       
+      Erwin Kalvelagen, April 2004.
+       
+      Data from:
+      Cox, D R, and Snell, E J, Applied Statistics: Principles and
+      Examples. London: Chapman and Hall, 1981.
+       
+      Example from:
+      Tierney, L, XLISP-STAT, A Statistical Environment Based on the XLISP
+      Language (Version 2.0), Number 528. Tech. rep., University of Minnesota,
+      School of Statistics, 1989.
+       
+  20   
+  21   
+  22  set i observations /i1*i29/
+  23   
+  24  parameter x(i) 'times (in operating hours) between failures of airco units on several aircraft'
+  25   /
+  26    i1  90,  i2  10,  i3  60,  i4 186,  i5  61
+  27    i6  49,  i7  14,  i8  24,  i9  56, i10  20
+  28   i11  79, i12  84, i13  44, i14  59, i15  29
+  29   i16 118, i17  25, i18 156, i19 310, i20  76
+  30   i21  26, i22  44, i23  23, i24  62, i25 130
+  31   i26 208, i27  70, i28 101, i29 208
+  32  /;
+  33   
+  34  scalar n; n = card(i);
+  35   
+  36  scalar average; average = sum(i, x(i))/n;
+  37   
+  38  scalar stdev 'standard deviation'; stdev = sqrt(sum(i, sqr(x(i)-average))/(n-1));
+  39   
+  40  display average,stdev;
+  41   
+  42   
+  43  variables beta,mu,like;
+  44  equations loglike;
+  45   
+  46  loglike.. like =e= n*[log(beta)-log(mu)-loggamma(beta)] +
+  47                     sum(i, (beta-1)*log(beta*x(i)/mu)) -
+  48                     sum(i, beta*x(i)/mu);
+  49   
+  50   
+  51  *
+  52  * lower bounds so log() and loggamma() are safe
+  53  *
+  54  beta.lo = 0.001;
+  55  mu.lo   = 0.001;
+  56   
+  57  * we could use initial values
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 3
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+C o m p i l a t i o n
+
+
+  58   
+  59  * mu.l   = average;
+  60  * beta.l = sqr(average/stdev);
+  61   
+  62  model m /loglike/;
+  63  solve m using nlp maximimizing like;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 4
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+E x e c u t i o n
+
+
+----     40 PARAMETER average              =       83.517  
+            PARAMETER stdev                =       70.806  standard deviation
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 5
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+Equation Listing    SOLVE m Using NLP From line 63
+
+
+---- loglike  =E=  
+
+loglike..  (2392835.4978879)*beta - (2421971)*mu + like =E= 0 ; (LHS = 2740.99990323098, INFES = 2740.99990323098 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 6
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+Column Listing      SOLVE m Using NLP From line 63
+
+
+---- beta  
+
+beta
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+ (2392835.4979) loglike
+        0       (OLD LEVEL ****)
+
+
+---- mu  
+
+mu
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+ (-2.421971E+6) loglike
+        0       (OLD LEVEL ****)
+
+
+---- like  
+
+like
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       loglike
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 7
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+Model Statistics    SOLVE m Using NLP From line 63
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3  2 projected
+NON ZERO ELEMENTS             3     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 419
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 8
+Maximum Likelihood estimation of parameters of the gamma distribution (MLGAMMA,SEQ=303)
+Solution Report     SOLVE m Using NLP From line 63
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  like
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  63
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mlgamma/convert.opt"
+>>  ampl mlgamma-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mlgamma/convert.opt"
+Ampl      : mlgamma-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mlgamma/mlgamma.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mlgamma/mlgamma-scalar.mod.lst

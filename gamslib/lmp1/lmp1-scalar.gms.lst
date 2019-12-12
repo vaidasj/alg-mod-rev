@@ -1,0 +1,2885 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 2
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+C o m p i l a t i o n
+
+
+   4   
+       
+        Generates and solves random linear multiplicative models of
+        "Type 1."  Problem instances are generated as proposed by
+        Konno and Kuno. Model developed by N. Sahinidis.
+       
+       
+      H. Konno and T. Kuno, "Linear multiplicative programming,"
+      Mathematical Programming, 56(51-64), 1992.
+       
+      M. Tawarmalani and N. Sahinidis, Convexification and Global
+      Optimization in Continuous and Mixed-Integer Nonlinear
+      Programming: Theory, Algorithms, Software, and Applications,
+      Kluwer Academic Publishers, 2002.
+       
+  21   
+  22   
+  23  Options
+  24       optcr   = 0,
+  25       optca   = 1.e-6,
+  26       limrow  = 0,
+  27       limcol  = 0,
+  28       solprint= off;
+  29   
+  30  Sets mm                 /m1*m220/
+  31       nn                 /n1*n200/
+  32       pp                 /p1*p5/;
+  33   
+  34  Sets m(mm)  constraints
+  35       n(nn)  variables
+  36       p(pp)  products;
+  37   
+  38  Sets c      cases       /c1*c10/
+  39       i      instances   /i1*i5/;
+  40   
+  41   
+  42  * For each case to be solved, we use different (m,n,p) triplets
+  43  Table cases(c,*)
+  44         m   n  p
+  45   c1   20  30  2
+  46   c2  120 100  2
+  47   c3  220 200  2
+  48   c4   20  30  3
+  49   c5  120 120  3
+  50   c6  200 180  3
+  51   c7   20  30  4
+  52   c8  100 100  4
+  53   c9  200 200  4
+  54  c10  200 200  5;
+  55   
+  56  Parameters cc(pp,nn)     cost coefficients
+  57             A(mm,nn)      constraint coefficients
+  58             b(mm)         left-hand-side
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 3
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+C o m p i l a t i o n
+
+
+  59             rep(c,*)      summary report ;
+  60   
+  61  Parameters ResMin, Resmax, NodMin, Nodmax;
+  62   
+  63  Variables y(pp), x(nn), obj ;
+  64  x.lo(nn) = 0;
+  65   
+  66   
+  67  Equations  Objective,
+  68             Constraints(mm),
+  69             Products(pp);
+  70   
+  71  Objective..       obj  =E= prod(p, y(p));
+  72   
+  73  Products(p)..     y(p) =E= sum(n, cc(p,n)*x(n));
+  74   
+  75  Constraints(m)..  b(m) =L= sum(n, A(m,n)*x(n)) ;
+  76   
+  77   
+  78  Model lmp1 /all/;
+  79  lmp1.workspace = 32;
+  80   
+  81  rep(c,'AvgResUsd') = 0;
+  82  rep(c,'AvgNodUsd')= 0;
+  83   
+  84  loop (c,
+  85   
+  86      m(mm)   = ord(mm)<= cases(c,'m');
+  87      n(nn)   = ord(nn)<= cases(c,'n');
+  88      p(pp)   = ord(pp)<= cases(c,'p');
+  89   
+  90      ResMin  = inf;
+  91      Resmax  = 0;
+  92      NodMin  = inf;
+  93      Nodmax  = 0;
+  94   
+  95      loop(i,
+  96   
+  97        cc(p,n)    = uniform(0,100);
+  98        A(m,n)     = uniform(0,100);
+  99        b(m)       = uniform(0,100);
+ 100   
+ 101  * Set initial starting point for all models to 0
+ 102        x.l(n)=0; y.l(p)=0;
+ 103   
+ 104        Solve lmp1 minimizing obj using nlp;
+ 105   
+ 106        rep(c,'AvgResUsd') = rep(c,'AvgResUsd') + lmp1.resusd;
+ 107        rep(c,'AvgNodUsd') = rep(c,'AvgNodUsd') + lmp1.nodusd;
+ 108   
+ 109        ResMin = min(ResMin, lmp1.resusd);
+ 110        NodMin = min(NodMin, lmp1.nodusd);
+ 111        ResMax = max(ResMax, lmp1.resusd);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 4
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+C o m p i l a t i o n
+
+
+ 112        NodMax = max(NodMax, lmp1.nodusd);
+ 113   
+ 114     );
+ 115   
+ 116     rep(c,'MinResUsd') = ResMin;
+ 117     rep(c,'MaxResUsd') = ResMax;
+ 118     rep(c,'MinNodUsd') = NodMin;
+ 119     rep(c,'MaxNodUsd') = NodMax;
+ 120   
+ 121  );
+ 122   
+ 123   
+ 124  rep(c,'AvgResUsd') = rep(c,'AvgResUsd')/card(i);
+ 125  rep(c,'AvgNodUsd') = rep(c,'AvgNodUsd')/card(i);
+ 126   
+ 127  Display rep;
+ 128   
+ 129   
+ 130   
+ 131   
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 5
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c1
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 6
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 7
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c1
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 8
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:44 Page 9
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c1
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 10
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 11
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c1
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 12
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 13
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c1
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 14
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 15
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c2
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 16
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 17
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c2
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 18
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 19
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c2
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 20
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 21
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c2
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 22
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 23
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c2
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 24
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 25
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c3
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.017 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.022 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 26
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 27
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c3
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.021 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.026 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 28
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 29
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c3
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.018 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.022 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 30
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 31
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c3
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.017 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.023 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 32
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 33
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c3
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.021 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 34
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 35
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c4
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 36
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 37
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c4
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 38
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 39
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c4
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 40
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 41
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c4
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 42
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 43
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c4
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 44
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 45
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c5
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 46
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 47
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c5
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.008 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 48
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 49
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c5
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 50
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 51
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c5
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.006 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 52
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 53
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c5
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 54
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 55
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c6
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.017 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 56
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 57
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c6
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.018 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 58
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 59
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c6
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.018 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 60
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 61
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c6
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.020 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 62
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 63
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c6
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.017 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 64
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 65
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c7
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 66
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 67
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c7
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 68
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 69
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c7
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.071 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.071 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 70
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 71
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c7
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 72
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 73
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c7
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 74
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 75
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c8
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 76
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 77
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c8
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 78
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 79
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c8
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 80
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 81
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c8
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 82
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 83
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c8
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 84
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 85
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c9
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.020 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 86
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 87
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c9
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.019 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 88
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 89
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c9
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.018 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 90
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 91
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c9
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.019 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 92
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 93
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c9
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.018 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 94
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 95
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c10
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          206
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          206
+NON ZERO ELEMENTS        41,011     NON LINEAR N-Z              5
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   8
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.019 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c10
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 96
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 97
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c10
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          206
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          206
+NON ZERO ELEMENTS        41,011     NON LINEAR N-Z              5
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   8
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.019 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c10
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 98
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:44 Page 99
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c10
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          206
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          206
+NON ZERO ELEMENTS        41,011     NON LINEAR N-Z              5
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   8
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.020 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c10
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:22:44 Page 100
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:22:44 Page 101
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c10
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          206
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          206
+NON ZERO ELEMENTS        41,011     NON LINEAR N-Z              5
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   8
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.021 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c10
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:22:44 Page 102
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:22:44 Page 103
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Model Statistics    SOLVE lmp1 Using NLP From line 104
+
+
+LOOPS                                    c   c10
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          206
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          206
+NON ZERO ELEMENTS        41,011     NON LINEAR N-Z              5
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   8
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.019 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c10
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:22:44 Page 104
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+Solution Report     SOLVE lmp1 Using NLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp1                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+>>  gams lmp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp1/convert.opt"
+Gams      : lmp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:22:44 Page 105
+Linear Multiplicative Programs - Type 1 (LMP1, SEQ=251)
+E x e c u t i o n
+
+
+----    127 PARAMETER rep  summary report
+
+      AvgNodUsd   MinNodUsd   MaxNodUsd
+
+c1           NA          NA          NA
+c2           NA          NA          NA
+c3           NA          NA          NA
+c4           NA          NA          NA
+c5           NA          NA          NA
+c6           NA          NA          NA
+c7           NA          NA          NA
+c8           NA          NA          NA
+c9           NA          NA          NA
+c10          NA          NA          NA
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/lmp1/lmp1.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/lmp1/lmp1-scalar.gms.lst

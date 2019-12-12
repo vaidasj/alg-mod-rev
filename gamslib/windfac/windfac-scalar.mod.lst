@@ -1,0 +1,367 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 2
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+C o m p i l a t i o n
+
+
+      This model determines the optimal winding factor for electrical
+      machines.
+       
+       
+      Michna, M, and Gdanska, P, Winding Factor of Electrical Machines, 1984.
+       
+  11   
+  12   
+  13  scalar ms  number of phases       /3/
+  14         p   number of pole pairs   /2/
+  15         pi  pi                     /3.141592654/
+  16         K   harmonic order         /5/
+  17         ns  coil span              /1/;
+  18   
+  19  Variables
+  20      q      number of slots per one phase and per one pole
+  21      Nz     number of slots
+  22      alfae
+  23      tauz   slots pitch
+  24      s      span
+  25  Integer variables q,Nz,s;
+  26   
+  27  q.lo = 1; q.up = 10;
+  28  Nz.lo = 1;
+  29  s.lo=1;
+  30  alfae.l = 1.5;
+  31  tauz.l = 1.0;
+  32   
+  33   
+  34  variables kz1, kz3, kz5  coil-group factor
+  35            ks1, ks3, ks5  coil-span factor
+  36            kw, kw3, kw5   winding factor
+  37            kw1            winding factor for first harmonic;
+  38   
+  39  kw1.lo = 0.8;
+  40   
+  41  equations
+  42    def_Nz, def_alfae, def_tauz, def_s, def_kz1, def_ks1, def_kw1,
+  43    def_kz3, def_ks3, def_kw3, def_kz5, def_ks5, def_kw5, def_kw;
+  44   
+  45   
+  46  def_Nz..      Nz =e= 2 * ms * q * p;
+  47  def_alfae..   alfae =e= (2 * pi * p)/Nz;
+  48  def_tauz..    tauz =e= Nz / (2*p);
+  49  def_s..       s =e= tauz - ns;
+  50  def_kz1..     (q * sin( alfae / 2)) * kz1 =e= sin(q * alfae / 2);
+  51  def_ks1..     ks1 =e= sin((s * pi) / (tauz * 2));
+  52  def_kw1..     kw1 =e= ks1 * kz1;
+  53  def_kz3..     (q * sin(3 * alfae / 2)) * kz3 =e= sin(3 * q * alfae / 2);
+  54  def_ks3..     ks3 =e= sin((3 * s * pi) / (tauz * 2));
+  55  def_kw3..     kw3 =e= ks3 * kz3;
+  56  def_kz5..     (q * sin(5 * alfae / 2)) * kz5 =e= sin(5 * q * alfae / 2);
+  57  def_ks5..     ks5 =e= sin((5 * s * pi) / (tauz * 2));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 3
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+C o m p i l a t i o n
+
+
+  58  def_kw5..     kw5 =e= ks5 * kz5;
+  59  def_kw..      kw =e= kw3 * kw3 + kw5 * kw5;
+  60   
+  61  model wind /all/;
+  62  solve wind minimizing kw using minlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 4
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Equation Listing    SOLVE wind Using MINLP From line 62
+
+
+---- def_Nz  =E=  
+
+def_Nz..  - 12*q + Nz =E= 0 ; (LHS = -11, INFES = 11 ****)
+     
+
+---- def_alfae  =E=  
+
+def_alfae..  (12.566370616)*Nz + alfae =E= 0 ; (LHS = -11.066370616, INFES = 11.066370616 ****)
+     
+
+---- def_tauz  =E=  
+
+def_tauz..  - 0.25*Nz + tauz =E= 0 ; (LHS = 0.75, INFES = 0.75 ****)
+     
+
+---- def_s  =E=  
+
+def_s..  - tauz + s =E= -1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- def_kz1  =E=  
+
+def_kz1..  - (0.548766651655366)*q - (0.36584443443691)*alfae + (0.681638760023334)*kz1 =E= 0 ; (LHS = -0.681638760023334, INFES = 0.681638760023334 ****)
+     
+
+---- def_ks1  =E=  
+
+def_ks1..  - (3.22175712166989E-10)*tauz + (3.22175712166989E-10)*s + ks1 =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- def_kw1  =E=  
+
+def_kw1..  (0)*kz1 + (0)*ks1 + kw1 =E= 0 ; (LHS = 0.8, INFES = 0.8 ****)
+     
+
+---- def_kz3  =E=  
+
+def_kz3..  (1.41339065112616)*q + (0.942260434084109)*alfae + (0.778073196887921)*kz3 =E= 0 ; (LHS = -0.778073196887921, INFES = 0.778073196887921 ****)
+     
+
+---- def_ks3  =E=  
+
+def_ks3..  (2.8995814095029E-9)*tauz - (2.8995814095029E-9)*s + ks3 =E= 0 ; (LHS = 1, INFES = 1 ****)
+     
+
+---- def_kw3  =E=  
+
+def_kw3..  (0)*kz3 + (0)*ks3 + kw3 =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 5
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Equation Listing    SOLVE wind Using MINLP From line 62
+
+
+---- def_kz5  =E=  
+
+def_kz5..  (3.07709759002335)*q + (2.0513983933489)*alfae - (0.571561318742344)*kz5 =E= 0 ; (LHS = 0.571561318742344, INFES = 0.571561318742344 ****)
+     
+
+---- def_ks5  =E=  
+
+def_ks5..  - (8.05439280417473E-9)*tauz + (8.05439280417473E-9)*s + ks5 =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- def_kw5  =E=  
+
+def_kw5..  (0)*kz5 + (0)*ks5 + kw5 =E= 0 ; (LHS = 0)
+     
+
+---- def_kw  =E=  
+
+def_kw..  kw + (0)*kw3 + (0)*kw5 =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 6
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Column Listing      SOLVE wind Using MINLP From line 62
+
+
+---- q  number of slots per one phase and per one pole
+
+q
+                (.LO, .L, .UP, .M = 1, 1, 10, 0)
+      -12       def_Nz
+      (-0.5488) def_kz1
+       (1.4134) def_kz3
+       (3.0771) def_kz5
+        0       (OLD LEVEL ****)
+
+
+---- Nz  number of slots
+
+Nz
+                (.LO, .L, .UP, .M = 1, 1, 100, 0)
+        1       def_Nz
+      (12.5664) def_alfae
+       -0.25    def_tauz
+        0       (OLD LEVEL ****)
+
+
+---- alfae  
+
+alfae
+                (.LO, .L, .UP, .M = -INF, 1.5, +INF, 0)
+        1       def_alfae
+      (-0.3658) def_kz1
+       (0.9423) def_kz3
+       (2.0514) def_kz5
+
+
+---- tauz  slots pitch
+
+tauz
+                (.LO, .L, .UP, .M = -INF, 1, +INF, 0)
+        1       def_tauz
+       -1       def_s
+ (-3.22176E-10) def_ks1
+ (2.8995814E-9) def_ks3
+ (-8.054393E-9) def_ks5
+
+
+---- s  span
+
+s
+                (.LO, .L, .UP, .M = 1, 1, 100, 0)
+        1       def_s
+ (3.221757E-10) def_ks1
+ (-2.899581E-9) def_ks3
+ (8.0543928E-9) def_ks5
+        0       (OLD LEVEL ****)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 7
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Column Listing      SOLVE wind Using MINLP From line 62
+
+
+---- kz1  
+
+kz1
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0.6816) def_kz1
+       (0)      def_kw1
+
+
+---- kz3  
+
+kz3
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0.7781) def_kz3
+       (0)      def_kw3
+
+
+---- kz5  coil-group factor
+
+kz5
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (-0.5716) def_kz5
+       (0)      def_kw5
+
+
+---- ks1  
+
+ks1
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       def_ks1
+       (0)      def_kw1
+
+
+---- ks3  
+
+ks3
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       def_ks3
+       (0)      def_kw3
+
+
+---- ks5  coil-span factor
+
+ks5
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       def_ks5
+       (0)      def_kw5
+
+
+---- kw  
+
+kw
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       def_kw
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 8
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Column Listing      SOLVE wind Using MINLP From line 62
+
+
+     kw  
+
+
+
+---- kw3  
+
+kw3
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       def_kw3
+       (0)      def_kw
+
+
+---- kw5  winding factor
+
+kw5
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       def_kw5
+       (0)      def_kw
+
+
+---- kw1  winding factor for first harmonic
+
+kw1
+                (.LO, .L, .UP, .M = 0.8, 0.8, +INF, 0)
+        1       def_kw1
+        0       (OLD LEVEL ****)
+
+
+****
+****  2 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 9
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Model Statistics    SOLVE wind Using MINLP From line 62
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          14     SINGLE EQUATIONS           14
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES           15  4 projected
+NON ZERO ELEMENTS            38     NON LINEAR N-Z             24
+DERIVATIVE POOL              20     CONSTANT POOL              22
+CODE LENGTH                  95     DISCRETE VARIABLES          3
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:29 Page 10
+Winding Factor of Electrical Machines (WINDFAC, SEQ=224)
+Solution Report     SOLVE wind Using MINLP From line 62
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   wind                OBJECTIVE  kw
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  62
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/windfac/convert.opt"
+>>  ampl windfac-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/windfac/convert.opt"
+Ampl      : windfac-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/windfac/windfac.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/windfac/windfac-scalar.mod.lst

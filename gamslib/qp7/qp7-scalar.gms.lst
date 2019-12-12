@@ -1,0 +1,467 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option QCP=convert;
+   2  option QCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 2
+Standard QP Model - conic formulation (QP7,SEQ=271)
+C o m p i l a t i o n
+
+
+   4   
+       
+       Illustrates the use of conic formulation for quadratic
+       programs by implementing rotated quadratic cones.
+       
+       For the original model in quadratic programming format
+       
+          http://www.gams.com/modlib/adddocs/qp1doc.htm
+       
+       The quadratic component x^T*CoVar(s,t)*x is modeled as:
+       
+      (|d|-1)*x^T*CoVar(s,t)*x = x^Tdev(s,d)^T*dev(t,d)*x = ||Dx||^2
+                               = sum(d, w_i^2) with w = Dx
+                              := 2*p*q
+       
+      which leads to the formulation in this model whose last constraint is
+      a rotated quadratic cone.
+       
+       Optional inputs:
+         --numdays    investment period in number of days (default: 31).
+                      Days: 1-100
+         --numstocks  number of stocks invested (default: 51)
+                      Stocks: 1-170
+       
+       
+       Andersen, E, MOSEK Optimization Tools Manual, online at
+       https://mosek.com/resources/doc
+       
+       Kalvelagen, E, Model Building with GAMS. forthcoming
+       
+  36   
+  37   
+  38  *=== Set default number of days and number of stocks
+  41   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/qp7/qpdata.inc
+  43  * From StockMaster at MIT
+  44   
+  45  sets       days    100 days from 95-11-27 to 96-04-29
+  46             stocks  170 selected stocks
+  47             upper(stocks,stocks)
+  48             lower(stocks,stocks);
+  49  alias (stocks,sstocks);
+  50   
+  51  parameters val(stocks,days)    closing value
+  52             return(stocks,days) daily returns - derived;
+  53   
+  54  set days days /
+  55    951127
+  56    951128
+ 158   
+ 159  set stocks /
+ 160    GAB
+ 161    GAP
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 3
+Standard QP Model - conic formulation (QP7,SEQ=271)
+C o m p i l a t i o n
+
+
+ 162    GDW
+ 323   
+ 324  parameter val(stocks,days) closing value /
+ 325    GAB  .951127                9.25
+ 326    GAB  .951128                9.25
+ 327    GAB  .951129                9.25
+ 328   
+16329  return(stocks,days-1) = val(stocks,days)-val(stocks,days-1);
+16330   
+16331  upper(stocks,sstocks) = ord(stocks) <= ord(sstocks);
+16332  lower(stocks,sstocks) = not upper(stocks,sstocks);
+16333   
+16334  set d(days)   selected days
+16335      s(stocks) selected stocks
+16336   
+16337  alias(s,t);
+16338   
+16339  *=== Select subset of stocks and periods
+16340  d(days)   = ord(days) >1 and ord(days) < 31;
+16341  s(stocks) = ord(stocks) < 51;
+16342   
+16343  parameter mean(stocks)     Mean of daily return
+16344            dev(stocks,days) Deviations
+16345            totmean          Total mean return;
+16346   
+16347  mean(s)  = sum(d, return(s,d))/card(d);
+16348  dev(s,d) = return(s,d) - mean(s);
+16349  totmean  = sum(s, mean(s))/(card(s));
+16350   
+16351  variables z           objective variable
+16352            x(stocks)   investments
+16353            w(days)     intermediate variable for rotated cone
+16354            p           intermediate variable for rotated cone
+16355            q           intermediate variable for rotated cone
+16356  positive variables x, p, q
+16357   
+16358  equations obj         objective
+16359            budget
+16360            retcon      return constraint
+16361            wcone(days)
+16362            qone        conic constraint
+16363            rcone       rotated quadratic cone constraint;
+16364   
+16365  obj..       z     =e=  2/(card(d)-1)*p;
+16366  wcone(d)..  w(d)  =e=  sum(s, x(s)*dev(s,d));
+16367  * This is really awful:
+16368  qone..      q     =e=  1;
+16369   
+16370  * Explicit cone syntax for MOSEK
+16371  *rcone..  p + q =c=  sum(d, w(d));
+16372   
+16373  rcone..  2*p*q =g= sum(d, sqr(w(d)));
+16374   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 4
+Standard QP Model - conic formulation (QP7,SEQ=271)
+C o m p i l a t i o n
+
+
+16375  budget.. sum(s, x(s))         =E= 1.0;
+16376  retcon.. sum(s, mean(s)*x(s)) =G= totmean*1.25;
+16377   
+16378  model qp7 /all/;
+16379   
+16380  solve qp7 using qcp minimizing z;
+16381   
+16382  Display x.l;
+16383   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 5
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/qp7/qp7.gms
+     2       42 INCLUDE        1      42  ./home/renigijus/gams/opt-mod-lib/gamslib/qp7/qpdata.inc
+
+
+COMPILATION TIME     =        0.017 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 6
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Equation Listing    SOLVE qp7 Using QCP From line 16380
+
+
+---- obj  =E=  objective
+
+obj..  z - 0.0714285714285714*p =E= 0 ; (LHS = 0)
+     
+
+---- budget  =E=  
+
+budget..  x(GAB) + x(GAP) + x(GDW) + x(GE) + x(GEN) + x(GENZ) + x(GGUY) + x(GIS) + x(GM) + x(GME) + x(GNE) + x(GNTX) + x(GPS) + x(GPTA) + x(GSTRF) + x(GT) + x(GTE) + x(GTR) + x(GWF) + x(GYMB) + x(AA) + x(AAA) + x(AALR) + x(AAPL) + x(ABF) + x(ABX)
+     
+      + x(ACAD) + x(ACN) + x(ACTL) + x(ADAC) + x(ADBE) + x(ADCT) + x(ADDR) + x(ADPT) + x(ADV) + x(AET) + x(AGN) + x(AHP) + x(AKLM) + x(ALD) + x(ALEX) + x(ALRT) + x(ALSC) + x(ALTR) + x(ALU) + x(AM) + x(AMA) + x(AMAT) + x(AMD) + x(AMER) =E= 1 ;
+     
+      (LHS = 0, INFES = 1 ****)
+     
+
+---- retcon  =G=  return constraint
+
+retcon..  - 0.0517241379310345*x(GAP) + 0.0558620689655172*x(GDW) + 0.116551724137931*x(GE) - 0.0172413793103448*x(GENZ) - 0.0496551724137931*x(GGUY) - 0.0644827586206896*x(GIS) + 0.00862068965517241*x(GME) + 0.0689655172413793*x(GNE)
+     
+      - 0.0172413793103448*x(GNTX) - 0.0948275862068965*x(GPS) - 0.0475862068965517*x(GPTA) + 0.344827586206897*x(GSTRF) + 0.0299999999999999*x(GT) + 0.0131034482758622*x(GTE) + 0.0562068965517241*x(GTR) - 0.0644827586206897*x(GWF)
+     
+      - 0.301724137931034*x(GYMB) - 0.241379310344828*x(AA) - 0.00206896551724138*x(AAA) - 0.0258620689655172*x(AALR) - 0.198275862068966*x(AAPL) - 0.0389655172413793*x(ABF) + 0.0775862068965517*x(ABX) - 0.206896551724138*x(ACAD)
+     
+      + 0.0562068965517242*x(ACN) - 0.0775862068965517*x(ACTL) + 0.0689655172413793*x(ADAC) - 1.04310344827586*x(ADBE) - 0.327586206896552*x(ADCT) - 0.0217241379310345*x(ADDR) - 0.155172413793103*x(ADPT) - 0.0172413793103448*x(ADV)
+     
+      - 0.28448275862069*x(AET) + 0.0558620689655173*x(AGN) + 0.163793103448276*x(AHP) - 0.370689655172414*x(AKLM) + 0.0172413793103448*x(ALD) - 0.03*x(ALEX) + 0.0475862068965517*x(ALRT) - 0.517241379310345*x(ALSC) - 0.21551724137931*x(ALTR)
+     
+      + 0.00655172413793105*x(ALU) - 0.0537931034482758*x(AM) - 0.0148275862068966*x(AMA) - 0.417931034482759*x(AMAT) - 0.103448275862069*x(AMD) - 0.124827586206896*x(AMER) =G= -0.100241379310345 ; (LHS = 0)
+     
+
+---- wcone  =E=  
+
+wcone(951128)..  - 0.431724137931033*x(GAP) + 0.68586206896552*x(GDW) - 0.513448275862065*x(GE) - 2.01724137931034*x(GENZ) - 0.0496551724137931*x(GGUY) - 0.56448275862069*x(GIS) - 0.75*x(GM) + 0.12862068965517*x(GME) + 0.0689655172413793*x(GNE)
+     
+      - 0.0172413793103448*x(GNTX) + 1.1551724137931*x(GPS) - 0.167586206896552*x(GPTA) - 2.6551724137931*x(GSTRF) + 0.53*x(GT) - 0.236896551724138*x(GTE) - 0.823793103448276*x(GTR) + 0.555517241379311*x(GWF) - 1.43172413793103*x(GYMB)
+     
+      - 1.12137931034483*x(AA) - 0.132068965517241*x(AAA) + 0.224137931034483*x(AALR) + 0.551724137931034*x(AAPL) - 0.40896551724138*x(ABF) + 0.577586206896552*x(ABX) - 0.956896551724138*x(ACAD) - 0.573793103448277*x(ACN) - 0.697586206896551*x(ACTL)
+     
+      - 0.181034482758621*x(ADAC) - 0.673103448275858*x(ADBE) - 2.57758620689655*x(ADCT) - 0.391724137931034*x(ADDR) - 1.6551724137931*x(ADPT) + 0.112758620689656*x(ADV) + 3.59551724137931*x(AET) - 0.444137931034483*x(AGN) + 0.53379310344828*x(AHP)
+     
+      - 0.370689655172414*x(AKLM) + 0.517241379310345*x(ALD) - 0.03*x(ALEX) - 0.952413793103448*x(ALRT) + 0.982758620689655*x(ALSC) - 4.52551724137931*x(ALTR) + 0.00655172413793105*x(ALU) + 0.00620689655172376*x(AM) + 0.0451724137931035*x(AMA)
+     
+      - 2.29793103448276*x(AMAT) - 0.603448275862069*x(AMD) - 2.5048275862069*x(AMER) + w(951128) =E= 0 ; (LHS = 0)
+     
+wcone(951129)..  - 0.25*x(GAB) - 0.0517241379310345*x(GAP) + 0.175862068965515*x(GDW) + 0.616551724137931*x(GE) - 0.380000000000001*x(GEN) - 1.76724137931034*x(GENZ) - 0.299655172413793*x(GGUY) + 0.305517241379308*x(GIS) + 0.630000000000003*x(GM)
+     
+      + 0.388620689655175*x(GME) - 0.181034482758621*x(GNE) - 0.0172413793103448*x(GNTX) + 1.46517241379311*x(GPS) + 0.452413793103448*x(GPTA) - 1.4051724137931*x(GSTRF) - 0.72*x(GT) + 0.88310344827586*x(GTE) + 0.436206896551724*x(GTR)
+     
+      - 0.184482758620691*x(GWF) + 0.948275862068966*x(GYMB) - 0.361379310344825*x(AA) + 0.0679310344827585*x(AAA) - 0.145862068965517*x(AALR) + 0.921724137931032*x(AAPL) + 0.331034482758622*x(ABF) + 0.0775862068965517*x(ABX) + 0.543103448275862*x(ACAD)
+     
+      - 0.063793103448275*x(ACN) - 0.827586206896552*x(ACTL) - 0.181034482758621*x(ADAC) - 0.293103448275862*x(ADBE) - 4.32758620689655*x(ADCT) + 0.288275862068966*x(ADDR) - 2.03517241379311*x(ADPT) - 0.0172413793103448*x(ADV) - 1.66448275862069*x(AET)
+     
+      - 0.314137931034484*x(AGN) - 0.456206896551729*x(AHP) + 0.0693103448275875*x(AKLM) - 0.482758620689655*x(ALD) - 0.28*x(ALEX) - 0.082413793103449*x(ALRT) + 0.232758620689655*x(ALSC) - 0.405517241379308*x(ALTR) + 0.12655172413793*x(ALU)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 7
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Equation Listing    SOLVE qp7 Using QCP From line 16380
+
+
+     wcone  =E=       
+     
+      - 0.0537931034482758*x(AM) + 0.175172413793103*x(AMA) - 0.917931034482758*x(AMAT) + 0.52655172413793*x(AMD) - 1.1248275862069*x(AMER) + w(951129) =E= 0 ; (LHS = 0)
+     
+wcone(951130)..  0.0782758620689645*x(GAP) - 1.06413793103448*x(GDW) - 1.38344827586207*x(GE) + 0.25*x(GEN) - 1.39724137931034*x(GENZ) + 0.140344827586208*x(GGUY) - 0.934482758620687*x(GIS) - 0.880000000000003*x(GM) - 0.37137931034483*x(GME)
+     
+      + 0.318965517241379*x(GNE) - 0.0172413793103448*x(GNTX) + 1.0351724137931*x(GPS) - 0.0475862068965517*x(GPTA) + 0.0948275862068966*x(GSTRF) - 0.47*x(GT) + 0.0131034482758622*x(GTE) + 0.0562068965517241*x(GTR) - 0.694482758620689*x(GWF)
+     
+      - 0.231724137931034*x(GYMB) + 0.87862068965517*x(AA) + 0.0579310344827587*x(AAA) - 0.335862068965517*x(AALR) + 0.301724137931034*x(AAPL) - 0.788965517241379*x(ABF) + 0.327586206896552*x(ABX) - 0.456896551724138*x(ACAD) - 0.0737931034482766*x(ACN)
+     
+      + 0.922413793103448*x(ACTL) + 0.318965517241379*x(ADAC) - 0.413103448275867*x(ADBE) + 2.04241379310345*x(ADCT) - 0.211724137931036*x(ADDR) + 0.164827586206897*x(ADPT) - 0.147241379310346*x(ADV) + 0.345517241379306*x(AET) + 0.305862068965517*x(AGN)
+     
+      - 0.336206896551724*x(AHP) + 0.689310344827585*x(AKLM) - 0.352758620689653*x(ALD) + 0.22*x(ALEX) + 0.177586206896553*x(ALRT) + 2.35275862068966*x(ALSC) + 0.974482758620687*x(ALTR) + 0.00655172413793105*x(ALU) - 0.0537931034482758*x(AM)
+     
+      + 0.0451724137931035*x(AMA) + 1.21206896551724*x(AMAT) + 0.896551724137931*x(AMD) + 0.755172413793106*x(AMER) + w(951130) =E= 0 ; (LHS = 0)
+     
+REMAINING 26 ENTRIES SKIPPED
+
+
+---- qone  =E=  conic constraint
+
+qone..  q =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- rcone  =G=  rotated quadratic cone constraint
+
+rcone..  (0)*w(951128) + (0)*w(951129) + (0)*w(951130) + (0)*w(951201) + (0)*w(951204) + (0)*w(951205) + (0)*w(951206) + (0)*w(951207) + (0)*w(951208) + (0)*w(951211) + (0)*w(951212) + (0)*w(951213) + (0)*w(951214) + (0)*w(951215) + (0)*w(951218)
+     
+      + (0)*w(951219) + (0)*w(951220) + (0)*w(951221) + (0)*w(951222) + (0)*w(951226) + (0)*w(951227) + (0)*w(951228) + (0)*w(951229) + (0)*w(960102) + (0)*w(960103) + (0)*w(960104) + (0)*w(960105) + (0)*w(960108) + (0)*w(960109) + (0)*p + (0)*q =G= 0 ;
+     
+      (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 8
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Column Listing      SOLVE qp7 Using QCP From line 16380
+
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- x  investments
+
+x(GAB)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+       -0.25    wcone(951129)
+       -0.13    wcone(951201)
+        0.13    wcone(951205)
+        0.12    wcone(951206)
+       -0.12    wcone(951207)
+       -0.13    wcone(951208)
+        0.13    wcone(951211)
+        0.31    wcone(951212)
+        0.06    wcone(951213)
+        0.38    wcone(951215)
+       -0.25    wcone(951218)
+       -0.25    wcone(951220)
+       -0.38    wcone(951221)
+        0.13    wcone(951226)
+        0.12    wcone(951227)
+        0.13    wcone(951229)
+       -0.13    wcone(960102)
+        0.13    wcone(960104)
+       -0.13    wcone(960108)
+        0.13    wcone(960109)
+
+x(GAP)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+       -0.0517  retcon
+       -0.4317  wcone(951128)
+       -0.0517  wcone(951129)
+        0.0783  wcone(951130)
+        0.1983  wcone(951201)
+       -0.4317  wcone(951204)
+       -0.1717  wcone(951205)
+        0.4483  wcone(951206)
+       -0.5517  wcone(951207)
+       -0.5517  wcone(951208)
+        0.0683  wcone(951211)
+        0.0783  wcone(951212)
+       -0.3017  wcone(951213)
+       -0.5517  wcone(951214)
+        0.1983  wcone(951215)
+       -0.6817  wcone(951218)
+       -0.3017  wcone(951219)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:22 Page 9
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Column Listing      SOLVE qp7 Using QCP From line 16380
+
+
+     x  investments
+
+       -0.3017  wcone(951220)
+       -0.0517  wcone(951221)
+        0.1983  wcone(951222)
+        0.3283  wcone(951226)
+        0.0683  wcone(951227)
+        0.0783  wcone(951228)
+       -0.0517  wcone(951229)
+       -0.0517  wcone(960102)
+       -0.0517  wcone(960103)
+        0.6983  wcone(960104)
+        0.1983  wcone(960105)
+        0.6983  wcone(960108)
+        1.1983  wcone(960109)
+
+x(GDW)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+        0.0559  retcon
+        0.6859  wcone(951128)
+        0.1759  wcone(951129)
+       -1.0641  wcone(951130)
+       -1.1941  wcone(951201)
+        0.3059  wcone(951204)
+       -0.9441  wcone(951205)
+        0.8059  wcone(951206)
+        0.1759  wcone(951207)
+       -0.1941  wcone(951208)
+        0.1859  wcone(951211)
+       -0.1941  wcone(951212)
+       -0.3241  wcone(951213)
+        0.0559  wcone(951214)
+       -0.0641  wcone(951215)
+       -0.4441  wcone(951218)
+        0.5559  wcone(951219)
+       -0.8241  wcone(951220)
+       -0.0641  wcone(951221)
+       -0.0741  wcone(951222)
+       -0.1941  wcone(951226)
+       -0.1941  wcone(951227)
+        0.6859  wcone(951228)
+       -0.3241  wcone(951229)
+       -0.0641  wcone(960102)
+        0.0559  wcone(960103)
+        0.9259  wcone(960104)
+        0.0559  wcone(960105)
+        0.4359  wcone(960108)
+        1.0559  wcone(960109)
+
+REMAINING 47 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:22 Page 10
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Column Listing      SOLVE qp7 Using QCP From line 16380
+
+
+---- w  intermediate variable for rotated cone
+
+w(951128)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       wcone(951128)
+       (0)      rcone
+
+w(951129)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       wcone(951129)
+       (0)      rcone
+
+w(951130)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       wcone(951130)
+       (0)      rcone
+
+REMAINING 26 ENTRIES SKIPPED
+
+---- p  intermediate variable for rotated cone
+
+p
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.0714  obj
+       (0)      rcone
+
+
+---- q  intermediate variable for rotated cone
+
+q
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       qone
+       (0)      rcone
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:22 Page 11
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Model Statistics    SOLVE qp7 Using QCP From line 16380
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           34
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           82
+NON ZERO ELEMENTS         1,585     NON LINEAR N-Z             31
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  93
+
+
+GENERATION TIME      =        0.003 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:22 Page 12
+Standard QP Model - conic formulation (QP7,SEQ=271)
+Solution Report     SOLVE qp7 Using QCP From line 16380
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   qp7                 OBJECTIVE  z
+     TYPE    QCP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  16380
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp7/convert.opt"
+>>  gams qp7-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp7/convert.opt"
+Gams      : qp7-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:22 Page 13
+Standard QP Model - conic formulation (QP7,SEQ=271)
+E x e c u t i o n
+
+
+----  16382 VARIABLE x.L  investments
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qp7/qp7.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qp7/qp7-scalar.gms.lst

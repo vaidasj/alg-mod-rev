@@ -1,0 +1,29 @@
+--- Job mexsd.gms Start 12/13/18 10:24:30 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- mexsd.gms(360) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- mexsd.gms(278) 4 Mb
+--- Generating MIP model mexsd
+--- mexsd.gms(359) 4 Mb
+---   820 rows  1,808 columns  5,859 non-zeroes
+---   112 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.014
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mexsd/convert.opt"
+>>  gams mexsd-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mexsd/convert.opt"
+--- Writing Gams      : mexsd-scalar.gms
+
+--- Restarting execution
+--- mexsd.gms(359) 2 Mb
+--- Reading solution for model mexsd
+*** Status: Normal completion
+--- Job mexsd.gms Stop 12/13/18 10:24:30 elapsed 0:00:00.033

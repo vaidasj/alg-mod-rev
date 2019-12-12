@@ -1,0 +1,30 @@
+--- Job cmo.gms Start 12/13/18 10:24:51 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- cmo.gms(257) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- cmo.gms(236) 4 Mb
+--- Generating MIP model cmo
+--- cmo.gms(243) 4 Mb
+---   328 rows  293 columns  1,000 non-zeroes
+---   56 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.007
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cmo/convert.opt"
+>>  ampl cmo-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cmo/convert.opt"
+--- Writing Ampl      : cmo-scalar.mod
+
+--- Restarting execution
+--- cmo.gms(243) 2 Mb
+--- Reading solution for model cmo
+--- cmo.gms(257) 3 Mb
+*** Status: Normal completion
+--- Job cmo.gms Stop 12/13/18 10:24:51 elapsed 0:00:00.021

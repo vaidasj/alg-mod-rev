@@ -1,0 +1,62 @@
+--- Job vietman.gms Start 12/13/18 10:24:34 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- vietman.gms(139) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- vietman.gms(62) 4 Mb
+--- Generating MIP model vietmip
+--- vietman.gms(105) 4 Mb
+---   28 rows  113 columns  370 non-zeroes
+---   10 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.007
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/vietman/convert.opt"
+>>  pyomo vietman-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/vietman/convert.opt"
+--- Writing Pyomo     : vietman-scalar.py
+
+--- Restarting execution
+--- vietman.gms(105) 2 Mb
+--- Reading solution for model vietmip
+--- Generating RMIP model viettag
+--- vietman.gms(106) 3 Mb
+---   133 rows  443 columns  1,655 non-zeroes
+---   10 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.019
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+--- GAMS/Cplex licensed for continuous and discrete problems.
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/vietman/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.01 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 137 columns.
+Reduced LP has 132 rows, 306 columns, and 957 nonzeros.
+Presolve time = 0.00 sec. (0.22 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         18719.040000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.48 ticks)
+
+Optimal solution found.
+Objective :       64926.460000
+
+--- Restarting execution
+--- vietman.gms(106) 2 Mb
+--- Reading solution for model viettag
+--- vietman.gms(139) 3 Mb
+*** Status: Normal completion
+--- Job vietman.gms Stop 12/13/18 10:24:34 elapsed 0:00:00.059

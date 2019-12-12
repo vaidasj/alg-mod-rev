@@ -1,0 +1,30 @@
+--- Job camcge.gms Start 12/13/18 10:24:44 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- camcge.gms(453) 3 Mb
+--- Starting execution: elapsed 0:00:00.004
+--- camcge.gms(444) 4 Mb
+--- Generating NLP model camcge
+--- camcge.gms(453) 6 Mb
+---   243 rows  280 columns  1,356 non-zeroes
+---   2,046 nl-code  850 nl-non-zeroes
+--- camcge.gms(453) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.010
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/camcge/convert.opt"
+>>  pyomo camcge-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/camcge/convert.opt"
+--- Writing Pyomo     : camcge-scalar.py
+
+--- Restarting execution
+--- camcge.gms(453) 2 Mb
+--- Reading solution for model camcge
+*** Status: Normal completion
+--- Job camcge.gms Stop 12/13/18 10:24:44 elapsed 0:00:00.021

@@ -1,0 +1,63 @@
+--- Job demo7.gms Start 12/13/18 10:24:47 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- demo7.gms(256) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- demo7.gms(226) 4 Mb
+--- Generating LP model demo7f
+--- demo7.gms(244) 4 Mb
+---   51 rows  64 columns  269 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.006
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/demo7/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 26 rows and 41 columns.
+Aggregator did 1 substitutions.
+Reduced LP has 24 rows, 22 columns, and 129 nonzeros.
+Presolve time = 0.00 sec. (0.05 ticks)
+
+Iteration log . . .
+Iteration:     1   Scaled dual infeas =           801.720830
+Iteration:     9   Dual objective     =       2192160.000000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.14 ticks)
+
+Optimal solution found.
+Objective :     1472022.699507
+
+--- Restarting execution
+--- demo7.gms(244) 2 Mb
+--- Reading solution for model demo7f
+--- demo7.gms(254) 3 Mb
+--- Generating NLP model demo7n
+--- demo7.gms(256) 5 Mb
+---   58 rows  71 columns  295 non-zeroes
+---   77 nl-code  12 nl-non-zeroes
+--- demo7.gms(256) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.034
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/demo7/convert.opt"
+>>  pyomo demo7-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/demo7/convert.opt"
+--- Writing Pyomo     : demo7-scalar.py
+
+--- Restarting execution
+--- demo7.gms(256) 2 Mb
+--- Reading solution for model demo7n
+*** Status: Normal completion
+--- Job demo7.gms Stop 12/13/18 10:24:47 elapsed 0:00:00.044

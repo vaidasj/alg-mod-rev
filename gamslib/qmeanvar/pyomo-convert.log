@@ -1,0 +1,136 @@
+--- Job qmeanvar.gms Start 12/13/18 11:23:27 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- qmeanvar.gms(159) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- qmeanvar.gms(133) 4 Mb
+--- Generating MIQCP model maxret
+--- qmeanvar.gms(134) 6 Mb
+---   45 rows  36 columns  111 non-zeroes
+---   0 nl-code  0 nl-non-zeroes
+---   14 discrete-columns
+--- qmeanvar.gms(134) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+--- Writing Pyomo     : qmeanvar-scalar.py
+
+--- Restarting execution
+--- qmeanvar.gms(134) 2 Mb
+--- Reading solution for model maxret
+--- qmeanvar.gms(142) 3 Mb
+--- Generating MIQCP model minvar
+--- qmeanvar.gms(143) 5 Mb
+---   46 rows  37 columns  119 non-zeroes
+---   115 nl-code  7 nl-non-zeroes
+---   14 discrete-columns
+--- qmeanvar.gms(143) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+--- Writing Pyomo     : qmeanvar-scalar.py
+
+--- Restarting execution
+--- qmeanvar.gms(143) 2 Mb
+--- Reading solution for model minvar
+--- qmeanvar.gms(148) 3 Mb
+--- Generating MIQCP model minvar
+--- qmeanvar.gms(150) 5 Mb
+--- LOOPS pp = p1
+---   46 rows  37 columns  119 non-zeroes
+---   115 nl-code  7 nl-non-zeroes
+---   14 discrete-columns
+--- qmeanvar.gms(150) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.042
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+--- Writing Pyomo     : qmeanvar-scalar.py
+
+--- Restarting execution
+--- qmeanvar.gms(150) 2 Mb
+--- Reading solution for model minvar
+--- qmeanvar.gms(148) 3 Mb
+--- Generating MIQCP model minvar
+--- qmeanvar.gms(150) 5 Mb
+--- LOOPS pp = p2
+---   46 rows  37 columns  119 non-zeroes
+---   115 nl-code  7 nl-non-zeroes
+---   14 discrete-columns
+--- qmeanvar.gms(150) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.061
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+--- Writing Pyomo     : qmeanvar-scalar.py
+
+--- Restarting execution
+--- qmeanvar.gms(150) 2 Mb
+--- Reading solution for model minvar
+--- qmeanvar.gms(148) 3 Mb
+--- Generating MIQCP model minvar
+--- qmeanvar.gms(150) 5 Mb
+--- LOOPS pp = p3
+---   46 rows  37 columns  119 non-zeroes
+---   115 nl-code  7 nl-non-zeroes
+---   14 discrete-columns
+--- qmeanvar.gms(150) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.077
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+--- Writing Pyomo     : qmeanvar-scalar.py
+
+--- Restarting execution
+--- qmeanvar.gms(150) 2 Mb
+--- Reading solution for model minvar
+--- qmeanvar.gms(148) 3 Mb
+--- Generating MIQCP model minvar
+--- qmeanvar.gms(150) 5 Mb
+--- LOOPS pp = p4
+---   46 rows  37 columns  119 non-zeroes
+---   115 nl-code  7 nl-non-zeroes
+---   14 discrete-columns
+--- qmeanvar.gms(150) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.094
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+--- Writing Pyomo     : qmeanvar-scalar.py
+
+--- Restarting execution
+--- qmeanvar.gms(150) 2 Mb
+--- Reading solution for model minvar
+--- qmeanvar.gms(157) 3 Mb
+*** Status: Normal completion
+--- Job qmeanvar.gms Stop 12/13/18 11:23:27 elapsed 0:00:00.109

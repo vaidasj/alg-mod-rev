@@ -1,0 +1,30 @@
+--- Job flowshop.gms Start 12/13/18 11:34:20 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- flowshop.gms(86) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- flowshop.gms(69) 4 Mb
+--- Generating MIP model sequence
+--- flowshop.gms(70) 4 Mb
+---   58 rows  73 columns  272 non-zeroes
+---   36 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/flowshop/convert.opt"
+>>  gams flowshop-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/flowshop/convert.opt"
+--- Writing Gams      : flowshop-scalar.gms
+
+--- Restarting execution
+--- flowshop.gms(70) 2 Mb
+--- Reading solution for model sequence
+--- flowshop.gms(75) 3 Mb
+*** Status: Normal completion
+--- Job flowshop.gms Stop 12/13/18 11:34:20 elapsed 0:00:00.020

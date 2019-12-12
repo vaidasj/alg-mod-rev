@@ -1,0 +1,533 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+   3  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 2
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+C o m p i l a t i o n
+
+
+       
+        This example illustrates the use of nonlinear mixed-integer
+        programming. this problem is a variation of the gams library model
+        water (SEQ=68). This example illustrates the use of nonlinear
+        programming in the design of water distribution systems. The model
+        captures the main features of an actual application for a city in
+        Indonesia.
+       
+       
+      Brooke, A, Drud, A S, and Meeraus, A, Modeling Systems and Nonlinear
+      Programming in a Research Environment. In Ragavan, R, and Rohde, S M,
+      Eds, Computers in Engineering, Vol. III. ACME, 1985.
+       
+      Drud, A S, and Rosenborg, A, Dimensioning Water Distribution Networks.
+      Masters thesis, Institute of Mathematical Statistics and Operations
+      Research, Technical University of Denmark, 1973. (in Danish)
+       
+  24   
+  25   Set   n       nodes /  nw   north west reservoir
+  26                          e    east reservoir
+  27                          cc   central city
+  28                          w    west
+  29                          sw   south west
+  30                          s    south
+  31                          se   south east
+  32                          n    north       /
+  33   
+  34         a(n,n)  arcs (arbitrarily directed)  / nw.(w,cc,n), e.(n,cc,s,se), cc.(w,sw,s,n), s.se, s.sw, sw.w /
+  35         rn(n)   reservoirs /  nw, e  /
+  36         dn(n)   demand nodes; dn(n) = yes; dn(rn) = no; display dn;
+  37         alias   (n,np);
+  38   
+  39   Table      node(n,*)  node data
+  40   
+  41                            demand      height       x          y       supply     wcost      pcost
+  42  *                        m**3/sec  m over base     m          m      m**3/sec   rp/m**3    rp/m**4
+  43              nw                        6.50       1200       3600       2.500      0.20       1.02
+  44              e                         3.25       4000       2200       6.000      0.17       1.02
+  45              cc             1.212      3.02       2000       2300
+  46              w              0.452      5.16        750       2400
+  47              sw             0.245      4.20        900       1200
+  48              s              0.652      1.50       2000       1000
+  49              se             0.252      0.00       4000        900
+  50              n              0.456      6.30       3700       3500
+  51   
+  52   Parameter  dist(n,n)  distance between nodes (m);
+  53              dist(a(n,np)) = sqrt( sqr( node(n,"x")-node(np,"x") ) + sqr( node(n,"y")-node(np,"y") ) );
+  54              display dist;
+  55   
+  56   Scalar     dpow       power on diameter in pressure loss equation     / 5.33   /
+  57              qpow       power on flow in pressure loss equation         / 2.00   /
+  58              dmin       minimum diameter of pipe                        / 0.15   /
+  59              dmax       maximum diameter of pipe                        / 2.00   /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 3
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+C o m p i l a t i o n
+
+
+  60              hloss      constant in the pressure loss equation          / 1.03e-3/
+  61              dprc       scale factor in the investment cost equation    / 6.90e-2/
+  62              cpow       power on diameter in the cost equation          / 1.29   /
+  63              r          interest rate                                   / 0.10   /
+  64              maxq       bound on qp and qn                              / 2.00   /
+  65              davg       average diameter (geometric mean)
+  66              rr         ratio of demand to supply;
+  67   
+  68              davg = sqrt(dmin*dmax);
+  69              rr   = sum(dn,node(dn,"demand")) / sum(rn,node(rn,"supply"));
+  70   
+  71   Variables  qp(n,n)    flow on each arc - positive     (m**3 per sec)
+  72              qn(n,n)    flow on each arc - negative     (m**3 per sec)
+  73              d(n,n)     pipe diameter for each arc      (m)
+  74              h(n)       pressure at each node           (m)
+  75              s(n)       supply at reservoir nodes       (m**3 per sec)
+  76              pcost      annual recurrent pump costs     (mill rp)
+  77              dcost      investment costs for pipes      (mill rp)
+  78              wcost      annual recurrent water costs    (mill rp)
+  79              cost       total discounted costs          (mill rp)
+  80              pen        objective penalty
+  81   
+  82   Positive variables qp, qn(n,np)
+  83   
+  84   Binary variable qb(n,np);
+  85   
+  86   Equations  cont(n)    flow conservation equation at each node
+  87              loss(n,n)  pressure loss on each arc
+  88              peq        pump cost equation
+  89              deq        investment cost equation
+  90              weq        water cost equation
+  91              obj        objective function
+  92              dpen       penalty definition
+  93              qpup(n,np) positive bounds
+  94              qnup(n,np) negative bounds ;
+  95   
+  96  cont(n)..  sum(a(np,n), qp(a)-qn(a)) - sum(a(n,np), qp(a)-qn(a)) + s(n)$rn(n) =e= node(n,"demand");
+  97   
+  98  loss(a(n,np))..
+  99  h(n) - h(np) =e= [hloss*dist(a)*(qp(a)+qn(a))**(qpow-1)*(qp(a)-qn(a))/d(a)**dpow] $(qpow <> 2) +
+ 100                   [hloss*dist(a)*(qp(a)+qn(a))*          (qp(a)-qn(a))/d(a)**dpow] $(qpow = 2);
+ 101   
+ 102  qpup(a)..   qp(a) =l=  maxq*qb(a);
+ 103  qnup(a)..   qn(a) =l=  maxq*(1-qb(a));
+ 104   
+ 105  peq.. pcost =e= sum( rn , s(rn) * node(rn,"pcost") * ( h(rn)-node(rn,"height") ) );
+ 106   
+ 107  deq.. dcost =e= dprc * sum( (n,np)$a(n,np) , dist(n,np) * d(n,np)**cpow );
+ 108   
+ 109  weq.. wcost =e= sum( rn , s(rn) * node(rn,"wcost") );
+ 110   
+ 111  dpen..pen =e= sum(a, qp(a) + qn(a));
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 4
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+C o m p i l a t i o n
+
+
+ 113  obj.. cost  =e= ( pcost + wcost ) / r + dcost + pen;
+ 114   
+ 115   
+ 116  *  bounds
+ 117   
+ 118   d.lo(n,np)$a(n,np) = dmin;              d.up(n,np)$a(n,np) = dmax;
+ 119   h.lo(rn)           = node(rn,"height"); h.lo(dn)           = node(dn,"height") + 7.5 + 5.0 * node(dn,"demand");
+ 120   s.lo(rn)           = 0;                 s.up(rn)           = node(rn,"supply");
+ 121   
+ 122  *  initial values
+ 123   
+ 124   d.l(n,np)$a(n,np)  = davg;
+ 125   h.l(n)             = h.lo(n) + 5.0;
+ 126   s.l(rn)            = node(rn,"supply")*rr;
+ 127   
+ 128   
+ 129  Model network /all/;
+ 130   
+ 131  network.domlim  =   1000;
+ 132   
+      *  DICOPT requires different nonlinear optimizers to overcome some of
+      *  the difficulties with non-convexities. This problem has a large
+      *  number of local solutions and it is important to find a 'good'
+      *  first nlp solution. Minos is used to find the first nlp and Conopt
+      *  is used to solve the subsequent problems. Minos or Conopt alone are
+      *  not able to find a good solution.
+       
+      File dopt / dicopt.opt /; put dopt;
+      putclose  'nlpsolver minos5 conopt'
+              / 'nlpoptfile   0     1   ' ;
+       
+      File copt / conopt.opt /; put copt;
+      putclose  'set rtmaxj  1.0e12';
+       
+      network.optfile =     1;
+       
+      Solve network using rminlp minimizing cost;
+ 152   
+ 153  Solve network using minlp minimizing cost;
+ 154   
+ 155   
+ 156   
+ 157   
+ 158   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 5
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+E x e c u t i o n
+
+
+----     36 SET dn  demand nodes
+
+cc,    w ,    sw,    s ,    se,    n 
+
+
+----     54 PARAMETER dist  distance between nodes (m)
+
+            cc           w          sw           s          se           n
+
+nw    1526.434    1281.601                                        2501.999
+e     2002.498                            2332.381    1300.000    1334.166
+cc                1253.994    1555.635    1300.000                2080.865
+sw                1209.339
+s                             1118.034                2002.498
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 6
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Equation Listing    SOLVE network Using MINLP From line 153
+
+
+---- cont  =E=  flow conservation equation at each node
+
+cont(nw)..  - qp(nw,cc) - qp(nw,w) - qp(nw,n) + qn(nw,cc) + qn(nw,w) + qn(nw,n) + s(nw) =E= 0 ; (LHS = 0.961470588235294, INFES = 0.961470588235294 ****)
+     
+cont(e)..  - qp(e,cc) - qp(e,s) - qp(e,se) - qp(e,n) + qn(e,cc) + qn(e,s) + qn(e,se) + qn(e,n) + s(e) =E= 0 ; (LHS = 2.30752941176471, INFES = 2.30752941176471 ****)
+     
+cont(cc)..  qp(nw,cc) + qp(e,cc) - qp(cc,w) - qp(cc,sw) - qp(cc,s) - qp(cc,n) - qn(nw,cc) - qn(e,cc) + qn(cc,w) + qn(cc,sw) + qn(cc,s) + qn(cc,n) =E= 1.212 ; (LHS = 0, INFES = 1.212 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- loss  =E=  pressure loss on each arc
+
+loss(nw,cc)..  (0)*qp(nw,cc) + (0)*qn(nw,cc) + (0)*d(nw,cc) + h(nw) - h(cc) =E= 0 ; (LHS = -10.08, INFES = 10.08 ****)
+     
+loss(nw,w)..  (0)*qp(nw,w) + (0)*qn(nw,w) + (0)*d(nw,w) + h(nw) - h(w) =E= 0 ; (LHS = -8.42, INFES = 8.42 ****)
+     
+loss(nw,n)..  (0)*qp(nw,n) + (0)*qn(nw,n) + (0)*d(nw,n) + h(nw) - h(n) =E= 0 ; (LHS = -9.58, INFES = 9.58 ****)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- peq  =E=  pump cost equation
+
+peq..  - (0.9807)*h(nw) - (2.35368)*h(e) - (5.1)*s(nw) - (5.1)*s(e) + pcost =E= 0 ; (LHS = -16.6719, INFES = 16.6719 ****)
+     
+
+---- deq  =E=  investment cost equation
+
+deq..  - (114.103599143227)*d(nw,cc) - (95.8018889124984)*d(nw,w) - (187.028826784067)*d(nw,n) - (149.69026915419)*d(e,cc) - (174.349550814975)*d(e,s) - (97.1772791762506)*d(e,se) - (99.7312779565658)*d(e,n) - (93.7382216420746)*d(cc,w)
+     
+      - (116.286437524713)*d(cc,sw) - (97.1772791762506)*d(cc,s) - (155.548322247858)*d(cc,n) - (90.4001852304575)*d(sw,w) - (83.5750008102197)*d(s,sw) - (149.69026915419)*d(s,se) + dcost =E= 0 ; (LHS = -723.629986536828, INFES = 723.629986536828 ****)
+     
+
+---- weq  =E=  water cost equation
+
+weq..  - 0.2*s(nw) - 0.17*s(e) + wcost =E= 0 ; (LHS = -0.584574117647059, INFES = 0.584574117647059 ****)
+     
+
+---- obj  =E=  objective function
+
+obj..  - 10*pcost - dcost - 10*wcost + cost - pen =E= 0 ; (LHS = 0)
+     
+
+---- dpen  =E=  penalty definition
+
+dpen..  - qp(nw,cc) - qp(nw,w) - qp(nw,n) - qp(e,cc) - qp(e,s) - qp(e,se) - qp(e,n) - qp(cc,w) - qp(cc,sw) - qp(cc,s) - qp(cc,n) - qp(sw,w) - qp(s,sw) - qp(s,se) - qn(nw,cc) - qn(nw,w) - qn(nw,n) - qn(e,cc) - qn(e,s) - qn(e,se) - qn(e,n) - qn(cc,w)
+     
+      - qn(cc,sw) - qn(cc,s) - qn(cc,n) - qn(sw,w) - qn(s,sw) - qn(s,se) + pen =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 7
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Equation Listing    SOLVE network Using MINLP From line 153
+
+
+---- qpup  =L=  positive bounds
+
+qpup(nw,cc)..  qp(nw,cc) - 2*qb(nw,cc) =L= 0 ; (LHS = 0)
+     
+qpup(nw,w)..  qp(nw,w) - 2*qb(nw,w) =L= 0 ; (LHS = 0)
+     
+qpup(nw,n)..  qp(nw,n) - 2*qb(nw,n) =L= 0 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- qnup  =L=  negative bounds
+
+qnup(nw,cc)..  qn(nw,cc) + 2*qb(nw,cc) =L= 2 ; (LHS = 0)
+     
+qnup(nw,w)..  qn(nw,w) + 2*qb(nw,w) =L= 2 ; (LHS = 0)
+     
+qnup(nw,n)..  qn(nw,n) + 2*qb(nw,n) =L= 2 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 8
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Column Listing      SOLVE network Using MINLP From line 153
+
+
+---- qp  flow on each arc - positive     (m**3 per sec)
+
+qp(nw,cc)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cont(nw)
+        1       cont(cc)
+       (0)      loss(nw,cc)
+       -1       dpen
+        1       qpup(nw,cc)
+
+qp(nw,w)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cont(nw)
+        1       cont(w)
+       (0)      loss(nw,w)
+       -1       dpen
+        1       qpup(nw,w)
+
+qp(nw,n)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cont(nw)
+        1       cont(n)
+       (0)      loss(nw,n)
+       -1       dpen
+        1       qpup(nw,n)
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- qn  flow on each arc - negative     (m**3 per sec)
+
+qn(nw,cc)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cont(nw)
+       -1       cont(cc)
+       (0)      loss(nw,cc)
+       -1       dpen
+        1       qnup(nw,cc)
+
+qn(nw,w)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cont(nw)
+       -1       cont(w)
+       (0)      loss(nw,w)
+       -1       dpen
+        1       qnup(nw,w)
+
+qn(nw,n)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cont(nw)
+       -1       cont(n)
+       (0)      loss(nw,n)
+       -1       dpen
+        1       qnup(nw,n)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:48 Page 9
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Column Listing      SOLVE network Using MINLP From line 153
+
+
+     qn  flow on each arc - negative     (m**3 per sec)
+
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- d  pipe diameter for each arc      (m)
+
+d(nw,cc)
+                (.LO, .L, .UP, .M = 0.15, 0.547722557505166, 2, 0)
+       (0)      loss(nw,cc)
+    (-114.1036) deq
+
+d(nw,w)
+                (.LO, .L, .UP, .M = 0.15, 0.547722557505166, 2, 0)
+       (0)      loss(nw,w)
+     (-95.8019) deq
+
+d(nw,n)
+                (.LO, .L, .UP, .M = 0.15, 0.547722557505166, 2, 0)
+       (0)      loss(nw,n)
+    (-187.0288) deq
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- h  pressure at each node           (m)
+
+h(nw)
+                (.LO, .L, .UP, .M = 6.5, 11.5, +INF, 0)
+        1       loss(nw,cc)
+        1       loss(nw,w)
+        1       loss(nw,n)
+      (-0.9807) peq
+
+h(e)
+                (.LO, .L, .UP, .M = 3.25, 8.25, +INF, 0)
+        1       loss(e,cc)
+        1       loss(e,s)
+        1       loss(e,se)
+        1       loss(e,n)
+      (-2.3537) peq
+
+h(cc)
+                (.LO, .L, .UP, .M = 16.58, 21.58, +INF, 0)
+       -1       loss(nw,cc)
+       -1       loss(e,cc)
+        1       loss(cc,w)
+        1       loss(cc,sw)
+        1       loss(cc,s)
+        1       loss(cc,n)
+
+REMAINING 5 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 10
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Column Listing      SOLVE network Using MINLP From line 153
+
+
+---- s  supply at reservoir nodes       (m**3 per sec)
+
+s(nw)
+                (.LO, .L, .UP, .M = 0, 0.961470588235294, 2.5, 0)
+        1       cont(nw)
+      (-5.1)    peq
+       -0.2     weq
+
+s(e)
+                (.LO, .L, .UP, .M = 0, 2.30752941176471, 6, 0)
+        1       cont(e)
+      (-5.1)    peq
+       -0.17    weq
+
+
+---- pcost  annual recurrent pump costs     (mill rp)
+
+pcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       peq
+      -10       obj
+
+
+---- dcost  investment costs for pipes      (mill rp)
+
+dcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       deq
+       -1       obj
+
+
+---- wcost  annual recurrent water costs    (mill rp)
+
+wcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       weq
+      -10       obj
+
+
+---- cost  total discounted costs          (mill rp)
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- pen  objective penalty
+
+pen
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       obj
+        1       dpen
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 11
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Column Listing      SOLVE network Using MINLP From line 153
+
+
+---- qb  
+
+qb(nw,cc)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -2       qpup(nw,cc)
+        2       qnup(nw,cc)
+
+qb(nw,w)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -2       qpup(nw,w)
+        2       qnup(nw,w)
+
+qb(nw,n)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -2       qpup(nw,n)
+        2       qnup(nw,n)
+
+REMAINING 11 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 12
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Model Statistics    SOLVE network Using MINLP From line 153
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           9     SINGLE EQUATIONS           55
+BLOCKS OF VARIABLES          11     SINGLE VARIABLES           71
+NON ZERO ELEMENTS           241     NON LINEAR N-Z             60
+DERIVATIVE POOL              20     CONSTANT POOL              46
+CODE LENGTH                 270     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:48 Page 13
+Design of a Water Distribution Network  (WATERX,SEQ=125)
+Solution Report     SOLVE network Using MINLP From line 153
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   network             OBJECTIVE  cost
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  153
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0          1000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/waterx/convert.opt"
+>>  pyomo waterx-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/waterx/convert.opt"
+Pyomo     : waterx-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/waterx/waterx.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/waterx/waterx-scalar.py.lst

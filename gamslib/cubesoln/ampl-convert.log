@@ -1,0 +1,52 @@
+--- Job cubesoln.gms Start 12/13/18 11:34:19 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- cubesoln.gms(121) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- cubesoln.gms(65) 4 Mb
+--- Generating MIP model cube
+--- cubesoln.gms(66) 4 Mb
+---   100 rows  77 columns  469 non-zeroes
+---   27 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cubesoln/convert.opt"
+>>  ampl cubesoln-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cubesoln/convert.opt"
+--- Writing Ampl      : cubesoln-scalar.mod
+
+--- Restarting execution
+--- cubesoln.gms(66) 2 Mb
+--- Reading solution for model cube
+--- cubesoln.gms(82) 3 Mb
+--- Generating MIP model cubeCut
+--- cubesoln.gms(86) 3 Mb
+--- LOOPS cuts = c1
+---   101 rows  77 columns  496 non-zeroes
+---   27 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.018
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cubesoln/convert.opt"
+>>  ampl cubesoln-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cubesoln/convert.opt"
+--- Writing Ampl      : cubesoln-scalar.mod
+
+--- Restarting execution
+--- cubesoln.gms(86) 2 Mb
+--- Reading solution for model cubeCut
+--- cubesoln.gms(82) 3 Mb
+---
+--- Execution halted from line 87: abort.noerror$1 sol
+---
+*** Status: Normal completion
+--- Job cubesoln.gms Stop 12/13/18 11:34:19 elapsed 0:00:00.030

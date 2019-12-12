@@ -1,0 +1,267 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option DNLP=convert;
+   2  option DNLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 2
+An application from quantum mechanics (QUANTUM,SEQ=300)
+C o m p i l a t i o n
+
+
+       
+      An application from quantum mechanics:
+      Find energy eigenvalues of the anharmonic oscillator with g=1
+      in the Gaussian and Post-Gaussian variational methods.
+       
+       
+      Erwin Kalvelagen, May 2004
+       
+      Ogura, A, Post-Gaussian variational method for quantum anharmonic
+      oscillator, 1999. Laboratory of Physics, College of Science and
+      Technology, Nihon University,arXiv:physics/9905056 v1 28 May 1999
+       
+  18   
+  19  variables
+  20     ham   'expected value of hamiltonian'
+  21     alpha 'variational parameter'
+  22     n     'variational parameter (n=1: Gaussian trial function)';
+  23   
+  24  equation
+  25     hamiltonian;
+  26   
+  27  scalar g /1/;
+  28   
+  29  hamiltonian..
+  30   
+  31     ham =e= (sqr(n)/2)*(gamma(2-1/(2*n))/gamma(1/(2*n)))*(alpha**(1/n))
+  32             +(1/2)*(gamma(3/(2*n))/gamma(1/(2*n)))*(alpha**(-1/n))
+  33             +g*(gamma(5/(2*n))/gamma(1/(2*n)))*(alpha**(-2/n));
+  34   
+  35   
+  36  alpha.lo = 0.0001; alpha.up = 10; alpha.l=1;
+  37   
+  38  *
+  39  * gaussian variational method
+  40  *
+  41   
+  42  n.fx = 1;
+  43   
+  44  model m /hamiltonian/;
+  45   
+  46  solve m minimizing ham using dnlp;
+  47   
+  48  parameter results(*,*);
+  49  results('Gaussian','Ground') = ham.l;
+  50  results('Gaussian','alpha')  = alpha.l;
+  51  results('Gaussian','n')      = n.l;
+  52   
+  53   
+  54  *
+  55  * post-gaussian variational method
+  56  *
+  57  n.lo = 0.001; n.up = 10;
+  58  solve m minimizing ham using dnlp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 3
+An application from quantum mechanics (QUANTUM,SEQ=300)
+C o m p i l a t i o n
+
+
+  59   
+  60  results('Post-Gaussian','Ground') = ham.l;
+  61  results('Post-Gaussian','alpha')  = alpha.l;
+  62  results('Post-Gaussian','n')      = n.l;
+  63   
+  64  option decimals = 6; display results;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 4
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Equation Listing    SOLVE m Using DNLP From line 46
+
+
+---- hamiltonian  =E=  
+
+hamiltonian..  ham + (1.5)*alpha + (2.05473496096787)*n =E= 0 ; (LHS = -1.25, INFES = 1.25 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 5
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Column Listing      SOLVE m Using DNLP From line 46
+
+
+---- ham  expected value of hamiltonian
+
+ham
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       hamiltonian
+
+
+---- alpha  variational parameter
+
+alpha
+                (.LO, .L, .UP, .M = 0.0001, 1, 10, 0)
+       (1.5)    hamiltonian
+
+
+---- n  variational parameter (n=1: Gaussian trial function)
+
+n
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (2.0547) hamiltonian
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 6
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Model Statistics    SOLVE m Using DNLP From line 46
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             3     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  66
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 7
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Solution Report     SOLVE m Using DNLP From line 46
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  ham
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  46
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+>>  gams quantum-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+Gams      : quantum-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 8
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Equation Listing    SOLVE m Using DNLP From line 58
+
+
+---- hamiltonian  =E=  
+
+hamiltonian..  ham + (1.5)*alpha + (2.05473496096787)*n =E= 0 ; (LHS = -1.25, INFES = 1.25 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 9
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Column Listing      SOLVE m Using DNLP From line 58
+
+
+---- ham  expected value of hamiltonian
+
+ham
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       hamiltonian
+
+
+---- alpha  variational parameter
+
+alpha
+                (.LO, .L, .UP, .M = 0.0001, 1, 10, 0)
+       (1.5)    hamiltonian
+
+
+---- n  variational parameter (n=1: Gaussian trial function)
+
+n
+                (.LO, .L, .UP, .M = 0.001, 1, 10, 0)
+       (2.0547) hamiltonian
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:22 Page 10
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Model Statistics    SOLVE m Using DNLP From line 58
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             3     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  66
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:22 Page 11
+An application from quantum mechanics (QUANTUM,SEQ=300)
+Solution Report     SOLVE m Using DNLP From line 58
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  ham
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  58
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+>>  gams quantum-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+Gams      : quantum-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:22 Page 12
+An application from quantum mechanics (QUANTUM,SEQ=300)
+E x e c u t i o n
+
+
+----     64 PARAMETER results  
+
+                    alpha           n
+
+Gaussian         1.000000    1.000000
+Post-Gaussian    1.000000    1.000000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/quantum/quantum.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/quantum/quantum-scalar.gms.lst

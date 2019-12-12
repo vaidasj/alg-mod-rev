@@ -1,0 +1,136 @@
+--- Job prodsp2.gms Start 12/13/18 10:32:21 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- prodsp2.gms(198) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- prodsp2.gms(69) 4 Mb
+--- Generating LP model mix
+--- prodsp2.gms(71) 4 Mb
+---   601 rows  605 columns  3,605 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.009
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/convert.opt"
+>>  ampl prodsp2-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/convert.opt"
+--- Writing Ampl      : prodsp2-scalar.mod
+
+--- Restarting execution
+--- prodsp2.gms(71) 2 Mb
+--- Reading solution for model mix
+--- prodsp2.gms(142) 3 Mb
+--- Generating LP model mix2
+--- prodsp2.gms(143) 3 Mb
+---   4 rows  7 columns  21 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.030
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+*** WARNING:
+Error opening option file:/home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/decism.opt
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- prodsp2.gms(143) 2 Mb
+--- Reading solution for model mix2
+--- prodsp2.gms(158) 3 Mb
+--- Generating LP model mix2
+--- prodsp2.gms(160) 3 Mb
+---   4 rows  7 columns  21 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.161
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- prodsp2.gms(160) 2 Mb
+--- Reading solution for model mix2
+--- prodsp2.gms(192) 3 Mb
+--- Generating LP model mix2
+--- prodsp2.gms(194) 3 Mb
+---   4 rows  7 columns  21 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.340
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- prodsp2.gms(194) 2 Mb
+--- Reading solution for model mix2
+--- prodsp2.gms(198) 3 Mb
+--- Putfile stg /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/MODEL.STG
+--- Putfile mopt /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/MINOS.SPC
+--- Putfile decopt /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/decism.opt
+*** Status: Normal completion
+--- Job prodsp2.gms Stop 12/13/18 10:32:22 elapsed 0:00:00.574

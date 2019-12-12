@@ -1,0 +1,30 @@
+--- Job robot.gms Start 12/13/18 11:22:33 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- robot.gms(134) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- robot.gms(127) 4 Mb
+--- Generating NLP model robot
+--- robot.gms(134) 6 Mb
+---   403 rows  563 columns  1,957 non-zeroes
+---   3,920 nl-code  1,253 nl-non-zeroes
+--- robot.gms(134) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.010
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/robot/convert.opt"
+>>  pyomo robot-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/robot/convert.opt"
+--- Writing Pyomo     : robot-scalar.py
+
+--- Restarting execution
+--- robot.gms(134) 2 Mb
+--- Reading solution for model robot
+*** Status: Normal completion
+--- Job robot.gms Stop 12/13/18 11:22:33 elapsed 0:00:00.027

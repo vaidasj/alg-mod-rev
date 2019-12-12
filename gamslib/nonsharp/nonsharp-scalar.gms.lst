@@ -1,0 +1,1291 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 2
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This GAMS file contains the implementation of the Generalized Benders'
+         Decomposition method for the mathematical formulation based on the
+         superstructure proposed in the paper "Synthesis of General Distillation
+         Sequences - Nonsharp Separations" (Aggarwal and Floudas, 1990). The
+         superstructure features simple columns (single feed and top and bottom
+         products) and no heat integration between columns is considered. The
+         formulation is a mixed-integer nonlinear programming (MINLP) problem.
+         The implementation is based on the algorithmic procedure APROS (Paules
+         and Floudas, 1989).
+       
+       
+      Morari, M, and Grossmann, I E, Eds, Chemical Engineering Optimization
+      Models with GAMS. Computer Aids for Chemical Engineering Corporation,
+      1991.
+       
+      Aggarwal, A, and Floudas, C A, Synthesis of General Distillation
+      Sequences: Nonsharp Separation. Computers and Chemical Engineering 14,
+      6 (1990), 631-653.
+       
+  27   
+  29  {{
+  30  ===========================================================================
+  31   
+  32                        copyright(C) 1989 A. Aggarwal & C.A. Floudas
+  33                                          Dept. of Chemical Engineering
+  34                                          Princeton University
+  35                                          Princeton, NJ 08544-5263
+  36   
+  37  ===========================================================================
+  38                      -----------------------------
+  39                      ** Three Component Example **
+  40                      -----------------------------
+  41           _____________________________________________________
+  42          |   Comp.   |    Feed    |   Product 1  |  Product 2  |
+  43          |___________|____________|______________|_____________|
+  44          |  propane  |    100.0   |     30.0     |    70.0     |
+  45          | i-butane  |    100.0   |     50.0     |    50.0     |
+  46          | n-butane  |    100.0   |     30.0     |    70.0     |
+  47          |___________|____________|______________|_____________|
+  48   
+  49  ===========================================================================
+  50  }}
+  51   
+  52  Option
+  53       limrow = 0
+  54       limcol = 0
+  55       decimals = 4
+  56       solprint = off ;
+  57   
+  58  *==========================================================================
+  59  * Declare Sets
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 3
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+  60  *==========================================================================
+  61   
+  62  Sets
+  63   
+  64  {{ Basic Sets - These sets define the problem i.e. number of components
+  65     in the feed stream, columns in the superstructure and no. of product
+  66     streams }}
+  67   
+  68      cp               components /a,b,c/
+  69      col              columns /col-1*col-2/
+  70      pr               products /prod-1,prod-2/
+  71      stm              column streams /top,bot/
+  72   
+  73  {{ Derived Sets - These sets are used to define the mapping of the
+  74     superstructure for the problem at any stage }}
+  75   
+  76      bypass(pr)              overall pass to product pr from initial feed
+  77      acol(col)               existing columns
+  78      prstream(col,stm,pr)    stream to product pr from column col
+  79      inter(col,col,stm)      column i fed by column j top or bottom
+  80      key(col,stm,cp)         key components for column col
+  81      link(col,stm,cp)        nondistribution of nonkeys
+  82   
+  83  {{ Duplicate Sets For Saving Full Mapping - These sets are used for
+  84     saving the full mapping of the original superstructure }}
+  85   
+  86      savprst(col,stm,pr)     save full representation of prstream
+  87      savinter(col,col,stm)   save full representation of feedtop
+  88      savkey(col,stm,cp)      save full representation of keys
+  89      savlink(col,stm,cp)     save full representation of link
+  90   
+  91  {{ Sets For Algorithm - These are the static and dynamic sets needed
+  92     to implement the iterative algorithm }}
+  93   
+  94      km               static iterations /1*150/
+  95      kloop            loop counter /1*20/
+  96      k(km)            dynamic iterations /1/
+  97      count(km)        dynamic counter /1/     ;
+  98   
+  99  Alias(col,colp) ;
+ 100   
+ 101   
+ 102  *==========================================================================
+ 103  * Define Mapping Of Sets
+ 104  *==========================================================================
+ 105   
+ 106  {{ The set "bypass" defines the set of streams of overall bypasses to the
+ 107     final products. If an overall bypass stream for a particular product
+ 108     does not exist in the superstructure then that element for this set is
+ 109     set to "NO" }}
+ 110   
+ 111  bypass(pr) = YES ;
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 4
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 113  {{ The set "inter" defines interconnections between columns based upon the
+ 114     superstructure. e.g. "inter('col-1','col-2','top')" refers to a stream
+ 115     to column 1 from column 2 top }}
+ 116   
+ 117  inter(colp,col,stm) = NO ;
+ 118  inter('col-1','col-2','top') = YES ;
+ 119  inter('col-2','col-1','bot') = YES ;
+ 120   
+ 121  {{ The set "key" defines the key components for each column in the
+ 122     superstructure. e.g. "key('col-1','top','a') = YES" defines the light key
+ 123     for column 1 to be component a }}
+ 124   
+ 125  key(col,stm,cp) = NO ;
+ 126  key('col-1','top','a') = YES ;
+ 127  key('col-2','top','b') = YES ;
+ 128  key('col-1','bot','b') = YES ;
+ 129  key('col-2','bot','c') = YES ;
+ 130   
+ 131  {{ The set "link" is used to restrict distribution of nonkeys in the top
+ 132     and bottom streams of a column. Each element of this set represents
+ 133     the nonexistence of a particular component in a particular stream }}
+ 134   
+ 135  link(col,stm,cp) = NO ;
+ 136  link('col-1','top','c') = YES ;
+ 137  link('col-2','bot','a') = YES ;
+ 138   
+ 139  {{ The set "prstream" defines the set of streams from various columns to
+ 140     the final products. If it is known that one or more of such streams
+ 141     cannot exist then they can be deleted from the formulation by setting
+ 142     the corresponding elements of this set to "NO" }}
+ 143   
+ 144  prstream(col,stm,pr) = YES ;
+ 145   
+ 146  Display bypass,inter,key,link,prstream ;
+ 147   
+ 148  {{ The full mapping representation of the superstructure is saved in
+ 149     the save sets defined earlier }}
+ 150   
+ 151  savprst(prstream(col,stm,pr)) = prstream(col,stm,pr) ;
+ 152  savinter(inter(colp,col,stm)) = inter(colp,col,stm) ;
+ 153  savkey(key(col,stm,cp)) = key(col,stm,cp) ;
+ 154  savlink(col,stm,cp) = link(col,stm,cp) ;
+ 155   
+ 156   
+ 157  *==========================================================================
+ 158  * Declare Parameters & Scalars
+ 159  *==========================================================================
+ 160   
+ 161  Parameters
+ 162   
+ 163  {{ Define the component flowrates for the feedstream }}
+ 164   
+ 165      feed(cp)         feed of each component
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 5
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 166                       /a  100
+ 167                        b  100
+ 168                        c  100/
+ 169   
+ 170  {{ Define the various coefficients for the cost expression for each column.
+ 171     These coefficients are determined by regression analysis of cost data
+ 172     generated by doing column simulations for each column for a range of
+ 173     flowrates, feed composition and key component recoveries }}
+ 174   
+ 175      cost(col)        alpha coeff.
+ 176                       /col-1    0.23947
+ 177                        col-2    0.75835/
+ 178      a1(col)          a1 coeff.
+ 179                       /col-1   -0.0139904
+ 180                        col-2   -0.0661588/
+ 181      a2(col,stm)      a2 coeff.
+ 182                       /col-1.top    0.0093514
+ 183                        col-2.top    0.0338147
+ 184                        col-1.bot    0.0077308
+ 185                        col-2.bot    0.0373349/
+ 186      a3(col,cp)       a3 coeff.(corresponds to feed composition)
+ 187                       /col-1.a   -0.0005719
+ 188                        col-2.a    0.0016371
+ 189                        col-1.b    0.0042656
+ 190                        col-2.b    0.0288996
+ 191                        col-1.c    0.0
+ 192                        col-2.c    0.0/
+ 193   
+ 194  {{ Define parameters for storage of cost coefficients for each lagrange
+ 195     function }}
+ 196   
+ 197      mcost(km,col)
+ 198      ma1(km,col)
+ 199      ma2(km,col,stm)
+ 200      ma3(km,col,cp)
+ 201   
+ 202  {{ Define parameters for storage of lagrange multipliers for primal
+ 203     problems }}
+ 204   
+ 205      mint(km,col)
+ 206   
+ 207  {{ Define parameters for storage of lagrange multipliers for relaxed primal
+ 208     problems }}
+ 209   
+ 210      mlint(km,col)
+ 211   
+ 212  {{ Define parameters for storage of variable values for primal problems }}
+ 213   
+ 214      zk(km)
+ 215      finitk(km,col)
+ 216      fink(km,col)
+ 217      fk(km,col,stm)
+ 218      fintk(km,colp,col,stm)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 6
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 219      fprk(km,col,stm,pr)
+ 220      fbyk(km,pr)
+ 221      cfink(km,col,cp)
+ 222      xkin(km,col,cp)
+ 223      xk(km,col,stm,cp)
+ 224      reck(km,col,stm,cp)
+ 225   
+ 226  {{ Define parameters to represent current values of complicating variables
+ 227     given by the master problem }}
+ 228   
+ 229      yp(col)
+ 230   
+ 231  {{ Miscellaneous parameters }}
+ 232   
+ 233      cut(km)
+ 234      cutcol(km,col)
+ 235      nfeas(km)        feasibility of primal problem
+ 236      xinit(cp)        composition of streams from initial splitter
+ 237   
+ 238  Scalars
+ 239   
+ 240      totfeed          total flow to the superstructure
+ 241      flag             check to run primal /1/
+ 242      kend             stopping criteria for algorithm /1/
+ 243      iter             iteration number /0/
+ 244      zup              upper bound
+ 245      zlo              lower bound
+ 246      np               number of products  ;
+ 247   
+ 248  np = card(pr) ;
+ 249   
+ 250  {{ The table gives the compositions of the desired product streams }}
+ 251   
+ 252  Table              out(cp,pr)     product amounts
+ 253   
+ 254                     prod-1    prod-2
+ 255   
+ 256      a               30.0      70.0
+ 257      b               50.0      50.0
+ 258      c               30.0      70.0   ;
+ 259   
+ 260  *==========================================================================
+ 261  * Declare Variables
+ 262  *==========================================================================
+ 263   
+ 264  Variables
+ 265   
+ 266      c                total cost of distillation sequence
+ 267      alp              sum of infeasibilities
+ 268      mu               master solution
+ 269   
+ 270  Positive Variables
+ 271   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 7
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 272  {{ The positive variables define the material balance for the superstructure
+ 273     and the names are self explanatory }}
+ 274   
+ 275      finit(col)         flow from initial splitter to column col
+ 276      fin(col)           total flow to column col
+ 277      f(col,stm)         flow rate of column top & bottom product streams
+ 278      fint(colp,col,stm) flow rate of interconnecting streams
+ 279      fpr(col,stm,pr)    flow rate of streams to products
+ 280      fby(pr)            flow rate of bypass streams
+ 281   
+ 282      cfin(col,cp)       component flow to column col
+ 283   
+ 284      xin(col,cp)        composition of stream to column col
+ 285      x(col,stm,cp)      composition of column product streams
+ 286   
+ 287      rec(col,stm,cp)    recovery of key components
+ 288   
+ 289  {{ The following are slack variables used for relaxing the constraints of
+ 290     the primal problem for the formulation of the relaxed primal problem.
+ 291     Each inequality constraint f(x) < 0 is relaxed by the addition of a
+ 292     positive slack variables sa to give :
+ 293                            f(x) < sa                                     }}
+ 294   
+ 295      saint(col)           sa for logical constraints
+ 296   
+ 297  Binary Variables
+ 298   
+ 299  {{ The binary variables define the existence or nonexistence of a particular
+ 300      column in the sequence. A value of 1 means that the column exists,
+ 301      a value of 0 denotes nonexistence }}
+ 302   
+ 303      y(col)               existence of column col ;
+ 304   
+ 305  *==========================================================================
+ 306  * Declare Equations
+ 307  *==========================================================================
+ 308   
+ 309  Equations
+ 310   
+ 311  {{ PRIMAL PROBLEM EQUATIONS }}
+ 312   
+ 313  lpobj                 objective function
+ 314   
+ 315  spblinit              initial splitter balance
+ 316  spblcol(col,stm)      splitter balances at each column top & bottom outlets
+ 317  mixbal(col,cp)        mixer balance equations at inlet of each column
+ 318  colbal(col,cp)        component balance equations around each column
+ 319  keybal(col,stm,cp)    key component balances for each column
+ 320  probal(pr,cp)         component balance equations for each product
+ 321  cfloin(col,cp)        equations defining component flowrates for column inlet
+ 322  molsum(col,stm)       constraint for sum of mole fractions for column products
+ 323  molsumin(col)         constraint for sum of mole fractions for column inlet
+ 324  dist(col,stm,cp)      constraint defining the nondistribution of nonkeys
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 8
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 325   
+ 326  intcon(col)           logical constraints
+ 327   
+ 328  {{ RELAXED PRIMAL PROBLEM EQUATIONS }}
+ 329   
+ 330  infeas                sum of infeasibilities as objective function
+ 331   
+ 332  lintcon(col)          relaxed logical constraints
+ 333   
+ 334  {{ MASTER PROBLEM EQUATIONS }}
+ 335   
+ 336  bnd                   lower bound on solution of master problem
+ 337  lagrange(km)          lagrange functions for primal problems
+ 338  laerr(km)             lagrange functions for relaxed primal problems
+ 339  intcut(km)            integer cuts ;
+ 340   
+ 341  *==========================================================================
+ 342  * Define Equations
+ 343  *==========================================================================
+ 344   
+ 345  {{ PRIMAL PROBLEM EQUATIONS }}
+ 346   
+ 347  lpobj..
+ 348      c =E= sum(acol(col),(cost(col)*yp(col) + (a1(col) +
+ 349              sum(key(col,stm,cp),a2(col,stm)*rec(col,stm,cp)) +
+ 350              sum(cp,a3(col,cp)*xin(col,cp)))*fin(col))) ;
+ 351   
+ 352  spblinit..
+ 353        sum(acol(col),finit(col)) + sum(pr,fby(pr)) =E= totfeed ;
+ 354   
+ 355  spblcol(acol(col),stm)..
+ 356        sum(inter(colp,col,stm),fint(colp,col,stm)) +
+ 357        sum(prstream(col,stm,pr),fpr(col,stm,pr)) - f(col,stm) =E= 0 ;
+ 358   
+ 359  mixbal(acol(col),cp)..
+ 360      finit(col)*xinit(cp) + sum(inter(col,colp,stm),fint(col,colp,stm)*
+ 361      x(colp,stm,cp)) - cfin(col,cp) =E= 0 ;
+ 362   
+ 363  colbal(acol(col),cp)..
+ 364      cfin(col,cp) - sum(stm,f(col,stm)*x(col,stm,cp)) =E= 0 ;
+ 365   
+ 366  keybal(key(col,stm,cp))..
+ 367      cfin(col,cp)*rec(col,stm,cp) - f(col,stm)*x(col,stm,cp) =E= 0 ;
+ 368   
+ 369  probal(pr,cp)$(ord(pr) ne np)..
+ 370      sum(prstream(col,stm,pr),fpr(col,stm,pr)*x(col,stm,cp)) +
+ 371      fby(pr)*xinit(cp) - out(cp,pr) =E= 0 ;
+ 372   
+ 373  cfloin(acol(col),cp)..
+ 374      fin(col)*xin(col,cp) - cfin(col,cp) =E= 0 ;
+ 375   
+ 376  molsum(acol(col),stm)..
+ 377      sum(cp,x(col,stm,cp)) - 1 =E= 0 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:26:48 Page 9
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 378   
+ 379  molsumin(acol(col))..
+ 380      sum(cp,xin(col,cp)) - 1 =E= 0 ;
+ 381   
+ 382  dist(link(col,stm,cp))..
+ 383      x(col,stm,cp) =E= 0 ;
+ 384   
+ 385  intcon(col)..
+ 386        fin(col) - totfeed*yp(col) =L= 0 ;
+ 387   
+ 388  {{ RELAXED PRIMAL PROBLEM EQUATIONS }}
+ 389   
+ 390  infeas.. alp =E= sum(col,saint(col)) ;
+ 391   
+ 392  lintcon(col)..
+ 393        fin(col) - totfeed*yp(col) =L= saint(col) ;
+ 394   
+ 395  {{ FULL NLP EQUATIONS }}
+ 396   
+ 397  {{ MASTER PROBLEM EQUATIONS }}
+ 398   
+ 399  bnd.. mu =G= zlo ;
+ 400   
+ 401  lagrange(k)$(nfeas(k) eq 1)..
+ 402   
+ 403        sum(col,(mcost(k,col)*y(col) + (ma1(k,col) +
+ 404            sum(savkey(col,stm,cp),ma2(k,col,stm)*reck(k,col,stm,cp)) +
+ 405            sum(cp,ma3(k,col,cp)*xkin(k,col,cp)))*
+ 406            fink(k,col))) +                                  ## objective function
+ 407   
+ 408        sum(col,mint(k,col)*(fink(k,col) - totfeed*y(col)))  ## logical const.
+ 409                                           =L= mu ;
+ 410   
+ 411  laerr(k)$(nfeas(k) eq 0)..
+ 412   
+ 413        sum(col,mlint(k,col)*(fink(k,col) - totfeed*y(col))) ## logical const.
+ 414                                           =L= 0 ;
+ 415   
+ 416  intcut(k)..
+ 417        sum(col,cutcol(k,col)*y(col)) =L= cut(k) ;
+ 418   
+ 419  {{ Bounds for all material balance variables }}
+ 420   
+ 421  totfeed = sum(cp,feed(cp)) ;
+ 422  xinit(cp) = feed(cp)/totfeed ;
+ 423   
+ 424  rec.up(col,stm,cp) = 1 ;
+ 425  rec.lo(col,stm,cp) = 0.85 ;
+ 426   
+ 427  finit.lo(col) = 0 ;
+ 428  fin.lo(col) = 0 ;
+ 429  f.lo(col,stm) = 0 ;
+ 430  fint.lo(savinter(colp,col,stm)) = 0 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 10
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 431  fpr.lo(savprst(col,stm,pr)) = 0 ;
+ 432  fby.lo(pr) = 0 ;
+ 433  finit.up(col) = totfeed ;
+ 434  fin.up(col) = totfeed ;
+ 435  f.up(col,stm) = totfeed ;
+ 436  fint.up(savinter(colp,col,stm)) = totfeed ;
+ 437  fpr.up(savprst(col,stm,pr)) = totfeed ;
+ 438  fby.up('prod-1') = 90 ;
+ 439  fby.up('prod-2') = 150 ;
+ 440  cfin.lo(col,cp) = 0 ;
+ 441  cfin.up(col,cp) = feed(cp) ;
+ 442   
+ 443  *==========================================================================
+ 444  * Declare Models
+ 445  *==========================================================================
+ 446   
+ 447  Model primal /lpobj,spblinit,spblcol,mixbal,colbal,keybal,probal,cfloin,
+ 448                molsum,molsumin,dist,intcon/ ;
+ 449   
+ 450  Model relax /infeas,spblinit,spblcol,mixbal,colbal,keybal,probal,cfloin,
+ 451               molsum,molsumin,dist,lintcon/ ;
+ 452   
+ 453  Model master /bnd,lagrange,laerr,intcut/ ;
+ 454   
+ 455  *==========================================================================
+ 456  * Begin Solving Problem
+ 457  *==========================================================================
+ 458   
+ 459  {{* STARTING POINT - The user has to provide a set of values of the
+ 460    * complicating variables for the algorithm to start. For finding a
+ 461    * feasible starting point, the full NLP can be solved (by fixing the
+ 462    * binary variables). Even though the algorithm is designed to start from
+ 463    * an infeasible starting point also, it helps the performance to provide
+ 464    * a feasible starting point }}
+ 465   
+ 466  yp('col-1') = 1 ;
+ 467  yp('col-2') = 1 ;
+ 468   
+ 469  finit.l('col-1') = 60 ;
+ 470  finit.l('col-2') = 0 ;
+ 471  fin.l('col-1') = 60 ;
+ 472  fin.l('col-2') = 40 ;
+ 473  f.l('col-1','top') = 20 ;
+ 474  f.l('col-2','top') = 20 ;
+ 475  f.l('col-1','bot') = 40 ;
+ 476  f.l('col-2','bot') = 20 ;
+ 477  fint.l('col-1','col-2','top') = 0 ;
+ 478  fint.l('col-2','col-1','bot') = 40 ;
+ 479  fpr.l('col-1','top','prod-1') = 0 ;
+ 480  fpr.l('col-1','top','prod-2') = 20 ;
+ 481  fpr.l('col-1','bot','prod-1') = 0 ;
+ 482  fpr.l('col-1','bot','prod-2') = 0 ;
+ 483  fpr.l('col-2','top','prod-1') = 20 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 11
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 484  fpr.l('col-2','top','prod-2') = 0 ;
+ 485  fpr.l('col-2','bot','prod-1') = 0 ;
+ 486  fpr.l('col-2','bot','prod-2') = 20 ;
+ 487  fby.l('prod-1') = 90 ;
+ 488  fby.l('prod-2') = 150 ;
+ 489   
+ 490  cfin.l('col-1','a') = 20 ;
+ 491  cfin.l('col-1','b') = 20 ;
+ 492  cfin.l('col-1','c') = 20 ;
+ 493  cfin.l('col-2','a') = 0 ;
+ 494  cfin.l('col-2','b') = 20 ;
+ 495  cfin.l('col-2','c') = 20 ;
+ 496   
+ 497  {{ The upper and lower bounds are initialized to large positive and negative
+ 498     numbers respectively }}
+ 499   
+ 500  zup = 1000 ;
+ 501  zlo = -1000000 ;
+ 502   
+ 503  *==========================================================================
+ 504  * Begin Iterations *
+ 505  *==========================================================================
+ 506   
+ 507  k(km) = NO ;
+ 508   
+ 509  Loop(kloop$kend,                     ##  START OF LOOP
+ 510  iter = iter + 1 ;                    ##  update iteration number
+ 511  count(km) = yes$(ord(km) eq iter) ;  ##  current element
+ 512  k(km)= k(km) + count(km) ;           ##  add current element to dynamic set
+ 513   
+ 514  {{ Modify sets to current configuration based on current values of the
+ 515     binary variables. If a binary variable corresponding to a particular
+ 516     column is not active then all streams connected to that column are
+ 517     dropped from the superstructure }}
+ 518   
+ 519  acol(col) = YES$yp(col) ;
+ 520  prstream(savprst(col,stm,pr)) = YES$yp(col) ;
+ 521  inter(savinter(colp,col,stm)) = YES$yp(col) ;
+ 522  inter(inter(col,colp,stm)) = YES$yp(col) ;
+ 523  key(savkey(col,stm,cp)) = YES$yp(col) ;
+ 524  link(savlink(col,stm,cp)) = YES$yp(col) ;
+ 525   
+ 526  {{ Store the values of the cost coefficients for the Lagrange function
+ 527     based on the current mapping }}
+ 528   
+ 529  mcost(count,acol(col)) = cost(col) ;
+ 530  ma1(count,acol(col)) = a1(col) ;
+ 531  ma2(count,acol(col),stm) = a2(col,stm) ;
+ 532  ma3(count,acol(col),cp) = a3(col,cp) ;
+ 533   
+ 534  {{ Solve the relaxed primal problem }}
+ 535   
+ 536  Solve relax using nlp minimizing alp ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 12
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 537   
+ 538  {{ The next statement checks for the feasiblity of the relaxed primal
+ 539     problem and sets the stopping criteria flag "kend" to 0 if the relaxed
+ 540     primal problem dees not have a feasible solution }}
+ 541   
+ 542  if(((relax.modelstat ne 1) and
+ 543      (relax.modelstat ne 2) and
+ 544      (relax.modelstat ne 7)),
+ 545               kend = 0 ) ;
+ 546   
+ 547  {{ Store the lagrange multipliers as parameters }}
+ 548   
+ 549  mlint(count,acol(col)) = -lintcon.m(col) ;
+ 550   
+ 551  {{ Store the values of noncomplicating variables as parameters }}
+ 552   
+ 553  finitk(count,acol(col)) = finit.l(col) ;
+ 554  fink(count,acol(col)) = fin.l(col) ;
+ 555  fk(count,acol(col),stm) = f.l(col,stm) ;
+ 556  fintk(count,inter(colp,col,stm)) = fint.l(colp,col,stm) ;
+ 557  fprk(count,prstream(col,stm,pr)) = fpr.l(col,stm,pr) ;
+ 558  fbyk(count,pr) = fby.l(pr) ;
+ 559  cfink(count,acol(col),cp) = cfin.l(col,cp) ;
+ 560  xkin(count,acol(col),cp) = xin.l(col,cp) ;
+ 561  xk(count,acol(col),stm,cp) = x.l(col,stm,cp) ;
+ 562  reck(count,key(col,stm,cp)) = rec.l(col,stm,cp) ;
+ 563   
+ 564  nfeas(count) = 0 ;
+ 565  flag = 0 ;
+ 566   
+ 567  {{ The value of sum of infeasibilities is checked at this stage }}
+ 568   
+ 569  If((alp.l le .00001),
+ 570   
+ 571      Solve primal using nlp minimizing c ;
+ 572   
+ 573  {{ If primal is feasible store the lagrange multipliers as parameters,
+ 574     objective function and update upper bound }}
+ 575   
+ 576      If(((primal.modelstat eq 1) or
+ 577          (primal.modelstat eq 2)),
+ 578         mint(count,acol(col)) = -intcon.m(col) ;
+ 579         zk(count) = c.l ;
+ 580         nfeas(count) = 1 ;
+ 581         If((c.l le zup),
+ 582            zup = c.l ) ;
+ 583   
+ 584  {{ Store the values of noncomplicating variables as parameters and
+ 585     display them }}
+ 586   
+ 587         finitk(count,acol(col)) = finit.l(col) ;
+ 588         fink(count,acol(col)) = fin.l(col) ;
+ 589         fk(count,acol(col),stm) = f.l(col,stm) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 13
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+ 590         fintk(count,inter(colp,col,stm)) = fint.l(colp,col,stm) ;
+ 591         fprk(count,prstream(col,stm,pr)) = fpr.l(col,stm,pr) ;
+ 592         fbyk(count,pr) = fby.l(pr) ;
+ 593         cfink(count,acol(col),cp) = cfin.l(col,cp) ;
+ 594         xkin(count,acol(col),cp) = xin.l(col,cp) ;
+ 595         xk(count,acol(col),stm,cp) = x.l(col,stm,cp) ;
+ 596         reck(count,key(col,stm,cp)) = rec.l(col,stm,cp) ;
+ 597   
+ 598         Display finit.l,fin.l,f.l,fint.l,fpr.l,fby.l,cfin.l,xin.l,x.l,rec.l ) ) ;
+ 599   
+ 600  {{ Store the values of the complicating variables as parameters to formulate
+ 601     the integer cuts }}
+ 602   
+ 603     cut(count) = sum(col,yp(col)) - 1 ;
+ 604     cutcol(count,col) = 2*yp(col) - 1 ;
+ 605   
+ 606  {{ Solve the master problem }}
+ 607   
+ 608  Solve master using mip minimizing mu ;
+ 609   
+ 610  {{ The next six statements check for the feasiblity of the master problem
+ 611     and set the stopping criteria flag "kend" to 0 if the master problem has
+ 612     become infeasible }}
+ 613   
+ 614  kend$(master.modelstat eq 4)              = 0 ;
+ 615  kend$(master.modelstat eq 5)       = 0 ;
+ 616  kend$(master.modelstat eq 6)  = 0 ;
+ 617  kend$(master.modelstat eq 7)  = 0 ;
+ 618  kend$(master.modelstat eq 9) = 0 ;
+ 619  kend$(master.modelstat eq 10)       = 0 ;
+ 620   
+ 621  {{ If the master problem has a feasible solution, the lower bound is
+ 622     updated }}
+ 623   
+ 624  zlo$kend = mu.l ;
+ 625   
+ 626  {{ The stopping criteria is checked next. If the upper and lower bounds have
+ 627     crossed or are almost equal, "kend" is set to 0 }}
+ 628   
+ 629  kend$((zup le zlo) or ((zup-zlo) le .001)) = 0 ;
+ 630   
+ 631  {{ The values of the complicating variables produced by the master problem
+ 632     are stored as parameters (to be used in the next iteration) and
+ 633     displayed }}
+ 634   
+ 635  yp(col) = y.l(col) ;
+ 636  Display yp ;
+ 637   
+ 638  {{ Display iteration number, sum of infeasibilites for this iteration, and
+ 639     the lower and upper bounds at the end of this iteration }}
+ 640   
+ 641  Display iter,alp.l,zlo,zup ) ;       ##  END OF LOOP
+ 642  *==========================================================================
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 14
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 15
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+E x e c u t i o n
+
+
+----    146 SET bypass  overall pass to product pr from initial feed
+
+prod-1,    prod-2
+
+
+----    146 SET inter  column i fed by column j top or bottom
+
+                    top         bot
+
+col-1.col-2         YES
+col-2.col-1                     YES
+
+
+----    146 SET key  key components for column col
+
+                    a           b           c
+
+col-1.top         YES
+col-1.bot                     YES
+col-2.top                     YES
+col-2.bot                                 YES
+
+
+----    146 SET link  nondistribution of nonkeys
+
+                    a           c
+
+col-1.top                     YES
+col-2.bot         YES
+
+
+----    146 SET prstream  stream to product pr from column col
+
+               prod-1      prod-2
+
+col-1.top         YES         YES
+col-1.bot         YES         YES
+col-2.top         YES         YES
+col-2.bot         YES         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 16
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Model Statistics    SOLVE relax Using NLP From line 536
+
+
+LOOPS                                kloop   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS           41
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES           51  4 projected
+NON ZERO ELEMENTS           160     NON LINEAR N-Z             88
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                 163
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 17
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE relax Using NLP From line 536
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   relax               OBJECTIVE  alp
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  536
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.010      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 0  best solution found during preprocessing
+Best possible = -1E-9
+Absolute gap  = 1E-9  optca = 1E-9
+Relative gap  = 1.00000  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 18
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE relax Using NLP From line 536
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 19
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Model Statistics    SOLVE primal Using NLP From line 571
+
+
+LOOPS                                kloop   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS           41
+BLOCKS OF VARIABLES          11     SINGLE VARIABLES           49
+NON ZERO ELEMENTS           166     NON LINEAR N-Z             98
+DERIVATIVE POOL              20     CONSTANT POOL              26
+CODE LENGTH                 187
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 20
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE primal Using NLP From line 571
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   primal              OBJECTIVE  c
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  571
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      2 Locally Optimal           
+**** OBJECTIVE VALUE                1.5671
+
+ RESOURCE USAGE, LIMIT        115.690      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 1.56707199988892  found at node 36061
+Best possible = 1.4104030785
+Absolute gap  = 0.156668921388921  optca = 1E-9
+Relative gap  = 0.09998  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 21
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE primal Using NLP From line 571
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 22
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+E x e c u t i o n
+
+
+----    598 VARIABLE finit.L  flow from initial splitter to column col
+
+col-2 85.7143
+
+
+----    598 VARIABLE fin.L  total flow to column col
+
+col-1 57.1429,    col-2 85.7143
+
+
+----    598 VARIABLE f.L  flow rate of column top & bottom product streams
+
+              top         bot
+
+col-1     24.2857     32.8571
+col-2     57.1429     28.5714
+
+
+----    598 VARIABLE fint.L  flow rate of interconnecting streams
+
+                    top
+
+col-1.col-2     57.1429
+
+
+----    598 VARIABLE fpr.L  flow rate of streams to products
+
+               prod-1      prod-2
+
+col-1.top                 24.2857
+col-1.bot     32.8571
+col-2.bot                 28.5714
+
+
+----    598 VARIABLE fby.L  flow rate of bypass streams
+
+prod-1  77.1429,    prod-2 137.1429
+
+
+----    598 VARIABLE cfin.L  component flow to column col
+
+                a           b           c
+
+col-1     28.5714     24.2857      4.2857
+col-2     28.5714     28.5714     28.5714
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 23
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+E x e c u t i o n
+
+
+----    598 VARIABLE xin.L  composition of stream to column col
+
+                a           b           c
+
+col-1      0.5000      0.4250      0.0750
+col-2      0.3333      0.3333      0.3333
+
+
+----    598 VARIABLE x.L  composition of column product streams
+
+                    a           b           c
+
+col-1.top      1.0000
+col-1.bot      0.1304      0.7391      0.1304
+col-2.top      0.5000      0.4250      0.0750
+col-2.bot                  0.1500      0.8500
+
+
+----    598 VARIABLE rec.L  recovery of key components
+
+                    a           b           c
+
+col-1.top      0.8500
+col-1.bot                  1.0000
+col-2.top                  0.8500
+col-2.bot                              0.8500
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 24
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Model Statistics    SOLVE master Using MIP From line 608
+
+
+LOOPS                                kloop   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             6     DISCRETE VARIABLES          2
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 25
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE master Using MIP From line 608
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   master              OBJECTIVE  mu
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  608
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/convert.opt"
+>>  gams nonsharp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/convert.opt"
+Gams      : nonsharp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 26
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+E x e c u t i o n
+
+
+----    636 PARAMETER yp  
+
+                      ( ALL      0.0000 )
+
+
+----    641 PARAMETER iter                 =       1.0000  iteration number
+            VARIABLE alp.L                 =       0.0000  sum of infeasibilities
+            PARAMETER zlo                  =       0.0000  lower bound
+            PARAMETER zup                  =       1.5671  upper bound
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 27
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Model Statistics    SOLVE relax Using NLP From line 536
+
+
+LOOPS                                kloop   2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            12     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop 2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 28
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE relax Using NLP From line 536
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   relax               OBJECTIVE  alp
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  536
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      19 Infeasible - No Solution 
+**** OBJECTIVE VALUE               NA
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT        NA    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+*** Could not extract solution on /home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/225a/res.dat file
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 29
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Model Statistics    SOLVE primal Using NLP From line 571
+
+
+LOOPS                                kloop   2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             8     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop 2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 30
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE primal Using NLP From line 571
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   primal              OBJECTIVE  c
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  571
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      19 Infeasible - No Solution 
+**** OBJECTIVE VALUE               NA
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT        NA    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+*** Could not extract solution on /home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/225a/res.dat file
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 31
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Model Statistics    SOLVE master Using MIP From line 608
+
+
+LOOPS                                kloop   2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS            4
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             8     DISCRETE VARIABLES          2
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop 2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 32
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+Solution Report     SOLVE master Using MIP From line 608
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   master              OBJECTIVE  mu
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  608
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/convert.opt"
+>>  gams nonsharp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/convert.opt"
+Gams      : nonsharp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:26:48 Page 33
+Synthesis of General Distillation Sequences (NONSHARP,SEQ=120)
+E x e c u t i o n
+
+
+----    636 PARAMETER yp  
+
+                      ( ALL      0.0000 )
+
+
+----    641 PARAMETER iter                 =       2.0000  iteration number
+            VARIABLE alp.L                 =       0.0000  sum of infeasibilities
+            PARAMETER zlo                  =       0.0000  lower bound
+            PARAMETER zup                  =       1.5671  upper bound
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/nonsharp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/nonsharp/nonsharp-scalar.gms.lst

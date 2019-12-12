@@ -1,0 +1,323 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 2
+Thai Navy Problem (THAI,SEQ=98)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This model is used to allocate ships to transport personnel from
+         different port to a training center.
+       
+       
+      Choypeng, P, Puakpong, P, and Rosenthal, R E, Optimal Ship Routing
+      and Personnel Assignment for Naval Recruitment in Thailand.
+      Interfaces 16, 4 (1986), 356-366.
+       
+  16   
+  17   Sets  i  ports         / chumphon, surat, nakon, songkhla /
+  18         j  voyages       / v-01* v-15 /
+  19         k  ship classes  / small, medium, large /
+  20         sc(i,k) ship capability / chumphon.(small,medium,large)
+  21                                   (surat,nakon).(medium,large)
+  22                                   songkhla.large               /
+  23         vc(j,k) voyage capability ;
+  24   
+  25   Parameter  d(i)  number of men at port i needing transport
+  26                   / chumphon = 475, surat     = 659
+  27                     nakon    = 672, songkhla = 1123 /
+  28              shipcap(k)  ship capacity in men / small    100
+  29                                                 medium   200
+  30                                                 large    600 /
+  31              n(k)   number of ships of class k available
+  32                     / small  2, medium  3, large  4 / ;
+  33   
+  34   Table   a(j,*)   assignment of ports to voyages
+  35   
+  36          dist  chumphon surat nakon songkhla
+  37  v-01     370      1
+  38  v-02     460              1
+  39  v-03     600                    1
+  40  v-04     750                            1
+  41  v-05     515      1       1
+  42  v-06     640      1             1
+  43  v-07     810      1                     1
+  44  v-08     665              1     1
+  45  v-09     665              1             1
+  46  v-10     800                    1       1
+  47  v-11     720      1       1     1
+  48  v-12     860      1       1             1
+  49  v-13     840      1             1       1
+  50  v-14     865              1     1       1
+  51  v-15     920      1       1     1       1
+  52   
+  53  Scalar w1 ship assignment weight           / 1.00 /
+  54         w2 ship distance traveled weight    / .01   /
+  55         w3 personnel distance travel weight / .0001 / ;
+  56   
+  57  vc(j,k) = prod(i$a(j,i), sc(i,k)); Display vc ;
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 3
+Thai Navy Problem (THAI,SEQ=98)
+C o m p i l a t i o n
+
+
+  59   Variables
+  60        z(j,k)    number of times voyage jk is used
+  61        y(j,k,i)  number of men transported from port i via voyage jk
+  62        obj ;
+  63   
+  64   Integer Variables z; positive variables y ;
+  65   
+  66  Equations
+  67      objdef
+  68      demand(i)        pick up all the men at port i
+  69      voycap(j,k)      observe variable capacity of voyage jk
+  70      shiplim(k)       observe limit of class k ;
+  71   
+  72  demand(i)..  sum((j,k)$(a(j,i)$vc(j,k)), y(j,k,i))  =g=  d(i) ;
+  73   
+  74  voycap(j,k)$vc(j,k)..  sum(i$a(j,i), y(j,k,i))  =l=  shipcap(k)*z(j,k) ;
+  75   
+  76  shiplim(k).. sum(j$vc(j,k), z(j,k))   =l=  n(k) ;
+  77   
+  78  objdef..     obj =e= w1*sum((j,k)$vc(j,k), z(j,k))
+  79                     + w2*sum((j,k)$vc(j,k), a(j,"dist")*z(j,k))
+  80                     + w3*sum((j,k,i)$(a(j,i)$vc(j,k)), a(j,"dist")*y(j,k,i)) ;
+  81   
+  82  Model thainavy /all/;
+  83   
+  84  z.up(j,k)$vc(j,k) = n(k) ;
+  85   
+  86  Solve thainavy minimizing obj using mip ;
+  87   
+  88   Display y.l, z.l ;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 4
+Thai Navy Problem (THAI,SEQ=98)
+E x e c u t i o n
+
+
+----     57 SET vc  voyage capability
+
+           small      medium       large
+
+v-01         YES         YES         YES
+v-02                     YES         YES
+v-03                     YES         YES
+v-04                                 YES
+v-05                     YES         YES
+v-06                     YES         YES
+v-07                                 YES
+v-08                     YES         YES
+v-09                                 YES
+v-10                                 YES
+v-11                     YES         YES
+v-12                                 YES
+v-13                                 YES
+v-14                                 YES
+v-15                                 YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 5
+Thai Navy Problem (THAI,SEQ=98)
+Equation Listing    SOLVE thainavy Using MIP From line 86
+
+
+---- objdef  =E=  
+
+objdef..  - 4.7*z(v-01,small) - 4.7*z(v-01,medium) - 4.7*z(v-01,large) - 5.6*z(v-02,medium) - 5.6*z(v-02,large) - 7*z(v-03,medium) - 7*z(v-03,large) - 8.5*z(v-04,large) - 6.15*z(v-05,medium) - 6.15*z(v-05,large) - 7.4*z(v-06,medium) - 7.4*z(v-06,large)
+     
+      - 9.1*z(v-07,large) - 7.65*z(v-08,medium) - 7.65*z(v-08,large) - 7.65*z(v-09,large) - 9*z(v-10,large) - 8.2*z(v-11,medium) - 8.2*z(v-11,large) - 9.6*z(v-12,large) - 9.4*z(v-13,large) - 9.65*z(v-14,large) - 10.2*z(v-15,large)
+     
+      - 0.037*y(v-01,small,chumphon) - 0.037*y(v-01,medium,chumphon) - 0.037*y(v-01,large,chumphon) - 0.046*y(v-02,medium,surat) - 0.046*y(v-02,large,surat) - 0.06*y(v-03,medium,nakon) - 0.06*y(v-03,large,nakon) - 0.075*y(v-04,large,songkhla)
+     
+      - 0.0515*y(v-05,medium,chumphon) - 0.0515*y(v-05,medium,surat) - 0.0515*y(v-05,large,chumphon) - 0.0515*y(v-05,large,surat) - 0.064*y(v-06,medium,chumphon) - 0.064*y(v-06,medium,nakon) - 0.064*y(v-06,large,chumphon) - 0.064*y(v-06,large,nakon)
+     
+      - 0.081*y(v-07,large,chumphon) - 0.081*y(v-07,large,songkhla) - 0.0665*y(v-08,medium,surat) - 0.0665*y(v-08,medium,nakon) - 0.0665*y(v-08,large,surat) - 0.0665*y(v-08,large,nakon) - 0.0665*y(v-09,large,surat) - 0.0665*y(v-09,large,songkhla)
+     
+      - 0.08*y(v-10,large,nakon) - 0.08*y(v-10,large,songkhla) - 0.072*y(v-11,medium,chumphon) - 0.072*y(v-11,medium,surat) - 0.072*y(v-11,medium,nakon) - 0.072*y(v-11,large,chumphon) - 0.072*y(v-11,large,surat) - 0.072*y(v-11,large,nakon)
+     
+      - 0.086*y(v-12,large,chumphon) - 0.086*y(v-12,large,surat) - 0.086*y(v-12,large,songkhla) - 0.084*y(v-13,large,chumphon) - 0.084*y(v-13,large,nakon) - 0.084*y(v-13,large,songkhla) - 0.0865*y(v-14,large,surat) - 0.0865*y(v-14,large,nakon)
+     
+      - 0.0865*y(v-14,large,songkhla) - 0.092*y(v-15,large,chumphon) - 0.092*y(v-15,large,surat) - 0.092*y(v-15,large,nakon) - 0.092*y(v-15,large,songkhla) + obj =E= 0 ; (LHS = 0)
+     
+
+---- demand  =G=  pick up all the men at port i
+
+demand(chumphon)..  y(v-01,small,chumphon) + y(v-01,medium,chumphon) + y(v-01,large,chumphon) + y(v-05,medium,chumphon) + y(v-05,large,chumphon) + y(v-06,medium,chumphon) + y(v-06,large,chumphon) + y(v-07,large,chumphon) + y(v-11,medium,chumphon)
+     
+      + y(v-11,large,chumphon) + y(v-12,large,chumphon) + y(v-13,large,chumphon) + y(v-15,large,chumphon) =G= 475 ; (LHS = 0, INFES = 475 ****)
+     
+demand(surat)..  y(v-02,medium,surat) + y(v-02,large,surat) + y(v-05,medium,surat) + y(v-05,large,surat) + y(v-08,medium,surat) + y(v-08,large,surat) + y(v-09,large,surat) + y(v-11,medium,surat) + y(v-11,large,surat) + y(v-12,large,surat)
+     
+      + y(v-14,large,surat) + y(v-15,large,surat) =G= 659 ; (LHS = 0, INFES = 659 ****)
+     
+demand(nakon)..  y(v-03,medium,nakon) + y(v-03,large,nakon) + y(v-06,medium,nakon) + y(v-06,large,nakon) + y(v-08,medium,nakon) + y(v-08,large,nakon) + y(v-10,large,nakon) + y(v-11,medium,nakon) + y(v-11,large,nakon) + y(v-13,large,nakon)
+     
+      + y(v-14,large,nakon) + y(v-15,large,nakon) =G= 672 ; (LHS = 0, INFES = 672 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- voycap  =L=  observe variable capacity of voyage jk
+
+voycap(v-01,small)..  - 100*z(v-01,small) + y(v-01,small,chumphon) =L= 0 ; (LHS = 0)
+     
+voycap(v-01,medium)..  - 200*z(v-01,medium) + y(v-01,medium,chumphon) =L= 0 ; (LHS = 0)
+     
+voycap(v-01,large)..  - 600*z(v-01,large) + y(v-01,large,chumphon) =L= 0 ; (LHS = 0)
+     
+REMAINING 20 ENTRIES SKIPPED
+
+
+---- shiplim  =L=  observe limit of class k
+
+shiplim(small)..  z(v-01,small) =L= 2 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 6
+Thai Navy Problem (THAI,SEQ=98)
+Equation Listing    SOLVE thainavy Using MIP From line 86
+
+
+     shiplim  =L=  observe limit of class k
+
+shiplim(medium)..  z(v-01,medium) + z(v-02,medium) + z(v-03,medium) + z(v-05,medium) + z(v-06,medium) + z(v-08,medium) + z(v-11,medium) =L= 3 ; (LHS = 0)
+     
+shiplim(large)..  z(v-01,large) + z(v-02,large) + z(v-03,large) + z(v-04,large) + z(v-05,large) + z(v-06,large) + z(v-07,large) + z(v-08,large) + z(v-09,large) + z(v-10,large) + z(v-11,large) + z(v-12,large) + z(v-13,large) + z(v-14,large) + z(v-15,large)
+      =L= 4 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 7
+Thai Navy Problem (THAI,SEQ=98)
+Column Listing      SOLVE thainavy Using MIP From line 86
+
+
+---- z  number of times voyage jk is used
+
+z(v-01,small)
+                (.LO, .L, .UP, .M = 0, 0, 2, 0)
+       -4.7     objdef
+     -100       voycap(v-01,small)
+        1       shiplim(small)
+
+z(v-01,medium)
+                (.LO, .L, .UP, .M = 0, 0, 3, 0)
+       -4.7     objdef
+     -200       voycap(v-01,medium)
+        1       shiplim(medium)
+
+z(v-01,large)
+                (.LO, .L, .UP, .M = 0, 0, 4, 0)
+       -4.7     objdef
+     -600       voycap(v-01,large)
+        1       shiplim(large)
+
+REMAINING 20 ENTRIES SKIPPED
+
+---- y  number of men transported from port i via voyage jk
+
+y(v-01,small,chumphon)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.037   objdef
+        1       demand(chumphon)
+        1       voycap(v-01,small)
+
+y(v-01,medium,chumphon)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.037   objdef
+        1       demand(chumphon)
+        1       voycap(v-01,medium)
+
+y(v-01,large,chumphon)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.037   objdef
+        1       demand(chumphon)
+        1       voycap(v-01,large)
+
+REMAINING 42 ENTRIES SKIPPED
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 8
+Thai Navy Problem (THAI,SEQ=98)
+Model Statistics    SOLVE thainavy Using MIP From line 86
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           31
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           69
+NON ZERO ELEMENTS           205     DISCRETE VARIABLES         23
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:47 Page 9
+Thai Navy Problem (THAI,SEQ=98)
+Solution Report     SOLVE thainavy Using MIP From line 86
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   thainavy            OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  86
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/thai/convert.opt"
+>>  gams thai-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/thai/convert.opt"
+Gams      : thai-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:47 Page 10
+Thai Navy Problem (THAI,SEQ=98)
+E x e c u t i o n
+
+
+----     88 VARIABLE y.L  number of men transported from port i via voyage jk
+
+                      ( ALL       0.000 )
+
+
+----     88 VARIABLE z.L  number of times voyage jk is used
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/thai/thai.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/thai/thai-scalar.gms.lst

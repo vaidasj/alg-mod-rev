@@ -1,0 +1,31 @@
+--- Job qp5.gms Start 12/13/18 10:31:11 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- qp5.gms(16) 2 Mb
+--- .qpdata.inc(16290) 4 Mb
+--- qp5.gms(57) 4 Mb
+--- Starting execution: elapsed 0:00:00.020
+--- qp5.gms(16322) 6 Mb
+--- Generating LP model qp5
+--- qp5.gms(16345) 6 Mb
+---   32 rows  109 columns  1,639 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.030
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp5/convert.opt"
+>>  ampl qp5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp5/convert.opt"
+--- Writing Ampl      : qp5-scalar.mod
+
+--- Restarting execution
+--- qp5.gms(16345) 4 Mb
+--- Reading solution for model qp5
+--- qp5.gms(16346) 4 Mb
+*** Status: Normal completion
+--- Job qp5.gms Stop 12/13/18 10:31:11 elapsed 0:00:00.054

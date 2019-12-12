@@ -1,0 +1,930 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 2
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+C o m p i l a t i o n
+
+
+   4   
+       
+      Minimize the time taken for a robot arm to
+      travel between two points.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of discretization points can be specified using the command
+      line parameter --nh. COPS performance tests have been reported for nh
+      = 50, 100, 200, 400
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Vanderbei, R, Nonlinear Optimization Models.
+       
+  25   
+  26   
+  29   
+  30  sets  h intervals / h0 * h50/
+  31   
+  32  scalars
+  33      pi a famous constant
+  34      nh number of intervals / 50 /
+  35      L  total length of arm / 5 /
+  36      max_u_rho  / 1 /
+  37      max_u_the  / 1 /
+  38      max_u_phi  / 1 /;
+  39   
+  40  pi = 2*arctan(inf);
+  41   
+  42  variables
+  43      rho(h)
+  44      the(h)
+  45      phi(h)
+  46      rho_dot(h)
+  47      the_dot(h)
+  48      phi_dot(h)
+  49      u_rho(h)
+  50      u_the(h)
+  51      u_phi(h)
+  52      step
+  53      tf
+  54      i_the(h)
+  55      i_phi(h)
+  56   
+  57  equations
+  58       tf_eqn
+  59       rho_eqn(h)
+  60       the_eqn(h)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 3
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+C o m p i l a t i o n
+
+
+  61       phi_eqn(h)
+  62       u_rho_eqn(h)
+  63       u_the_eqn(h)
+  64       u_phi_eqn(h)
+  65       i_the_eqn(h)
+  66       i_phi_eqn(h);
+  67   
+  68   
+  69  tf_eqn.. tf =e= step*nh;
+  70   
+  71  i_phi_eqn(h).. i_phi(h) =e= (power(L-rho(h),3)+power(rho(h),3))/3.0;
+  72   
+  73  i_the_eqn(h).. i_the(h) =e= i_phi(h)*sqr(sin(phi(h)));
+  74   
+  75  rho_eqn(h-1)..  rho(h) =e= rho(h-1) + 0.5*step*(rho_dot(h) + rho_dot(h-1));
+  76   
+  77  the_eqn(h-1)..  the(h) =e= the(h-1) + 0.5*step*(the_dot(h) + the_dot(h-1));
+  78   
+  79  phi_eqn(h-1)..  phi(h) =e= phi(h-1) + 0.5*step*(phi_dot(h) + phi_dot(h-1));
+  80   
+  81  u_rho_eqn(h-1)..  rho_dot(h) =e=
+  82                      rho_dot(h-1) + 0.5*step*(u_rho(h) + u_rho(h-1))/L;
+  83   
+  84  u_the_eqn(h-1)..  the_dot(h) =e=
+  85            the_dot(h-1) + 0.5*step*(u_the(h)/i_the(h) + u_the(h-1)/i_the(h-1));
+  86   
+  87  u_phi_eqn(h-1)..  phi_dot(h) =e=
+  88            phi_dot(h-1) + 0.5*step*(u_phi(h)/i_phi(h) + u_phi(h-1)/i_phi(h-1));
+  89   
+  90   
+  91  rho.lo(h) = 0;    rho.up(h) = L;
+  92  the.lo(h) = -pi;  the.up(h) = pi;
+  93  phi.lo(h) = 0;    phi.up(h) = pi;
+  94   
+  95  u_rho.lo(h) = -max_u_rho;  u_rho.up(h) = max_u_rho;
+  96  u_the.lo(h) = -max_u_the;  u_the.up(h) = max_u_the;
+  97  u_phi.lo(h) = -max_u_phi;  u_phi.up(h) = max_u_phi;
+  98   
+  99  i_the.lo(h) = 0.0001;
+ 100  i_phi.lo(h) = 0.0001;
+ 101   
+ 102  set firstlast(h) / h0, h50 /;
+ 103   
+ 104  the.fx('h0')    = 0;
+ 105  the.fx('h50') = 2*pi/3;
+ 106   
+ 107  rho.fx(firstlast)      = 4.5;
+ 108  phi.fx(firstlast)      = pi/4;
+ 109  rho_dot.fx(firstlast)  = 0;
+ 110  the_dot.fx(firstlast)  = 0;
+ 111  phi_dot.fx(firstlast)  = 0;
+ 112  i_phi.fx(firstlast(h)) = (power(L-rho.l(h),3)+power(rho.l(h),3))/3.0;
+ 113  i_the.fx(firstlast(h)) = i_phi.l(h)*sqr(sin(phi.l(h)));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 4
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+C o m p i l a t i o n
+
+
+ 114   
+ 115  rho.l(h) = 4.5;
+ 116  the.l(h) = (2*pi/3)*sqr(ord(h)/nh);
+ 117  phi.l(h) = pi/4;
+ 118   
+ 119  rho_dot.l(h) = 0.0;
+ 120  the_dot.l(h) = (4*pi/3)*(ord(h)/nh);
+ 121  phi_dot.l(h) = 0.0;
+ 122   
+ 123  step.l = 1/nh;
+ 124   
+ 125  i_phi.l(h) = (power(L-rho.l(h),3)+power(rho.l(h),3))/3.0;
+ 126  i_the.l(h) = i_phi.l(h)*sqr(sin(phi.l(h)));
+ 127   
+ 128   
+ 129  model robot /all/;
+ 130   
+ 132   
+ 133  solve robot miniziming tf using nlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 5
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Equation Listing    SOLVE robot Using NLP From line 133
+
+
+---- tf_eqn  =E=  
+
+tf_eqn..  - 50*step + tf =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- rho_eqn  =E=  
+
+rho_eqn(h0)..  - rho(h0) + rho(h1) - (0.01)*rho_dot(h0) - (0.01)*rho_dot(h1) + (0)*step =E= 0 ; (LHS = 0)
+     
+rho_eqn(h1)..  - rho(h1) + rho(h2) - (0.01)*rho_dot(h1) - (0.01)*rho_dot(h2) + (0)*step =E= 0 ; (LHS = 0)
+     
+rho_eqn(h2)..  - rho(h2) + rho(h3) - (0.01)*rho_dot(h2) - (0.01)*rho_dot(h3) + (0)*step =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- the_eqn  =E=  
+
+the_eqn(h0)..  - the(h0) + the(h1) - (0.01)*the_dot(h0) - (0.01)*the_dot(h1) - (0.0837758040957278)*step =E= 0 ; (LHS = 0.00167551608191456, INFES = 0.00167551608191456 ****)
+     
+the_eqn(h1)..  - the(h1) + the(h2) - (0.01)*the_dot(h1) - (0.01)*the_dot(h2) - (0.20943951023932)*step =E= 0 ; (LHS = 0)
+     
+the_eqn(h2)..  - the(h2) + the(h3) - (0.01)*the_dot(h2) - (0.01)*the_dot(h3) - (0.293215314335047)*step =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- phi_eqn  =E=  
+
+phi_eqn(h0)..  - phi(h0) + phi(h1) - (0.01)*phi_dot(h0) - (0.01)*phi_dot(h1) + (0)*step =E= 0 ; (LHS = 0)
+     
+phi_eqn(h1)..  - phi(h1) + phi(h2) - (0.01)*phi_dot(h1) - (0.01)*phi_dot(h2) + (0)*step =E= 0 ; (LHS = 0)
+     
+phi_eqn(h2)..  - phi(h2) + phi(h3) - (0.01)*phi_dot(h2) - (0.01)*phi_dot(h3) + (0)*step =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- u_rho_eqn  =E=  
+
+u_rho_eqn(h0)..  - rho_dot(h0) + rho_dot(h1) - (0.002)*u_rho(h0) - (0.002)*u_rho(h1) + (0)*step =E= 0 ; (LHS = 0)
+     
+u_rho_eqn(h1)..  - rho_dot(h1) + rho_dot(h2) - (0.002)*u_rho(h1) - (0.002)*u_rho(h2) + (0)*step =E= 0 ; (LHS = 0)
+     
+u_rho_eqn(h2)..  - rho_dot(h2) + rho_dot(h3) - (0.002)*u_rho(h2) - (0.002)*u_rho(h3) + (0)*step =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 6
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Equation Listing    SOLVE robot Using NLP From line 133
+
+
+---- u_the_eqn  =E=  
+
+u_the_eqn(h0)..  - the_dot(h0) + the_dot(h1) - (0.000657534246575342)*u_the(h0) - (0.000657534246575342)*u_the(h1) + (0)*step + (0)*i_the(h0) + (0)*i_the(h1) =E= 0 ; (LHS = 0.167551608191456, INFES = 0.167551608191456 ****)
+     
+u_the_eqn(h1)..  - the_dot(h1) + the_dot(h2) - (0.000657534246575342)*u_the(h1) - (0.000657534246575342)*u_the(h2) + (0)*step + (0)*i_the(h1) + (0)*i_the(h2) =E= 0 ; (LHS = 0.0837758040957278, INFES = 0.0837758040957278 ****)
+     
+u_the_eqn(h2)..  - the_dot(h2) + the_dot(h3) - (0.000657534246575342)*u_the(h2) - (0.000657534246575342)*u_the(h3) + (0)*step + (0)*i_the(h2) + (0)*i_the(h3) =E= 0 ; (LHS = 0.0837758040957278, INFES = 0.0837758040957278 ****)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- u_phi_eqn  =E=  
+
+u_phi_eqn(h0)..  - phi_dot(h0) + phi_dot(h1) - (0.000328767123287671)*u_phi(h0) - (0.000328767123287671)*u_phi(h1) + (0)*step + (0)*i_phi(h0) + (0)*i_phi(h1) =E= 0 ; (LHS = 0)
+     
+u_phi_eqn(h1)..  - phi_dot(h1) + phi_dot(h2) - (0.000328767123287671)*u_phi(h1) - (0.000328767123287671)*u_phi(h2) + (0)*step + (0)*i_phi(h1) + (0)*i_phi(h2) =E= 0 ; (LHS = 0)
+     
+u_phi_eqn(h2)..  - phi_dot(h2) + phi_dot(h3) - (0.000328767123287671)*u_phi(h2) - (0.000328767123287671)*u_phi(h3) + (0)*step + (0)*i_phi(h2) + (0)*i_phi(h3) =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- i_the_eqn  =E=  
+
+i_the_eqn(h0)..  - (30.4166666666667)*phi(h0) + i_the(h0) - (0.5)*i_phi(h0) =E= 0 ; (LHS = 0)
+     
+i_the_eqn(h1)..  - (30.4166666666667)*phi(h1) + i_the(h1) - (0.5)*i_phi(h1) =E= 0 ; (LHS = 0)
+     
+i_the_eqn(h2)..  - (30.4166666666667)*phi(h2) + i_the(h2) - (0.5)*i_phi(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- i_phi_eqn  =E=  
+
+i_phi_eqn(h0)..  - (20)*rho(h0) + i_phi(h0) =E= 0 ; (LHS = 0)
+     
+i_phi_eqn(h1)..  - (20)*rho(h1) + i_phi(h1) =E= 0 ; (LHS = 0)
+     
+i_phi_eqn(h2)..  - (20)*rho(h2) + i_phi(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 7
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+---- rho  
+
+rho(h0)
+                (.LO, .L, .UP, .M = 4.5, 4.5, 4.5, 0)
+       -1       rho_eqn(h0)
+     (-20)      i_phi_eqn(h0)
+
+rho(h1)
+                (.LO, .L, .UP, .M = 0, 4.5, 5, 0)
+        1       rho_eqn(h0)
+       -1       rho_eqn(h1)
+     (-20)      i_phi_eqn(h1)
+
+rho(h2)
+                (.LO, .L, .UP, .M = 0, 4.5, 5, 0)
+        1       rho_eqn(h1)
+       -1       rho_eqn(h2)
+     (-20)      i_phi_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- the  
+
+the(h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       the_eqn(h0)
+        0.0008  (OLD LEVEL ****)
+
+the(h1)
+                (.LO, .L, .UP, .M = -3.14159265358979, 0.00335103216382911, 3.14159265358979, 0)
+        1       the_eqn(h0)
+       -1       the_eqn(h1)
+
+the(h2)
+                (.LO, .L, .UP, .M = -3.14159265358979, 0.0075398223686155, 3.14159265358979, 0)
+        1       the_eqn(h1)
+       -1       the_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- phi  
+
+phi(h0)
+                (.LO, .L, .UP, .M = 0.785398163397449, 0.785398163397449, 0.785398163397449, 0)
+       -1       phi_eqn(h0)
+     (-30.4167) i_the_eqn(h0)
+
+phi(h1)
+                (.LO, .L, .UP, .M = 0, 0.785398163397449, 3.14159265358979, 0)
+        1       phi_eqn(h0)
+       -1       phi_eqn(h1)
+     (-30.4167) i_the_eqn(h1)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 8
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     phi  
+
+phi(h2)
+                (.LO, .L, .UP, .M = 0, 0.785398163397449, 3.14159265358979, 0)
+        1       phi_eqn(h1)
+       -1       phi_eqn(h2)
+     (-30.4167) i_the_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- rho_dot  
+
+rho_dot(h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+      (-0.01)   rho_eqn(h0)
+       -1       u_rho_eqn(h0)
+
+rho_dot(h1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (-0.01)   rho_eqn(h0)
+      (-0.01)   rho_eqn(h1)
+        1       u_rho_eqn(h0)
+       -1       u_rho_eqn(h1)
+
+rho_dot(h2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (-0.01)   rho_eqn(h1)
+      (-0.01)   rho_eqn(h2)
+        1       u_rho_eqn(h1)
+       -1       u_rho_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- the_dot  
+
+the_dot(h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+      (-0.01)   the_eqn(h0)
+       -1       u_the_eqn(h0)
+        0.0838  (OLD LEVEL ****)
+
+the_dot(h1)
+                (.LO, .L, .UP, .M = -INF, 0.167551608191456, +INF, 0)
+      (-0.01)   the_eqn(h0)
+      (-0.01)   the_eqn(h1)
+        1       u_the_eqn(h0)
+       -1       u_the_eqn(h1)
+
+the_dot(h2)
+                (.LO, .L, .UP, .M = -INF, 0.251327412287183, +INF, 0)
+      (-0.01)   the_eqn(h1)
+      (-0.01)   the_eqn(h2)
+        1       u_the_eqn(h1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 9
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     the_dot  
+
+       -1       u_the_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- phi_dot  
+
+phi_dot(h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+      (-0.01)   phi_eqn(h0)
+       -1       u_phi_eqn(h0)
+
+phi_dot(h1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (-0.01)   phi_eqn(h0)
+      (-0.01)   phi_eqn(h1)
+        1       u_phi_eqn(h0)
+       -1       u_phi_eqn(h1)
+
+phi_dot(h2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      (-0.01)   phi_eqn(h1)
+      (-0.01)   phi_eqn(h2)
+        1       u_phi_eqn(h1)
+       -1       u_phi_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- u_rho  
+
+u_rho(h0)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.002)  u_rho_eqn(h0)
+
+u_rho(h1)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.002)  u_rho_eqn(h0)
+      (-0.002)  u_rho_eqn(h1)
+
+u_rho(h2)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.002)  u_rho_eqn(h1)
+      (-0.002)  u_rho_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- u_the  
+
+u_the(h0)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.0007) u_the_eqn(h0)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 10
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     u_the  
+
+u_the(h1)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.0007) u_the_eqn(h0)
+      (-0.0007) u_the_eqn(h1)
+
+u_the(h2)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.0007) u_the_eqn(h1)
+      (-0.0007) u_the_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- u_phi  
+
+u_phi(h0)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.0003) u_phi_eqn(h0)
+
+u_phi(h1)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.0003) u_phi_eqn(h0)
+      (-0.0003) u_phi_eqn(h1)
+
+u_phi(h2)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+      (-0.0003) u_phi_eqn(h1)
+      (-0.0003) u_phi_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- step  
+
+step
+                (.LO, .L, .UP, .M = -INF, 0.02, +INF, 0)
+      -50       tf_eqn
+       (0)      rho_eqn(h0)
+       (0)      rho_eqn(h1)
+       (0)      rho_eqn(h2)
+       (0)      rho_eqn(h3)
+       (0)      rho_eqn(h4)
+       (0)      rho_eqn(h5)
+       (0)      rho_eqn(h6)
+       (0)      rho_eqn(h7)
+       (0)      rho_eqn(h8)
+       (0)      rho_eqn(h9)
+       (0)      rho_eqn(h10)
+       (0)      rho_eqn(h11)
+       (0)      rho_eqn(h12)
+       (0)      rho_eqn(h13)
+       (0)      rho_eqn(h14)
+       (0)      rho_eqn(h15)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 11
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     step  
+
+       (0)      rho_eqn(h16)
+       (0)      rho_eqn(h17)
+       (0)      rho_eqn(h18)
+       (0)      rho_eqn(h19)
+       (0)      rho_eqn(h20)
+       (0)      rho_eqn(h21)
+       (0)      rho_eqn(h22)
+       (0)      rho_eqn(h23)
+       (0)      rho_eqn(h24)
+       (0)      rho_eqn(h25)
+       (0)      rho_eqn(h26)
+       (0)      rho_eqn(h27)
+       (0)      rho_eqn(h28)
+       (0)      rho_eqn(h29)
+       (0)      rho_eqn(h30)
+       (0)      rho_eqn(h31)
+       (0)      rho_eqn(h32)
+       (0)      rho_eqn(h33)
+       (0)      rho_eqn(h34)
+       (0)      rho_eqn(h35)
+       (0)      rho_eqn(h36)
+       (0)      rho_eqn(h37)
+       (0)      rho_eqn(h38)
+       (0)      rho_eqn(h39)
+       (0)      rho_eqn(h40)
+       (0)      rho_eqn(h41)
+       (0)      rho_eqn(h42)
+       (0)      rho_eqn(h43)
+       (0)      rho_eqn(h44)
+       (0)      rho_eqn(h45)
+       (0)      rho_eqn(h46)
+       (0)      rho_eqn(h47)
+       (0)      rho_eqn(h48)
+       (0)      rho_eqn(h49)
+      (-0.0838) the_eqn(h0)
+      (-0.2094) the_eqn(h1)
+      (-0.2932) the_eqn(h2)
+      (-0.377)  the_eqn(h3)
+      (-0.4608) the_eqn(h4)
+      (-0.5445) the_eqn(h5)
+      (-0.6283) the_eqn(h6)
+      (-0.7121) the_eqn(h7)
+      (-0.7959) the_eqn(h8)
+      (-0.8796) the_eqn(h9)
+      (-0.9634) the_eqn(h10)
+      (-1.0472) the_eqn(h11)
+      (-1.131)  the_eqn(h12)
+      (-1.2147) the_eqn(h13)
+      (-1.2985) the_eqn(h14)
+      (-1.3823) the_eqn(h15)
+      (-1.4661) the_eqn(h16)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 12
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     step  
+
+      (-1.5499) the_eqn(h17)
+      (-1.6336) the_eqn(h18)
+      (-1.7174) the_eqn(h19)
+      (-1.8012) the_eqn(h20)
+      (-1.885)  the_eqn(h21)
+      (-1.9687) the_eqn(h22)
+      (-2.0525) the_eqn(h23)
+      (-2.1363) the_eqn(h24)
+      (-2.2201) the_eqn(h25)
+      (-2.3038) the_eqn(h26)
+      (-2.3876) the_eqn(h27)
+      (-2.4714) the_eqn(h28)
+      (-2.5552) the_eqn(h29)
+      (-2.6389) the_eqn(h30)
+      (-2.7227) the_eqn(h31)
+      (-2.8065) the_eqn(h32)
+      (-2.8903) the_eqn(h33)
+      (-2.974)  the_eqn(h34)
+      (-3.0578) the_eqn(h35)
+      (-3.1416) the_eqn(h36)
+      (-3.2254) the_eqn(h37)
+      (-3.3091) the_eqn(h38)
+      (-3.3929) the_eqn(h39)
+      (-3.4767) the_eqn(h40)
+      (-3.5605) the_eqn(h41)
+      (-3.6442) the_eqn(h42)
+      (-3.728)  the_eqn(h43)
+      (-3.8118) the_eqn(h44)
+      (-3.8956) the_eqn(h45)
+      (-3.9794) the_eqn(h46)
+      (-4.0631) the_eqn(h47)
+      (-4.1469) the_eqn(h48)
+      (-2.0944) the_eqn(h49)
+       (0)      phi_eqn(h0)
+       (0)      phi_eqn(h1)
+       (0)      phi_eqn(h2)
+       (0)      phi_eqn(h3)
+       (0)      phi_eqn(h4)
+       (0)      phi_eqn(h5)
+       (0)      phi_eqn(h6)
+       (0)      phi_eqn(h7)
+       (0)      phi_eqn(h8)
+       (0)      phi_eqn(h9)
+       (0)      phi_eqn(h10)
+       (0)      phi_eqn(h11)
+       (0)      phi_eqn(h12)
+       (0)      phi_eqn(h13)
+       (0)      phi_eqn(h14)
+       (0)      phi_eqn(h15)
+       (0)      phi_eqn(h16)
+       (0)      phi_eqn(h17)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 13
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     step  
+
+       (0)      phi_eqn(h18)
+       (0)      phi_eqn(h19)
+       (0)      phi_eqn(h20)
+       (0)      phi_eqn(h21)
+       (0)      phi_eqn(h22)
+       (0)      phi_eqn(h23)
+       (0)      phi_eqn(h24)
+       (0)      phi_eqn(h25)
+       (0)      phi_eqn(h26)
+       (0)      phi_eqn(h27)
+       (0)      phi_eqn(h28)
+       (0)      phi_eqn(h29)
+       (0)      phi_eqn(h30)
+       (0)      phi_eqn(h31)
+       (0)      phi_eqn(h32)
+       (0)      phi_eqn(h33)
+       (0)      phi_eqn(h34)
+       (0)      phi_eqn(h35)
+       (0)      phi_eqn(h36)
+       (0)      phi_eqn(h37)
+       (0)      phi_eqn(h38)
+       (0)      phi_eqn(h39)
+       (0)      phi_eqn(h40)
+       (0)      phi_eqn(h41)
+       (0)      phi_eqn(h42)
+       (0)      phi_eqn(h43)
+       (0)      phi_eqn(h44)
+       (0)      phi_eqn(h45)
+       (0)      phi_eqn(h46)
+       (0)      phi_eqn(h47)
+       (0)      phi_eqn(h48)
+       (0)      phi_eqn(h49)
+       (0)      u_rho_eqn(h0)
+       (0)      u_rho_eqn(h1)
+       (0)      u_rho_eqn(h2)
+       (0)      u_rho_eqn(h3)
+       (0)      u_rho_eqn(h4)
+       (0)      u_rho_eqn(h5)
+       (0)      u_rho_eqn(h6)
+       (0)      u_rho_eqn(h7)
+       (0)      u_rho_eqn(h8)
+       (0)      u_rho_eqn(h9)
+       (0)      u_rho_eqn(h10)
+       (0)      u_rho_eqn(h11)
+       (0)      u_rho_eqn(h12)
+       (0)      u_rho_eqn(h13)
+       (0)      u_rho_eqn(h14)
+       (0)      u_rho_eqn(h15)
+       (0)      u_rho_eqn(h16)
+       (0)      u_rho_eqn(h17)
+       (0)      u_rho_eqn(h18)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 14
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     step  
+
+       (0)      u_rho_eqn(h19)
+       (0)      u_rho_eqn(h20)
+       (0)      u_rho_eqn(h21)
+       (0)      u_rho_eqn(h22)
+       (0)      u_rho_eqn(h23)
+       (0)      u_rho_eqn(h24)
+       (0)      u_rho_eqn(h25)
+       (0)      u_rho_eqn(h26)
+       (0)      u_rho_eqn(h27)
+       (0)      u_rho_eqn(h28)
+       (0)      u_rho_eqn(h29)
+       (0)      u_rho_eqn(h30)
+       (0)      u_rho_eqn(h31)
+       (0)      u_rho_eqn(h32)
+       (0)      u_rho_eqn(h33)
+       (0)      u_rho_eqn(h34)
+       (0)      u_rho_eqn(h35)
+       (0)      u_rho_eqn(h36)
+       (0)      u_rho_eqn(h37)
+       (0)      u_rho_eqn(h38)
+       (0)      u_rho_eqn(h39)
+       (0)      u_rho_eqn(h40)
+       (0)      u_rho_eqn(h41)
+       (0)      u_rho_eqn(h42)
+       (0)      u_rho_eqn(h43)
+       (0)      u_rho_eqn(h44)
+       (0)      u_rho_eqn(h45)
+       (0)      u_rho_eqn(h46)
+       (0)      u_rho_eqn(h47)
+       (0)      u_rho_eqn(h48)
+       (0)      u_rho_eqn(h49)
+       (0)      u_the_eqn(h0)
+       (0)      u_the_eqn(h1)
+       (0)      u_the_eqn(h2)
+       (0)      u_the_eqn(h3)
+       (0)      u_the_eqn(h4)
+       (0)      u_the_eqn(h5)
+       (0)      u_the_eqn(h6)
+       (0)      u_the_eqn(h7)
+       (0)      u_the_eqn(h8)
+       (0)      u_the_eqn(h9)
+       (0)      u_the_eqn(h10)
+       (0)      u_the_eqn(h11)
+       (0)      u_the_eqn(h12)
+       (0)      u_the_eqn(h13)
+       (0)      u_the_eqn(h14)
+       (0)      u_the_eqn(h15)
+       (0)      u_the_eqn(h16)
+       (0)      u_the_eqn(h17)
+       (0)      u_the_eqn(h18)
+       (0)      u_the_eqn(h19)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 15
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     step  
+
+       (0)      u_the_eqn(h20)
+       (0)      u_the_eqn(h21)
+       (0)      u_the_eqn(h22)
+       (0)      u_the_eqn(h23)
+       (0)      u_the_eqn(h24)
+       (0)      u_the_eqn(h25)
+       (0)      u_the_eqn(h26)
+       (0)      u_the_eqn(h27)
+       (0)      u_the_eqn(h28)
+       (0)      u_the_eqn(h29)
+       (0)      u_the_eqn(h30)
+       (0)      u_the_eqn(h31)
+       (0)      u_the_eqn(h32)
+       (0)      u_the_eqn(h33)
+       (0)      u_the_eqn(h34)
+       (0)      u_the_eqn(h35)
+       (0)      u_the_eqn(h36)
+       (0)      u_the_eqn(h37)
+       (0)      u_the_eqn(h38)
+       (0)      u_the_eqn(h39)
+       (0)      u_the_eqn(h40)
+       (0)      u_the_eqn(h41)
+       (0)      u_the_eqn(h42)
+       (0)      u_the_eqn(h43)
+       (0)      u_the_eqn(h44)
+       (0)      u_the_eqn(h45)
+       (0)      u_the_eqn(h46)
+       (0)      u_the_eqn(h47)
+       (0)      u_the_eqn(h48)
+       (0)      u_the_eqn(h49)
+       (0)      u_phi_eqn(h0)
+       (0)      u_phi_eqn(h1)
+       (0)      u_phi_eqn(h2)
+       (0)      u_phi_eqn(h3)
+       (0)      u_phi_eqn(h4)
+       (0)      u_phi_eqn(h5)
+       (0)      u_phi_eqn(h6)
+       (0)      u_phi_eqn(h7)
+       (0)      u_phi_eqn(h8)
+       (0)      u_phi_eqn(h9)
+       (0)      u_phi_eqn(h10)
+       (0)      u_phi_eqn(h11)
+       (0)      u_phi_eqn(h12)
+       (0)      u_phi_eqn(h13)
+       (0)      u_phi_eqn(h14)
+       (0)      u_phi_eqn(h15)
+       (0)      u_phi_eqn(h16)
+       (0)      u_phi_eqn(h17)
+       (0)      u_phi_eqn(h18)
+       (0)      u_phi_eqn(h19)
+       (0)      u_phi_eqn(h20)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 16
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     step  
+
+       (0)      u_phi_eqn(h21)
+       (0)      u_phi_eqn(h22)
+       (0)      u_phi_eqn(h23)
+       (0)      u_phi_eqn(h24)
+       (0)      u_phi_eqn(h25)
+       (0)      u_phi_eqn(h26)
+       (0)      u_phi_eqn(h27)
+       (0)      u_phi_eqn(h28)
+       (0)      u_phi_eqn(h29)
+       (0)      u_phi_eqn(h30)
+       (0)      u_phi_eqn(h31)
+       (0)      u_phi_eqn(h32)
+       (0)      u_phi_eqn(h33)
+       (0)      u_phi_eqn(h34)
+       (0)      u_phi_eqn(h35)
+       (0)      u_phi_eqn(h36)
+       (0)      u_phi_eqn(h37)
+       (0)      u_phi_eqn(h38)
+       (0)      u_phi_eqn(h39)
+       (0)      u_phi_eqn(h40)
+       (0)      u_phi_eqn(h41)
+       (0)      u_phi_eqn(h42)
+       (0)      u_phi_eqn(h43)
+       (0)      u_phi_eqn(h44)
+       (0)      u_phi_eqn(h45)
+       (0)      u_phi_eqn(h46)
+       (0)      u_phi_eqn(h47)
+       (0)      u_phi_eqn(h48)
+       (0)      u_phi_eqn(h49)
+
+
+---- tf  
+
+tf
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tf_eqn
+
+
+---- i_the  
+
+i_the(h0)
+                (.LO, .L, .UP, .M = 15.2083333333333, 15.2083333333333, 15.2083333333333, 0)
+       (0)      u_the_eqn(h0)
+        1       i_the_eqn(h0)
+
+i_the(h1)
+                (.LO, .L, .UP, .M = 0.0001, 15.2083333333333, +INF, 0)
+       (0)      u_the_eqn(h0)
+       (0)      u_the_eqn(h1)
+        1       i_the_eqn(h1)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 17
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Column Listing      SOLVE robot Using NLP From line 133
+
+
+     i_the  
+
+i_the(h2)
+                (.LO, .L, .UP, .M = 0.0001, 15.2083333333333, +INF, 0)
+       (0)      u_the_eqn(h1)
+       (0)      u_the_eqn(h2)
+        1       i_the_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- i_phi  
+
+i_phi(h0)
+                (.LO, .L, .UP, .M = 30.4166666666667, 30.4166666666667, 30.4166666666667, 0)
+       (0)      u_phi_eqn(h0)
+      (-0.5)    i_the_eqn(h0)
+        1       i_phi_eqn(h0)
+
+i_phi(h1)
+                (.LO, .L, .UP, .M = 0.0001, 30.4166666666667, +INF, 0)
+       (0)      u_phi_eqn(h0)
+       (0)      u_phi_eqn(h1)
+      (-0.5)    i_the_eqn(h1)
+        1       i_phi_eqn(h1)
+
+i_phi(h2)
+                (.LO, .L, .UP, .M = 0.0001, 30.4166666666667, +INF, 0)
+       (0)      u_phi_eqn(h1)
+       (0)      u_phi_eqn(h2)
+      (-0.5)    i_the_eqn(h2)
+        1       i_phi_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 18
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Model Statistics    SOLVE robot Using NLP From line 133
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           9     SINGLE EQUATIONS          403
+BLOCKS OF VARIABLES          13     SINGLE VARIABLES          563  4 projected
+NON ZERO ELEMENTS         1,957     NON LINEAR N-Z          1,253
+DERIVATIVE POOL              20     CONSTANT POOL              18
+CODE LENGTH               3,920
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 19
+Robot arm COPS 2.0 #8 (ROBOT,SEQ=236)
+Solution Report     SOLVE robot Using NLP From line 133
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   robot               OBJECTIVE  tf
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  133
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/robot/convert.opt"
+>>  gams robot-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/robot/convert.opt"
+Gams      : robot-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/robot/robot.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/robot/robot-scalar.gms.lst

@@ -1,0 +1,32 @@
+--- Job methanol.gms Start 12/13/18 11:22:34 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- methanol.gms(85) 3 Mb
+--- .copspart.inc(67) 3 Mb
+--- methanol.gms(115) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- methanol.gms(178) 4 Mb
+--- Generating NLP model methanol
+--- methanol.gms(182) 7 Mb
+---   1,498 rows  1,506 columns  8,269 non-zeroes
+---   7,843 nl-code  3,033 nl-non-zeroes
+--- methanol.gms(182) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.017
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/methanol/convert.opt"
+>>  ampl methanol-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/methanol/convert.opt"
+--- Writing Ampl      : methanol-scalar.mod
+
+--- Restarting execution
+--- methanol.gms(182) 2 Mb
+--- Reading solution for model methanol
+*** Status: Normal completion
+--- Job methanol.gms Stop 12/13/18 11:22:34 elapsed 0:00:00.038

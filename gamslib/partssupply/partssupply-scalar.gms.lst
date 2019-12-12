@@ -1,0 +1,286 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 2
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+C o m p i l a t i o n
+
+
+   4   
+       This model is based on the ps2_f_s.358 .. ps10_s_mn.396 models by
+       Hideo Hashimoto, Kojun Hamada, and Nobuhiro Hosoe.
+       
+       Using the following options, these models can be run:
+       
+       ps2_f              : default
+       ps2_f_eff          : --nsupplier=1
+       ps2_f_inf          : --nsupplier=1 --alttheta=1
+       ps2_f_s            : --useic=1
+       ps2_s              : --useic=1
+       ps3_f              : --nsupplier=3
+       ps3_s              : --nsupplier=3  --uselicd=1
+       ps3_s_gic          : --nsupplier=3  --useic=1
+       ps3_s_mn  1st solve: --nsupplier=3  --uselicd=1
+                 2nd solve: --nsupplier=3  --uselicd=1 --altpi=1
+                 3rd solve: --nsupplier=3  --uselicd=1 --alttheta=1
+       ps3_s_scp 1st solve: --nsupplier=3  --alttheta=2 --modweight=1 --useic=1
+                 2nd solve: --nsupplier=3  --alttheta=2 --modweight=1 --uselicd=1 --uselicu=1
+       ps5_s_mn           : --nsupplier=5  --uselicd=1 --nsamples=1000
+       ps10_s             : --nsupplier=10 --uselicd=1
+       ps10_s_mn          : --nsupplier=10 --uselicd=1 --nsamples=1000
+       
+       Alternatively, the corresponding original model files can be found in
+       the GAMS model library.
+  31   
+  32   
+  42   
+  43  * Definition of Sets
+  44  Set     i       type of supplier        /1 * 2 /
+  45          t       Monte-Carlo draws       /1 * 1  /
+  46  ;
+  47  Alias (i,j);
+  48   
+  49  * Definition of Parameters
+  50  Parameter  theta(i)        efficiency
+  51             pt(i,t)         probability of type
+  52             p(i)            probability of type for currently evaluated scenario
+  53             icweight(i)     weight in ic constraints
+  54  ;
+  55  Scalar     ru              reservation utility  / 0 /;
+  56   
+  57  * Data
+  59  Parameter theta(i) / 1 0.2,  2 0.3 /;
+  60  Parameter p(i)     / 1 0.2,  2 0.8 /;
+  61   
+  63   
+  64  loop(t, pt(i,t) = uniform(0,1));
+  65  pt(i,t) = pt(i,t)/sum(j,pt(j,t));
+  66  pt(i,t) = p(i);
+  67   
+  68  * Definition of Variables and Equations
+  69  Positive Variable
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 3
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+C o m p i l a t i o n
+
+
+  70          x(i)            quality
+  71          b(i)            maker's revenue
+  72          w(i)            price
+  73  ;
+  74  Variable Util           maker's utility;
+  75   
+  76  Equation obj            maker's utility function
+  77           rev(i)         maker's revenue function
+  78           pc(i)          participation constraint
+  79           ic(i,j)        incentive compatibility constraint
+  80           licd(i)        incentive compatibility constraint
+  81           licu(i)        incentive compatibility constraint
+  82           mn(i)          monotonicity constraint
+  83  ;
+  84   
+  85  * Specification of Equations
+  86  obj..     Util =e= sum(i, p(i)*(b(i)-w(i)));
+  87   
+  88  rev(i)..  b(i) =e= sqrt(x(i));
+  89   
+  90  pc(i)..
+  91  w(i) - theta(i)   *x(i) =g= ru;
+  93   
+  94  ic(i,j).. w(i) - icweight(i)*x(i) =g= w(j)   - icweight(i) * x(j);
+  95   
+  96  licd(i)$(ord(i)<card(i))..
+  97            w(i) - icweight(i)*x(i) =g= w(i+1) - icweight(i) * x(i+1);
+  98   
+  99  licu(i)$(ord(i)>1)..
+ 100            w(i) - icweight(i)*x(i) =g= w(i-1) - icweight(i) * x(i-1);
+ 101   
+ 102  mn(i)$(ord(i)<card(i))..
+ 103            x(i) =g= x(i+1);
+ 104   
+ 105   
+ 106  * Setting Lower Bounds on Variables to Avoid Division by Zero
+ 107  x.lo(i)=0.0001;
+ 108   
+ 109  * Defining the Models
+ 110  Model m 'parts supply model w/o monotonicity'
+ 111  / all - mn
+ 112  -ic
+ 113  -licd
+ 114  -licu
+ 115  /;
+ 116   
+ 117  Model m_mn 'parts supply model w/ monotonicity' / m + mn /;
+ 118   
+ 119  * Parameters to store some solution values
+ 120  Parameter  Util_lic(t)  "Util solved w/o MN"
+ 121             Util_lic2(t) "Util solved w/  MN"
+ 122             x_lic(i,t)   "x solved    w/o MN"
+ 123             x_lic2(i,t)  "x solved    w/  MN"
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 4
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+C o m p i l a t i o n
+
+
+ 124  ;
+ 125   
+ 126  * Solving the Model
+ 127  option limrow = 0;
+ 128  option limcol = 0;
+ 129   
+ 130  loop(t,
+ 131    p(i) = pt(i,t);
+ 132    icweight(i) = theta(i)$(not 0) + (1-theta(i)+sqr(theta(i)))$(0);
+ 133   
+ 134    Solve m maximizing Util using NLP;
+ 135   
+ 136    Util_lic(t) = util.l;
+ 137    x_lic(i,t)  = x.l(i);
+ 138   
+ 139    Solve m_mn maximizing Util using NLP;
+ 140   
+ 141    Util_lic2(t) = util.l;
+ 142    x_lic2(i,t)  = x.l(i);
+ 143   
+ 144    option solprint = off;
+ 145  );
+ 146   
+ 147   
+EXIT /home/renigijus/gams/opt-mod-lib/gamslib/partssupply/partssupply.gms
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 5
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/partssupply/partssupply.gms
+     2      148 EXIT           1     163  /home/renigijus/gams/opt-mod-lib/gamslib/partssupply/partssupply.gms
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 6
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+Model Statistics    SOLVE m Using NLP From line 134
+
+
+LOOPS                                    t   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES            7  2 projected
+NON ZERO ELEMENTS            13     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  10
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  t 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 7
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+Solution Report     SOLVE m Using NLP From line 134
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  134
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/partssupply/convert.opt"
+>>  gams partssupply-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/partssupply/convert.opt"
+Gams      : partssupply-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 8
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+Model Statistics    SOLVE m_mn Using NLP From line 139
+
+
+LOOPS                                    t   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES            7  2 projected
+NON ZERO ELEMENTS            15     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  10
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  t 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 9
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+Solution Report     SOLVE m_mn Using NLP From line 139
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m_mn                OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  139
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/partssupply/convert.opt"
+>>  gams partssupply-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/partssupply/convert.opt"
+Gams      : partssupply-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 10
+Parts Supply Problem (PARTSSUPPLY,SEQ=404)
+E x e c u t i o n
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/partssupply/partssupply.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/partssupply/partssupply-scalar.gms.lst

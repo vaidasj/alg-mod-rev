@@ -1,0 +1,193 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+   3  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 2
+Grid/MT Transportation Problem with Single Submit and Collect Loop (TGRIDMIX,SEQ=391)
+C o m p i l a t i o n
+
+
+       
+      This problem finds a least cost shipping schedule that meets
+      requirements at markets and supplies at factories.
+       
+      The model demonstrates how to run multiple scenarios with different
+      demands in a parallel fashion using the GAMS asynchronous grid and
+      threads facility. This model submits and collects jobs in a single
+      loop. This allows to control the total number of active jobs during
+      the entire execution.
+       
+       
+      Dantzig, G B, Chapter 3.3. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  21   
+  22    Sets
+  23         i   canning plants   / seattle, san-diego /
+  24         j   markets          / new-york, chicago, topeka / ;
+  25   
+  26    Parameters
+  27   
+  28         a(i)  capacity of plant i in cases
+  29           /    seattle     350
+  30                san-diego   600  /
+  31   
+  32         b(j)  demand at market j in cases
+  33           /    new-york    325
+  34                chicago     300
+  35                topeka      275  / ;
+  36   
+  37    Table d(i,j)  distance in thousands of miles
+  38                      new-york       chicago      topeka
+  39        seattle          2.5           1.7          1.8
+  40        san-diego        2.5           1.8          1.4  ;
+  41   
+  42    Scalar f  freight in dollars per case per thousand miles  /90/ ;
+  43   
+  44    Parameter c(i,j)  transport cost in thousands of dollars per case ;
+  45   
+  46              c(i,j) = f * d(i,j) / 1000 ;
+  47   
+  48    Variables
+  49         x(i,j)  shipment quantities in cases
+  50         z       total transportation costs in thousands of dollars ;
+  51   
+  52    Positive Variable x ;
+  53   
+  54    Equations
+  55         cost        define objective function
+  56         supply(i)   observe supply limit at plant i
+  57         demand(j)   satisfy demand at market j ;
+  58   
+  59    cost ..        z  =e=  sum((i,j), c(i,j)*x(i,j)) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 3
+Grid/MT Transportation Problem with Single Submit and Collect Loop (TGRIDMIX,SEQ=391)
+C o m p i l a t i o n
+
+
+  60   
+  61    supply(i) ..   sum(j, x(i,j))  =l=  a(i) ;
+  62   
+  63    demand(j) ..   sum(i, x(i,j))  =g=  b(j) ;
+  64   
+  65    Model transport /all/ ;
+  66   
+  68   
+  69  transport.limcol    = 0;
+  70  transport.limrow    = 0;
+  71  transport.solprint  = 2;
+  73  option threadsAsync=4;
+  74   
+  75  set  s           scenarios          / 1*10 /
+  76       sl          solvelink          / Threads, Grid  /
+  77       nexS(s)     next job to submit
+  78       actS(s)     active jobs
+  79       colS(s)     collected jobs
+  80  parameter
+  81       slnum(sl)   solvelink number / Threads 6
+  82                                      Grid    3 /
+  83       dem(s,j)    random demand
+  84       h(s)        store the instance handle
+  85       repx        solution report
+  86       repy        summary report
+  87       maxS        maximum number of active jobs /4/
+  88       tStart      time stamp;
+  89   
+  90   
+  91  dem(s,j)= b(j)*uniform(.95,1.15); // create some random demands
+  92  loop(sl,
+  93    tStart = jnow;
+  94    repy(sl,s,'solvestat') = na;
+  95    repy(sl,s,'modelstat') = na;
+  96    actS(s) = no; h(s) = 0; nexS(s) = sameas('1',s);
+  97    transport.solvelink = slnum(sl);
+  98   
+  99    repeat
+ 100       while (card(actS)<maxS and card(nexS),
+ 101          loop(nexS(s),
+ 102             b(j) = dem(s,j)
+ 103             Solve transport using lp minimizing z;
+ 104             h(s) = transport.handle;
+ 105             actS(s) = yes;
+ 106          );
+ 107          nexS(s) = nexS(s-1); // advance nexS
+ 108       );
+ 109       colS(s) = no;
+ 110       display$ReadyCollect(h) 'Waiting for next instance to collect';
+ 111       loop(actS(s)$handlecollect(h(s)),
+ 112          repx(sl,s,i,j) = x.l(i,j);
+ 113          repy(sl,s,'solvestat') = transport.solvestat;
+ 114          repy(sl,s,'modelstat') = transport.modelstat;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 4
+Grid/MT Transportation Problem with Single Submit and Collect Loop (TGRIDMIX,SEQ=391)
+C o m p i l a t i o n
+
+
+ 115          repy(sl,s,'resusd'   ) = transport.resusd;
+ 116          repy(sl,s,'objval')    = transport.objval;
+ 117          display$handledelete(h(s)) 'trouble deleting handles' ;
+ 118          colS(s) = yes; h(s) = 0;
+ 119       ); actS(colS) = no;
+ 120    until (card(nexS)=0 and card(actS) = 0) or timeelapsed > 10;  // wait until all models are loaded
+ 121    repy(sl,'time','elapsed') = (jnow - tStart)*3600*24;
+ 122    abort$sum(s$(repy(sl,s,'solvestat')=na),1) 'Some jobs did not return';
+ 123  );
+ 124  display repx, repy;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:36 Page 5
+Grid/MT Transportation Problem with Single Submit and Collect Loop (TGRIDMIX,SEQ=391)
+E x e c u t i o n
+
+
+----    124 PARAMETER repx  solution report
+
+                      ( ALL       0.000 )
+
+
+----    124 PARAMETER repy  summary report
+
+               solvestat   modelstat     elapsed
+
+Threads.1          1.000      14.000
+Threads.2          1.000      14.000
+Threads.3          1.000      14.000
+Threads.4          1.000      14.000
+Threads.5          1.000      14.000
+Threads.6          1.000      14.000
+Threads.7          1.000      14.000
+Threads.8          1.000      14.000
+Threads.9          1.000      14.000
+Threads.10         1.000      14.000
+Threads.time                               0.089
+Grid   .1          1.000      14.000
+Grid   .2          1.000      14.000
+Grid   .3          1.000      14.000
+Grid   .4          1.000      14.000
+Grid   .5          1.000      14.000
+Grid   .6          1.000      14.000
+Grid   .7          1.000      14.000
+Grid   .8          1.000      14.000
+Grid   .9          1.000      14.000
+Grid   .10         1.000      14.000
+Grid   .time                               0.086
+
+
+
+EXECUTION TIME       =        0.175 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/tgridmix.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/tgridmix-scalar.py.lst

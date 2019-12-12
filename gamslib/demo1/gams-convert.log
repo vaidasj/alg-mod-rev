@@ -1,0 +1,29 @@
+--- Job demo1.gms Start 12/13/18 10:24:46 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- demo1.gms(145) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- demo1.gms(2) 4 Mb
+--- Generating LP model demo1
+--- demo1.gms(121) 4 Mb
+---   41 rows  48 columns  184 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/demo1/convert.opt"
+>>  gams demo1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/demo1/convert.opt"
+--- Writing Gams      : demo1-scalar.gms
+
+--- Restarting execution
+--- demo1.gms(121) 2 Mb
+--- Reading solution for model demo1
+--- demo1.gms(143) 3 Mb
+*** Status: Normal completion
+--- Job demo1.gms Stop 12/13/18 10:24:46 elapsed 0:00:00.015

@@ -1,0 +1,655 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 2
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+C o m p i l a t i o n
+
+
+   3   
+       
+      A company manufactures nuts, bolts and washers using three different machines
+      that can be operated in normal or overtime production mode. The company
+      needs to plan operations for the next two periods.
+       
+       
+      Ellison, E F D, and Mitra, P, UIMP - User Interface for Mathematical
+      Programming. ACM Transactions on Mathematical Software 8, 2 (1982).
+       
+  15   
+  16   Sets  i  time periods       / summer, winter /
+  17         j  production mode    / normal, overtime /
+  18         k  products           / nuts, bolts, washers /
+  19         l  machines           / m1, m2, m3 /
+  20   
+  21   
+  22   Table  mh(l,k)  machine hours (hours per unit)
+  23   
+  24         nuts  bolts  washers
+  25    m1    4     4       6
+  26    m2    7     6       6
+  27    m3    3
+  28   
+  29   
+  30   Table mhadd(i,j) addfactors for mh
+  31   
+  32               normal  overtime
+  33   summer                 -1
+  34   winter        +1
+  35   
+  36   
+  37   Table  av(l,j)  availability  (hours)
+  38   
+  39           normal  overtime
+  40     m1     100       80
+  41     m2     100       90
+  42     m3      40       30
+  43   
+  44   Parameter t(i,j,k,l)  machine hours required
+  45              a(i,j,l)    machine hours available;
+  46   
+  47    t(i,j,k,l) = mh(l,k) + mhadd(i,j)$mh(l,k) ;
+  48    t("winter","overtime","washers","m1") = 5;
+  49   
+  50    a("summer",j,l) = av(l,j); a("winter",j,l) = av(l,j) + 10;
+  51   
+  52   Display mh, mhadd, av, t, a;
+  53   
+  54   
+  55   Table tc(l,k)  production cost data
+  56   
+  57          nuts  bolts  washers
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 3
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+C o m p i l a t i o n
+
+
+  58   m1      2      3       4
+  59   m2      4      3       2
+  60   m3      1
+  61   
+  62   
+  63   Table tcadd(i,j) addfactors for tc
+  64   
+  65                normal  overtime
+  66   summer                  1
+  67   winter          1       2
+  68   
+  69   
+  70   Parameter c(i,j,k,l)  production cost ;
+  71   
+  72    c(i,j,k,l) = tc(l,k) + tcadd(i,j)$tc(l,k);  display c;
+  73   
+  74   
+  75   Table  p(i,k)  selling price
+  76   
+  77                nuts  bolts  washers
+  78   summer       10     10      9
+  79   winter       11     11     10
+  80   
+  81   Table  d(i,k)  demand
+  82   
+  83               nuts  bolts  washers
+  84   summer      25     30      30
+  85   winter      30     25      25
+  86   
+  87   
+  88   Parameter s(k)   storage cost     / (nuts,bolts,washers) = 1  /
+  89             h(k)   storage capacity / (nuts,bolts)         = 20 /
+  90   
+  91   
+  92   
+  93   Variables  x(i,j,k,l)  production
+  94              y(i,k)      products stored
+  95              z(i,k)      products sold
+  96              cost, revenue, profit
+  97   
+  98   Positive Variables x, y ;
+  99   
+ 100   Equations  pdef        profit definition
+ 101              cdef        cost definition
+ 102              rdef        revenue definition
+ 103              ma(i,j,l)   machine availability
+ 104              ib(i,k)     inventory balance ;
+ 105   
+ 106   pdef.. profit =e= revenue - cost ;
+ 107   
+ 108   cdef.. cost =e= sum((i,k), s(k)*y(i,k) + sum((j,l), c(i,j,k,l)*x(i,j,k,l))) ;
+ 109   
+ 110   rdef.. revenue =e= sum((i,k), p(i,k)*z(i,k));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 4
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+C o m p i l a t i o n
+
+
+ 111   
+ 112   ma(i,j,l)..    sum(k, t(i,j,k,l)*x(i,j,k,l)) =l= a(i,j,l) ;
+ 113   
+ 114   ib(i,k).. sum((j,l)$mh(l,k), x(i,j,k,l)) + y(i-1,k) =e= z(i,k) + y(i,k) ;
+ 115   
+ 116     z.lo(i,k) = d(i,k) ;  y.up(i,k) = h(k) ;
+ 117   
+ 118   Model uimp ellison mitra / all / ;
+ 119   
+ 120    Solve uimp maximizing revenue using lp ;
+ 121    Solve uimp maximizing profit using lp ;
+ 122   
+ 123   Parameter rep summary report ;
+ 124   
+ 125       rep(l,i,k)  =  sum(j, x.l(i,j,k,l));
+ 126       rep("demand",i,k) = d(i,k);
+ 127       rep("supply",i,k) = sum(l, rep(l,i,k));
+ 128   
+ 129   Display rep;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 5
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+E x e c u t i o n
+
+
+----     52 PARAMETER mh  machine hours (hours per unit)
+
+          nuts       bolts     washers
+
+m1       4.000       4.000       6.000
+m2       7.000       6.000       6.000
+m3       3.000
+
+
+----     52 PARAMETER mhadd  addfactors for mh
+
+            normal    overtime
+
+summer                  -1.000
+winter       1.000
+
+
+----     52 PARAMETER av  availability  (hours)
+
+        normal    overtime
+
+m1     100.000      80.000
+m2     100.000      90.000
+m3      40.000      30.000
+
+
+----     52 PARAMETER t  machine hours required
+
+INDEX 1 = summer
+
+                          m1          m2          m3
+
+normal  .nuts          4.000       7.000       3.000
+normal  .bolts         4.000       6.000
+normal  .washers       6.000       6.000
+overtime.nuts          3.000       6.000       2.000
+overtime.bolts         3.000       5.000
+overtime.washers       5.000       5.000
+
+INDEX 1 = winter
+
+                          m1          m2          m3
+
+normal  .nuts          5.000       8.000       4.000
+normal  .bolts         5.000       7.000
+normal  .washers       7.000       7.000
+overtime.nuts          4.000       7.000       3.000
+overtime.bolts         4.000       6.000
+overtime.washers       5.000       6.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 6
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+E x e c u t i o n
+
+
+----     52 PARAMETER a  machine hours available
+
+                         m1          m2          m3
+
+summer.normal       100.000     100.000      40.000
+summer.overtime      80.000      90.000      30.000
+winter.normal       110.000     110.000      50.000
+winter.overtime      90.000     100.000      40.000
+
+
+----     72 PARAMETER c  production cost
+
+INDEX 1 = summer
+
+                          m1          m2          m3
+
+normal  .nuts          2.000       4.000       1.000
+normal  .bolts         3.000       3.000
+normal  .washers       4.000       2.000
+overtime.nuts          3.000       5.000       2.000
+overtime.bolts         4.000       4.000
+overtime.washers       5.000       3.000
+
+INDEX 1 = winter
+
+                          m1          m2          m3
+
+normal  .nuts          3.000       5.000       2.000
+normal  .bolts         4.000       4.000
+normal  .washers       5.000       3.000
+overtime.nuts          4.000       6.000       3.000
+overtime.bolts         5.000       5.000
+overtime.washers       6.000       4.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 7
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Equation Listing    SOLVE uimp Using LP From line 120
+
+
+---- pdef  =E=  profit definition
+
+pdef..  cost - revenue + profit =E= 0 ; (LHS = 0)
+     
+
+---- cdef  =E=  cost definition
+
+cdef..  - 2*x(summer,normal,nuts,m1) - 4*x(summer,normal,nuts,m2) - x(summer,normal,nuts,m3) - 3*x(summer,normal,bolts,m1) - 3*x(summer,normal,bolts,m2) - 4*x(summer,normal,washers,m1) - 2*x(summer,normal,washers,m2) - 3*x(summer,overtime,nuts,m1)
+     
+      - 5*x(summer,overtime,nuts,m2) - 2*x(summer,overtime,nuts,m3) - 4*x(summer,overtime,bolts,m1) - 4*x(summer,overtime,bolts,m2) - 5*x(summer,overtime,washers,m1) - 3*x(summer,overtime,washers,m2) - 3*x(winter,normal,nuts,m1)
+     
+      - 5*x(winter,normal,nuts,m2) - 2*x(winter,normal,nuts,m3) - 4*x(winter,normal,bolts,m1) - 4*x(winter,normal,bolts,m2) - 5*x(winter,normal,washers,m1) - 3*x(winter,normal,washers,m2) - 4*x(winter,overtime,nuts,m1) - 6*x(winter,overtime,nuts,m2)
+     
+      - 3*x(winter,overtime,nuts,m3) - 5*x(winter,overtime,bolts,m1) - 5*x(winter,overtime,bolts,m2) - 6*x(winter,overtime,washers,m1) - 4*x(winter,overtime,washers,m2) - y(summer,nuts) - y(summer,bolts) - y(summer,washers) - y(winter,nuts)
+     
+      - y(winter,bolts) - y(winter,washers) + cost =E= 0 ; (LHS = 0)
+     
+
+---- rdef  =E=  revenue definition
+
+rdef..  - 10*z(summer,nuts) - 10*z(summer,bolts) - 9*z(summer,washers) - 11*z(winter,nuts) - 11*z(winter,bolts) - 10*z(winter,washers) + revenue =E= 0 ; (LHS = -1675, INFES = 1675 ****)
+     
+
+---- ma  =L=  machine availability
+
+ma(summer,normal,m1)..  4*x(summer,normal,nuts,m1) + 4*x(summer,normal,bolts,m1) + 6*x(summer,normal,washers,m1) =L= 100 ; (LHS = 0)
+     
+ma(summer,normal,m2)..  7*x(summer,normal,nuts,m2) + 6*x(summer,normal,bolts,m2) + 6*x(summer,normal,washers,m2) =L= 100 ; (LHS = 0)
+     
+ma(summer,normal,m3)..  3*x(summer,normal,nuts,m3) =L= 40 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- ib  =E=  inventory balance
+
+ib(summer,nuts)..  x(summer,normal,nuts,m1) + x(summer,normal,nuts,m2) + x(summer,normal,nuts,m3) + x(summer,overtime,nuts,m1) + x(summer,overtime,nuts,m2) + x(summer,overtime,nuts,m3) - y(summer,nuts) - z(summer,nuts) =E= 0 ; (LHS = -25, INFES = 25 ****)
+     
+ib(summer,bolts)..  x(summer,normal,bolts,m1) + x(summer,normal,bolts,m2) + x(summer,overtime,bolts,m1) + x(summer,overtime,bolts,m2) - y(summer,bolts) - z(summer,bolts) =E= 0 ; (LHS = -30, INFES = 30 ****)
+     
+ib(summer,washers)..  x(summer,normal,washers,m1) + x(summer,normal,washers,m2) + x(summer,overtime,washers,m1) + x(summer,overtime,washers,m2) - y(summer,washers) - z(summer,washers) =E= 0 ; (LHS = -30, INFES = 30 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 8
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Column Listing      SOLVE uimp Using LP From line 120
+
+
+---- x  production
+
+x(summer,normal,nuts,m1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -2       cdef
+        4       ma(summer,normal,m1)
+        1       ib(summer,nuts)
+
+x(summer,normal,nuts,m2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -4       cdef
+        7       ma(summer,normal,m2)
+        1       ib(summer,nuts)
+
+x(summer,normal,nuts,m3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cdef
+        3       ma(summer,normal,m3)
+        1       ib(summer,nuts)
+
+REMAINING 25 ENTRIES SKIPPED
+
+---- y  products stored
+
+y(summer,nuts)
+                (.LO, .L, .UP, .M = 0, 0, 20, 0)
+       -1       cdef
+       -1       ib(summer,nuts)
+        1       ib(winter,nuts)
+
+y(summer,bolts)
+                (.LO, .L, .UP, .M = 0, 0, 20, 0)
+       -1       cdef
+       -1       ib(summer,bolts)
+        1       ib(winter,bolts)
+
+y(summer,washers)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       cdef
+       -1       ib(summer,washers)
+        1       ib(winter,washers)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  products sold
+
+z(summer,nuts)
+                (.LO, .L, .UP, .M = 25, 25, +INF, 0)
+      -10       rdef
+       -1       ib(summer,nuts)
+        0       (OLD LEVEL ****)
+
+z(summer,bolts)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 9
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Column Listing      SOLVE uimp Using LP From line 120
+
+
+     z  products sold
+
+                (.LO, .L, .UP, .M = 30, 30, +INF, 0)
+      -10       rdef
+       -1       ib(summer,bolts)
+        0       (OLD LEVEL ****)
+
+z(summer,washers)
+                (.LO, .L, .UP, .M = 30, 30, +INF, 0)
+       -9       rdef
+       -1       ib(summer,washers)
+        0       (OLD LEVEL ****)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef
+        1       cdef
+
+
+---- revenue  
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       pdef
+        1       rdef
+
+
+---- profit  
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 10
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Model Statistics    SOLVE uimp Using LP From line 120
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           43  6 projected
+NON ZERO ELEMENTS           116
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 11
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Solution Report     SOLVE uimp Using LP From line 120
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   uimp                OBJECTIVE  revenue
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  120
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/uimp/convert.opt"
+>>  ampl uimp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/uimp/convert.opt"
+Ampl      : uimp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 12
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Equation Listing    SOLVE uimp Using LP From line 121
+
+
+---- pdef  =E=  profit definition
+
+pdef..  cost - revenue + profit =E= 0 ; (LHS = 0)
+     
+
+---- cdef  =E=  cost definition
+
+cdef..  - 2*x(summer,normal,nuts,m1) - 4*x(summer,normal,nuts,m2) - x(summer,normal,nuts,m3) - 3*x(summer,normal,bolts,m1) - 3*x(summer,normal,bolts,m2) - 4*x(summer,normal,washers,m1) - 2*x(summer,normal,washers,m2) - 3*x(summer,overtime,nuts,m1)
+     
+      - 5*x(summer,overtime,nuts,m2) - 2*x(summer,overtime,nuts,m3) - 4*x(summer,overtime,bolts,m1) - 4*x(summer,overtime,bolts,m2) - 5*x(summer,overtime,washers,m1) - 3*x(summer,overtime,washers,m2) - 3*x(winter,normal,nuts,m1)
+     
+      - 5*x(winter,normal,nuts,m2) - 2*x(winter,normal,nuts,m3) - 4*x(winter,normal,bolts,m1) - 4*x(winter,normal,bolts,m2) - 5*x(winter,normal,washers,m1) - 3*x(winter,normal,washers,m2) - 4*x(winter,overtime,nuts,m1) - 6*x(winter,overtime,nuts,m2)
+     
+      - 3*x(winter,overtime,nuts,m3) - 5*x(winter,overtime,bolts,m1) - 5*x(winter,overtime,bolts,m2) - 6*x(winter,overtime,washers,m1) - 4*x(winter,overtime,washers,m2) - y(summer,nuts) - y(summer,bolts) - y(summer,washers) - y(winter,nuts)
+     
+      - y(winter,bolts) - y(winter,washers) + cost =E= 0 ; (LHS = 0)
+     
+
+---- rdef  =E=  revenue definition
+
+rdef..  - 10*z(summer,nuts) - 10*z(summer,bolts) - 9*z(summer,washers) - 11*z(winter,nuts) - 11*z(winter,bolts) - 10*z(winter,washers) + revenue =E= 0 ; (LHS = -1675, INFES = 1675 ****)
+     
+
+---- ma  =L=  machine availability
+
+ma(summer,normal,m1)..  4*x(summer,normal,nuts,m1) + 4*x(summer,normal,bolts,m1) + 6*x(summer,normal,washers,m1) =L= 100 ; (LHS = 0)
+     
+ma(summer,normal,m2)..  7*x(summer,normal,nuts,m2) + 6*x(summer,normal,bolts,m2) + 6*x(summer,normal,washers,m2) =L= 100 ; (LHS = 0)
+     
+ma(summer,normal,m3)..  3*x(summer,normal,nuts,m3) =L= 40 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- ib  =E=  inventory balance
+
+ib(summer,nuts)..  x(summer,normal,nuts,m1) + x(summer,normal,nuts,m2) + x(summer,normal,nuts,m3) + x(summer,overtime,nuts,m1) + x(summer,overtime,nuts,m2) + x(summer,overtime,nuts,m3) - y(summer,nuts) - z(summer,nuts) =E= 0 ; (LHS = -25, INFES = 25 ****)
+     
+ib(summer,bolts)..  x(summer,normal,bolts,m1) + x(summer,normal,bolts,m2) + x(summer,overtime,bolts,m1) + x(summer,overtime,bolts,m2) - y(summer,bolts) - z(summer,bolts) =E= 0 ; (LHS = -30, INFES = 30 ****)
+     
+ib(summer,washers)..  x(summer,normal,washers,m1) + x(summer,normal,washers,m2) + x(summer,overtime,washers,m1) + x(summer,overtime,washers,m2) - y(summer,washers) - z(summer,washers) =E= 0 ; (LHS = -30, INFES = 30 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 13
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Column Listing      SOLVE uimp Using LP From line 121
+
+
+---- x  production
+
+x(summer,normal,nuts,m1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -2       cdef
+        4       ma(summer,normal,m1)
+        1       ib(summer,nuts)
+
+x(summer,normal,nuts,m2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -4       cdef
+        7       ma(summer,normal,m2)
+        1       ib(summer,nuts)
+
+x(summer,normal,nuts,m3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cdef
+        3       ma(summer,normal,m3)
+        1       ib(summer,nuts)
+
+REMAINING 25 ENTRIES SKIPPED
+
+---- y  products stored
+
+y(summer,nuts)
+                (.LO, .L, .UP, .M = 0, 0, 20, 0)
+       -1       cdef
+       -1       ib(summer,nuts)
+        1       ib(winter,nuts)
+
+y(summer,bolts)
+                (.LO, .L, .UP, .M = 0, 0, 20, 0)
+       -1       cdef
+       -1       ib(summer,bolts)
+        1       ib(winter,bolts)
+
+y(summer,washers)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       cdef
+       -1       ib(summer,washers)
+        1       ib(winter,washers)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  products sold
+
+z(summer,nuts)
+                (.LO, .L, .UP, .M = 25, 25, +INF, 0)
+      -10       rdef
+       -1       ib(summer,nuts)
+        0       (OLD LEVEL ****)
+
+z(summer,bolts)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 14
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Column Listing      SOLVE uimp Using LP From line 121
+
+
+     z  products sold
+
+                (.LO, .L, .UP, .M = 30, 30, +INF, 0)
+      -10       rdef
+       -1       ib(summer,bolts)
+        0       (OLD LEVEL ****)
+
+z(summer,washers)
+                (.LO, .L, .UP, .M = 30, 30, +INF, 0)
+       -9       rdef
+       -1       ib(summer,washers)
+        0       (OLD LEVEL ****)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef
+        1       cdef
+
+
+---- revenue  
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       pdef
+        1       rdef
+
+
+---- profit  
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 15
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Model Statistics    SOLVE uimp Using LP From line 121
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           21
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           43  6 projected
+NON ZERO ELEMENTS           116
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 16
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+Solution Report     SOLVE uimp Using LP From line 121
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   uimp                OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  121
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/uimp/convert.opt"
+>>  ampl uimp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/uimp/convert.opt"
+Ampl      : uimp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 17
+UIMP - Production Scheduling Problem   (UIMP,SEQ=11)
+E x e c u t i o n
+
+
+----    129 PARAMETER rep  summary report
+
+                     nuts       bolts     washers
+
+demand.summer      25.000      30.000      30.000
+demand.winter      30.000      25.000      25.000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/uimp/uimp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/uimp/uimp-scalar.mod.lst

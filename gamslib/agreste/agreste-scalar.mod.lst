@@ -1,0 +1,1609 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 2
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+set definitions
+
+
+       
+      This is a farm level model of the north east region of brazil. There is
+      only one farm type - medium sized. There are 3 types of land and risk
+      on revenue is considered.
+       
+       
+      Kutcher, G P, and Scandizzo, P L, The Agricultural Economy of Northeast
+      Brazil. The Johns Hopkins University Press, Baltimore and London, 1981.
+       
+  15   
+  16   set c           crops /
+  17                   cotton-h     cotton-herbaceo
+  18                   banana       banana
+  19                   sugar-cane  sugar-cane
+  20                   beans-arr    beans-de-arranca
+  21                   beans-cor    beans-de-corda
+  22                   oranges      oranges
+  23                   manioc       manioc
+  24                   corn         corn
+  25                   sisal        sisal          /
+  26   
+  27   
+  28   
+  29       tm           months  / jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec /
+  30   
+  31       p           cropping activities /
+  32                   crop-02        cotton-herbaceo
+  33                   crop-05        banana
+  34                   crop-10       sugar cane
+  35                   crop-15       oranges
+  36                   crop-16       manioc
+  37                   crop-17       corn
+  38                   crop-19       sisal
+  39                   crop-25       beans-de-corda   corn
+  40                   crop-29       cotton-herbaceo  beans-de-arranca corn
+  41                   crop-30       cotton-herbaceo  beans-de-corda   corn
+  42                   crop-33       beans-de-arranca corn
+  43                   crop-36       beans-de-arranca manioc           corn /
+  44   
+  45   
+  46       s           land types / good    flat and near water or humid and low lying
+  47                                medium  hilly or more arid than good
+  48                                pasture cultivated pasture or tree crops                /
+  49   
+  50       sc(s)       crop lands / good , medium /
+  51   
+  52       r           livestock feeding alternatives / rec-1*rec-3 /
+  53   
+  54       ty           year / 1960*1969 /
+  55   
+  56       dr           family consumption bundle alternatives / one , two , three /
+  57   
+  58       km          technology characteristics /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 3
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+set definitions
+
+
+  59                   equipment, fertilizer, seeds, sprouts, itech /
+  60   
+  61      ps(p,s)      process-land possibilities
+  62   
+  63   
+  64   alias (s,sp);
+  65   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 4
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+
+
+  67    parameter
+  68        landc(s)    land data                             (ha)          / good = 8.775, medium = 11.64, pasture = 21.92/
+  69        rations(r)  livestock rations feeding alternative (cr per head) / rec-1  5.141 , rec-2  21.646 , rec-3  49.845/
+  70        xcropl(p,s) limits on cropping activities
+  71                   ;
+  72   
+  73   xcropl("crop-19","good") = 0.036 ;   xcropl("crop-19","medium") = 0.298
+  74   
+  75   table ldp(s,s) land downgrading possibilities
+  76   
+  77                  good     medium
+  78   good             1
+  79   medium          -1         1
+  80   pasture                   -1
+  81   
+  82   
+  83  * land requirements for livestock seems high but ok - pg 65 para 3
+  84   table lio(s,r) land requirements for livestock feed alternatives (ha per head)
+  85   
+  86                 rec-1   rec-2    rec-3
+  87   medium        1.407    .611     .631
+  88   pasture        .209   2.03      .9
+  89   
+  90   
+  91   table labor(p,tm)  labor requirements for cropping (man-days per ha)
+  92   
+  93                  jan       feb       mar       apr       may       jun       jul       aug       sep       oct
+  94   
+  95   crop-02       4.79     10.89     18.70      9.83      8.03     20.95     15.67     15.48     11.35      8.38
+  96   crop-05       8.24      0.89      5.43      3.31     11.13     10.33      3.27      2.65      5.47      3.67
+  97   crop-10       5.78      3.37      4.03      7.09      4.64      5.91      7.67      9.23      5.93      9.05
+  98   crop-15       2.00      2.36      4.13      2.13      7.18      5.88      3.21      9.20      6.89      3.30
+  99   crop-16       5.71      7.60      7.28      8.15      8.48     10.71      9.34     12.76      8.93     10.22
+ 100   crop-17       9.19     14.42     10.59     12.01      3.47     10.75      5.88      7.30      4.14      4.25
+ 101   crop-19       1.22      1.11      0.56      0.78      1.19      0.44      1.89      3.04      2.93      4.99
+ 102   crop-25      12.46     11.35     24.38     22.03     16.91      9.47     10.97      9.70      4.93      6.41
+ 103   crop-29       5.54     10.30      9.24      8.97     15.82     13.00     14.74     10.64      5.64      4.90
+ 104   crop-30       9.18      3.94     16.15     23.69     28.12     20.58     17.73     15.06      4.58      9.76
+ 105   crop-33       6.87     10.19     10.61      9.14     18.38     11.50      9.22     13.36      3.85      3.87
+ 106   crop-36       7.44     10.21      9.63     16.18     20.11     16.86     14.86     14.00      8.04      6.69
+ 107   
+ 108        +         nov       dec
+ 109   
+ 110   crop-02       8.23      4.54
+ 111   crop-05       3.18      1.44
+ 112   crop-10       7.59      6.37
+ 113   crop-15       9.70      8.87
+ 114   crop-16       6.18      8.34
+ 115   crop-17       3.49      2.11
+ 116   crop-19       7.73      9.44
+ 117   crop-25       0.53      0.89
+ 118   crop-29       4.73      4.92
+ 119   crop-30       7.39      2.67
+ 120   crop-33       2.65      1.09
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 5
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+
+
+ 121   crop-36       5.49      5.26
+ 122   
+ 123   
+ 124   table llab(tm,r) labor requirement for livestock feed (man-days per head)
+ 125   
+ 126                    rec-1       rec-2       rec-3
+ 127   
+ 128   jan              4.261       1.873       1.933
+ 129   feb              2.854       1.262       1.302
+ 130   mar               .040        .040        .040
+ 131   apr               .040        .040        .040
+ 132   may               .040        .040        .040
+ 133   jun               .040        .040        .040
+ 134   jul               .040        .040        .040
+ 135   aug               .040        .040        .040
+ 136   sep               .040        .040        .040
+ 137   oct               .040        .040        .040
+ 138   nov              7.075       3.095       3.195
+ 139   dec              7.075       3.095       3.195
+ 140   
+ 141   
+ 142   table cbndl(c,dr)  consumption bundles (tons per bundle)
+ 143   
+ 144                    one        two       three
+ 145   
+ 146   beans-arr       .225       .152       .15
+ 147   manioc          .965      2.64        .935
+ 148   corn            .235       .232       .581
+ 149   
+ 150   
+ 151   table crev(c,ty)  crop revenue time series (cr per ha)
+ 152   
+ 153                   1960      1961      1962      1963      1964      1965      1966      1967      1968      1969
+ 154   banana          6399      8193      9215      8581      7988      7228      5923      6738      7221      7842
+ 155   sugar-cane      1667      1899      1898      2230      2265      2067      1499      1903      1901      1929
+ 156   beans-cor        546       585      1091       651       470       621       605       518       519       772
+ 157   manioc           986      1543      2658      1639      1146      1380      1357      1702      1560      1580
+ 158   corn             267       378       544       329       320       351       310       322       294       349
+ 159   
+ 160   
+ 161   parameter price(c) crop reference prices (cr per kg) / cotton-h   = 1.9 , banana   = 4   , sugar-cane = 35
+ 162                                                          beans-arr  = 2.5 , beans-cor = 1.5 , oranges    = 10
+ 163                                                          manioc     =  .17, corn      =  .15, sisal         1  /
+ 164             ravg(c)  average crop revenues (cr per ha)
+ 165             prdev(c,ty) price deviations for crops (cr per ton)
+ 166   
+ 167   
+ 168  * wage data: pg 159
+ 169  * working capital: is this correct: = 6.4 * 1113
+ 170  * family labor available: correct?
+ 171   scalar fwage     family reservation wage rate (cr per man-month) /     75 /
+ 172          twage     temporary labor wage rate    (cr per man-month) /    250 /
+ 173          pwage     permanent labor wage rate    (cr per man-year)  /   2054 /
+ 174          vsc       value of self-consumption       (cr per bundle) /    934 /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 6
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+
+
+ 175          wcbar     working capital                            (cr) /   7123.2  /
+ 176          famlab    family labor              (man equivalent wrks) /     70.5  /
+ 177          lprice    livestock price                   (cr per head) /    211   /
+ 178          vetpr     cost of veterinary service        (cr per head) /     1    /
+ 179          dpm       man-days per man month                          /     25    /
+ 180          phi       risk factor
+ 181   
+ 182   
+ 183  * some of these yields look odd: medium land has higher land than good
+ 184   table yield(p,c,s)  crop yields (kg per ha)
+ 185                         good    medium
+ 186   
+ 187   crop-02.cotton-h       848     569
+ 188   crop-05.banana         221     174
+ 189   crop-10.sugar-cane      45      30
+ 190   crop-15.oranges         92
+ 191   crop-16.manioc        4456    3964
+ 192   crop-17.corn           725     563
+ 193   crop-19.sisal         2244    1666
+ 194   crop-25.beans-cor      251     211
+ 195   crop-25.corn           373     264
+ 196   crop-29.cotton-h       269     149
+ 197   crop-29.beans-arr      285     221
+ 198   crop-29.corn           536     544
+ 199   crop-30.cotton-h       403     133
+ 200   crop-30.beans-cor      115     352
+ 201   crop-30.corn           361     212
+ 202   crop-33.beans-arr      274     260
+ 203   crop-33.corn           594     442
+ 204   crop-36.beans-arr      288     287
+ 205   crop-36.manioc        3408    1031
+ 206   crop-36.corn           503     328
+ 207                                     ;
+ 208   
+ 209   ps(p,s)   = yes$sum(c, yield(p,c,s));
+ 210   ravg(c)      = sum(ty, crev(c,ty))/card(ty);
+ 211   prdev(c,ty)$ravg(c)  = 1000*price(c)*(crev(c,ty)/ravg(c) - 1);
+ 212   phi          = 1;
+ 213   display ravg,prdev;
+ 214   
+ 215   
+ 216   table techc(p,km) cropping technology requirements (cr per ha)
+ 217   
+ 218             equipment  fertilizer  seeds  sprouts
+ 219   crop-02                   31       91
+ 220   crop-05                                   45
+ 221   crop-10                   36
+ 222   crop-15                  106        1     184
+ 223   crop-16                   20
+ 224   crop-17                   42       55
+ 225   crop-29        4          22               19
+ 226   crop-30                            27
+ 227   crop-33       11          42
+ 228   crop-36                   98        6       1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 7
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+
+
+ 229   
+ 230   
+ 231   parameter pcost(p)   cropping technology costs          (cr per ha)
+ 232             a(p)       cropping constants;
+ 233   
+ 234   
+ 235   pcost(p)    = sum(km, techc(p,km)); display pcost;
+ 236   a(p) = 1;  a(p)$sum(s, yield(p,"cotton-h",s)) = 0;
+ 237   display pcost,a;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 8
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+model definition
+
+
+ 239   variables xcrop(p,s)   cropping activities                                   (ha)
+ 240             xliver(r)    livestock activity defined on feed techniques       (head)
+ 241             xlive        livestock production                                (head)
+ 242             lswitch(s)   land downgrading                                      (ha)
+ 243             xprod(c)     crop production                                      (ton)
+ 244             cons(dr)     on-farm consumption                                  (ton)
+ 245             sales(c)     crop sales                                           (ton)
+ 246             flab(tm)     family labor                                    (man-days)
+ 247             tlab(tm)     temporary labor                                 (man-days)
+ 248             plab         permanent labor                                  (workers)
+ 249             rationr      livestock ration requirements                         (cr)
+ 250             pdev(ty)     positive price deviations                             (cr)
+ 251             ndev(ty)     negative price deviations                             (cr)
+ 252             yfarm        farm income                                           (cr)
+ 253             revenue      from crop and livestock sales                         (cr)
+ 254             cropcost     accounting: cropping activities cost                  (cr)
+ 255             labcost      accounting: labor costs - including family            (cr)
+ 256             vetcost      accounting: veterinary services cost                  (cr)
+ 257   
+ 258   positive variables xcrop,xliver,lswitch,sales,cons,flab,tlab,plab,pdev,ndev
+ 259   
+ 260   equations landb(s)     land balance
+ 261             lbal         livestock balance                                             ( )
+ 262             rliv         livestock ration requirements definition                      ( )
+ 263             mbalc(c)     material balance: crops                                       ( )
+ 264             dprod(c)     crop production definition                                    ( )
+ 265             cond         on farm consumption definition                                ( )
+ 266             labc(tm)     labor supply-demand relation                                  ( )
+ 267             ddev(ty)     crop price deviation definition                               ( )
+ 268             income       farm income definition                                        ( )
+ 269             arev         accounting: revenue definition                                ( )
+ 270             acrop        accounting: cropping cost definition                          ( )
+ 271             alab         accounting: labor cost definition                             ( )
+ 272             awcc         accounting: working capital requirements                      ( )
+ 273             avet         accounting: veterinary costs                                  (cr)
+ 274   
+ 275                                                         ;
+ 276   landb(s).. sum(p$ps(p,s), a(p)*xcrop(p,s))$sc(s) + sum(sp, ldp(s,sp)*lswitch(sp)) + sum(r, lio(s,r)*xliver(r))
+ 277            =l= landc(s);
+ 278   
+ 279   lbal.. xlive =e= sum(r, xliver(r));
+ 280   
+ 281   rliv..   rationr =e= sum(r, rations(r)*xliver(r));
+ 282   
+ 283   mbalc(c).. sum((s,p), yield(p,c,s)*xcrop(p,s))/1000 =g= sales(c) + sum(dr, cbndl(c,dr)*cons(dr));
+ 284   
+ 285   dprod(c).. xprod(c) =e= sum((p,s), yield(p,c,s)*xcrop(p,s))/1000;
+ 286   
+ 287   labc(tm).. sum((p,s)$ps(p,s), labor(p,tm)*xcrop(p,s)) + sum(r, llab(tm,r)*xliver(r))
+ 288                       =l= flab(tm) + tlab(tm) + dpm*plab;
+ 289   
+ 290   cond..     sum(dr, cons(dr)) =e= 1;
+ 291   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 9
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+model definition
+
+
+ 292   ddev(ty).. sum(c, prdev(c,ty)*sales(c)) =e= pdev(ty) - ndev(ty);
+ 293   
+ 294   arev..  revenue =e= lprice*xlive + 1000*sum(c, price(c)*sales(c));
+ 295   
+ 296   acrop.. cropcost =e= sum((p,s)$ps(p,s), pcost(p)*xcrop(p,s));
+ 297   
+ 298   alab..  labcost =e= (fwage*sum(tm, flab(tm)) + twage*sum(tm, tlab(tm)))/dpm + pwage*plab;
+ 299   
+ 300   awcc..  cropcost + rationr + vetcost + twage/dpm*sum(tm, tlab(tm)) + pwage*plab =l= wcbar;
+ 301   
+ 302   avet..  vetcost =e= vetpr*xlive;
+ 303   
+ 304   income..    yfarm =e= revenue + vsc*sum(dr, cons(dr)) - labcost - rationr - vetcost - cropcost
+ 305               - phi*sum(ty, pdev(ty) + ndev(ty))/card(ty);
+ 306   
+ 307   
+ 308   model agreste farm level model / all /;
+ 309   
+ 310   xcrop.up(p,s)$xcropl(p,s) = xcropl(p,s);
+ 311   flab.up(tm) = famlab;
+ 312   
+ 313   solve agreste maximizing yfarm using lp;
+ 314   
+ 315   phi = 0;
+ 316   solve agreste maximizing yfarm using lp;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 10
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+E x e c u t i o n
+
+
+----    213 PARAMETER ravg  average crop revenues (cr per ha)
+
+banana     7532.800,    sugar-cane 1925.800,    beans-cor   637.800,    manioc     1555.100,    corn        346.400
+
+
+----    213 PARAMETER prdev  price deviations for crops (cr per ton)
+
+                  1960        1961        1962        1963        1964        1965        1966        1967        1968        1969
+
+banana        -602.060     350.573     893.267     556.606     241.716    -161.852    -854.822    -422.048    -165.569     164.189
+sugar-cane   -4703.500    -487.070    -505.245    5528.611    6164.711    2566.206   -7756.776    -414.373    -450.722      58.158
+beans-cor     -215.898    -124.177    1065.851      31.044    -394.638     -39.511     -77.140    -281.750    -279.398     315.616
+manioc         -62.213      -1.323     120.567       9.172     -44.722     -19.142     -21.656      16.059       0.536       2.722
+corn           -34.382      13.684      85.566      -7.535     -11.432       1.992     -15.762     -10.566     -22.691       1.126
+
+
+----    235 PARAMETER pcost  cropping technology costs          (cr per ha)
+
+crop-02 122.000,    crop-05  45.000,    crop-10  36.000,    crop-15 291.000,    crop-16  20.000,    crop-17  97.000,    crop-29  45.000,    crop-30  27.000,    crop-33  53.000,    crop-36 105.000
+
+
+----    237 PARAMETER pcost  cropping technology costs          (cr per ha)
+
+crop-02 122.000,    crop-05  45.000,    crop-10  36.000,    crop-15 291.000,    crop-16  20.000,    crop-17  97.000,    crop-29  45.000,    crop-30  27.000,    crop-33  53.000,    crop-36 105.000
+
+
+----    237 PARAMETER a  cropping constants
+
+crop-05 1.000,    crop-10 1.000,    crop-15 1.000,    crop-16 1.000,    crop-17 1.000,    crop-19 1.000,    crop-25 1.000,    crop-33 1.000,    crop-36 1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 11
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Equation Listing    SOLVE agreste Using LP From line 313
+
+
+---- landb  =L=  land balance
+
+landb(good)..  xcrop(crop-05,good) + xcrop(crop-10,good) + xcrop(crop-15,good) + xcrop(crop-16,good) + xcrop(crop-17,good) + xcrop(crop-19,good) + xcrop(crop-25,good) + xcrop(crop-33,good) + xcrop(crop-36,good) + lswitch(good) =L= 8.775 ; (LHS = 0)
+     
+landb(medium)..  xcrop(crop-05,medium) + xcrop(crop-10,medium) + xcrop(crop-16,medium) + xcrop(crop-17,medium) + xcrop(crop-19,medium) + xcrop(crop-25,medium) + xcrop(crop-33,medium) + xcrop(crop-36,medium) + 1.407*xliver(rec-1) + 0.611*xliver(rec-2)
+     
+      + 0.631*xliver(rec-3) - lswitch(good) + lswitch(medium) =L= 11.64 ; (LHS = 0)
+     
+landb(pasture)..  0.209*xliver(rec-1) + 2.03*xliver(rec-2) + 0.9*xliver(rec-3) - lswitch(medium) =L= 21.92 ; (LHS = 0)
+     
+
+---- lbal  =E=  livestock balance                                             ( )
+
+lbal..  - xliver(rec-1) - xliver(rec-2) - xliver(rec-3) + xlive =E= 0 ; (LHS = 0)
+     
+
+---- rliv  =E=  livestock ration requirements definition                      ( )
+
+rliv..  - 5.141*xliver(rec-1) - 21.646*xliver(rec-2) - 49.845*xliver(rec-3) + rationr =E= 0 ; (LHS = 0)
+     
+
+---- mbalc  =G=  material balance: crops                                       ( )
+
+mbalc(cotton-h)..  0.848*xcrop(crop-02,good) + 0.569*xcrop(crop-02,medium) + 0.269*xcrop(crop-29,good) + 0.149*xcrop(crop-29,medium) + 0.403*xcrop(crop-30,good) + 0.133*xcrop(crop-30,medium) - sales(cotton-h) =G= 0 ; (LHS = 0)
+     
+mbalc(banana)..  0.221*xcrop(crop-05,good) + 0.174*xcrop(crop-05,medium) - sales(banana) =G= 0 ; (LHS = 0)
+     
+mbalc(sugar-cane)..  0.045*xcrop(crop-10,good) + 0.03*xcrop(crop-10,medium) - sales(sugar-cane) =G= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- dprod  =E=  crop production definition                                    ( )
+
+dprod(cotton-h)..  - 0.848*xcrop(crop-02,good) - 0.569*xcrop(crop-02,medium) - 0.269*xcrop(crop-29,good) - 0.149*xcrop(crop-29,medium) - 0.403*xcrop(crop-30,good) - 0.133*xcrop(crop-30,medium) + xprod(cotton-h) =E= 0 ; (LHS = 0)
+     
+dprod(banana)..  - 0.221*xcrop(crop-05,good) - 0.174*xcrop(crop-05,medium) + xprod(banana) =E= 0 ; (LHS = 0)
+     
+dprod(sugar-cane)..  - 0.045*xcrop(crop-10,good) - 0.03*xcrop(crop-10,medium) + xprod(sugar-cane) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- cond  =E=  on farm consumption definition                                ( )
+
+cond..  cons(one) + cons(two) + cons(three) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- labc  =L=  labor supply-demand relation                                  ( )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 12
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Equation Listing    SOLVE agreste Using LP From line 313
+
+
+     labc  =L=  labor supply-demand relation                                  ( )
+
+labc(jan)..  4.79*xcrop(crop-02,good) + 4.79*xcrop(crop-02,medium) + 8.24*xcrop(crop-05,good) + 8.24*xcrop(crop-05,medium) + 5.78*xcrop(crop-10,good) + 5.78*xcrop(crop-10,medium) + 2*xcrop(crop-15,good) + 5.71*xcrop(crop-16,good)
+     
+      + 5.71*xcrop(crop-16,medium) + 9.19*xcrop(crop-17,good) + 9.19*xcrop(crop-17,medium) + 1.22*xcrop(crop-19,good) + 1.22*xcrop(crop-19,medium) + 12.46*xcrop(crop-25,good) + 12.46*xcrop(crop-25,medium) + 5.54*xcrop(crop-29,good)
+     
+      + 5.54*xcrop(crop-29,medium) + 9.18*xcrop(crop-30,good) + 9.18*xcrop(crop-30,medium) + 6.87*xcrop(crop-33,good) + 6.87*xcrop(crop-33,medium) + 7.44*xcrop(crop-36,good) + 7.44*xcrop(crop-36,medium) + 4.261*xliver(rec-1) + 1.873*xliver(rec-2)
+     
+      + 1.933*xliver(rec-3) - flab(jan) - tlab(jan) - 25*plab =L= 0 ; (LHS = 0)
+     
+labc(feb)..  10.89*xcrop(crop-02,good) + 10.89*xcrop(crop-02,medium) + 0.89*xcrop(crop-05,good) + 0.89*xcrop(crop-05,medium) + 3.37*xcrop(crop-10,good) + 3.37*xcrop(crop-10,medium) + 2.36*xcrop(crop-15,good) + 7.6*xcrop(crop-16,good)
+     
+      + 7.6*xcrop(crop-16,medium) + 14.42*xcrop(crop-17,good) + 14.42*xcrop(crop-17,medium) + 1.11*xcrop(crop-19,good) + 1.11*xcrop(crop-19,medium) + 11.35*xcrop(crop-25,good) + 11.35*xcrop(crop-25,medium) + 10.3*xcrop(crop-29,good)
+     
+      + 10.3*xcrop(crop-29,medium) + 3.94*xcrop(crop-30,good) + 3.94*xcrop(crop-30,medium) + 10.19*xcrop(crop-33,good) + 10.19*xcrop(crop-33,medium) + 10.21*xcrop(crop-36,good) + 10.21*xcrop(crop-36,medium) + 2.854*xliver(rec-1) + 1.262*xliver(rec-2)
+     
+      + 1.302*xliver(rec-3) - flab(feb) - tlab(feb) - 25*plab =L= 0 ; (LHS = 0)
+     
+labc(mar)..  18.7*xcrop(crop-02,good) + 18.7*xcrop(crop-02,medium) + 5.43*xcrop(crop-05,good) + 5.43*xcrop(crop-05,medium) + 4.03*xcrop(crop-10,good) + 4.03*xcrop(crop-10,medium) + 4.13*xcrop(crop-15,good) + 7.28*xcrop(crop-16,good)
+     
+      + 7.28*xcrop(crop-16,medium) + 10.59*xcrop(crop-17,good) + 10.59*xcrop(crop-17,medium) + 0.56*xcrop(crop-19,good) + 0.56*xcrop(crop-19,medium) + 24.38*xcrop(crop-25,good) + 24.38*xcrop(crop-25,medium) + 9.24*xcrop(crop-29,good)
+     
+      + 9.24*xcrop(crop-29,medium) + 16.15*xcrop(crop-30,good) + 16.15*xcrop(crop-30,medium) + 10.61*xcrop(crop-33,good) + 10.61*xcrop(crop-33,medium) + 9.63*xcrop(crop-36,good) + 9.63*xcrop(crop-36,medium) + 0.04*xliver(rec-1) + 0.04*xliver(rec-2)
+     
+      + 0.04*xliver(rec-3) - flab(mar) - tlab(mar) - 25*plab =L= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- ddev  =E=  crop price deviation definition                               ( )
+
+ddev(1960)..  - 602.060322854716*sales(banana) - 4703.49984422058*sales(sugar-cane) - 215.898400752587*sales(beans-cor) - 62.2127194392644*sales(manioc) - 34.3822170900693*sales(corn) - pdev(1960) + ndev(1960) =E= 0 ; (LHS = 0)
+     
+ddev(1961)..  350.573491928632*sales(banana) - 487.070308443245*sales(sugar-cane) - 124.1768579492*sales(beans-cor) - 1.32274451803741*sales(manioc) + 13.6836027713626*sales(corn) - pdev(1961) + ndev(1961) =E= 0 ; (LHS = 0)
+     
+ddev(1962)..  893.266779949023*sales(banana) - 505.244573683664*sales(sugar-cane) + 1065.85136406397*sales(beans-cor) + 120.56652305318*sales(manioc) + 85.5658198614319*sales(corn) - pdev(1962) + ndev(1962) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- income  =E=  farm income definition                                        ( )
+
+income..  - 934*cons(one) - 934*cons(two) - 934*cons(three) + rationr + 0.1*pdev(1960) + 0.1*pdev(1961) + 0.1*pdev(1962) + 0.1*pdev(1963) + 0.1*pdev(1964) + 0.1*pdev(1965) + 0.1*pdev(1966) + 0.1*pdev(1967) + 0.1*pdev(1968) + 0.1*pdev(1969)
+     
+      + 0.1*ndev(1960) + 0.1*ndev(1961) + 0.1*ndev(1962) + 0.1*ndev(1963) + 0.1*ndev(1964) + 0.1*ndev(1965) + 0.1*ndev(1966) + 0.1*ndev(1967) + 0.1*ndev(1968) + 0.1*ndev(1969) + yfarm - revenue + cropcost + labcost + vetcost =E= 0 ; (LHS = 0)
+     
+
+---- arev  =E=  accounting: revenue definition                                ( )
+
+arev..  - 211*xlive - 1900*sales(cotton-h) - 4000*sales(banana) - 35000*sales(sugar-cane) - 2500*sales(beans-arr) - 1500*sales(beans-cor) - 10000*sales(oranges) - 170*sales(manioc) - 150*sales(corn) - 1000*sales(sisal) + revenue =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 13
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Equation Listing    SOLVE agreste Using LP From line 313
+
+
+---- acrop  =E=  accounting: cropping cost definition                          ( )
+
+acrop..  - 122*xcrop(crop-02,good) - 122*xcrop(crop-02,medium) - 45*xcrop(crop-05,good) - 45*xcrop(crop-05,medium) - 36*xcrop(crop-10,good) - 36*xcrop(crop-10,medium) - 291*xcrop(crop-15,good) - 20*xcrop(crop-16,good) - 20*xcrop(crop-16,medium)
+     
+      - 97*xcrop(crop-17,good) - 97*xcrop(crop-17,medium) - 45*xcrop(crop-29,good) - 45*xcrop(crop-29,medium) - 27*xcrop(crop-30,good) - 27*xcrop(crop-30,medium) - 53*xcrop(crop-33,good) - 53*xcrop(crop-33,medium) - 105*xcrop(crop-36,good)
+     
+      - 105*xcrop(crop-36,medium) + cropcost =E= 0 ; (LHS = 0)
+     
+
+---- alab  =E=  accounting: labor cost definition                             ( )
+
+alab..  - 3*flab(jan) - 3*flab(feb) - 3*flab(mar) - 3*flab(apr) - 3*flab(may) - 3*flab(jun) - 3*flab(jul) - 3*flab(aug) - 3*flab(sep) - 3*flab(oct) - 3*flab(nov) - 3*flab(dec) - 10*tlab(jan) - 10*tlab(feb) - 10*tlab(mar) - 10*tlab(apr) - 10*tlab(may)
+     
+      - 10*tlab(jun) - 10*tlab(jul) - 10*tlab(aug) - 10*tlab(sep) - 10*tlab(oct) - 10*tlab(nov) - 10*tlab(dec) - 2054*plab + labcost =E= 0 ; (LHS = 0)
+     
+
+---- awcc  =L=  accounting: working capital requirements                      ( )
+
+awcc..  10*tlab(jan) + 10*tlab(feb) + 10*tlab(mar) + 10*tlab(apr) + 10*tlab(may) + 10*tlab(jun) + 10*tlab(jul) + 10*tlab(aug) + 10*tlab(sep) + 10*tlab(oct) + 10*tlab(nov) + 10*tlab(dec) + 2054*plab + rationr + cropcost + vetcost =L= 7123.2 ; (LHS = 0)
+     
+
+---- avet  =E=  accounting: veterinary costs                                  (cr)
+
+avet..  - xlive + vetcost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 14
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+---- xcrop  cropping activities                                   (ha)
+
+xcrop(crop-02,good)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.848   mbalc(cotton-h)
+       -0.848   dprod(cotton-h)
+        4.79    labc(jan)
+       10.89    labc(feb)
+       18.7     labc(mar)
+        9.83    labc(apr)
+        8.03    labc(may)
+       20.95    labc(jun)
+       15.67    labc(jul)
+       15.48    labc(aug)
+       11.35    labc(sep)
+        8.38    labc(oct)
+        8.23    labc(nov)
+        4.54    labc(dec)
+     -122       acrop
+
+xcrop(crop-02,medium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.569   mbalc(cotton-h)
+       -0.569   dprod(cotton-h)
+        4.79    labc(jan)
+       10.89    labc(feb)
+       18.7     labc(mar)
+        9.83    labc(apr)
+        8.03    labc(may)
+       20.95    labc(jun)
+       15.67    labc(jul)
+       15.48    labc(aug)
+       11.35    labc(sep)
+        8.38    labc(oct)
+        8.23    labc(nov)
+        4.54    labc(dec)
+     -122       acrop
+
+xcrop(crop-05,good)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landb(good)
+        0.221   mbalc(banana)
+       -0.221   dprod(banana)
+        8.24    labc(jan)
+        0.89    labc(feb)
+        5.43    labc(mar)
+        3.31    labc(apr)
+       11.13    labc(may)
+       10.33    labc(jun)
+        3.27    labc(jul)
+        2.65    labc(aug)
+        5.47    labc(sep)
+        3.67    labc(oct)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 15
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+     xcrop  cropping activities                                   (ha)
+
+        3.18    labc(nov)
+        1.44    labc(dec)
+      -45       acrop
+
+REMAINING 20 ENTRIES SKIPPED
+
+---- xliver  livestock activity defined on feed techniques       (head)
+
+xliver(rec-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1.407   landb(medium)
+        0.209   landb(pasture)
+       -1       lbal
+       -5.141   rliv
+        4.261   labc(jan)
+        2.854   labc(feb)
+        0.04    labc(mar)
+        0.04    labc(apr)
+        0.04    labc(may)
+        0.04    labc(jun)
+        0.04    labc(jul)
+        0.04    labc(aug)
+        0.04    labc(sep)
+        0.04    labc(oct)
+        7.075   labc(nov)
+        7.075   labc(dec)
+
+xliver(rec-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.611   landb(medium)
+        2.03    landb(pasture)
+       -1       lbal
+      -21.646   rliv
+        1.873   labc(jan)
+        1.262   labc(feb)
+        0.04    labc(mar)
+        0.04    labc(apr)
+        0.04    labc(may)
+        0.04    labc(jun)
+        0.04    labc(jul)
+        0.04    labc(aug)
+        0.04    labc(sep)
+        0.04    labc(oct)
+        3.095   labc(nov)
+        3.095   labc(dec)
+
+xliver(rec-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.631   landb(medium)
+        0.9     landb(pasture)
+       -1       lbal
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 16
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+     xliver  livestock activity defined on feed techniques       (head)
+
+      -49.845   rliv
+        1.933   labc(jan)
+        1.302   labc(feb)
+        0.04    labc(mar)
+        0.04    labc(apr)
+        0.04    labc(may)
+        0.04    labc(jun)
+        0.04    labc(jul)
+        0.04    labc(aug)
+        0.04    labc(sep)
+        0.04    labc(oct)
+        3.195   labc(nov)
+        3.195   labc(dec)
+
+
+---- xlive  livestock production                                (head)
+
+xlive
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       lbal
+     -211       arev
+       -1       avet
+
+
+---- lswitch  land downgrading                                      (ha)
+
+lswitch(good)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landb(good)
+       -1       landb(medium)
+
+lswitch(medium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landb(medium)
+       -1       landb(pasture)
+
+
+---- xprod  crop production                                      (ton)
+
+xprod(cotton-h)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dprod(cotton-h)
+
+xprod(banana)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dprod(banana)
+
+xprod(sugar-cane)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dprod(sugar-cane)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 17
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+     xprod  crop production                                      (ton)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- cons  on-farm consumption                                  (ton)
+
+cons(one)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.225   mbalc(beans-arr)
+       -0.965   mbalc(manioc)
+       -0.235   mbalc(corn)
+        1       cond
+     -934       income
+
+cons(two)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.152   mbalc(beans-arr)
+       -2.64    mbalc(manioc)
+       -0.232   mbalc(corn)
+        1       cond
+     -934       income
+
+cons(three)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.15    mbalc(beans-arr)
+       -0.935   mbalc(manioc)
+       -0.581   mbalc(corn)
+        1       cond
+     -934       income
+
+
+---- sales  crop sales                                           (ton)
+
+sales(cotton-h)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalc(cotton-h)
+    -1900       arev
+
+sales(banana)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalc(banana)
+     -602.0603  ddev(1960)
+      350.5735  ddev(1961)
+      893.2668  ddev(1962)
+      556.6058  ddev(1963)
+      241.7162  ddev(1964)
+     -161.8522  ddev(1965)
+     -854.8216  ddev(1966)
+     -422.0476  ddev(1967)
+     -165.5692  ddev(1968)
+      164.1886  ddev(1969)
+    -4000       arev
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 18
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+     sales  crop sales                                           (ton)
+
+sales(sugar-cane)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalc(sugar-cane)
+    -4703.4998  ddev(1960)
+     -487.0703  ddev(1961)
+     -505.2446  ddev(1962)
+     5528.6115  ddev(1963)
+     6164.7108  ddev(1964)
+     2566.2063  ddev(1965)
+    -7756.7764  ddev(1966)
+     -414.3732  ddev(1967)
+     -450.7218  ddev(1968)
+       58.1576  ddev(1969)
+   -35000       arev
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- flab  family labor                                    (man-days)
+
+flab(jan)
+                (.LO, .L, .UP, .M = 0, 0, 70.5, 0)
+       -1       labc(jan)
+       -3       alab
+
+flab(feb)
+                (.LO, .L, .UP, .M = 0, 0, 70.5, 0)
+       -1       labc(feb)
+       -3       alab
+
+flab(mar)
+                (.LO, .L, .UP, .M = 0, 0, 70.5, 0)
+       -1       labc(mar)
+       -3       alab
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- tlab  temporary labor                                 (man-days)
+
+tlab(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       labc(jan)
+      -10       alab
+       10       awcc
+
+tlab(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       labc(feb)
+      -10       alab
+       10       awcc
+
+tlab(mar)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 19
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+     tlab  temporary labor                                 (man-days)
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       labc(mar)
+      -10       alab
+       10       awcc
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- plab  permanent labor                                  (workers)
+
+plab
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -25       labc(jan)
+      -25       labc(feb)
+      -25       labc(mar)
+      -25       labc(apr)
+      -25       labc(may)
+      -25       labc(jun)
+      -25       labc(jul)
+      -25       labc(aug)
+      -25       labc(sep)
+      -25       labc(oct)
+      -25       labc(nov)
+      -25       labc(dec)
+    -2054       alab
+     2054       awcc
+
+
+---- rationr  livestock ration requirements                         (cr)
+
+rationr
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       rliv
+        1       income
+        1       awcc
+
+
+---- pdev  positive price deviations                             (cr)
+
+pdev(1960)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(1960)
+        0.1     income
+
+pdev(1961)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(1961)
+        0.1     income
+
+pdev(1962)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(1962)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 20
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+     pdev  positive price deviations                             (cr)
+
+        0.1     income
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- ndev  negative price deviations                             (cr)
+
+ndev(1960)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(1960)
+        0.1     income
+
+ndev(1961)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(1961)
+        0.1     income
+
+ndev(1962)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(1962)
+        0.1     income
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- yfarm  farm income                                           (cr)
+
+yfarm
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+
+
+---- revenue  from crop and livestock sales                         (cr)
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       income
+        1       arev
+
+
+---- cropcost  accounting: cropping activities cost                  (cr)
+
+cropcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+        1       acrop
+        1       awcc
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 21
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 313
+
+
+---- labcost  accounting: labor costs - including family            (cr)
+
+labcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+        1       alab
+
+
+---- vetcost  accounting: veterinary services cost                  (cr)
+
+vetcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+        1       awcc
+        1       avet
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 22
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Model Statistics    SOLVE agreste Using LP From line 313
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          14     SINGLE EQUATIONS           52
+BLOCKS OF VARIABLES          18     SINGLE VARIABLES          101
+NON ZERO ELEMENTS           665
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 23
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Solution Report     SOLVE agreste Using LP From line 313
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   agreste             OBJECTIVE  yfarm
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  313
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/agreste/convert.opt"
+>>  ampl agreste-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/agreste/convert.opt"
+Ampl      : agreste-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 24
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Equation Listing    SOLVE agreste Using LP From line 316
+
+
+---- landb  =L=  land balance
+
+landb(good)..  xcrop(crop-05,good) + xcrop(crop-10,good) + xcrop(crop-15,good) + xcrop(crop-16,good) + xcrop(crop-17,good) + xcrop(crop-19,good) + xcrop(crop-25,good) + xcrop(crop-33,good) + xcrop(crop-36,good) + lswitch(good) =L= 8.775 ; (LHS = 0)
+     
+landb(medium)..  xcrop(crop-05,medium) + xcrop(crop-10,medium) + xcrop(crop-16,medium) + xcrop(crop-17,medium) + xcrop(crop-19,medium) + xcrop(crop-25,medium) + xcrop(crop-33,medium) + xcrop(crop-36,medium) + 1.407*xliver(rec-1) + 0.611*xliver(rec-2)
+     
+      + 0.631*xliver(rec-3) - lswitch(good) + lswitch(medium) =L= 11.64 ; (LHS = 0)
+     
+landb(pasture)..  0.209*xliver(rec-1) + 2.03*xliver(rec-2) + 0.9*xliver(rec-3) - lswitch(medium) =L= 21.92 ; (LHS = 0)
+     
+
+---- lbal  =E=  livestock balance                                             ( )
+
+lbal..  - xliver(rec-1) - xliver(rec-2) - xliver(rec-3) + xlive =E= 0 ; (LHS = 0)
+     
+
+---- rliv  =E=  livestock ration requirements definition                      ( )
+
+rliv..  - 5.141*xliver(rec-1) - 21.646*xliver(rec-2) - 49.845*xliver(rec-3) + rationr =E= 0 ; (LHS = 0)
+     
+
+---- mbalc  =G=  material balance: crops                                       ( )
+
+mbalc(cotton-h)..  0.848*xcrop(crop-02,good) + 0.569*xcrop(crop-02,medium) + 0.269*xcrop(crop-29,good) + 0.149*xcrop(crop-29,medium) + 0.403*xcrop(crop-30,good) + 0.133*xcrop(crop-30,medium) - sales(cotton-h) =G= 0 ; (LHS = 0)
+     
+mbalc(banana)..  0.221*xcrop(crop-05,good) + 0.174*xcrop(crop-05,medium) - sales(banana) =G= 0 ; (LHS = 0)
+     
+mbalc(sugar-cane)..  0.045*xcrop(crop-10,good) + 0.03*xcrop(crop-10,medium) - sales(sugar-cane) =G= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- dprod  =E=  crop production definition                                    ( )
+
+dprod(cotton-h)..  - 0.848*xcrop(crop-02,good) - 0.569*xcrop(crop-02,medium) - 0.269*xcrop(crop-29,good) - 0.149*xcrop(crop-29,medium) - 0.403*xcrop(crop-30,good) - 0.133*xcrop(crop-30,medium) + xprod(cotton-h) =E= 0 ; (LHS = 0)
+     
+dprod(banana)..  - 0.221*xcrop(crop-05,good) - 0.174*xcrop(crop-05,medium) + xprod(banana) =E= 0 ; (LHS = 0)
+     
+dprod(sugar-cane)..  - 0.045*xcrop(crop-10,good) - 0.03*xcrop(crop-10,medium) + xprod(sugar-cane) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- cond  =E=  on farm consumption definition                                ( )
+
+cond..  cons(one) + cons(two) + cons(three) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- labc  =L=  labor supply-demand relation                                  ( )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 25
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Equation Listing    SOLVE agreste Using LP From line 316
+
+
+     labc  =L=  labor supply-demand relation                                  ( )
+
+labc(jan)..  4.79*xcrop(crop-02,good) + 4.79*xcrop(crop-02,medium) + 8.24*xcrop(crop-05,good) + 8.24*xcrop(crop-05,medium) + 5.78*xcrop(crop-10,good) + 5.78*xcrop(crop-10,medium) + 2*xcrop(crop-15,good) + 5.71*xcrop(crop-16,good)
+     
+      + 5.71*xcrop(crop-16,medium) + 9.19*xcrop(crop-17,good) + 9.19*xcrop(crop-17,medium) + 1.22*xcrop(crop-19,good) + 1.22*xcrop(crop-19,medium) + 12.46*xcrop(crop-25,good) + 12.46*xcrop(crop-25,medium) + 5.54*xcrop(crop-29,good)
+     
+      + 5.54*xcrop(crop-29,medium) + 9.18*xcrop(crop-30,good) + 9.18*xcrop(crop-30,medium) + 6.87*xcrop(crop-33,good) + 6.87*xcrop(crop-33,medium) + 7.44*xcrop(crop-36,good) + 7.44*xcrop(crop-36,medium) + 4.261*xliver(rec-1) + 1.873*xliver(rec-2)
+     
+      + 1.933*xliver(rec-3) - flab(jan) - tlab(jan) - 25*plab =L= 0 ; (LHS = 0)
+     
+labc(feb)..  10.89*xcrop(crop-02,good) + 10.89*xcrop(crop-02,medium) + 0.89*xcrop(crop-05,good) + 0.89*xcrop(crop-05,medium) + 3.37*xcrop(crop-10,good) + 3.37*xcrop(crop-10,medium) + 2.36*xcrop(crop-15,good) + 7.6*xcrop(crop-16,good)
+     
+      + 7.6*xcrop(crop-16,medium) + 14.42*xcrop(crop-17,good) + 14.42*xcrop(crop-17,medium) + 1.11*xcrop(crop-19,good) + 1.11*xcrop(crop-19,medium) + 11.35*xcrop(crop-25,good) + 11.35*xcrop(crop-25,medium) + 10.3*xcrop(crop-29,good)
+     
+      + 10.3*xcrop(crop-29,medium) + 3.94*xcrop(crop-30,good) + 3.94*xcrop(crop-30,medium) + 10.19*xcrop(crop-33,good) + 10.19*xcrop(crop-33,medium) + 10.21*xcrop(crop-36,good) + 10.21*xcrop(crop-36,medium) + 2.854*xliver(rec-1) + 1.262*xliver(rec-2)
+     
+      + 1.302*xliver(rec-3) - flab(feb) - tlab(feb) - 25*plab =L= 0 ; (LHS = 0)
+     
+labc(mar)..  18.7*xcrop(crop-02,good) + 18.7*xcrop(crop-02,medium) + 5.43*xcrop(crop-05,good) + 5.43*xcrop(crop-05,medium) + 4.03*xcrop(crop-10,good) + 4.03*xcrop(crop-10,medium) + 4.13*xcrop(crop-15,good) + 7.28*xcrop(crop-16,good)
+     
+      + 7.28*xcrop(crop-16,medium) + 10.59*xcrop(crop-17,good) + 10.59*xcrop(crop-17,medium) + 0.56*xcrop(crop-19,good) + 0.56*xcrop(crop-19,medium) + 24.38*xcrop(crop-25,good) + 24.38*xcrop(crop-25,medium) + 9.24*xcrop(crop-29,good)
+     
+      + 9.24*xcrop(crop-29,medium) + 16.15*xcrop(crop-30,good) + 16.15*xcrop(crop-30,medium) + 10.61*xcrop(crop-33,good) + 10.61*xcrop(crop-33,medium) + 9.63*xcrop(crop-36,good) + 9.63*xcrop(crop-36,medium) + 0.04*xliver(rec-1) + 0.04*xliver(rec-2)
+     
+      + 0.04*xliver(rec-3) - flab(mar) - tlab(mar) - 25*plab =L= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- ddev  =E=  crop price deviation definition                               ( )
+
+ddev(1960)..  - 602.060322854716*sales(banana) - 4703.49984422058*sales(sugar-cane) - 215.898400752587*sales(beans-cor) - 62.2127194392644*sales(manioc) - 34.3822170900693*sales(corn) - pdev(1960) + ndev(1960) =E= 0 ; (LHS = 0)
+     
+ddev(1961)..  350.573491928632*sales(banana) - 487.070308443245*sales(sugar-cane) - 124.1768579492*sales(beans-cor) - 1.32274451803741*sales(manioc) + 13.6836027713626*sales(corn) - pdev(1961) + ndev(1961) =E= 0 ; (LHS = 0)
+     
+ddev(1962)..  893.266779949023*sales(banana) - 505.244573683664*sales(sugar-cane) + 1065.85136406397*sales(beans-cor) + 120.56652305318*sales(manioc) + 85.5658198614319*sales(corn) - pdev(1962) + ndev(1962) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- income  =E=  farm income definition                                        ( )
+
+income..  - 934*cons(one) - 934*cons(two) - 934*cons(three) + rationr + yfarm - revenue + cropcost + labcost + vetcost =E= 0 ; (LHS = 0)
+     
+
+---- arev  =E=  accounting: revenue definition                                ( )
+
+arev..  - 211*xlive - 1900*sales(cotton-h) - 4000*sales(banana) - 35000*sales(sugar-cane) - 2500*sales(beans-arr) - 1500*sales(beans-cor) - 10000*sales(oranges) - 170*sales(manioc) - 150*sales(corn) - 1000*sales(sisal) + revenue =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 26
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Equation Listing    SOLVE agreste Using LP From line 316
+
+
+---- acrop  =E=  accounting: cropping cost definition                          ( )
+
+acrop..  - 122*xcrop(crop-02,good) - 122*xcrop(crop-02,medium) - 45*xcrop(crop-05,good) - 45*xcrop(crop-05,medium) - 36*xcrop(crop-10,good) - 36*xcrop(crop-10,medium) - 291*xcrop(crop-15,good) - 20*xcrop(crop-16,good) - 20*xcrop(crop-16,medium)
+     
+      - 97*xcrop(crop-17,good) - 97*xcrop(crop-17,medium) - 45*xcrop(crop-29,good) - 45*xcrop(crop-29,medium) - 27*xcrop(crop-30,good) - 27*xcrop(crop-30,medium) - 53*xcrop(crop-33,good) - 53*xcrop(crop-33,medium) - 105*xcrop(crop-36,good)
+     
+      - 105*xcrop(crop-36,medium) + cropcost =E= 0 ; (LHS = 0)
+     
+
+---- alab  =E=  accounting: labor cost definition                             ( )
+
+alab..  - 3*flab(jan) - 3*flab(feb) - 3*flab(mar) - 3*flab(apr) - 3*flab(may) - 3*flab(jun) - 3*flab(jul) - 3*flab(aug) - 3*flab(sep) - 3*flab(oct) - 3*flab(nov) - 3*flab(dec) - 10*tlab(jan) - 10*tlab(feb) - 10*tlab(mar) - 10*tlab(apr) - 10*tlab(may)
+     
+      - 10*tlab(jun) - 10*tlab(jul) - 10*tlab(aug) - 10*tlab(sep) - 10*tlab(oct) - 10*tlab(nov) - 10*tlab(dec) - 2054*plab + labcost =E= 0 ; (LHS = 0)
+     
+
+---- awcc  =L=  accounting: working capital requirements                      ( )
+
+awcc..  10*tlab(jan) + 10*tlab(feb) + 10*tlab(mar) + 10*tlab(apr) + 10*tlab(may) + 10*tlab(jun) + 10*tlab(jul) + 10*tlab(aug) + 10*tlab(sep) + 10*tlab(oct) + 10*tlab(nov) + 10*tlab(dec) + 2054*plab + rationr + cropcost + vetcost =L= 7123.2 ; (LHS = 0)
+     
+
+---- avet  =E=  accounting: veterinary costs                                  (cr)
+
+avet..  - xlive + vetcost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 27
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+---- xcrop  cropping activities                                   (ha)
+
+xcrop(crop-02,good)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.848   mbalc(cotton-h)
+       -0.848   dprod(cotton-h)
+        4.79    labc(jan)
+       10.89    labc(feb)
+       18.7     labc(mar)
+        9.83    labc(apr)
+        8.03    labc(may)
+       20.95    labc(jun)
+       15.67    labc(jul)
+       15.48    labc(aug)
+       11.35    labc(sep)
+        8.38    labc(oct)
+        8.23    labc(nov)
+        4.54    labc(dec)
+     -122       acrop
+
+xcrop(crop-02,medium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.569   mbalc(cotton-h)
+       -0.569   dprod(cotton-h)
+        4.79    labc(jan)
+       10.89    labc(feb)
+       18.7     labc(mar)
+        9.83    labc(apr)
+        8.03    labc(may)
+       20.95    labc(jun)
+       15.67    labc(jul)
+       15.48    labc(aug)
+       11.35    labc(sep)
+        8.38    labc(oct)
+        8.23    labc(nov)
+        4.54    labc(dec)
+     -122       acrop
+
+xcrop(crop-05,good)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landb(good)
+        0.221   mbalc(banana)
+       -0.221   dprod(banana)
+        8.24    labc(jan)
+        0.89    labc(feb)
+        5.43    labc(mar)
+        3.31    labc(apr)
+       11.13    labc(may)
+       10.33    labc(jun)
+        3.27    labc(jul)
+        2.65    labc(aug)
+        5.47    labc(sep)
+        3.67    labc(oct)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 28
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+     xcrop  cropping activities                                   (ha)
+
+        3.18    labc(nov)
+        1.44    labc(dec)
+      -45       acrop
+
+REMAINING 20 ENTRIES SKIPPED
+
+---- xliver  livestock activity defined on feed techniques       (head)
+
+xliver(rec-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1.407   landb(medium)
+        0.209   landb(pasture)
+       -1       lbal
+       -5.141   rliv
+        4.261   labc(jan)
+        2.854   labc(feb)
+        0.04    labc(mar)
+        0.04    labc(apr)
+        0.04    labc(may)
+        0.04    labc(jun)
+        0.04    labc(jul)
+        0.04    labc(aug)
+        0.04    labc(sep)
+        0.04    labc(oct)
+        7.075   labc(nov)
+        7.075   labc(dec)
+
+xliver(rec-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.611   landb(medium)
+        2.03    landb(pasture)
+       -1       lbal
+      -21.646   rliv
+        1.873   labc(jan)
+        1.262   labc(feb)
+        0.04    labc(mar)
+        0.04    labc(apr)
+        0.04    labc(may)
+        0.04    labc(jun)
+        0.04    labc(jul)
+        0.04    labc(aug)
+        0.04    labc(sep)
+        0.04    labc(oct)
+        3.095   labc(nov)
+        3.095   labc(dec)
+
+xliver(rec-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.631   landb(medium)
+        0.9     landb(pasture)
+       -1       lbal
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 29
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+     xliver  livestock activity defined on feed techniques       (head)
+
+      -49.845   rliv
+        1.933   labc(jan)
+        1.302   labc(feb)
+        0.04    labc(mar)
+        0.04    labc(apr)
+        0.04    labc(may)
+        0.04    labc(jun)
+        0.04    labc(jul)
+        0.04    labc(aug)
+        0.04    labc(sep)
+        0.04    labc(oct)
+        3.195   labc(nov)
+        3.195   labc(dec)
+
+
+---- xlive  livestock production                                (head)
+
+xlive
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       lbal
+     -211       arev
+       -1       avet
+
+
+---- lswitch  land downgrading                                      (ha)
+
+lswitch(good)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landb(good)
+       -1       landb(medium)
+
+lswitch(medium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landb(medium)
+       -1       landb(pasture)
+
+
+---- xprod  crop production                                      (ton)
+
+xprod(cotton-h)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dprod(cotton-h)
+
+xprod(banana)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dprod(banana)
+
+xprod(sugar-cane)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dprod(sugar-cane)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 30
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+     xprod  crop production                                      (ton)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- cons  on-farm consumption                                  (ton)
+
+cons(one)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.225   mbalc(beans-arr)
+       -0.965   mbalc(manioc)
+       -0.235   mbalc(corn)
+        1       cond
+     -934       income
+
+cons(two)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.152   mbalc(beans-arr)
+       -2.64    mbalc(manioc)
+       -0.232   mbalc(corn)
+        1       cond
+     -934       income
+
+cons(three)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.15    mbalc(beans-arr)
+       -0.935   mbalc(manioc)
+       -0.581   mbalc(corn)
+        1       cond
+     -934       income
+
+
+---- sales  crop sales                                           (ton)
+
+sales(cotton-h)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalc(cotton-h)
+    -1900       arev
+
+sales(banana)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalc(banana)
+     -602.0603  ddev(1960)
+      350.5735  ddev(1961)
+      893.2668  ddev(1962)
+      556.6058  ddev(1963)
+      241.7162  ddev(1964)
+     -161.8522  ddev(1965)
+     -854.8216  ddev(1966)
+     -422.0476  ddev(1967)
+     -165.5692  ddev(1968)
+      164.1886  ddev(1969)
+    -4000       arev
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 31
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+     sales  crop sales                                           (ton)
+
+sales(sugar-cane)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalc(sugar-cane)
+    -4703.4998  ddev(1960)
+     -487.0703  ddev(1961)
+     -505.2446  ddev(1962)
+     5528.6115  ddev(1963)
+     6164.7108  ddev(1964)
+     2566.2063  ddev(1965)
+    -7756.7764  ddev(1966)
+     -414.3732  ddev(1967)
+     -450.7218  ddev(1968)
+       58.1576  ddev(1969)
+   -35000       arev
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- flab  family labor                                    (man-days)
+
+flab(jan)
+                (.LO, .L, .UP, .M = 0, 0, 70.5, 0)
+       -1       labc(jan)
+       -3       alab
+
+flab(feb)
+                (.LO, .L, .UP, .M = 0, 0, 70.5, 0)
+       -1       labc(feb)
+       -3       alab
+
+flab(mar)
+                (.LO, .L, .UP, .M = 0, 0, 70.5, 0)
+       -1       labc(mar)
+       -3       alab
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- tlab  temporary labor                                 (man-days)
+
+tlab(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       labc(jan)
+      -10       alab
+       10       awcc
+
+tlab(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       labc(feb)
+      -10       alab
+       10       awcc
+
+tlab(mar)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 32
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+     tlab  temporary labor                                 (man-days)
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       labc(mar)
+      -10       alab
+       10       awcc
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- plab  permanent labor                                  (workers)
+
+plab
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -25       labc(jan)
+      -25       labc(feb)
+      -25       labc(mar)
+      -25       labc(apr)
+      -25       labc(may)
+      -25       labc(jun)
+      -25       labc(jul)
+      -25       labc(aug)
+      -25       labc(sep)
+      -25       labc(oct)
+      -25       labc(nov)
+      -25       labc(dec)
+    -2054       alab
+     2054       awcc
+
+
+---- rationr  livestock ration requirements                         (cr)
+
+rationr
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       rliv
+        1       income
+        1       awcc
+
+
+---- pdev  positive price deviations                             (cr)
+
+pdev(1960)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(1960)
+
+pdev(1961)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(1961)
+
+pdev(1962)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(1962)
+
+REMAINING 7 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 33
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+---- ndev  negative price deviations                             (cr)
+
+ndev(1960)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(1960)
+
+ndev(1961)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(1961)
+
+ndev(1962)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(1962)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- yfarm  farm income                                           (cr)
+
+yfarm
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+
+
+---- revenue  from crop and livestock sales                         (cr)
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       income
+        1       arev
+
+
+---- cropcost  accounting: cropping activities cost                  (cr)
+
+cropcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+        1       acrop
+        1       awcc
+
+
+---- labcost  accounting: labor costs - including family            (cr)
+
+labcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+        1       alab
+
+
+---- vetcost  accounting: veterinary services cost                  (cr)
+
+vetcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 34
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Column Listing      SOLVE agreste Using LP From line 316
+
+
+     vetcost  accounting: veterinary services cost                  (cr)
+
+        1       awcc
+        1       avet
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 35
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Model Statistics    SOLVE agreste Using LP From line 316
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          14     SINGLE EQUATIONS           52
+BLOCKS OF VARIABLES          18     SINGLE VARIABLES          101
+NON ZERO ELEMENTS           645
+
+
+GENERATION TIME      =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 36
+Agreste Farm Level Model of NE Brazil (AGRESTE,SEQ=88)
+Solution Report     SOLVE agreste Using LP From line 316
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   agreste             OBJECTIVE  yfarm
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  316
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/agreste/convert.opt"
+>>  ampl agreste-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/agreste/convert.opt"
+Ampl      : agreste-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/agreste/agreste.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/agreste/agreste-scalar.mod.lst

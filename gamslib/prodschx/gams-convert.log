@@ -1,0 +1,120 @@
+--- Job prodschx.gms Start 12/13/18 10:24:49 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- prodschx.gms(193) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- prodschx.gms(158) 4 Mb
+--- Generating MIP model prod1B
+--- prodschx.gms(162) 4 Mb
+---   89 rows  118 columns  384 non-zeroes
+---   41 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+--- Writing Gams      : prodschx-scalar.gms
+
+--- Restarting execution
+--- prodschx.gms(162) 2 Mb
+--- Reading solution for model prod1B
+--- prodschx.gms(165) 3 Mb
+--- Generating MIP model prod1S1
+--- prodschx.gms(167) 3 Mb
+---   89 rows  118 columns  384 non-zeroes
+---   9 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+--- Writing Gams      : prodschx-scalar.gms
+
+--- Restarting execution
+--- prodschx.gms(167) 2 Mb
+--- Reading solution for model prod1S1
+--- prodschx.gms(170) 3 Mb
+--- Generating MIP model prod1S2
+--- prodschx.gms(172) 3 Mb
+---   49 rows  86 columns  224 non-zeroes
+---   9 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.042
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+--- Writing Gams      : prodschx-scalar.gms
+
+--- Restarting execution
+--- prodschx.gms(172) 2 Mb
+--- Reading solution for model prod1S2
+--- prodschx.gms(175) 3 Mb
+--- Generating MIP model prod2B
+--- prodschx.gms(177) 3 Mb
+---   89 rows  118 columns  385 non-zeroes
+---   41 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.061
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+--- Writing Gams      : prodschx-scalar.gms
+
+--- Restarting execution
+--- prodschx.gms(177) 2 Mb
+--- Reading solution for model prod2B
+--- prodschx.gms(180) 3 Mb
+--- Generating MIP model prod2S1
+--- prodschx.gms(182) 3 Mb
+---   89 rows  118 columns  385 non-zeroes
+---   9 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.078
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+--- Writing Gams      : prodschx-scalar.gms
+
+--- Restarting execution
+--- prodschx.gms(182) 2 Mb
+--- Reading solution for model prod2S1
+--- prodschx.gms(185) 3 Mb
+--- Generating MIP model prod2S2
+--- prodschx.gms(187) 3 Mb
+---   49 rows  86 columns  225 non-zeroes
+---   9 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.090
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+--- Writing Gams      : prodschx-scalar.gms
+
+--- Restarting execution
+--- prodschx.gms(187) 2 Mb
+--- Reading solution for model prod2S2
+--- prodschx.gms(192) 3 Mb
+*** Status: Normal completion
+--- Job prodschx.gms Stop 12/13/18 10:24:49 elapsed 0:00:00.102

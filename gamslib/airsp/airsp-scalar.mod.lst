@@ -1,0 +1,389 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 2
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+C o m p i l a t i o n
+
+
+   3   
+       
+         The objective of this model is to allocate aircrafts to routes to maximize
+         the expected profit when traffic demand is uncertain. Three different
+         formulations are presented:
+       
+           * the original lambda formulation
+           * a stochastic equivalent with sampling
+           * a stochastic equivalent with all scenarios
+       
+       
+      Dantzig, G B, Chapter 28. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  19   
+  20   
+  21  Set i     aircraft types and unassigned passengers / a, b, c, d /
+  22      j     assigned and unassigned routes           / route-1, route-2, route-3, route-4, route-5 /
+  23      h     demand states                            /    1*5   /
+  24      ss    nodes                                    / s1*s1000  /
+  25      s(ss) actual ord temp nodes
+  26      ij(i,j) possible assignments
+  27      jh(j,h) possible demand states
+  28   
+  29  Alias(h,hp,h1,h2,h3,h4,h5);
+  30   
+  31  Table  dd(j,h)     demand distribution on route j
+  32   
+  33               1       2      3      4      5
+  34  route-1    200     220    250    270    300
+  35  route-2     50     150
+  36  route-3    140     160    180    200    220
+  37  route-4     10      50     80    100    340
+  38  route-5    580     600    620
+  39   
+  40  Table  lambda(j,h)  probability of demand state h on route j
+  41   
+  42                1      2      3      4      5
+  43  route-1      .2     .05    .35    .2     .2
+  44  route-2      .3     .7
+  45  route-3      .1     .2     .4     .2     .1
+  46  route-4      .2     .2     .3     .2     .1
+  47  route-5      .1     .8     .1
+  48   
+  49  Table  c(i,j)       costs per aircraft (1000s)
+  50   
+  51           route-1    route-2    route-3     route-4     route-5
+  52  a          18         21         18          16           10
+  53  b                     15         16          14            9
+  54  c                     10                      9            6
+  55  d          17         16         17          15           10
+  56   
+  57  Table  p(i,j)    passenger capacity of aircraft i on route j
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 3
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+C o m p i l a t i o n
+
+
+  58   
+  59          route-1     route-2     route-3     route-4     route-5
+  60  a          16         15          28          23          81
+  61  b                     10          14          15          57
+  62  c                      5                       7          29
+  63  d           9         11          22          17          55
+  64   
+  65  Parameter aa(i)       aircraft availability               / a   10, b   19, c   25, d   15 /
+  66            k(j)        revenue lost (1000 per 100  bumped) / (route-1,route-2) 13, (route-3,route-4) 7, route-5 1 /
+  67            ed(j)       expected demand
+  68            deltb(j,h)  incremental demand
+  69            gamma(j,h)  probability of demand segment
+  70            drand(j,ss) sampled demand
+  71            sample(j)   sampled mean
+  72            num         temp value
+  73            prob(ss)    scenario probability
+  74            probxx      temp probability value;
+  75   
+  76  ij(i,j) = p(i,j);
+  77  jh(j,h) = lambda(j,h);
+  78   
+  79  ed(j)          = sum(h, lambda(j,h)*dd(j,h));
+  80  deltb(jh(j,h)) = dd(j,h)-dd(j,h-1);
+  81  gamma(j,h)     = sum(hp$(ord(hp) >= ord(h)), lambda(j,hp));
+  82   
+  83   
+  84  display deltb,gamma,ed;
+  85   
+  86  Positive Variables
+  87     x(i,j)    number of aircraft type i assigned to route j
+  88     z(j)      allocated capacity
+  89     bh(j,h)   passengers bumped
+  90     bs(j,ss)  passengers bumped
+  91   
+  92  Variables phi     total expected costs
+  93            oc      operating cost
+  94  Equations
+  95     ab(i)     aircraft balance
+  96     cb(j)     capacity balance
+  97     dbh(j,h)  demand balance
+  98     dbs(j,ss) demand balance
+  99     ocd       operating cost definition
+ 100     objh      objective function
+ 101     objs      objective function;
+ 102   
+ 103   ab(i)..   sum(ij(i,j), x(ij)) =l= aa(i);
+ 104   
+ 105   cb(j)..   z(j) =e= sum(ij(i,j), p(ij)*x(ij));
+ 106   
+ 107   dbh(j,h).. dd(j,h)    - bh(j,h) =l= z(j);
+ 108   dbs(j,s).. drand(j,s) - bs(j,s) =l= z(j);
+ 109   
+ 110   ocd..     oc =e= sum((i,j), c(i,j)*x(i,j));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 4
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+C o m p i l a t i o n
+
+
+ 111   
+ 112   objh ..    phi =e= oc + sum(j, k(j)*sum(jh(j,h),lambda(j,h)*bh(j,h)));
+ 113   objs..     phi =e= oc + sum(j, k(j)*sum(s, prob(s)*bs(j,s)));
+ 114   
+ 115   Model  alloch aircraft allocation  / ab, cb, dbh, ocd, objh /
+ 116          allocs aircraft allocation  / ab, cb, dbs, ocd, objs /;
+ 117   
+ 118  option limcol=0,limrow=0,solprint=off;
+ 119   
+ 120  parameter rep quick report;
+ 121   
+ 122  solve alloch minimizing phi using lp;
+ 123  rep(i,j,'alloch') = x.l(i,j);
+ 124  rep('ev',' ','alloch') = phi.l;
+ 125   
+ 126  * set up a sample of some size
+ 127   
+ 128  s(ss) = (ord(ss) <= 100);
+ 129   
+ 130  loop((j,s),
+ 131     num = uniform(0,1);
+ 132     drand(j,s) =  sum(jh(j,h)$(num < gamma(jh)), deltb(j,h)));
+ 133  prob(s) = 1/card(s);
+ 134  sample(j) = sum(s, drand(j,s))/card(s);
+ 135   
+ 136  display sample;
+ 137   
+ 138  solve allocs minimizing phi using lp;
+ 139  rep(i,j,'allocs') = x.l(i,j);
+ 140  rep('ev',' ','allocs') = phi.l;
+ 141   
+ 142  *  enumerate all scenarios
+ 143   
+ 144  prob(s) = 0;
+ 145  s(ss)   = no;
+ 146  s('s1') = yes;
+ 147  loop((h1,h2,h3,h4,h5),
+ 148     probxx =  lambda('route-1',h1)
+ 149              *lambda('route-2',h2)
+ 150              *lambda('route-3',h3)
+ 151              *lambda('route-4',h4)
+ 152              *lambda('route-5',h5);
+ 153     if(probxx,
+ 154        drand('route-1',s) = dd('route-1',h1);
+ 155        drand('route-2',s) = dd('route-2',h2);
+ 156        drand('route-3',s) = dd('route-3',h3);
+ 157        drand('route-4',s) = dd('route-4',h4);
+ 158        drand('route-5',s) = dd('route-5',h5);
+ 159        prob(s) = probxx;
+ 160  *     s(ss) = s(ss-1)   this looks nice but is very slow
+ 161        s(ss+1)$s(ss) = yes;
+ 162        s(ss-1)$s(ss) = no ) );
+ 163  s(ss) = prob(ss);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 5
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+C o m p i l a t i o n
+
+
+ 164   
+ 165  solve allocs minimizing phi using lp;
+ 166  rep(i,j,'allocss') = x.l(i,j);
+ 167  rep('ev',' ','allocss') = phi.l;
+ 168   
+ 169  display rep;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 6
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+E x e c u t i o n
+
+
+----     84 PARAMETER deltb  incremental demand
+
+                  1           2           3           4           5
+
+route-1     200.000      20.000      30.000      20.000      30.000
+route-2      50.000     100.000
+route-3     140.000      20.000      20.000      20.000      20.000
+route-4      10.000      40.000      30.000      20.000     240.000
+route-5     580.000      20.000      20.000
+
+
+----     84 PARAMETER gamma  probability of demand segment
+
+                  1           2           3           4           5
+
+route-1       1.000       0.800       0.750       0.400       0.200
+route-2       1.000       0.700
+route-3       1.000       0.900       0.700       0.300       0.100
+route-4       1.000       0.800       0.600       0.300       0.100
+route-5       1.000       0.900       0.100
+
+
+----     84 PARAMETER ed  expected demand
+
+route-1 252.500,    route-2 120.000,    route-3 180.000,    route-4  90.000,    route-5 600.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 7
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+Model Statistics    SOLVE alloch Using LP From line 122
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           36
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           49
+NON ZERO ELEMENTS           129
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 8
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+Solution Report     SOLVE alloch Using LP From line 122
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloch              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  122
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  ampl airsp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+Ampl      : airsp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 9
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+E x e c u t i o n
+
+
+----    136 PARAMETER sample  sampled mean
+
+route-1 261.400,    route-2 133.000,    route-3 177.400,    route-4  98.600,    route-5 600.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:16 Page 10
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+Model Statistics    SOLVE allocs Using LP From line 138
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS          511
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES          524
+NON ZERO ELEMENTS         1,559
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:16 Page 11
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+Solution Report     SOLVE allocs Using LP From line 138
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   allocs              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  138
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  ampl airsp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+Ampl      : airsp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:16 Page 12
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+Model Statistics    SOLVE allocs Using LP From line 165
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        3,761
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES        3,774
+NON ZERO ELEMENTS        11,309
+
+
+GENERATION TIME      =        0.009 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.021 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:16 Page 13
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+Solution Report     SOLVE allocs Using LP From line 165
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   allocs              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  165
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  ampl airsp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+Ampl      : airsp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:16 Page 14
+Aircraft allocation - stochastic optimization (AIRSP,SEQ=189)
+E x e c u t i o n
+
+
+----    169 PARAMETER rep  quick report
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/airsp/airsp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/airsp/airsp-scalar.mod.lst

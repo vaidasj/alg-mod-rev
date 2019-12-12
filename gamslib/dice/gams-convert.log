@@ -1,0 +1,30 @@
+--- Job dice.gms Start 12/13/18 10:31:11 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- dice.gms(72) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- dice.gms(64) 4 Mb
+--- Generating MIP model xdice
+--- dice.gms(65) 4 Mb
+---   126 rows  127 columns  465 non-zeroes
+---   108 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dice/convert.opt"
+>>  gams dice-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dice/convert.opt"
+--- Writing Gams      : dice-scalar.gms
+
+--- Restarting execution
+--- dice.gms(65) 2 Mb
+--- Reading solution for model xdice
+--- dice.gms(72) 3 Mb
+*** Status: Normal completion
+--- Job dice.gms Stop 12/13/18 10:31:11 elapsed 0:00:00.015

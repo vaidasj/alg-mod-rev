@@ -1,0 +1,154 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 2
+Robust Optimization (ROTDK,SEQ=185)
+C o m p i l a t i o n
+
+
+       
+      Robust Optimization
+       
+       
+      Laguna, M, Applying Robust Optimization to Capacity Expansion of
+      One Location in Telecommunications with Demand Uncertainty.
+      Management Science 44, 11 (1998), 101-110.
+       
+  14   
+  15  SETS s scenarios / 1*1000/
+  16       t time periods / t1*t12 /
+  17       j components / C001*C010 /
+  18   
+  19  alias(t,tt);
+  20   
+  21  PARAMETERS
+  22       di(s,t) increment
+  23       D(t,s)  demand
+  24       c(j)    capacity size
+  25       p(j)    capacity cost
+  26       mu      mean capacity parameter
+  27       sigma   std capacity parameter;
+  28   
+  29  mu = 100; sigma = 10;
+  30   
+  31  c(j) = round(uniform(1,mu));
+  32  p(j) = round(mu + c(j) + uniform(-sigma,sigma));
+  33   
+  34  di(s,t)$(ord(s) <= 0.25*card(s)) = round(normal( 50,10));
+  35  di(s,t)$(ord(s)  > 0.25*card(s) and ord(s) <= 0.75*card(s)) = round(normal(100,20));
+  36  di(s,t)$(ord(s)  > 0.75*card(s)) = round(normal(150,40));
+  37   
+  38  d(t,s) = sum(tt$(ord(tt) <= ord(t)), di(s,tt));
+  39  *display c,p,di,d;
+  40   
+  41  parameters dis(t) discount factor
+  42             w      shortage penalty;
+  43   
+  44  dis(t) = power(.86,ord(t)-1);
+  45  w      = 5;
+  46   
+  47  variables x(j,t) expansion
+  48            z(s) max capacity shortage
+  49            cap(t) installed capacity
+  50            obj;
+  51   
+  52  integer variable x; positive variable z;
+  53   
+  54  equations capbal(t)   capacity balance
+  55            dembal(t,s) demand balance
+  56            objdef;
+  57   
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 3
+Robust Optimization (ROTDK,SEQ=185)
+C o m p i l a t i o n
+
+
+  59  objdef.. obj =e= sum((j,t), dis(t)*p(j)*x(j,t))
+  60                 + w/card(s)*sum(s, z(s));
+  61   
+  62  capbal(t).. cap(t) =e= cap(t-1) + sum(j, c(j)*x(j,t));
+  63   
+  64  dembal(t,s).. cap(t) + z(s) =g= d(t,s);
+  65   
+  66  model rotdk / all /;
+  67   
+  68  option limcol=0,limrow=0;
+  69  * do not reset optcr if already set to a nondefault value
+  70  if {(.1 = 0.1), option optcr = 0.05; };
+  71   
+  72  solve rotdk min obj us mip;
+  73   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 4
+Robust Optimization (ROTDK,SEQ=185)
+Model Analysis      SOLVE rotdk Using MIP From line 72
+
+
+****
+****  120 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 5
+Robust Optimization (ROTDK,SEQ=185)
+Model Statistics    SOLVE rotdk Using MIP From line 72
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS       12,013
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES        1,133
+NON ZERO ELEMENTS        25,264     DISCRETE VARIABLES        120
+
+
+GENERATION TIME      =        0.009 SECONDS      8 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.034 SECONDS      8 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:16 Page 6
+Robust Optimization (ROTDK,SEQ=185)
+Solution Report     SOLVE rotdk Using MIP From line 72
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   rotdk               OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  72
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/rotdk/convert.opt"
+>>  gams rotdk-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/rotdk/convert.opt"
+Gams      : rotdk-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/rotdk/rotdk.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/rotdk/rotdk-scalar.gms.lst

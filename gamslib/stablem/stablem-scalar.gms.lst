@@ -1,0 +1,264 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 2
+Stable Marriage Problem (STABLEM,SEQ=389)
+C o m p i l a t i o n
+
+
+       
+      Given a set of n men and n women, marry them off in pairs after each
+      man has ranked the women in order of preference from 1 to n,
+      {w_1,...,w_n} and each women has done likewise, {m_1,...,m_n}. If the
+      resulting set of marriages contains no pairs of the form {m_i,w_j},
+      {m_k,w_l} such that m_i prefers w_l to w_j and w_l prefers m_i to m_k,
+      the marriage is said to be stable. Gale and Shapley (1962) showed that
+      a stable marriage exists for any choice of rankings (Skiena 1990,
+      p. 245). In the United States, the algorithm of Gale and Shapley
+      (1962) is used to match hospitals to medical interns (Skiena 1990,
+      p. 245). 
+       
+      This model generates multiple/all solution by introducing MIP cuts 
+      and resolving the MIP.
+       
+       
+      Gale, D, and Shapley, L S, College admissions and the stability of
+      marriage. American Mathematical Monthly 69, 1 (1962), 9-15.
+       
+      Gusfield, D, and Irving, R W, The stable marriage problem: structure
+      and algorithms. MIT Press, Cambridge, MA, USA, 1989.
+       
+      Skiena, S, 6.4.4. Stable Marriages. In Implementing discrete mathematics: 
+      combinatorics and graph theory with Mathematica. Addison-Wesley Longman 
+      Publishing Co., Inc., Boston, MA, USA, 1991.
+       
+      Weisstein, E W, Stable Marriage Problem. From MathWorld-A Wolfram Web
+      Resource. http://mathworld.wolfram.com/StableMarriageProblem.html
+       
+      Sethuraman, V J, and Teo, C P, Linear programming brings marital
+      bliss. Mathematical Medley, Singapore Mathematical Society 25, 2
+      (1998). 
+       
+  39   
+  40  *  use gams ... --data=xxx
+  43   
+  45   
+  46  sets m / Alan, Bob, Carl, Dan /
+  47       w / Alice, Brenda, Cindy, Debbie /
+  48   
+  49  table wp(w,m) Woman Preferences
+  50          Alan Bob Carl Dan
+  51  Alice      3   4    2   1
+  52  Brenda     3   4    1   2
+  53  Cindy      3   2    1   4
+  54  Debbie     4   2    3   1
+  55   
+  56  table mp(m,w) Man Preferences
+  57       Alice Brenda Cindy Debbie
+  58  Alan     2      4     1      3
+  59  Bob      1      4     2      3
+  60  Carl     3      4     2      1
+  61  Dan      3      2     1      4
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 3
+Stable Marriage Problem (STABLEM,SEQ=389)
+C o m p i l a t i o n
+
+
+  62   
+  64   
+  65  alias (m,mm) ,(w,ww);
+  66   
+  67  binary variable match(w,m); variable rank;
+  68   
+  69  equations onem(w),onew(m),stable(w,m),defrank;
+  70   
+  71  defrank.. rank =e= sum((w,m), wp(w,m)*match(w,m));
+  72   
+  73  onem(w).. sum(m, match(w,m)) =e= 1;
+  74  onew(m).. sum(w, match(w,m)) =e= 1;
+  75   
+  76  stable(w,m).. sum(mm$(wp(w,mm) > wp(w,m)), match(w,mm))
+  77              + sum(ww$(mp(m,ww) > mp(m,w)), match(ww,m)) =l= 1;
+  78   
+  79  model sm / all /;
+  80   
+  81  solve sm us mip min rank;
+  82   
+  83  set nn number of solutions / sol-1*sol-100 /, n(nn);
+  84  set sol(nn,w,m);
+  85   
+  86  equation cut(nn);
+  87   
+  88  cut(n).. sum(sol(n,w,m), match(w,m)) =l= card(w)-1;
+  89   
+  90  model new / sm, cut /;
+  91   
+  92  new.modelstat=sm.modelstat;
+  93  option limrow=0,limcol=0,solprint=off,optcr=0,solvelink=5;
+  94   
+  95  loop(nn$(new.modelstat=1),
+  96     n(nn) = yes;
+  97     sol(nn,w,m) = round(match.l(w,m));
+  98     solve new us mip min rank);
+  99   
+ 100  option sol:0:0:1; display sol;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 4
+Stable Marriage Problem (STABLEM,SEQ=389)
+Equation Listing    SOLVE sm Using MIP From line 81
+
+
+---- onem  =E=  
+
+onem(Alice)..  match(Alice,Alan) + match(Alice,Bob) + match(Alice,Carl) + match(Alice,Dan) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+onem(Brenda)..  match(Brenda,Alan) + match(Brenda,Bob) + match(Brenda,Carl) + match(Brenda,Dan) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+onem(Cindy)..  match(Cindy,Alan) + match(Cindy,Bob) + match(Cindy,Carl) + match(Cindy,Dan) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- onew  =E=  
+
+onew(Alan)..  match(Alice,Alan) + match(Brenda,Alan) + match(Cindy,Alan) + match(Debbie,Alan) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+onew(Bob)..  match(Alice,Bob) + match(Brenda,Bob) + match(Cindy,Bob) + match(Debbie,Bob) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+onew(Carl)..  match(Alice,Carl) + match(Brenda,Carl) + match(Cindy,Carl) + match(Debbie,Carl) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- stable  =L=  
+
+stable(Alice,Alan)..  match(Alice,Bob) + match(Brenda,Alan) + match(Debbie,Alan) =L= 1 ; (LHS = 0)
+     
+stable(Alice,Bob)..  match(Brenda,Bob) + match(Cindy,Bob) + match(Debbie,Bob) =L= 1 ; (LHS = 0)
+     
+stable(Alice,Carl)..  match(Alice,Alan) + match(Alice,Bob) + match(Brenda,Carl) =L= 1 ; (LHS = 0)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+
+---- defrank  =E=  
+
+defrank..  - 3*match(Alice,Alan) - 4*match(Alice,Bob) - 2*match(Alice,Carl) - match(Alice,Dan) - 3*match(Brenda,Alan) - 4*match(Brenda,Bob) - match(Brenda,Carl) - 2*match(Brenda,Dan) - 3*match(Cindy,Alan) - 2*match(Cindy,Bob) - match(Cindy,Carl)
+     
+      - 4*match(Cindy,Dan) - 4*match(Debbie,Alan) - 2*match(Debbie,Bob) - 3*match(Debbie,Carl) - match(Debbie,Dan) + rank =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 5
+Stable Marriage Problem (STABLEM,SEQ=389)
+Column Listing      SOLVE sm Using MIP From line 81
+
+
+---- match  
+
+match(Alice,Alan)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       onem(Alice)
+        1       onew(Alan)
+        1       stable(Alice,Carl)
+        1       stable(Alice,Dan)
+        1       stable(Cindy,Alan)
+       -3       defrank
+
+match(Alice,Bob)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       onem(Alice)
+        1       onew(Bob)
+        1       stable(Alice,Alan)
+        1       stable(Alice,Carl)
+        1       stable(Alice,Dan)
+       -4       defrank
+
+match(Alice,Carl)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       onem(Alice)
+        1       onew(Carl)
+        1       stable(Alice,Dan)
+        1       stable(Cindy,Carl)
+        1       stable(Debbie,Carl)
+       -2       defrank
+
+REMAINING 13 ENTRIES SKIPPED
+
+---- rank  
+
+rank
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defrank
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 6
+Stable Marriage Problem (STABLEM,SEQ=389)
+Model Statistics    SOLVE sm Using MIP From line 81
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           17
+NON ZERO ELEMENTS            97     DISCRETE VARIABLES         16
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 7
+Stable Marriage Problem (STABLEM,SEQ=389)
+Solution Report     SOLVE sm Using MIP From line 81
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   sm                  OBJECTIVE  rank
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  81
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/stablem/convert.opt"
+>>  gams stablem-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/stablem/convert.opt"
+Gams      : stablem-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:35 Page 8
+Stable Marriage Problem (STABLEM,SEQ=389)
+E x e c u t i o n
+
+
+----    100 SET sol  
+
+                                                      ( EMPTY )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/stablem/stablem.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/stablem/stablem-scalar.gms.lst

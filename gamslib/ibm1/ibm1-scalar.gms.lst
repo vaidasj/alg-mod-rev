@@ -1,0 +1,503 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 2
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This simple alloy smelter blending problem is used as an introductory
+         example in several mpsx manuals.
+       
+       
+      IBM, MPSX/370 Primer. Tech. rep., IBM, 1979.
+       
+  14   
+  15   
+  16   Sets  s     scrap metals for blending / bin-1*bin-5, aluminum, silicon /
+  17         sl(s) locally available blends  / bin-1*bin-5 /
+  18         e     chemical elements         / iron, copper, manganese, magnesium
+  19                                           aluminum, silicon /
+  20   
+  21   Table bspec(e,*) blending specs (lb for 2000 lb ingot)
+  22   
+  23               maximum  minimum
+  24   iron          60
+  25   copper       100
+  26   manganese     40
+  27   magnesium     30
+  28   aluminum     inf      1500
+  29   silicon      300       250
+  30   
+  31   
+  32   Table prop(e,s)  chemical properties (proportions)
+  33   
+  34             bin-1  bin-2  bin-3  bin-4  bin-5  aluminum  silicon
+  35   iron        .15   .04    .02    .04    .02      .01       .03
+  36   copper      .03   .05    .08    .02    .06      .01
+  37   manganese   .02   .04    .01    .02    .02
+  38   magnesium   .02   .03                  .01
+  39   aluminum    .70   .75    .80    .75    .80      .97
+  40   silicon     .02   .06    .08    .12    .02      .01       .97
+  41   
+  42   Parameter dcheck(s) other elements in prop (prop);
+  43             dcheck(s) = 1 - sum(e, prop(e,s)) ; display dcheck;
+  44   
+  45   Table sup(s,*) supply and cost data
+  46   
+  47              inventory  min-use   cost
+  48  *              (lb)      (lb)   ($/lb)
+  49   bin-1        200                .03
+  50   bin-2        750                .08
+  51   bin-3        800        400     .17
+  52   bin-4        700        100     .12
+  53   bin-5       1500                .15
+  54   aluminum     inf                .21
+  55   silicon      inf                .38
+  56   
+  57   
+  58   Variables  x(s)  blending components  (lb)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 3
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+C o m p i l a t i o n
+
+
+  59              bc(e) elements in blend    (lb)
+  60              cost  total material cost  ($)
+  61   
+  62   Equations  yield   final blend requirements (lb)
+  63              ebal(e) element balance          (lb)
+  64              cdef    cost definition          ($) ;
+  65   
+  66   yield.. sum(s, x(s)) =e= 2000 ;
+  67   
+  68   ebal(e).. bc(e) =e= sum(s, prop(e,s)*x(s)) ;
+  69   
+  70   cdef.. cost =e= sum(s, sup(s,"cost")*x(s));
+  71   
+  72   Model alloy alloy blending model / all / ;
+  73   
+  74   x.lo(s) = sup(s,"min-use"); x.up(s) = sup(s,"inventory");
+  75   bc.lo(e) = bspec(e,"minimum"); bc.up(e) = bspec(e,"maximum");
+  76   
+  77   Parameter report(s,*) blending results ;
+  78   
+  79   
+  80   Solve alloy minimizing cost using lp;
+  81   report(s,"run-1") = x.l(s);
+  82   
+  83   Option solprint=off;
+  84   Options limcol=0, limrow=0;
+  85   
+  86   prop("iron","silicon") = .02; prop("silicon","silicon") = .98;
+  87   Solve alloy minimizing cost using lp;
+  88   report(s,"run-2") = x.l(s);
+  89   
+  90   prop("iron","silicon") = .01; prop("silicon","silicon") = .99;
+  91   Solve alloy minimizing cost using lp;
+  92   report(s,"run-3") = x.l(s);
+  93   
+  94   prop("iron","silicon") = 0; prop("silicon","silicon") = 1.0;
+  95   Option solprint=on;
+  96   Solve alloy minimizing cost using lp;
+  97   report(s,"run-4") = x.l(s);
+  98   
+  99   Display report;
+ 100   
+ 101   Parameter costrep example cost report for 2000lb batch;
+ 102   
+ 103   costrep(s          ,"cost    ") = sup(s,"cost");
+ 104   costrep(s          ,"quantity") = x.l(s);
+ 105   costrep(s          ,"c-cost  ") = costrep(s,"cost")*costrep(s,"quantity");
+ 106   costrep("**total**","c-cost  ") = sum(s, costrep(s,"c-cost"));
+ 107   
+ 108   Display costrep;
+ 109  * demonstrates GAMS' rounding capabilities according to ecl manual
+ 110   
+ 111   Parameters xr(s)  rounded solution value
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 4
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+C o m p i l a t i o n
+
+
+ 112              xr3(s) numerical error rounding at third decimal
+ 113              num    rounded solution counter ;
+ 114   
+ 115   xr(s)  = round(x.l(s));
+ 116   xr3(s) = round(x.l(s),3);
+ 117   num = 0; loop(s$(xr(s) ne xr3(s) and num lt 2),
+ 118               x.lo(s)$(xr(s) gt xr3(s)) = xr(s);
+ 119               x.up(s)$(xr(s) lt xr3(s)) = xr(s); num = num + 1 ) ;
+ 120   Solve alloy minimizing cost using lp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 5
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+E x e c u t i o n
+
+
+----     43 PARAMETER dcheck  other elements in prop (prop)
+
+bin-1 0.060,    bin-2 0.030,    bin-3 0.010,    bin-4 0.050,    bin-5 0.070
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 6
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Equation Listing    SOLVE alloy Using LP From line 80
+
+
+---- yield  =E=  final blend requirements (lb)
+
+yield..  x(bin-1) + x(bin-2) + x(bin-3) + x(bin-4) + x(bin-5) + x(aluminum) + x(silicon) =E= 2000 ; (LHS = 500, INFES = 1500 ****)
+     
+
+---- ebal  =E=  element balance          (lb)
+
+ebal(aluminum)..  - 0.7*x(bin-1) - 0.75*x(bin-2) - 0.8*x(bin-3) - 0.75*x(bin-4) - 0.8*x(bin-5) - 0.97*x(aluminum) + bc(aluminum) =E= 0 ; (LHS = 1105, INFES = 1105 ****)
+     
+ebal(silicon)..  - 0.02*x(bin-1) - 0.06*x(bin-2) - 0.08*x(bin-3) - 0.12*x(bin-4) - 0.02*x(bin-5) - 0.01*x(aluminum) - 0.97*x(silicon) + bc(silicon) =E= 0 ; (LHS = 206, INFES = 206 ****)
+     
+ebal(iron)..  - 0.15*x(bin-1) - 0.04*x(bin-2) - 0.02*x(bin-3) - 0.04*x(bin-4) - 0.02*x(bin-5) - 0.01*x(aluminum) - 0.03*x(silicon) + bc(iron) =E= 0 ; (LHS = -12, INFES = 12 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- cdef  =E=  cost definition          ($)
+
+cdef..  - 0.03*x(bin-1) - 0.08*x(bin-2) - 0.17*x(bin-3) - 0.12*x(bin-4) - 0.15*x(bin-5) - 0.21*x(aluminum) - 0.38*x(silicon) + cost =E= 0 ; (LHS = -80, INFES = 80 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 7
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Column Listing      SOLVE alloy Using LP From line 80
+
+
+---- x  blending components  (lb)
+
+x(bin-1)
+                (.LO, .L, .UP, .M = 0, 0, 200, 0)
+        1       yield
+       -0.7     ebal(aluminum)
+       -0.02    ebal(silicon)
+       -0.15    ebal(iron)
+       -0.03    ebal(copper)
+       -0.02    ebal(manganese)
+       -0.02    ebal(magnesium)
+       -0.03    cdef
+
+x(bin-2)
+                (.LO, .L, .UP, .M = 0, 0, 750, 0)
+        1       yield
+       -0.75    ebal(aluminum)
+       -0.06    ebal(silicon)
+       -0.04    ebal(iron)
+       -0.05    ebal(copper)
+       -0.04    ebal(manganese)
+       -0.03    ebal(magnesium)
+       -0.08    cdef
+
+x(bin-3)
+                (.LO, .L, .UP, .M = 400, 400, 800, 0)
+        1       yield
+       -0.8     ebal(aluminum)
+       -0.08    ebal(silicon)
+       -0.02    ebal(iron)
+       -0.08    ebal(copper)
+       -0.01    ebal(manganese)
+       -0.17    cdef
+        0       (OLD LEVEL ****)
+
+REMAINING 4 ENTRIES SKIPPED
+
+---- bc  elements in blend    (lb)
+
+bc(aluminum)
+                (.LO, .L, .UP, .M = 1500, 1500, +INF, 0)
+        1       ebal(aluminum)
+        0       (OLD LEVEL ****)
+
+bc(silicon)
+                (.LO, .L, .UP, .M = 250, 250, 300, 0)
+        1       ebal(silicon)
+        0       (OLD LEVEL ****)
+
+bc(iron)
+                (.LO, .L, .UP, .M = 0, 0, 60, 0)
+        1       ebal(iron)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 8
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Column Listing      SOLVE alloy Using LP From line 80
+
+
+     bc  elements in blend    (lb)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- cost  total material cost  ($)
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 9
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Model Statistics    SOLVE alloy Using LP From line 80
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           14  4 projected
+NON ZERO ELEMENTS            55
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 10
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Solution Report     SOLVE alloy Using LP From line 80
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloy               OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  80
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+>>  gams ibm1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+Gams      : ibm1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 11
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Model Statistics    SOLVE alloy Using LP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           14  4 projected
+NON ZERO ELEMENTS            55
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 12
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Solution Report     SOLVE alloy Using LP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloy               OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+>>  gams ibm1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+Gams      : ibm1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 13
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Model Statistics    SOLVE alloy Using LP From line 91
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           14  4 projected
+NON ZERO ELEMENTS            55
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 14
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Solution Report     SOLVE alloy Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloy               OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+>>  gams ibm1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+Gams      : ibm1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 15
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Model Statistics    SOLVE alloy Using LP From line 96
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           14  4 projected
+NON ZERO ELEMENTS            54
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 16
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Solution Report     SOLVE alloy Using LP From line 96
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloy               OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  96
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+>>  gams ibm1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+Gams      : ibm1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 17
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+E x e c u t i o n
+
+
+----     99 PARAMETER report  blending results
+
+                      ( ALL       0.000 )
+
+
+----    108 PARAMETER costrep  example cost report for 2000lb batch
+
+                cost
+
+bin-1          0.030
+bin-2          0.080
+bin-3          0.170
+bin-4          0.120
+bin-5          0.150
+aluminum       0.210
+silicon        0.380
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 18
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Model Statistics    SOLVE alloy Using LP From line 120
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           14  4 projected
+NON ZERO ELEMENTS            54
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 19
+Aluminum Alloy Smelter Sample Problem  (IBM1,SEQ=79)
+Solution Report     SOLVE alloy Using LP From line 120
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloy               OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  120
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+>>  gams ibm1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ibm1/convert.opt"
+Gams      : ibm1-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ibm1/ibm1.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ibm1/ibm1-scalar.gms.lst

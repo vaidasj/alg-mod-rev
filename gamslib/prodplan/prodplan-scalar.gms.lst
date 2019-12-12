@@ -1,0 +1,1378 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 2
+A Production Planning Example (PRODPLAN, SEQ=356)
+C o m p i l a t i o n
+
+
+       
+      This uncapacitated lot-sizing problem finds the least cost production plan
+      meeting demand requirements.  There are costs given for producing, stocking,
+      and setting up the machines.
+       
+      Four solving approaches are presented:
+      1) Solving the original model as a MIP
+      2) Solving a tight reformulation as an RMIP
+      3) Solving a tight reforumulation without stock as an RMIP
+      4) Solving the original model as an RMIP using a separation algorithm
+       
+       
+      Pochet, Y, and Wolsey, L A, Production Planning by Mixed Integer
+      Programming (Springer Series in Operations Research and Financial
+      Engineering). Springer-Verlag New York, Inc., 2006.
+       
+  22  *1) Initial tiny formulation
+  23   
+  24  Sets t       Time periods / t1*t8 /
+  25       ut(t,t) Upper triangle;
+  26   
+  27  Alias (t,tt,k);
+  28   
+  29  Parameters
+  30       DEMAND(T) Demand per period / (t1,t2) 400, (t3,t4) 800, (t5*t8) 1200 /
+  31       SETUPCOST Setup cost per period         / 5000 /
+  32       PRODCOST  Production cost per period    /  100 /
+  33       INVCOST   Production cost per period    /    5 /
+  34       STOCKINI  Production cost per period    /  200 /
+  35       BigM(T)   Max production - BigM
+  36       ;
+  37  *We assume that the initial stock is lower equal than the demand in the first period
+  38  abort$(Demand('t1') < STOCKINI) 'Initial stock is too large';
+  39   
+  40  ut(k,t) = ord(k) <= ord(t);
+  41   
+  42  BigM(t) = sum(k$(ord(k) >= ord(t)), DEMAND(k) - STOCKINI$(ord(t)=1));
+  43   
+  44  Display ut, BigM;
+  45   
+  46  Variables
+  47       s(t) Inventory in period t
+  48       x(t) Production in period t
+  49       y(t) Setup in period t
+  50       cost
+  51  Binary variable y; Positive variables s,x;
+  52   
+  53  Equations
+  54       Balance(t)     Stock balance
+  55       Production(t)  Production set-up
+  56       Mincost        Objective function
+  57       ;
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 3
+A Production Planning Example (PRODPLAN, SEQ=356)
+C o m p i l a t i o n
+
+
+  59  Mincost.. cost =e= sum(t, ifthen(ord(t)<card(t),INVCOST,INVCOST/2)*s(t))
+  60                   + sum(t, SETUPCOST*y(t) + PRODCOST*x(t));
+  61   
+  62  Production(t)..  x(t) =L= BigM(t)*y(t);
+  63   
+  64  Balance(t).. STOCKINI$(ord(t)=1) + s(t-1) + x(t) =e= DEMAND(t) + s(t);
+  65   
+  66  Model tiny / Mincost, Production, Balance /;
+  67   
+  68  tiny.optcr=0;
+  69   
+  70  Solve tiny minimizing cost using MIP;
+  71   
+  72   
+  73  *2) Multi-commodity formulation (tight reformulation)
+  74  Variables
+  75       smc(t,t) Inventory entered in period i for period t
+  76       xmc(t,t) Production in period i for demand in t
+  77  Positive variables smc,xmc;
+  78   
+  79  Equations
+  80       Balancemc(t,t)     Stock balance
+  81       Productionmc(t,t)  Production set-up
+  82       Mincostmc          Objective function
+  83       ;
+  84   
+  85  Mincostmc.. cost =e= sum(ut, PRODCOST*xmc(ut) + INVCOST*smc(ut))
+  86                     + sum(t, SETUPCOST*y(t));
+  87   
+  88  Balancemc(ut(k,t)).. STOCKINI$(ord(t)=1) + smc(k-1,t) + xmc(k,t)
+  89                     =E= smc(k,t) + diag(k,t)*DEMAND(t);
+  90   
+  91  Productionmc(ut(k,t)).. xmc(k,t) =L= (DEMAND(t) - STOCKINI$(ord(t)=1))*y(k);
+  92   
+  93  Model tinymc / Mincostmc, Balancemc, Productionmc /;
+  94   
+  95  Solve tinymc minimizing cost using RMIP;
+  96   
+  97   
+  98  *3) Multi-commodity formulation without stock (tight reformulation)
+  99  Parameter
+ 100       dist(t,t) Distance between time periods;
+ 101   
+ 102  dist(ut(k,t)) = ord(t)-ord(k); Display dist;
+ 103   
+ 104  Equations
+ 105       Demandmcws(t)      Demand satisfaction
+ 106       Mincostmcws        Objective function
+ 107       ;
+ 108   
+ 109  Mincostmcws.. cost =e= sum(ut, PRODCOST*xmc(ut) + INVCOST*dist(ut)*xmc(ut))
+ 110                       + sum(t, SETUPCOST*y(t));
+ 111   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 4
+A Production Planning Example (PRODPLAN, SEQ=356)
+C o m p i l a t i o n
+
+
+ 112  Demandmcws(t).. sum(ut(k,t), xmc(k,t)) =g= DEMAND(t) - STOCKINI$(ord(t)=1);
+ 113   
+ 114  Model tinymcws / Mincostmcws, Demandmcws, Productionmc /;
+ 115   
+ 116  Solve tinymcws minimizing cost using RMIP;
+ 117   
+ 118   
+ 119  *4) Separation Algorithm
+ 120  Sets j           Iterations  /j1*j10/
+ 121       n(j,t)      Set of cuts
+ 122       Scon(j,t,t) Set of violated constraints;
+ 123  n(j,t)=no; Scon(j,t,t)=no;
+ 124   
+ 125  Alias (t,l), (j,jj);
+ 126   
+ 127  Parameter
+ 128       D(t,t)     Accumulated demand
+ 129       left(t,t)  Left side of cut;
+ 130  D(ut(t,k)) = sum[tt$(ord(tt) <= ord(k) and ord(tt) >= ord(t)), DEMAND(tt)];
+ 131   
+ 132  Equation
+ 133       cuts(j,t) Cuts for the RMIP (complete linear description);
+ 134  cuts(n(jj,t)).. sum(Scon(jj,t,k), x(k) - D(k,t)*y(k)) =l= s(t);
+ 135   
+ 136  Model tinycuts / tiny, cuts /;
+ 137   
+ 138  Scalar more    / 1 /
+ 139         epsilon / 1e-6 /;
+ 140   
+ 141  file fx; put fx;
+ 142   
+ 143  *If STOCKINI < DEMAND(t1) there has to be production in the first period
+ 144  y.fx('t1') = 1;
+ 145   
+ 146  loop(j$more,
+ 147   Solve tinycuts using RMIP min cost;
+ 148   option limcol=0, limrow=0, solprint=silent;
+ 149  *Store the left hand side of potential cuts
+ 150   left(ut(tt,l)) = x.l(tt)-d(tt,l)*y.l(tt);
+ 151  *Use only those LHS which are greater zero
+ 152   Scon(j,l,tt) = left(tt,l) > epsilon;
+ 153  *If the sum of those is greater than the inventory level: violation found
+ 154  *Add this cut to the model
+ 155   n(j,l)= sum[Scon(j,l,tt), left(tt,l)] - epsilon > s.l(l);
+ 156  *Proceed if at least one cut was added during this iteration
+ 157   more = sum(n(j,l), yes);
+ 158  );
+ 159   
+ 160  Put_utility$(not more) 'log' /
+ 161    '>>>>Integer solution found. A total of 'sum(n(j,t),1):0:0' cuts were added.';
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 5
+A Production Planning Example (PRODPLAN, SEQ=356)
+E x e c u t i o n
+
+
+----     44 SET ut  Upper triangle
+
+            t1          t2          t3          t4          t5          t6          t7          t8
+
+t1         YES         YES         YES         YES         YES         YES         YES         YES
+t2                     YES         YES         YES         YES         YES         YES         YES
+t3                                 YES         YES         YES         YES         YES         YES
+t4                                             YES         YES         YES         YES         YES
+t5                                                         YES         YES         YES         YES
+t6                                                                     YES         YES         YES
+t7                                                                                 YES         YES
+t8                                                                                             YES
+
+
+----     44 PARAMETER BigM  Max production - BigM
+
+t1 5600.000,    t2 6800.000,    t3 6400.000,    t4 5600.000,    t5 4800.000,    t6 3600.000,    t7 2400.000,    t8 1200.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 6
+A Production Planning Example (PRODPLAN, SEQ=356)
+Equation Listing    SOLVE tiny Using MIP From line 70
+
+
+---- Mincost  =E=  Objective function
+
+Mincost..  - 5*s(t1) - 5*s(t2) - 5*s(t3) - 5*s(t4) - 5*s(t5) - 5*s(t6) - 5*s(t7) - 2.5*s(t8) - 100*x(t1) - 100*x(t2) - 100*x(t3) - 100*x(t4) - 100*x(t5) - 100*x(t6) - 100*x(t7) - 100*x(t8) - 5000*y(t1) - 5000*y(t2) - 5000*y(t3) - 5000*y(t4) - 5000*y(t5)
+     
+      - 5000*y(t6) - 5000*y(t7) - 5000*y(t8) + cost =E= 0 ; (LHS = 0)
+     
+
+---- Production  =L=  Production set-up
+
+Production(t1)..  x(t1) - 5600*y(t1) =L= 0 ; (LHS = 0)
+     
+Production(t2)..  x(t2) - 6800*y(t2) =L= 0 ; (LHS = 0)
+     
+Production(t3)..  x(t3) - 6400*y(t3) =L= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- Balance  =E=  Stock balance
+
+Balance(t1)..  - s(t1) + x(t1) =E= 200 ; (LHS = 0, INFES = 200 ****)
+     
+Balance(t2)..  s(t1) - s(t2) + x(t2) =E= 400 ; (LHS = 0, INFES = 400 ****)
+     
+Balance(t3)..  s(t2) - s(t3) + x(t3) =E= 800 ; (LHS = 0, INFES = 800 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 7
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tiny Using MIP From line 70
+
+
+---- s  Inventory in period t
+
+s(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincost
+       -1       Balance(t1)
+        1       Balance(t2)
+
+s(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincost
+       -1       Balance(t2)
+        1       Balance(t3)
+
+s(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincost
+       -1       Balance(t3)
+        1       Balance(t4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- x  Production in period t
+
+x(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincost
+        1       Production(t1)
+        1       Balance(t1)
+
+x(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincost
+        1       Production(t2)
+        1       Balance(t2)
+
+x(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincost
+        1       Production(t3)
+        1       Balance(t3)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- y  Setup in period t
+
+y(t1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -5000       Mincost
+    -5600       Production(t1)
+
+y(t2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 8
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tiny Using MIP From line 70
+
+
+     y  Setup in period t
+
+    -5000       Mincost
+    -6800       Production(t2)
+
+y(t3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -5000       Mincost
+    -6400       Production(t3)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       Mincost
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:37 Page 9
+A Production Planning Example (PRODPLAN, SEQ=356)
+Model Statistics    SOLVE tiny Using MIP From line 70
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           17
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           25
+NON ZERO ELEMENTS            64     DISCRETE VARIABLES          8
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 10
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tiny Using MIP From line 70
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   tiny                OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  70
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/convert.opt"
+>>  gams prodplan-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/convert.opt"
+Gams      : prodplan-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 11
+A Production Planning Example (PRODPLAN, SEQ=356)
+Equation Listing    SOLVE tinymc Using RMIP From line 95
+
+
+---- Mincostmc  =E=  Objective function
+
+Mincostmc..  - 5000*y(t1) - 5000*y(t2) - 5000*y(t3) - 5000*y(t4) - 5000*y(t5) - 5000*y(t6) - 5000*y(t7) - 5000*y(t8) + cost - 5*smc(t1,t1) - 5*smc(t1,t2) - 5*smc(t1,t3) - 5*smc(t1,t4) - 5*smc(t1,t5) - 5*smc(t1,t6) - 5*smc(t1,t7) - 5*smc(t1,t8)
+     
+      - 5*smc(t2,t2) - 5*smc(t2,t3) - 5*smc(t2,t4) - 5*smc(t2,t5) - 5*smc(t2,t6) - 5*smc(t2,t7) - 5*smc(t2,t8) - 5*smc(t3,t3) - 5*smc(t3,t4) - 5*smc(t3,t5) - 5*smc(t3,t6) - 5*smc(t3,t7) - 5*smc(t3,t8) - 5*smc(t4,t4) - 5*smc(t4,t5) - 5*smc(t4,t6)
+     
+      - 5*smc(t4,t7) - 5*smc(t4,t8) - 5*smc(t5,t5) - 5*smc(t5,t6) - 5*smc(t5,t7) - 5*smc(t5,t8) - 5*smc(t6,t6) - 5*smc(t6,t7) - 5*smc(t6,t8) - 5*smc(t7,t7) - 5*smc(t7,t8) - 5*smc(t8,t8) - 100*xmc(t1,t1) - 100*xmc(t1,t2) - 100*xmc(t1,t3) - 100*xmc(t1,t4)
+     
+      - 100*xmc(t1,t5) - 100*xmc(t1,t6) - 100*xmc(t1,t7) - 100*xmc(t1,t8) - 100*xmc(t2,t2) - 100*xmc(t2,t3) - 100*xmc(t2,t4) - 100*xmc(t2,t5) - 100*xmc(t2,t6) - 100*xmc(t2,t7) - 100*xmc(t2,t8) - 100*xmc(t3,t3) - 100*xmc(t3,t4) - 100*xmc(t3,t5)
+     
+      - 100*xmc(t3,t6) - 100*xmc(t3,t7) - 100*xmc(t3,t8) - 100*xmc(t4,t4) - 100*xmc(t4,t5) - 100*xmc(t4,t6) - 100*xmc(t4,t7) - 100*xmc(t4,t8) - 100*xmc(t5,t5) - 100*xmc(t5,t6) - 100*xmc(t5,t7) - 100*xmc(t5,t8) - 100*xmc(t6,t6) - 100*xmc(t6,t7)
+     
+      - 100*xmc(t6,t8) - 100*xmc(t7,t7) - 100*xmc(t7,t8) - 100*xmc(t8,t8) =E= 0 ; (LHS = 0)
+     
+
+---- Balancemc  =E=  Stock balance
+
+Balancemc(t1,t1)..  - smc(t1,t1) + xmc(t1,t1) =E= 200 ; (LHS = 0, INFES = 200 ****)
+     
+Balancemc(t1,t2)..  - smc(t1,t2) + xmc(t1,t2) =E= 0 ; (LHS = 0)
+     
+Balancemc(t1,t3)..  - smc(t1,t3) + xmc(t1,t3) =E= 0 ; (LHS = 0)
+     
+REMAINING 33 ENTRIES SKIPPED
+
+
+---- Productionmc  =L=  Production set-up
+
+Productionmc(t1,t1)..  - 200*y(t1) + xmc(t1,t1) =L= 0 ; (LHS = 0)
+     
+Productionmc(t1,t2)..  - 400*y(t1) + xmc(t1,t2) =L= 0 ; (LHS = 0)
+     
+Productionmc(t1,t3)..  - 800*y(t1) + xmc(t1,t3) =L= 0 ; (LHS = 0)
+     
+REMAINING 33 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 12
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tinymc Using RMIP From line 95
+
+
+---- y  Setup in period t
+
+y(t1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -5000       Mincostmc
+     -200       Productionmc(t1,t1)
+     -400       Productionmc(t1,t2)
+     -800       Productionmc(t1,t3)
+     -800       Productionmc(t1,t4)
+    -1200       Productionmc(t1,t5)
+    -1200       Productionmc(t1,t6)
+    -1200       Productionmc(t1,t7)
+    -1200       Productionmc(t1,t8)
+
+y(t2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -5000       Mincostmc
+     -400       Productionmc(t2,t2)
+     -800       Productionmc(t2,t3)
+     -800       Productionmc(t2,t4)
+    -1200       Productionmc(t2,t5)
+    -1200       Productionmc(t2,t6)
+    -1200       Productionmc(t2,t7)
+    -1200       Productionmc(t2,t8)
+
+y(t3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -5000       Mincostmc
+     -800       Productionmc(t3,t3)
+     -800       Productionmc(t3,t4)
+    -1200       Productionmc(t3,t5)
+    -1200       Productionmc(t3,t6)
+    -1200       Productionmc(t3,t7)
+    -1200       Productionmc(t3,t8)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       Mincostmc
+
+
+---- smc  Inventory entered in period i for period t
+
+smc(t1,t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincostmc
+       -1       Balancemc(t1,t1)
+
+smc(t1,t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 13
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tinymc Using RMIP From line 95
+
+
+     smc  Inventory entered in period i for period t
+
+       -5       Mincostmc
+       -1       Balancemc(t1,t2)
+        1       Balancemc(t2,t2)
+
+smc(t1,t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincostmc
+       -1       Balancemc(t1,t3)
+        1       Balancemc(t2,t3)
+
+REMAINING 33 ENTRIES SKIPPED
+
+---- xmc  Production in period i for demand in t
+
+xmc(t1,t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincostmc
+        1       Balancemc(t1,t1)
+        1       Productionmc(t1,t1)
+
+xmc(t1,t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincostmc
+        1       Balancemc(t1,t2)
+        1       Productionmc(t1,t2)
+
+xmc(t1,t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincostmc
+        1       Balancemc(t1,t3)
+        1       Productionmc(t1,t3)
+
+REMAINING 33 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 14
+A Production Planning Example (PRODPLAN, SEQ=356)
+Model Statistics    SOLVE tinymc Using RMIP From line 95
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           73
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           81
+NON ZERO ELEMENTS           253     DISCRETE VARIABLES          8
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 15
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymc Using RMIP From line 95
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   tinymc              OBJECTIVE  cost
+     TYPE    RMIP                DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  95
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE           736000.0000
+
+ RESOURCE USAGE, LIMIT          0.005      1000.000
+ ITERATION COUNT, LIMIT        15    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.11 ticks)
+Optimal solution found.
+Objective :      736000.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU Mincostmc           .              .              .             1.0000      
+
+  Mincostmc  Objective function
+
+---- EQU Balancemc  Stock balance
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t1       200.0000       200.0000       200.0000       125.0000      
+t1.t2          .              .              .           100.0000      
+t1.t3          .              .              .           100.0000      
+t1.t4          .              .              .           100.0000      
+t1.t5          .              .              .           100.0000      
+t1.t6          .              .              .           100.0000      
+t1.t7          .              .              .           100.0000      
+t1.t8          .              .              .           100.0000      
+t2.t2       400.0000       400.0000       400.0000       105.0000      
+t2.t3          .              .              .           103.7500      
+t2.t4          .              .              .            96.2500      
+t2.t5          .              .              .            90.0000      
+t2.t6          .              .              .            85.0000      
+t2.t7          .              .              .            80.0000      
+t2.t8          .              .              .            75.0000      
+t3.t3       800.0000       800.0000       800.0000       108.7500      
+t3.t4          .              .              .           101.2500      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 16
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymc Using RMIP From line 95
+
+
+     EQU Balancemc  Stock balance
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t3.t5          .              .              .            95.0000      
+t3.t6          .              .              .            90.0000      
+t3.t7          .              .              .            85.0000      
+t3.t8          .              .              .            80.0000      
+t4.t4       800.0000       800.0000       800.0000       106.2500      
+t4.t5          .              .              .           100.0000      
+t4.t6          .              .              .            95.0000      
+t4.t7          .              .              .            90.0000      
+t4.t8          .              .              .            85.0000      
+t5.t5      1200.0000      1200.0000      1200.0000       105.0000      
+t5.t6          .              .              .           100.0000      
+t5.t7          .              .              .            95.0000      
+t5.t8          .              .              .            90.0000      
+t6.t6      1200.0000      1200.0000      1200.0000       105.0000      
+t6.t7          .              .              .           100.0000      
+t6.t8          .              .              .            95.0000      
+t7.t7      1200.0000      1200.0000      1200.0000       105.0000      
+t7.t8          .              .              .           100.0000      
+t8.t8      1200.0000      1200.0000      1200.0000       105.0000      
+
+---- EQU Productionmc  Production set-up
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t1        -INF             .              .           -25.0000      
+t1.t2        -INF             .              .              .          
+t1.t3        -INF         -800.0000          .              .          
+t1.t4        -INF         -800.0000          .              .          
+t1.t5        -INF        -1200.0000          .              .          
+t1.t6        -INF        -1200.0000          .              .          
+t1.t7        -INF        -1200.0000          .              .          
+t1.t8        -INF        -1200.0000          .              .          
+t2.t2        -INF             .              .            -5.0000      
+t2.t3        -INF             .              .            -3.7500      
+t2.t4        -INF             .              .              .          
+t2.t5        -INF             .              .              .          
+t2.t6        -INF             .              .              .          
+t2.t7        -INF             .              .              .          
+t2.t8        -INF             .              .              .          
+t3.t3        -INF             .              .            -8.7500      
+t3.t4        -INF             .              .            -1.2500      
+t3.t5        -INF        -1200.0000          .              .          
+t3.t6        -INF        -1200.0000          .              .          
+t3.t7        -INF        -1200.0000          .              .          
+t3.t8        -INF        -1200.0000          .              .          
+t4.t4        -INF             .              .            -6.2500      
+t4.t5        -INF             .              .              .          
+t4.t6        -INF             .              .              .          
+t4.t7        -INF             .              .              .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 17
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymc Using RMIP From line 95
+
+
+     EQU Productionmc  Production set-up
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t4.t8        -INF             .              .              .          
+t5.t5        -INF             .              .            -5.0000      
+t5.t6        -INF        -1200.0000          .              .          
+t5.t7        -INF        -1200.0000          .              .          
+t5.t8        -INF        -1200.0000          .              .          
+t6.t6        -INF             .              .            -5.0000      
+t6.t7        -INF        -1200.0000          .              .          
+t6.t8        -INF        -1200.0000          .              .          
+t7.t7        -INF             .              .            -5.0000      
+t7.t8        -INF        -1200.0000          .              .          
+t8.t8        -INF             .              .            -5.0000      
+
+---- VAR y  Setup in period t
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1          .             1.0000         1.0000          .          
+t2          .              .             1.0000          .          
+t3          .             1.0000         1.0000     -3000.0000      
+t4          .              .             1.0000          .          
+t5          .             1.0000         1.0000     -1000.0000      
+t6          .             1.0000         1.0000     -1000.0000      
+t7          .             1.0000         1.0000     -1000.0000      
+t8          .             1.0000         1.0000     -1000.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR cost              -INF       736000.0000        +INF             .          
+
+---- VAR smc  Inventory entered in period i for period t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t1          .              .            +INF          130.0000      
+t1.t2          .           400.0000        +INF             .          
+t1.t3          .              .            +INF            1.2500      
+t1.t4          .              .            +INF            8.7500      
+t1.t5          .              .            +INF           15.0000      
+t1.t6          .              .            +INF           20.0000      
+t1.t7          .              .            +INF           25.0000      
+t1.t8          .              .            +INF           30.0000      
+t2.t2          .              .            +INF          110.0000      
+t2.t3          .              .            +INF             .          
+t2.t4          .              .            +INF             .          
+t2.t5          .              .            +INF             .          
+t2.t6          .              .            +INF             .          
+t2.t7          .              .            +INF             .          
+t2.t8          .              .            +INF             .          
+t3.t3          .              .            +INF          113.7500      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 18
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymc Using RMIP From line 95
+
+
+     VAR smc  Inventory entered in period i for period t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t3.t4          .           800.0000        +INF             .          
+t3.t5          .              .            +INF             .          
+t3.t6          .              .            +INF             .          
+t3.t7          .              .            +INF             .          
+t3.t8          .              .            +INF             .          
+t4.t4          .              .            +INF          111.2500      
+t4.t5          .              .            +INF             .          
+t4.t6          .              .            +INF             .          
+t4.t7          .              .            +INF             .          
+t4.t8          .              .            +INF             .          
+t5.t5          .              .            +INF          110.0000      
+t5.t6          .              .            +INF             .          
+t5.t7          .              .            +INF             .          
+t5.t8          .              .            +INF             .          
+t6.t6          .              .            +INF          110.0000      
+t6.t7          .              .            +INF             .          
+t6.t8          .              .            +INF             .          
+t7.t7          .              .            +INF          110.0000      
+t7.t8          .              .            +INF             .          
+t8.t8          .              .            +INF          110.0000      
+
+---- VAR xmc  Production in period i for demand in t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t1          .           200.0000        +INF             .          
+t1.t2          .           400.0000        +INF             .          
+t1.t3          .              .            +INF             .          
+t1.t4          .              .            +INF             .          
+t1.t5          .              .            +INF             .          
+t1.t6          .              .            +INF             .          
+t1.t7          .              .            +INF             .          
+t1.t8          .              .            +INF             .          
+t2.t2          .              .            +INF             .          
+t2.t3          .              .            +INF             .          
+t2.t4          .              .            +INF            3.7500      
+t2.t5          .              .            +INF           10.0000      
+t2.t6          .              .            +INF           15.0000      
+t2.t7          .              .            +INF           20.0000      
+t2.t8          .              .            +INF           25.0000      
+t3.t3          .           800.0000        +INF             .          
+t3.t4          .           800.0000        +INF             .          
+t3.t5          .              .            +INF            5.0000      
+t3.t6          .              .            +INF           10.0000      
+t3.t7          .              .            +INF           15.0000      
+t3.t8          .              .            +INF           20.0000      
+t4.t4          .              .            +INF             .          
+t4.t5          .              .            +INF             .          
+t4.t6          .              .            +INF            5.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 19
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymc Using RMIP From line 95
+
+
+     VAR xmc  Production in period i for demand in t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t4.t7          .              .            +INF           10.0000      
+t4.t8          .              .            +INF           15.0000      
+t5.t5          .          1200.0000        +INF             .          
+t5.t6          .              .            +INF             .          
+t5.t7          .              .            +INF            5.0000      
+t5.t8          .              .            +INF           10.0000      
+t6.t6          .          1200.0000        +INF             .          
+t6.t7          .              .            +INF             .          
+t6.t8          .              .            +INF            5.0000      
+t7.t7          .          1200.0000        +INF             .          
+t7.t8          .              .            +INF             .          
+t8.t8          .          1200.0000        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 20
+A Production Planning Example (PRODPLAN, SEQ=356)
+E x e c u t i o n
+
+
+----    102 PARAMETER dist  Distance between time periods
+
+            t2          t3          t4          t5          t6          t7          t8
+
+t1       1.000       2.000       3.000       4.000       5.000       6.000       7.000
+t2                   1.000       2.000       3.000       4.000       5.000       6.000
+t3                               1.000       2.000       3.000       4.000       5.000
+t4                                           1.000       2.000       3.000       4.000
+t5                                                       1.000       2.000       3.000
+t6                                                                   1.000       2.000
+t7                                                                               1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 21
+A Production Planning Example (PRODPLAN, SEQ=356)
+Equation Listing    SOLVE tinymcws Using RMIP From line 116
+
+
+---- Mincostmcws  =E=  Objective function
+
+Mincostmcws..  - 5000*y(t1) - 5000*y(t2) - 5000*y(t3) - 5000*y(t4) - 5000*y(t5) - 5000*y(t6) - 5000*y(t7) - 5000*y(t8) + cost - 100*xmc(t1,t1) - 105*xmc(t1,t2) - 110*xmc(t1,t3) - 115*xmc(t1,t4) - 120*xmc(t1,t5) - 125*xmc(t1,t6) - 130*xmc(t1,t7)
+     
+      - 135*xmc(t1,t8) - 100*xmc(t2,t2) - 105*xmc(t2,t3) - 110*xmc(t2,t4) - 115*xmc(t2,t5) - 120*xmc(t2,t6) - 125*xmc(t2,t7) - 130*xmc(t2,t8) - 100*xmc(t3,t3) - 105*xmc(t3,t4) - 110*xmc(t3,t5) - 115*xmc(t3,t6) - 120*xmc(t3,t7) - 125*xmc(t3,t8)
+     
+      - 100*xmc(t4,t4) - 105*xmc(t4,t5) - 110*xmc(t4,t6) - 115*xmc(t4,t7) - 120*xmc(t4,t8) - 100*xmc(t5,t5) - 105*xmc(t5,t6) - 110*xmc(t5,t7) - 115*xmc(t5,t8) - 100*xmc(t6,t6) - 105*xmc(t6,t7) - 110*xmc(t6,t8) - 100*xmc(t7,t7) - 105*xmc(t7,t8)
+     
+      - 100*xmc(t8,t8) =E= 0 ; (LHS = 0)
+     
+
+---- Demandmcws  =G=  Demand satisfaction
+
+Demandmcws(t1)..  xmc(t1,t1) =G= 200 ; (LHS = 200)
+     
+Demandmcws(t2)..  xmc(t1,t2) + xmc(t2,t2) =G= 400 ; (LHS = 400)
+     
+Demandmcws(t3)..  xmc(t1,t3) + xmc(t2,t3) + xmc(t3,t3) =G= 800 ; (LHS = 800)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- Productionmc  =L=  Production set-up
+
+Productionmc(t1,t1)..  - 200*y(t1) + xmc(t1,t1) =L= 0 ; (LHS = 0)
+     
+Productionmc(t1,t2)..  - 400*y(t1) + xmc(t1,t2) =L= 0 ; (LHS = 0)
+     
+Productionmc(t1,t3)..  - 800*y(t1) + xmc(t1,t3) =L= 0 ; (LHS = -800)
+     
+REMAINING 33 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 22
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tinymcws Using RMIP From line 116
+
+
+---- y  Setup in period t
+
+y(t1)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+    -5000       Mincostmcws
+     -200       Productionmc(t1,t1)
+     -400       Productionmc(t1,t2)
+     -800       Productionmc(t1,t3)
+     -800       Productionmc(t1,t4)
+    -1200       Productionmc(t1,t5)
+    -1200       Productionmc(t1,t6)
+    -1200       Productionmc(t1,t7)
+    -1200       Productionmc(t1,t8)
+
+y(t2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -5000       Mincostmcws
+     -400       Productionmc(t2,t2)
+     -800       Productionmc(t2,t3)
+     -800       Productionmc(t2,t4)
+    -1200       Productionmc(t2,t5)
+    -1200       Productionmc(t2,t6)
+    -1200       Productionmc(t2,t7)
+    -1200       Productionmc(t2,t8)
+
+y(t3)
+                (.LO, .L, .UP, .M = 0, 1, 1, -3000)
+    -5000       Mincostmcws
+     -800       Productionmc(t3,t3)
+     -800       Productionmc(t3,t4)
+    -1200       Productionmc(t3,t5)
+    -1200       Productionmc(t3,t6)
+    -1200       Productionmc(t3,t7)
+    -1200       Productionmc(t3,t8)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 736000, +INF, 0)
+        1       Mincostmcws
+
+
+---- xmc  Production in period i for demand in t
+
+xmc(t1,t1)
+                (.LO, .L, .UP, .M = 0, 200, +INF, 0)
+     -100       Mincostmcws
+        1       Demandmcws(t1)
+        1       Productionmc(t1,t1)
+
+xmc(t1,t2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 23
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tinymcws Using RMIP From line 116
+
+
+     xmc  Production in period i for demand in t
+
+                (.LO, .L, .UP, .M = 0, 400, +INF, 0)
+     -105       Mincostmcws
+        1       Demandmcws(t2)
+        1       Productionmc(t1,t2)
+
+xmc(t1,t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -110       Mincostmcws
+        1       Demandmcws(t3)
+        1       Productionmc(t1,t3)
+
+REMAINING 33 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 24
+A Production Planning Example (PRODPLAN, SEQ=356)
+Model Statistics    SOLVE tinymcws Using RMIP From line 116
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           45
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           45
+NON ZERO ELEMENTS           153     DISCRETE VARIABLES          8
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 25
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymcws Using RMIP From line 116
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   tinymcws            OBJECTIVE  cost
+     TYPE    RMIP                DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  116
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE           736000.0000
+
+ RESOURCE USAGE, LIMIT          0.004      1000.000
+ ITERATION COUNT, LIMIT        12    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.08 ticks)
+Optimal solution found.
+Objective :      736000.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU Mincostmc~          .              .              .             1.0000      
+
+  Mincostmcws  Objective function
+
+---- EQU Demandmcws  Demand satisfaction
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1       200.0000       200.0000        +INF          125.0000      
+t2       400.0000       400.0000        +INF          105.0000      
+t3       800.0000       800.0000        +INF          108.7500      
+t4       800.0000       800.0000        +INF          105.0000      
+t5      1200.0000      1200.0000        +INF          105.0000      
+t6      1200.0000      1200.0000        +INF          105.0000      
+t7      1200.0000      1200.0000        +INF          105.0000      
+t8      1200.0000      1200.0000        +INF          105.0000      
+
+---- EQU Productionmc  Production set-up
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t1        -INF             .              .           -25.0000      
+t1.t2        -INF             .              .              .          
+t1.t3        -INF         -800.0000          .              .          
+t1.t4        -INF         -800.0000          .              .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 26
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymcws Using RMIP From line 116
+
+
+     EQU Productionmc  Production set-up
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t5        -INF        -1200.0000          .              .          
+t1.t6        -INF        -1200.0000          .              .          
+t1.t7        -INF        -1200.0000          .              .          
+t1.t8        -INF        -1200.0000          .              .          
+t2.t2        -INF             .              .            -5.0000      
+t2.t3        -INF             .              .            -3.7500      
+t2.t4        -INF             .              .              .          
+t2.t5        -INF             .              .              .          
+t2.t6        -INF             .              .              .          
+t2.t7        -INF             .              .              .          
+t2.t8        -INF             .              .              .          
+t3.t3        -INF             .              .            -8.7500      
+t3.t4        -INF             .              .              .          
+t3.t5        -INF        -1200.0000          .              .          
+t3.t6        -INF        -1200.0000          .              .          
+t3.t7        -INF        -1200.0000          .              .          
+t3.t8        -INF        -1200.0000          .              .          
+t4.t4        -INF             .              .            -5.0000      
+t4.t5        -INF             .              .              .          
+t4.t6        -INF             .              .              .          
+t4.t7        -INF             .              .              .          
+t4.t8        -INF             .              .              .          
+t5.t5        -INF             .              .            -5.0000      
+t5.t6        -INF        -1200.0000          .              .          
+t5.t7        -INF        -1200.0000          .              .          
+t5.t8        -INF        -1200.0000          .              .          
+t6.t6        -INF             .              .            -5.0000      
+t6.t7        -INF        -1200.0000          .              .          
+t6.t8        -INF        -1200.0000          .              .          
+t7.t7        -INF             .              .            -5.0000      
+t7.t8        -INF        -1200.0000          .              .          
+t8.t8        -INF             .              .            -5.0000      
+
+---- VAR y  Setup in period t
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1          .             1.0000         1.0000          .          
+t2          .              .             1.0000          .          
+t3          .             1.0000         1.0000     -2000.0000      
+t4          .              .             1.0000      1000.0000      
+t5          .             1.0000         1.0000     -1000.0000      
+t6          .             1.0000         1.0000     -1000.0000      
+t7          .             1.0000         1.0000     -1000.0000      
+t8          .             1.0000         1.0000     -1000.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 27
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinymcws Using RMIP From line 116
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR cost              -INF       736000.0000        +INF             .          
+
+---- VAR xmc  Production in period i for demand in t
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+t1.t1          .           200.0000        +INF             .          
+t1.t2          .           400.0000        +INF             .          
+t1.t3          .              .            +INF            1.2500      
+t1.t4          .              .            +INF           10.0000      
+t1.t5          .              .            +INF           15.0000      
+t1.t6          .              .            +INF           20.0000      
+t1.t7          .              .            +INF           25.0000      
+t1.t8          .              .            +INF           30.0000      
+t2.t2          .              .            +INF             .          
+t2.t3          .              .            +INF             .          
+t2.t4          .              .            +INF            5.0000      
+t2.t5          .              .            +INF           10.0000      
+t2.t6          .              .            +INF           15.0000      
+t2.t7          .              .            +INF           20.0000      
+t2.t8          .              .            +INF           25.0000      
+t3.t3          .           800.0000        +INF             .          
+t3.t4          .           800.0000        +INF             .          
+t3.t5          .              .            +INF            5.0000      
+t3.t6          .              .            +INF           10.0000      
+t3.t7          .              .            +INF           15.0000      
+t3.t8          .              .            +INF           20.0000      
+t4.t4          .              .            +INF             .          
+t4.t5          .              .            +INF             .          
+t4.t6          .              .            +INF            5.0000      
+t4.t7          .              .            +INF           10.0000      
+t4.t8          .              .            +INF           15.0000      
+t5.t5          .          1200.0000        +INF             .          
+t5.t6          .              .            +INF             .          
+t5.t7          .              .            +INF            5.0000      
+t5.t8          .              .            +INF           10.0000      
+t6.t6          .          1200.0000        +INF             .          
+t6.t7          .              .            +INF             .          
+t6.t8          .              .            +INF            5.0000      
+t7.t7          .          1200.0000        +INF             .          
+t7.t8          .              .            +INF             .          
+t8.t8          .          1200.0000        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 28
+A Production Planning Example (PRODPLAN, SEQ=356)
+Equation Listing    SOLVE tinycuts Using RMIP From line 147
+
+
+---- Mincost  =E=  Objective function
+
+Mincost..  - 5*s(t1) - 5*s(t2) - 5*s(t3) - 5*s(t4) - 5*s(t5) - 5*s(t6) - 5*s(t7) - 2.5*s(t8) - 100*x(t1) - 100*x(t2) - 100*x(t3) - 100*x(t4) - 100*x(t5) - 100*x(t6) - 100*x(t7) - 100*x(t8) - 5000*y(t1) - 5000*y(t2) - 5000*y(t3) - 5000*y(t4) - 5000*y(t5)
+     
+      - 5000*y(t6) - 5000*y(t7) - 5000*y(t8) + cost =E= 0 ; (LHS = 706000, INFES = 706000 ****)
+     
+
+---- Production  =L=  Production set-up
+
+Production(t1)..  x(t1) - 5600*y(t1) =L= 0 ; (LHS = -5600)
+     
+Production(t2)..  x(t2) - 6800*y(t2) =L= 0 ; (LHS = 0)
+     
+Production(t3)..  x(t3) - 6400*y(t3) =L= 0 ; (LHS = -6400)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- Balance  =E=  Stock balance
+
+Balance(t1)..  - s(t1) + x(t1) =E= 200 ; (LHS = 0, INFES = 200 ****)
+     
+Balance(t2)..  s(t1) - s(t2) + x(t2) =E= 400 ; (LHS = 0, INFES = 400 ****)
+     
+Balance(t3)..  s(t2) - s(t3) + x(t3) =E= 800 ; (LHS = 0, INFES = 800 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- cuts  =L=  Cuts for the RMIP (complete linear description)
+
+                NONE
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 29
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tinycuts Using RMIP From line 147
+
+
+---- s  Inventory in period t
+
+s(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincost
+       -1       Balance(t1)
+        1       Balance(t2)
+
+s(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincost
+       -1       Balance(t2)
+        1       Balance(t3)
+
+s(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -5       Mincost
+       -1       Balance(t3)
+        1       Balance(t4)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- x  Production in period t
+
+x(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincost
+        1       Production(t1)
+        1       Balance(t1)
+
+x(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincost
+        1       Production(t2)
+        1       Balance(t2)
+
+x(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       Mincost
+        1       Production(t3)
+        1       Balance(t3)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- y  Setup in period t
+
+y(t1)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+    -5000       Mincost
+    -5600       Production(t1)
+
+y(t2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 30
+A Production Planning Example (PRODPLAN, SEQ=356)
+Column Listing      SOLVE tinycuts Using RMIP From line 147
+
+
+     y  Setup in period t
+
+    -5000       Mincost
+    -6800       Production(t2)
+
+y(t3)
+                (.LO, .L, .UP, .M = 0, 1, 1, -2000)
+    -5000       Mincost
+    -6400       Production(t3)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 736000, +INF, 0)
+        1       Mincost
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 31
+A Production Planning Example (PRODPLAN, SEQ=356)
+Model Statistics    SOLVE tinycuts Using RMIP From line 147
+
+
+LOOPS                                    j   j1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           17
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           25
+NON ZERO ELEMENTS            64     DISCRETE VARIABLES          7
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  j j1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 32
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinycuts Using RMIP From line 147
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   tinycuts            OBJECTIVE  cost
+     TYPE    RMIP                DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  147
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE           717050.0700
+
+ RESOURCE USAGE, LIMIT          0.005      1000.000
+ ITERATION COUNT, LIMIT        11    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.03 ticks)
+Optimal solution found.
+Objective :      717050.070028
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU Mincost             .              .              .             1.0000      
+
+  Mincost  Objective function
+
+---- EQU Production  Production set-up
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1        -INF        -5400.0000          .              .          
+t2        -INF             .              .            -0.7353      
+t3        -INF             .              .            -0.7812      
+t4        -INF             .              .            -0.8929      
+t5        -INF             .              .            -1.0417      
+t6        -INF             .              .            -1.3889      
+t7        -INF             .              .            -2.0833      
+t8        -INF             .              .            -7.0833      
+
+---- EQU Balance  Stock balance
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1       200.0000       200.0000       200.0000       100.0000      
+t2       400.0000       400.0000       400.0000       100.7353      
+t3       800.0000       800.0000       800.0000       100.7813      
+t4       800.0000       800.0000       800.0000       100.8929      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 33
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinycuts Using RMIP From line 147
+
+
+     EQU Balance  Stock balance
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t5      1200.0000      1200.0000      1200.0000       101.0417      
+t6      1200.0000      1200.0000      1200.0000       101.3889      
+t7      1200.0000      1200.0000      1200.0000       102.0833      
+t8      1200.0000      1200.0000      1200.0000       107.0833      
+
+---- EQU cuts  Cuts for the RMIP (complete linear description)
+
+                NONE
+
+
+---- VAR s  Inventory in period t
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1          .              .            +INF            4.2647      
+t2          .              .            +INF            4.9540      
+t3          .              .            +INF            4.8884      
+t4          .              .            +INF            4.8512      
+t5          .              .            +INF            4.6528      
+t6          .              .            +INF            4.3056      
+t7          .              .            +INF             .          
+t8          .              .            +INF          109.5833      
+
+---- VAR x  Production in period t
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1          .           200.0000        +INF             .          
+t2          .           400.0000        +INF             .          
+t3          .           800.0000        +INF             .          
+t4          .           800.0000        +INF             .          
+t5          .          1200.0000        +INF             .          
+t6          .          1200.0000        +INF             .          
+t7          .          1200.0000        +INF             .          
+t8          .          1200.0000        +INF             .          
+
+---- VAR y  Setup in period t
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+t1         1.0000         1.0000         1.0000      5000.0000      
+t2          .             0.0588         1.0000          .          
+t3          .             0.1250         1.0000          .          
+t4          .             0.1429         1.0000          .          
+t5          .             0.2500         1.0000          .          
+t6          .             0.3333         1.0000          .          
+t7          .             0.5000         1.0000          .          
+t8          .             1.0000         1.0000     -3500.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 34
+A Production Planning Example (PRODPLAN, SEQ=356)
+Solution Report     SOLVE tinycuts Using RMIP From line 147
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR cost              -INF       717050.0700        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:37 Page 41
+A Production Planning Example (PRODPLAN, SEQ=356)
+E x e c u t i o n
+
+
+**** REPORT FILE SUMMARY
+
+fx /home/renigijus/gams/opt-mod-lib/gamslib/prodplan/fx.put
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/prodplan/prodplan.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/prodplan/prodplan-scalar.gms.lst

@@ -1,0 +1,709 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 2
+Launch Vehicle Design (LAUNCH,SEQ=161)
+C o m p i l a t i o n
+
+
+       
+        This model designs a three stage launch vehicle, taking into
+        account cost-estimation relationships for R&D and production costs
+        for airframe, engines and an instrument unit.
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 7. In Selected Applications
+      of Nonlinear Programming. John Wiley and Sons, New York, 1968,
+      pp. 58-82.
+       
+  17   
+  18  sets s stages  / stage-1, stage-2, stage-3 /
+  19       b bound labels / lower, upper /
+  20   
+  21  alias(s,ss);
+  22   
+  23  sets  ge(s,ss)  s is greater than ss; ge(s,ss) = yes$(ord(s) >= ord(ss));
+  24   
+  25  scalars pl    pay load (thousands of pound)  / 20 /
+  26          numl  number of launches             / 10 /
+  27          g     average gravity (est)          / 31.8 /
+  28   
+  29   
+  30  table pwbound(s,b)  propellant weight
+  31           lower  upper
+  32  stage-1   12     16
+  33  stage-2   10     12
+  34  stage-3    7      9
+  35   
+  36  parameters
+  37     iwf(s)  weight fraction    /  stage-1  .5,  stage-2  .6,  stage-3  .7 /
+  38     nume(s) number of engines  / (stage-1,stage-2)  5,  stage-3  1 /
+  39     rde1(s) Engine R&D cost 1  / (stage-1,stage-2) -257.963, stage-3  32.591 /
+  40     rde2(s) Engine R&D cost 2  / (stage-1,stage-2)  160.990, stage-3 181.806 /
+  41     rde3(s) Engine R&D cost 3  / (stage-1,stage-2)   -0.146, stage-3   0.539 /
+  42     rde4(s) Engine R&D cost 4  / (stage-1,stage-2)  282.874, stage-3 232.570 /
+  43     rde5(s) Engine R&D cost 5  / (stage-1,stage-2)    0.648, stage-3   0.772 /
+  44   
+  45     pre1(s) Engine cost 1  / (stage-1,stage-2)   0.2085, stage-3   0.0705  /
+  46     pre2(s) Engine cost 2  / (stage-1,stage-2)   2.509 , stage-3  -0.01807 /
+  47     pre3(s) Engine cost 3  / (stage-1,stage-2)   0.736 , stage-3  -1.33   /
+  48     pre4(s) Engine cost 4  / (stage-1,stage-2)   0.9744, stage-3 16.687   /
+  49     pre5(s) Engine cost 5  / (stage-1,stage-2)  -0.229 , stage-3   0.498  / ;
+  50   
+  51  * adjust from  c*(x/100)**b to (c*10**b)*(x/1000)**b for stage-3
+  52   
+  53     pre2('stage-3') = pre2('stage-3')*10**pre3('stage-3');
+  54     pre4('stage-3') = pre4('stage-3')*10**pre5('stage-3');
+  55   
+  56  variables aweight(s)  airframe weight (thousands of pounds)
+  57            iweight(s)  inert weight (thousands of pounds)
+  58            pweight(s)  propellant weight (thousands of pounds)
+  59            instweight  instrument unit weight (thousands of pounds)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 3
+Launch Vehicle Design (LAUNCH,SEQ=161)
+C o m p i l a t i o n
+
+
+  60            weight(s)   total initial weight (thousands of pounds)
+  61            length(s)   length of stage (feet)
+  62            thrust(s)   thrust (thousands of pounds)
+  63            ethrust(s)  single engine thrust (thousands of pounds)
+  64            ms(s)       mass fraction
+  65            t2w(s)      thrust to weight ratio
+  66            t(s)        operating time
+  67            vfac(s)     velocity factor
+  68            v(s)        incremental velocity
+  69            vt          total velocity
+  70            cost        total cost;
+  71   
+  72  equations diweight(s) definition of inert weight
+  73            dweight(s)  definition of weight
+  74            dthrust(s)  definition of thrust
+  75            t2wr(s)     thrust to initial weight ratio definition
+  76            msd(s)      mass fraction definition
+  77            pwlower(s)  lower bound of propellant weight
+  78            pwupper(s)  upper bound of propellant weight
+  79            defvfac(s)  velocity factor definition
+  80            defv(s)     definition of velocity
+  81            defvt       definition of total velocity
+  82            costdef     cost definition ;
+  83   
+  84  diweight(s)..   iwf(s)*iweight(s) =e= aweight(s);
+  85   
+  86  dweight(s).. weight(s) =e= sum(ss$ge(ss,s), iweight(ss) + pweight(ss))
+  87                           + instweight + pl;
+  88   
+  89  dthrust(s).. thrust(s) =e= nume(s)*ethrust(s);
+  90   
+  91  t2wr(s)..    t2w(s)*weight(s) =e= thrust(s);
+  92   
+  93  msd(s)..     (1-ms(s))*weight(s) =e= pweight(s);
+  94   
+  95  pwlower(s).. pwbound(s,'lower')*iweight(s) =l= pweight(s);
+  96  pwupper(s).. pweight(s) =l= pwbound(s,'upper')*iweight(s);
+  97   
+  98  defvfac(s).. vfac(s)*pweight(s) =e= thrust(s)*t(s);
+  99   
+ 100  defv(s).. v(s) =e= vfac(s)*g*log(1/ms(s));
+ 101   
+ 102  defvt.. vt =e= sum(s, v(s));
+ 103   
+ 104  costdef..  cost =e=
+ 105   
+ 106  *  airframe R&D cost
+ 107   
+ 108      + 5272.77*sum(s, aweight(s)**1.2781*iweight(s)**(-0.1959)*
+ 109                          ms(s)**2.4242*thrust(s)**0.38745*pweight(s)**(-0.9904))
+ 110   
+ 111  *  airframe production cost
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 4
+Launch Vehicle Design (LAUNCH,SEQ=161)
+C o m p i l a t i o n
+
+
+ 113      + .185214*sum(s, aweight(s)**0.3322*ms(s)**(-1.5935)*pweight(s)**0.2362*
+ 114                          length(s)**0.1079*nume(s)**0.1616*numl**0.9)
+ 115   
+ 116  *  engine R&D cost
+ 117   
+ 118      + sum(s, rde1(s) + rde2(s)*(ethrust(s)/1000)**rde3(s) + rde4(s)*(ethrust(s)/1000)**rde5(s))
+ 119   
+ 120  *   engine production cost
+ 121   
+ 122      + sum(s, ( pre1(s)*(ethrust(s)/1000) + pre2(s)*(ethrust(s)/1000)**pre3(s)
+ 123               + pre4(s)*(ethrust(s)/1000)**pre5(s))*(nume(s)*numl)**0.93)
+ 124   
+ 125  *  instrument unit
+ 126   
+ 127      + 10.35*(15822e-6*(instweight*1000)**0.786 - 35.5)
+ 128   
+ 129      + numl**0.9*15822e-6*(instweight*1000)**0.786
+ 130   
+ 131  *  launch operations
+ 132   
+ 133      + 8.5*numl*(3*sum(s, pweight(s))/1000)**0.460;
+ 134   
+ 135  model launch / all /;
+ 136   
+ 137  t2w.lo('stage-1') = 1.2;   t2w.up('stage-1') = 1.4 ;
+ 138  t2w.lo('stage-2') =  .6;   t2w.up('stage-2') =  .75;
+ 139  t2w.lo('stage-3') =  .7;   t2w.up('stage-3') =  .9 ;
+ 140   
+ 141  ms.lo('stage-1')  = .25;   ms.up('stage-1') = .30;
+ 142  ms.lo('stage-2')  = .24;   ms.up('stage-2') = .29;
+ 143  ms.lo('stage-3')  = .16;   ms.up('stage-3') = .21;
+ 144   
+ 145  length.lo('stage-1') = 125;  length.up('stage-1') = 150;
+ 146  length.lo('stage-2') =  75;  length.up('stage-2') = 100;
+ 147  length.lo('stage-3') =  50;  length.up('stage-3') =  70;
+ 148   
+ 149  vfac.lo('stage-1') = 240;   vfac.up('stage-1') = 290;
+ 150  vfac.lo('stage-2') = 240;   vfac.up('stage-2') = 290;
+ 151  vfac.lo('stage-3') = 340;   vfac.up('stage-3') = 375;
+ 152   
+ 153  vt.lo         = 35000;  vt.up         = 50000;
+ 154  instweight.lo =   2.5;  instweight.up =   4.0;
+ 155   
+ 156  v.lo(s) = 1000;
+ 157  t.lo(s) =  100;
+ 158   
+ 159  thrust.lo(s)  = 1;
+ 160  aweight.lo(s) = 1;
+ 161  iweight.lo(s) = 5;
+ 162  pweight.lo(s) = 50;
+ 163  ethrust.lo(s) = 20;
+ 164   
+ 165  * this are the solution values the book
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 5
+Launch Vehicle Design (LAUNCH,SEQ=161)
+C o m p i l a t i o n
+
+
+ 166  t.l ('stage-1') = 155;
+ 167  t.l ('stage-2') = 314;
+ 168  t.l ('stage-3') = 403;
+ 169   
+ 170  iweight.l ('stage-1') = 136;
+ 171  iweight.l ('stage-2') =  47;
+ 172  iweight.l ('stage-3') =  16;
+ 173   
+ 174  pweight.l ('stage-1') = 2176;
+ 175  pweight.l ('stage-2') =  564;
+ 176  pweight.l ('stage-3') =  144;
+ 177   
+ 178  ethrust.l('stage-1') = 746;
+ 179  ethrust.l('stage-2') =  96;
+ 180  ethrust.l('stage-3') = 129;
+ 181   
+ 182  length.l('stage-1') = 125;
+ 183  length.l('stage-2') =  75;
+ 184  length.l('stage-3') =  50;
+ 185   
+ 186  ms.l('stage-1') = .3;
+ 187  ms.l('stage-2') = .29;
+ 188  ms.l('stage-3') = .21;
+ 189   
+ 190  instweight.l = 2.5;
+ 191  vt.l         = 38632;
+ 192   
+ 193  solve launch using nlp minmizing cost;
+ 194   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 6
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Equation Listing    SOLVE launch Using NLP From line 193
+
+
+---- diweight  =E=  definition of inert weight
+
+diweight(stage-1)..  - aweight(stage-1) + 0.5*iweight(stage-1) =E= 0 ; (LHS = 67, INFES = 67 ****)
+     
+diweight(stage-2)..  - aweight(stage-2) + 0.6*iweight(stage-2) =E= 0 ; (LHS = 27.2, INFES = 27.2 ****)
+     
+diweight(stage-3)..  - aweight(stage-3) + 0.7*iweight(stage-3) =E= 0 ; (LHS = 10.2, INFES = 10.2 ****)
+     
+
+---- dweight  =E=  definition of weight
+
+dweight(stage-1)..  - iweight(stage-1) - iweight(stage-2) - iweight(stage-3) - pweight(stage-1) - pweight(stage-2) - pweight(stage-3) - instweight + weight(stage-1) =E= 20 ; (LHS = -3085.5, INFES = 3105.5 ****)
+     
+dweight(stage-2)..  - iweight(stage-2) - iweight(stage-3) - pweight(stage-2) - pweight(stage-3) - instweight + weight(stage-2) =E= 20 ; (LHS = -773.5, INFES = 793.5 ****)
+     
+dweight(stage-3)..  - iweight(stage-3) - pweight(stage-3) - instweight + weight(stage-3) =E= 20 ; (LHS = -162.5, INFES = 182.5 ****)
+     
+
+---- dthrust  =E=  definition of thrust
+
+dthrust(stage-1)..  thrust(stage-1) - 5*ethrust(stage-1) =E= 0 ; (LHS = -3729, INFES = 3729 ****)
+     
+dthrust(stage-2)..  thrust(stage-2) - 5*ethrust(stage-2) =E= 0 ; (LHS = -479, INFES = 479 ****)
+     
+dthrust(stage-3)..  thrust(stage-3) - ethrust(stage-3) =E= 0 ; (LHS = -128, INFES = 128 ****)
+     
+
+---- t2wr  =E=  thrust to initial weight ratio definition
+
+t2wr(stage-1)..  (1.2)*weight(stage-1) - thrust(stage-1) + (0)*t2w(stage-1) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+t2wr(stage-2)..  (0.6)*weight(stage-2) - thrust(stage-2) + (0)*t2w(stage-2) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+t2wr(stage-3)..  (0.7)*weight(stage-3) - thrust(stage-3) + (0)*t2w(stage-3) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- msd  =E=  mass fraction definition
+
+msd(stage-1)..  - pweight(stage-1) + (0.7)*weight(stage-1) + (0)*ms(stage-1) =E= 0 ; (LHS = -2176, INFES = 2176 ****)
+     
+msd(stage-2)..  - pweight(stage-2) + (0.71)*weight(stage-2) + (0)*ms(stage-2) =E= 0 ; (LHS = -564, INFES = 564 ****)
+     
+msd(stage-3)..  - pweight(stage-3) + (0.79)*weight(stage-3) + (0)*ms(stage-3) =E= 0 ; (LHS = -144, INFES = 144 ****)
+     
+
+---- pwlower  =L=  lower bound of propellant weight
+
+pwlower(stage-1)..  12*iweight(stage-1) - pweight(stage-1) =L= 0 ; (LHS = -544)
+     
+pwlower(stage-2)..  10*iweight(stage-2) - pweight(stage-2) =L= 0 ; (LHS = -94)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 7
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Equation Listing    SOLVE launch Using NLP From line 193
+
+
+     pwlower  =L=  lower bound of propellant weight
+
+pwlower(stage-3)..  7*iweight(stage-3) - pweight(stage-3) =L= 0 ; (LHS = -32)
+     
+
+---- pwupper  =L=  upper bound of propellant weight
+
+pwupper(stage-1)..  - 16*iweight(stage-1) + pweight(stage-1) =L= 0 ; (LHS = 0)
+     
+pwupper(stage-2)..  - 12*iweight(stage-2) + pweight(stage-2) =L= 0 ; (LHS = 0)
+     
+pwupper(stage-3)..  - 9*iweight(stage-3) + pweight(stage-3) =L= 0 ; (LHS = 0)
+     
+
+---- defvfac  =E=  velocity factor definition
+
+defvfac(stage-1)..  (240)*pweight(stage-1) - (155)*thrust(stage-1) - (1)*t(stage-1) + (2176)*vfac(stage-1) =E= 0 ; (LHS = 522085, INFES = 522085 ****)
+     
+defvfac(stage-2)..  (240)*pweight(stage-2) - (314)*thrust(stage-2) - (1)*t(stage-2) + (564)*vfac(stage-2) =E= 0 ; (LHS = 135046, INFES = 135046 ****)
+     
+defvfac(stage-3)..  (340)*pweight(stage-3) - (403)*thrust(stage-3) - (1)*t(stage-3) + (144)*vfac(stage-3) =E= 0 ; (LHS = 48557, INFES = 48557 ****)
+     
+
+---- defv  =E=  definition of velocity
+
+defv(stage-1)..  (25440)*ms(stage-1) - (38.2863351775648)*vfac(stage-1) + v(stage-1) =E= 0 ; (LHS = -8188.72044261554, INFES = 8188.72044261554 ****)
+     
+defv(stage-2)..  (26317.2413793103)*ms(stage-2) - (39.3644045208514)*vfac(stage-2) + v(stage-2) =E= 0 ; (LHS = -8447.45708500434, INFES = 8447.45708500434 ****)
+     
+defv(stage-3)..  (51485.7142857143)*ms(stage-3) - (49.6285983948165)*vfac(stage-3) + v(stage-3) =E= 0 ; (LHS = -15873.7234542376, INFES = 15873.7234542376 ****)
+     
+
+---- defvt  =E=  definition of total velocity
+
+defvt..  - v(stage-1) - v(stage-2) - v(stage-3) + vt =E= 0 ; (LHS = 35632, INFES = 35632 ****)
+     
+
+---- costdef  =E=  cost definition
+
+costdef..  - (44.7212918987459)*aweight(stage-1) - (32.7211423878458)*aweight(stage-2) - (29.638155502367)*aweight(stage-3) + (7.75164835444802E-5)*iweight(stage-1) + (0.000968924276383757)*iweight(stage-2) + (0.00621366705009522)*iweight(stage-3)
+     
+      - (0.0511468686541624)*pweight(stage-1) - (0.0770487287489765)*pweight(stage-2) - (0.176229795075166)*pweight(stage-3) - (42.6399220315759)*instweight - (0.11602663487989)*length(stage-1) - (0.140419547813364)*length(stage-2)
+     
+      - (0.188318458013766)*length(stage-3) - (0.0208503908662889)*thrust(stage-1) - (0.0900676692781505)*thrust(stage-2) - (0.196629733419859)*thrust(stage-3) - (0.241960352618709)*ethrust(stage-1) - (0.0606279989877319)*ethrust(stage-2)
+     
+      - (1.16244328561523)*ethrust(stage-3) + (713.530399689777)*ms(stage-1) + (534.373643152662)*ms(stage-2) + (656.318749242615)*ms(stage-3) + cost =E= -850.76 ; (LHS = -1848.54633853476, INFES = 997.786338534756 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 8
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Column Listing      SOLVE launch Using NLP From line 193
+
+
+---- aweight  airframe weight (thousands of pounds)
+
+aweight(stage-1)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+       -1       diweight(stage-1)
+     (-44.7213) costdef
+        0       (OLD LEVEL ****)
+
+aweight(stage-2)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+       -1       diweight(stage-2)
+     (-32.7211) costdef
+        0       (OLD LEVEL ****)
+
+aweight(stage-3)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+       -1       diweight(stage-3)
+     (-29.6382) costdef
+        0       (OLD LEVEL ****)
+
+
+---- iweight  inert weight (thousands of pounds)
+
+iweight(stage-1)
+                (.LO, .L, .UP, .M = 5, 136, +INF, 0)
+        0.5     diweight(stage-1)
+       -1       dweight(stage-1)
+       12       pwlower(stage-1)
+      -16       pwupper(stage-1)
+ (7.7516484E-5) costdef
+
+iweight(stage-2)
+                (.LO, .L, .UP, .M = 5, 47, +INF, 0)
+        0.6     diweight(stage-2)
+       -1       dweight(stage-1)
+       -1       dweight(stage-2)
+       10       pwlower(stage-2)
+      -12       pwupper(stage-2)
+       (0.001)  costdef
+
+iweight(stage-3)
+                (.LO, .L, .UP, .M = 5, 16, +INF, 0)
+        0.7     diweight(stage-3)
+       -1       dweight(stage-1)
+       -1       dweight(stage-2)
+       -1       dweight(stage-3)
+        7       pwlower(stage-3)
+       -9       pwupper(stage-3)
+       (0.0062) costdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 9
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Column Listing      SOLVE launch Using NLP From line 193
+
+
+---- pweight  propellant weight (thousands of pounds)
+
+pweight(stage-1)
+                (.LO, .L, .UP, .M = 50, 2176, +INF, 0)
+       -1       dweight(stage-1)
+       -1       msd(stage-1)
+       -1       pwlower(stage-1)
+        1       pwupper(stage-1)
+     (240)      defvfac(stage-1)
+      (-0.0511) costdef
+
+pweight(stage-2)
+                (.LO, .L, .UP, .M = 50, 564, +INF, 0)
+       -1       dweight(stage-1)
+       -1       dweight(stage-2)
+       -1       msd(stage-2)
+       -1       pwlower(stage-2)
+        1       pwupper(stage-2)
+     (240)      defvfac(stage-2)
+      (-0.077)  costdef
+
+pweight(stage-3)
+                (.LO, .L, .UP, .M = 50, 144, +INF, 0)
+       -1       dweight(stage-1)
+       -1       dweight(stage-2)
+       -1       dweight(stage-3)
+       -1       msd(stage-3)
+       -1       pwlower(stage-3)
+        1       pwupper(stage-3)
+     (340)      defvfac(stage-3)
+      (-0.1762) costdef
+
+
+---- instweight  instrument unit weight (thousands of pounds)
+
+instweight
+                (.LO, .L, .UP, .M = 2.5, 2.5, 4, 0)
+       -1       dweight(stage-1)
+       -1       dweight(stage-2)
+       -1       dweight(stage-3)
+     (-42.6399) costdef
+
+
+---- weight  total initial weight (thousands of pounds)
+
+weight(stage-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dweight(stage-1)
+       (1.2)    t2wr(stage-1)
+       (0.7)    msd(stage-1)
+
+weight(stage-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 10
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Column Listing      SOLVE launch Using NLP From line 193
+
+
+     weight  total initial weight (thousands of pounds)
+
+        1       dweight(stage-2)
+       (0.6)    t2wr(stage-2)
+       (0.71)   msd(stage-2)
+
+weight(stage-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dweight(stage-3)
+       (0.7)    t2wr(stage-3)
+       (0.79)   msd(stage-3)
+
+
+---- length  length of stage (feet)
+
+length(stage-1)
+                (.LO, .L, .UP, .M = 125, 125, 150, 0)
+      (-0.116)  costdef
+
+length(stage-2)
+                (.LO, .L, .UP, .M = 75, 75, 100, 0)
+      (-0.1404) costdef
+
+length(stage-3)
+                (.LO, .L, .UP, .M = 50, 50, 70, 0)
+      (-0.1883) costdef
+
+
+---- thrust  thrust (thousands of pounds)
+
+thrust(stage-1)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+        1       dthrust(stage-1)
+       -1       t2wr(stage-1)
+    (-155)      defvfac(stage-1)
+      (-0.0209) costdef
+        0       (OLD LEVEL ****)
+
+thrust(stage-2)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+        1       dthrust(stage-2)
+       -1       t2wr(stage-2)
+    (-314)      defvfac(stage-2)
+      (-0.0901) costdef
+        0       (OLD LEVEL ****)
+
+thrust(stage-3)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+        1       dthrust(stage-3)
+       -1       t2wr(stage-3)
+    (-403)      defvfac(stage-3)
+      (-0.1966) costdef
+        0       (OLD LEVEL ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 11
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Column Listing      SOLVE launch Using NLP From line 193
+
+
+     thrust  thrust (thousands of pounds)
+
+
+
+---- ethrust  single engine thrust (thousands of pounds)
+
+ethrust(stage-1)
+                (.LO, .L, .UP, .M = 20, 746, +INF, 0)
+       -5       dthrust(stage-1)
+      (-0.242)  costdef
+
+ethrust(stage-2)
+                (.LO, .L, .UP, .M = 20, 96, +INF, 0)
+       -5       dthrust(stage-2)
+      (-0.0606) costdef
+
+ethrust(stage-3)
+                (.LO, .L, .UP, .M = 20, 129, +INF, 0)
+       -1       dthrust(stage-3)
+      (-1.1624) costdef
+
+
+---- ms  mass fraction
+
+ms(stage-1)
+                (.LO, .L, .UP, .M = 0.25, 0.3, 0.3, 0)
+       (0)      msd(stage-1)
+   (25440)      defv(stage-1)
+     (713.5304) costdef
+
+ms(stage-2)
+                (.LO, .L, .UP, .M = 0.24, 0.29, 0.29, 0)
+       (0)      msd(stage-2)
+   (26317.2414) defv(stage-2)
+     (534.3736) costdef
+
+ms(stage-3)
+                (.LO, .L, .UP, .M = 0.16, 0.21, 0.21, 0)
+       (0)      msd(stage-3)
+   (51485.7143) defv(stage-3)
+     (656.3187) costdef
+
+
+---- t2w  thrust to weight ratio
+
+t2w(stage-1)
+                (.LO, .L, .UP, .M = 1.2, 1.2, 1.4, 0)
+       (0)      t2wr(stage-1)
+        0       (OLD LEVEL ****)
+
+t2w(stage-2)
+                (.LO, .L, .UP, .M = 0.6, 0.6, 0.75, 0)
+       (0)      t2wr(stage-2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 12
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Column Listing      SOLVE launch Using NLP From line 193
+
+
+     t2w  thrust to weight ratio
+
+        0       (OLD LEVEL ****)
+
+t2w(stage-3)
+                (.LO, .L, .UP, .M = 0.7, 0.7, 0.9, 0)
+       (0)      t2wr(stage-3)
+        0       (OLD LEVEL ****)
+
+
+---- t  operating time
+
+t(stage-1)
+                (.LO, .L, .UP, .M = 100, 155, +INF, 0)
+      (-1)      defvfac(stage-1)
+
+t(stage-2)
+                (.LO, .L, .UP, .M = 100, 314, +INF, 0)
+      (-1)      defvfac(stage-2)
+
+t(stage-3)
+                (.LO, .L, .UP, .M = 100, 403, +INF, 0)
+      (-1)      defvfac(stage-3)
+
+
+---- vfac  velocity factor
+
+vfac(stage-1)
+                (.LO, .L, .UP, .M = 240, 240, 290, 0)
+    (2176)      defvfac(stage-1)
+     (-38.2863) defv(stage-1)
+        0       (OLD LEVEL ****)
+
+vfac(stage-2)
+                (.LO, .L, .UP, .M = 240, 240, 290, 0)
+     (564)      defvfac(stage-2)
+     (-39.3644) defv(stage-2)
+        0       (OLD LEVEL ****)
+
+vfac(stage-3)
+                (.LO, .L, .UP, .M = 340, 340, 375, 0)
+     (144)      defvfac(stage-3)
+     (-49.6286) defv(stage-3)
+        0       (OLD LEVEL ****)
+
+
+---- v  incremental velocity
+
+v(stage-1)
+                (.LO, .L, .UP, .M = 1000, 1000, +INF, 0)
+        1       defv(stage-1)
+       -1       defvt
+        0       (OLD LEVEL ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 13
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Column Listing      SOLVE launch Using NLP From line 193
+
+
+     v  incremental velocity
+
+
+v(stage-2)
+                (.LO, .L, .UP, .M = 1000, 1000, +INF, 0)
+        1       defv(stage-2)
+       -1       defvt
+        0       (OLD LEVEL ****)
+
+v(stage-3)
+                (.LO, .L, .UP, .M = 1000, 1000, +INF, 0)
+        1       defv(stage-3)
+       -1       defvt
+        0       (OLD LEVEL ****)
+
+
+---- vt  total velocity
+
+vt
+                (.LO, .L, .UP, .M = 35000, 38632, 50000, 0)
+        1       defvt
+
+
+---- cost  total cost
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       costdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 14
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Model Statistics    SOLVE launch Using NLP From line 193
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          11     SINGLE EQUATIONS           29
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES           39  15 projected
+NON ZERO ELEMENTS           108     NON LINEAR N-Z             52
+DERIVATIVE POOL              20     CONSTANT POOL              59
+CODE LENGTH                 286
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 15
+Launch Vehicle Design (LAUNCH,SEQ=161)
+Solution Report     SOLVE launch Using NLP From line 193
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   launch              OBJECTIVE  cost
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  193
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/launch/convert.opt"
+>>  pyomo launch-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/launch/convert.opt"
+Pyomo     : launch-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/launch/launch.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/launch/launch-scalar.py.lst

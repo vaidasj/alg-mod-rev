@@ -1,0 +1,190 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 2
+Parts Supply Problem w/ 3 Types w/o & w/ SCP (PS3_S_SCP,SEQ=367)
+C o m p i l a t i o n
+
+
+   5   
+   6  * Hideo Hashimoto, Kojun Hamada, and Nobuhiro Hosoe, "A Numerical Approach
+   7  *   to the Contract Theory: the Case of Adverse Selection", GRIPS Discussion
+   8  *   Paper 11-27, National Graduate Institute for Policy Studies, Tokyo, Japan,
+   9  *   March 2012.
+  10  *
+  11  *  http://r-center.grips.ac.jp/DiscussionPapersDetails/247/#
+  12   
+  13  Option limcol=0,limrow=0;
+  14   
+  15  * Definition of Set
+  16  Set     i       type of supplier        /0,1,2/;
+  17  Alias (i,j);
+  18  * Definition of Parameters
+  19  Parameter
+  20          theta(i)        efficiency      /0      0.1
+  21                                          1       0.4
+  22                                          2       0.9/
+  23          p(i)            probability of type
+  24                                          /0      0.2
+  25                                          1       0.5
+  26                                          2       0.3/;
+  27  Scalar  ru              reservation utility     /0/;
+  28   
+  29  * Definition of Primal/Dual Variables
+  30  Positive Variable
+  31          x(i)            quality
+  32          b(i)            maker's revenue
+  33          w(i)            price;
+  34  Variable
+  35          Util            maker's utility;
+  36  Equation
+  37          obj             maker's utility function
+  38          rev(i)          maker's revenue function
+  39          pc(i)           participation constraint
+  40          ic(i,j)         incentive compatibility constraint
+  41          licd(i)         incentive compatibility constraint
+  42          licu(i)         incentive compatibility constraint;
+  43   
+  44  * Specification of Equations
+  45  obj..   Util =e= sum(i, p(i)*(b(i)-w(i)));
+  46  rev(i)..b(i) =e= x(i)**(0.5);
+  47  pc(i)..  w(i)  -(theta(i)+(1-theta(i)+sqr(theta(i)))*x(i))
+  48               =g= ru;
+  49  ic(i,j)..w(i)  -(theta(i)+(1-theta(i)+sqr(theta(i)))*x(i))
+  50      =g=  w(j)  -(theta(i)+(1-theta(i)+sqr(theta(i)))*x(j));
+  51  licd(i)..w(i)  -(theta(i)+(1-theta(i)+sqr(theta(i)))*x(i))
+  52      =g=  w(i+1)-(theta(i)+(1-theta(i)+sqr(theta(i)))*x(i+1));
+  53  licu(i)..w(i)  -(theta(i)+(1-theta(i)+sqr(theta(i)))*x(i))
+  54      =g=  w(i-1)-(theta(i)+(1-theta(i)+sqr(theta(i)))*x(i-1));
+  55   
+  56  * Setting Lower Bounds on Variables to Avoid Division by Zero
+  57  x.lo(i)=0.0001;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 3
+Parts Supply Problem w/ 3 Types w/o & w/ SCP (PS3_S_SCP,SEQ=367)
+C o m p i l a t i o n
+
+
+  58   
+  59  * Defining and Solving the Model
+  60  Model SB_gic_wo_SCP /obj, rev, pc, ic/;
+  61  Model SB_lic_wo_SCP /obj, rev, pc, licd, licu/;
+  62   
+  63  Solve SB_gic_wo_SCP maximizing Util using NLP;
+  64  Solve SB_lic_wo_SCP maximizing Util using NLP;
+  65  * End of Model
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 4
+Parts Supply Problem w/ 3 Types w/o & w/ SCP (PS3_S_SCP,SEQ=367)
+Model Statistics    SOLVE SB_gic_wo_SCP Using NLP From line 63
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           10  3 projected
+NON ZERO ELEMENTS            43     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  18
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 5
+Parts Supply Problem w/ 3 Types w/o & w/ SCP (PS3_S_SCP,SEQ=367)
+Solution Report     SOLVE SB_gic_wo_SCP Using NLP From line 63
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   SB_gic_wo_SCP       OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  63
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_scp/convert.opt"
+>>  pyomo ps3_s_scp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_scp/convert.opt"
+Pyomo     : ps3_s_scp-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 6
+Parts Supply Problem w/ 3 Types w/o & w/ SCP (PS3_S_SCP,SEQ=367)
+Model Statistics    SOLVE SB_lic_wo_SCP Using NLP From line 64
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           10  3 projected
+NON ZERO ELEMENTS            39     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  18
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 7
+Parts Supply Problem w/ 3 Types w/o & w/ SCP (PS3_S_SCP,SEQ=367)
+Solution Report     SOLVE SB_lic_wo_SCP Using NLP From line 64
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   SB_lic_wo_SCP       OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  64
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_scp/convert.opt"
+>>  pyomo ps3_s_scp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_scp/convert.opt"
+Pyomo     : ps3_s_scp-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_scp/ps3_s_scp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_scp/ps3_s_scp-scalar.py.lst

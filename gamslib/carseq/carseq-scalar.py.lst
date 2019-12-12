@@ -1,0 +1,379 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+   3  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 2
+Car Sequencing  (CARSEQ,SEQ=407)
+C o m p i l a t i o n
+
+
+      A number of cars are to be produced; they are not identical, because
+      different options are available as variants on the basic model. The
+      assembly line has different stations which install the various options
+      (air-conditioning, sun-roof, etc.). These stations have been designed
+      to handle at most a certain percentage of the cars passing along the
+      assembly line. Furthermore, the cars requiring a certain option must not
+      be bunched together, otherwise the station will not be able to cope.
+      Consequently, the cars must be arranged in a sequence so that the capacity
+      of each station is never exceeded. For instance, if a particular station
+      can only cope with at most half of the cars passing along the line, the
+      sequence must be built so that at most 1 car in any 2 requires that option.
+      The problem has been shown to be NP-hard (Gent 1999).
+       
+      This is the example given in (Dincbas et al.). More instances can
+      be downloaded from http://www.csplib.org/Problems/prob001/
+       
+       
+      Dincbas et al., Dincbas, M., Simonis, H., and Van Hentenryck, P.
+      Solving the car-sequencing problem in constraint logic programming.
+      In 8th European Conference on Artificial Intelligence (ECAI 88) ,
+      Y. Kodratoff, Ed. Pitmann Publishing, London, Munich, Germany, 290-295, 1988
+       
+  29   
+  30  Sets p  position
+  31       o  options
+  32       c  classes
+  33   
+  34  Parameter
+  35       maxc(o)        maximum number of cars with that option in a block
+  36       bs(o)          block size to which the maximum number maxc refers
+  37       classData(c,*) class data;
+  38   
+  41  Sets p  position  / pos1*pos10    /
+  42       o  options   / opt1*opt5     /
+  43       c  classes   / class1*class6 /
+  44   
+  45  Parameter
+  46       maxc(o) maximum number of cars with that option in a block /
+  47                      (opt1,opt3,opt5) 1, (opt2,opt4) 2
+  48                    /
+  49       bs(o)   block size to which the maximum number maxc refers /
+  50                       opt1 2, (opt2,opt3) 3, (opt4,opt5) 5
+  51                    /
+  52  Table classData(c,*) class data
+  53         numCars opt1 opt2 opt3 opt4 opt5
+  54  class1    1     1    0    1    1    0
+  55  class2    1     0    0    0    1    0
+  56  class3    2     0    1    0    0    1
+  57  class4    2     0    1    0    1    0
+  58  class5    2     1    0    1    0    0
+  59  class6    2     1    1    0    0    0;
+  61   
+  62  abort$(card(p)<>sum(c, classData(c,'numCars'))) 'inconsistent number of cars';
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 3
+Car Sequencing  (CARSEQ,SEQ=407)
+C o m p i l a t i o n
+
+
+  63   
+  64  alias (p,pp)
+  65  Sets blk(o,p)     blocks of positions to monitor
+  66       blkc(o,p,pp) positions in the blocks;
+  67  blkc(o,p,pp)$(ord(p)<=card(p)-bs(o)+1) = ord(pp)>=ord(p) and ord(pp)<ord(p)+bs(o);
+  68  blk(o,p) = sum(pp$blkc(o,p,pp), 1);
+  69   
+  70  Variable sumc(o,p);
+  71  Variables
+  72       cp(c,p)  class k is scheduled at position p
+  73       op(o,p)  option o appears at position p
+  74       v(o,p)   violations in a block
+  75       obj      sum of violations
+  76       ;
+  77   
+  78  Binary Variable cp;
+  80   
+  81  Equations
+  82       defnumCars(c) exactly numCars of class c assigned to positions
+  83       defoneCar(p)  one car assigned to each position p
+  84       defop(o,p)    option o appears at position p
+  85       defopLS(o,p)  option o appears at position p
+  86       defviol(o,p)  violations in a block
+  87       defviolLS(o,p) violations in a block
+  88       defobj        minimize violations;
+  89   
+  90  defnumCars(c)..     sum(p, cp(c,p)) =e= classData(c,'numCars');
+  91   
+  92  defoneCar(p)..      sum(c, cp(c,p)) =e= 1;
+  93   
+  94  defop(o,p)..        sum(c$classData(c,o),cp(c,p)) =l= op(o,p);
+  95   
+  96   Equation defsumc(o,p);
+  97  defsumc(o,p)..      sumc(o,p) =e= sum(c$classData(c,o),cp(c,p));
+  98  defopLS(o,p)..      op(o,p) =e= ifthen(sumc(o,p)>=0.5, 1, 0);
+  99  *defopLS(o,p)..      op(o,p) =e= ifthen(sum(c$classData(c,o),cp(c,p))>0.5, 1, 0);
+ 100   
+ 101   
+ 102  defviol(blk(o,p)).. sum(blkc(blk,pp), op(o,pp)) =l= maxc(o) + v(o,p);
+ 103  defviolLS(blk(o,p)).. v(o,p) =e= max(sum(blkc(blk,pp), op(o,pp)) - maxc(o), 0);
+ 104   
+ 105  defobj..            obj =e= sum(blk(o,p), v(o,p));
+ 106   
+ 107  model carseqMIP / all - defopLS - defviolLS - defsumc /
+ 108        carseqLS  / all - defop   - defviol /;
+ 109   
+ 110  option optcr = 0;
+ 111   
+ 113    solve carseqLS min obj us minlp;
+ 115   
+ 116  Parameter rep(p,c,o);
+ 117  rep(p,c,o)$(cp.l(c,p)>0.5) =  classData(c,o);
+ 118  option rep:0:2:1; display rep;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 4
+Car Sequencing  (CARSEQ,SEQ=407)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 5
+Car Sequencing  (CARSEQ,SEQ=407)
+Equation Listing    SOLVE carseqLS Using MINLP From line 113
+
+
+---- defnumCars  =E=  exactly numCars of class c assigned to positions
+
+defnumCars(class1)..  cp(class1,pos1) + cp(class1,pos2) + cp(class1,pos3) + cp(class1,pos4) + cp(class1,pos5) + cp(class1,pos6) + cp(class1,pos7) + cp(class1,pos8) + cp(class1,pos9) + cp(class1,pos10) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+defnumCars(class2)..  cp(class2,pos1) + cp(class2,pos2) + cp(class2,pos3) + cp(class2,pos4) + cp(class2,pos5) + cp(class2,pos6) + cp(class2,pos7) + cp(class2,pos8) + cp(class2,pos9) + cp(class2,pos10) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+defnumCars(class3)..  cp(class3,pos1) + cp(class3,pos2) + cp(class3,pos3) + cp(class3,pos4) + cp(class3,pos5) + cp(class3,pos6) + cp(class3,pos7) + cp(class3,pos8) + cp(class3,pos9) + cp(class3,pos10) =E= 2 ; (LHS = 0, INFES = 2 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- defoneCar  =E=  one car assigned to each position p
+
+defoneCar(pos1)..  cp(class1,pos1) + cp(class2,pos1) + cp(class3,pos1) + cp(class4,pos1) + cp(class5,pos1) + cp(class6,pos1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+defoneCar(pos2)..  cp(class1,pos2) + cp(class2,pos2) + cp(class3,pos2) + cp(class4,pos2) + cp(class5,pos2) + cp(class6,pos2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+defoneCar(pos3)..  cp(class1,pos3) + cp(class2,pos3) + cp(class3,pos3) + cp(class4,pos3) + cp(class5,pos3) + cp(class6,pos3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- defopLS  =E=  option o appears at position p
+
+defopLS(opt1,pos1)..  (0)*sumc(opt1,pos1) + op(opt1,pos1) =E= 0 ; (LHS = 0)
+     
+defopLS(opt1,pos2)..  (0)*sumc(opt1,pos2) + op(opt1,pos2) =E= 0 ; (LHS = 0)
+     
+defopLS(opt1,pos3)..  (0)*sumc(opt1,pos3) + op(opt1,pos3) =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- defviolLS  =E=  violations in a block
+
+defviolLS(opt1,pos1)..  (0)*op(opt1,pos1) + (0)*op(opt1,pos2) + v(opt1,pos1) =E= 0 ; (LHS = 0)
+     
+defviolLS(opt1,pos2)..  (0)*op(opt1,pos2) + (0)*op(opt1,pos3) + v(opt1,pos2) =E= 0 ; (LHS = 0)
+     
+defviolLS(opt1,pos3)..  (0)*op(opt1,pos3) + (0)*op(opt1,pos4) + v(opt1,pos3) =E= 0 ; (LHS = 0)
+     
+REMAINING 34 ENTRIES SKIPPED
+
+
+---- defobj  =E=  minimize violations
+
+defobj..  - v(opt1,pos1) - v(opt1,pos2) - v(opt1,pos3) - v(opt1,pos4) - v(opt1,pos5) - v(opt1,pos6) - v(opt1,pos7) - v(opt1,pos8) - v(opt1,pos9) - v(opt2,pos1) - v(opt2,pos2) - v(opt2,pos3) - v(opt2,pos4) - v(opt2,pos5) - v(opt2,pos6) - v(opt2,pos7)
+     
+      - v(opt2,pos8) - v(opt3,pos1) - v(opt3,pos2) - v(opt3,pos3) - v(opt3,pos4) - v(opt3,pos5) - v(opt3,pos6) - v(opt3,pos7) - v(opt3,pos8) - v(opt4,pos1) - v(opt4,pos2) - v(opt4,pos3) - v(opt4,pos4) - v(opt4,pos5) - v(opt4,pos6) - v(opt5,pos1)
+     
+      - v(opt5,pos2) - v(opt5,pos3) - v(opt5,pos4) - v(opt5,pos5) - v(opt5,pos6) + obj =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 6
+Car Sequencing  (CARSEQ,SEQ=407)
+Equation Listing    SOLVE carseqLS Using MINLP From line 113
+
+
+---- defsumc  =E=  
+
+defsumc(opt1,pos1)..  sumc(opt1,pos1) - cp(class1,pos1) - cp(class5,pos1) - cp(class6,pos1) =E= 0 ; (LHS = 0)
+     
+defsumc(opt1,pos2)..  sumc(opt1,pos2) - cp(class1,pos2) - cp(class5,pos2) - cp(class6,pos2) =E= 0 ; (LHS = 0)
+     
+defsumc(opt1,pos3)..  sumc(opt1,pos3) - cp(class1,pos3) - cp(class5,pos3) - cp(class6,pos3) =E= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 7
+Car Sequencing  (CARSEQ,SEQ=407)
+Column Listing      SOLVE carseqLS Using MINLP From line 113
+
+
+---- sumc  
+
+sumc(opt1,pos1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      defopLS(opt1,pos1)
+        1       defsumc(opt1,pos1)
+
+sumc(opt1,pos2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      defopLS(opt1,pos2)
+        1       defsumc(opt1,pos2)
+
+sumc(opt1,pos3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      defopLS(opt1,pos3)
+        1       defsumc(opt1,pos3)
+
+REMAINING 47 ENTRIES SKIPPED
+
+---- cp  class k is scheduled at position p
+
+cp(class1,pos1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       defnumCars(class1)
+        1       defoneCar(pos1)
+       -1       defsumc(opt1,pos1)
+       -1       defsumc(opt3,pos1)
+       -1       defsumc(opt4,pos1)
+
+cp(class1,pos2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       defnumCars(class1)
+        1       defoneCar(pos2)
+       -1       defsumc(opt1,pos2)
+       -1       defsumc(opt3,pos2)
+       -1       defsumc(opt4,pos2)
+
+cp(class1,pos3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       defnumCars(class1)
+        1       defoneCar(pos3)
+       -1       defsumc(opt1,pos3)
+       -1       defsumc(opt3,pos3)
+       -1       defsumc(opt4,pos3)
+
+REMAINING 57 ENTRIES SKIPPED
+
+---- op  option o appears at position p
+
+op(opt1,pos1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defopLS(opt1,pos1)
+       (0)      defviolLS(opt1,pos1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 8
+Car Sequencing  (CARSEQ,SEQ=407)
+Column Listing      SOLVE carseqLS Using MINLP From line 113
+
+
+     op  option o appears at position p
+
+
+op(opt1,pos2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defopLS(opt1,pos2)
+       (0)      defviolLS(opt1,pos1)
+       (0)      defviolLS(opt1,pos2)
+
+op(opt1,pos3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defopLS(opt1,pos3)
+       (0)      defviolLS(opt1,pos2)
+       (0)      defviolLS(opt1,pos3)
+
+REMAINING 47 ENTRIES SKIPPED
+
+---- v  violations in a block
+
+v(opt1,pos1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defviolLS(opt1,pos1)
+       -1       defobj
+
+v(opt1,pos2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defviolLS(opt1,pos2)
+       -1       defobj
+
+v(opt1,pos3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defviolLS(opt1,pos3)
+       -1       defobj
+
+REMAINING 34 ENTRIES SKIPPED
+
+---- obj  sum of violations
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 9
+Car Sequencing  (CARSEQ,SEQ=407)
+Model Statistics    SOLVE carseqLS Using MINLP From line 113
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS          154
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES          198
+NON ZERO ELEMENTS           591     NON LINEAR N-Z            176
+DERIVATIVE POOL              20     CONSTANT POOL              18
+CODE LENGTH                 848     DISCRETE VARIABLES         60
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 10
+Car Sequencing  (CARSEQ,SEQ=407)
+Solution Report     SOLVE carseqLS Using MINLP From line 113
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   carseqLS            OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  113
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/carseq/convert.opt"
+>>  pyomo carseq-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/carseq/convert.opt"
+Pyomo     : carseq-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 11
+Car Sequencing  (CARSEQ,SEQ=407)
+E x e c u t i o n
+
+
+----    118 PARAMETER rep  
+
+                      ( ALL          0. )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/carseq/carseq.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/carseq/carseq-scalar.py.lst

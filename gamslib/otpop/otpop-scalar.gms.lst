@@ -1,0 +1,919 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 2
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This model was used in 1974 by the World Bank for a background
+         study for the energy task force. It was used to analyze output policies
+         for OPEC. At the time the study was carried out no full optimization
+         was attempted.
+       
+       
+      Blitzer, C, Meeraus, A, and Stoutjesdijk, A, A Dynamic model of OPEC Trade
+      and Production. Journal of Development Economics, 2 (1975), 318-335.
+       
+  17   
+  18   Sets  tt     total time horizon  / 1965*1990 /
+  19         th(tt) historical years    / 1965*1974 /
+  20         t(tt)  model horizon       / 1974*1990 /
+  21         tp(tt) projection years    / 1975*1990 /
+  22         n      memory (years)      / 1*3 /
+  23   
+  24   Parameters  db(t)  demand scaling constant
+  25               xb(t)  opec production capacity
+  26               rd(t)  absorptive capacity
+  27               del(t) foreign assets accumulation
+  28               alpha(n)  weights for ph  /  1  .5, 2  .3,  3  .2 /
+  29               phis(tt)  historical prices ($ bbl) / 1965*1971 3.5, 1972 4.0, 1973 7.0, 1974 10.0 /
+  30               y(tt)     value of year
+  31               xtr(t)    x target
+  32               ptr(t)    p target
+  33   
+  34   Scalars  a    price elasticity of demand     / 0 /
+  35            b    non-opec price elasticity      / .2 /
+  36            g    long-run demand growth         / .04 /
+  37            r    real rate of return            / .03 /
+  38            gr   growth of absorptive capacity  / .07 /
+  39            c    production and delivery cost   / .25 /
+  40            l    investment lag                 / 4 /
+  41            v    terminal discounting             / .25 /
+  42            ph   alternative investment trigger ($ per bbl)   / 3.0 /
+  43            pb   all new energy from alternatives ($ per bbl) / 9.0 /
+  44   
+  45            xb74 opec production capacity  (mill bpd)  / 32.25 /
+  46            x74  opec production           (mill bpd)  / 29.4  /
+  47            d74  world energy demand       (mill bpd)  / 88.2  /
+  48            db74 demand scaling constant
+  49            rd74 absorptive capacity in year 1974 / 20 /
+  50            con  shift parameter constant;
+  51   
+  52   db74  = d74*phis("1974")**a;
+  53   db(t) = db74*(1+g)**(ord(t)-1);
+  54   con   = g/pb**b/(pb-ph);
+  55   rd(t) = rd74*(1+gr)**(ord(t)-1);
+  56   del(t) = (1+r)**(card(t)-ord(t));
+  57   y(tt) = 1964 + ord(tt);
+  58   xb(t) = xb74 + 3.0*min(y(t)-1974,6) + .9*max(y(t)-1980,0);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 3
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+C o m p i l a t i o n
+
+
+  59   
+  60   xtr(t) = min(xb(t),x74*1.02**(ord(t)-1));
+  61   ptr(t) = 10*1.02**(ord(t)-1);
+  62   
+  63   Display db74, db, rd, del, con, y, xb, xtr, ptr;
+  64   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 4
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+mdel definition
+
+
+  66   
+  67   Variables  x(tt)   sales of opec oil    (mill bpd)
+  68              d(tt)   demand for energy    (mill bpd)
+  69              as(tt)  shift parameter
+  70              p(tt)   price of energy          ($ per bbl)
+  71              pd(tt)  expected price of energy ($ per bbl)
+  72              k       final foreign assets     (bill $)
+  73              z       value of oil in ground   (bill $)
+  74              xdev    output deviation
+  75              pdev    price deviation
+  76              pi      criterion
+  77   
+  78   Positive Variable x;
+  79   
+  80   Equations  dem(t)  energy demand        (mill bpd)
+  81              sup(t)  opec supply          (mill bpd)
+  82              adef(tt) shift parameter definition
+  83              pdef(tt) expected price definition ($ per bbl)
+  84              kdef    foreign assets       (bill $)
+  85              zdef    nonproduced reserves (bill $)
+  86              xtrack  x tracking error definition
+  87              ptrack  p tracking error definition
+  88              obj     criterion definition
+  89              objx    alternate criterion definition;
+  90   
+  91   dem(t).. d(t) =e= db(t)*p(t)**(-a);
+  92   
+  93   sup(t).. x(t) =e= d(t) - as(t)*p(t)**b;
+  94   
+  95   adef(tt)$tp(tt).. as(tt) =e= as(tt-1) + con*d(tt-1)*(pd(tt-l)-ph);
+  96   
+  97   pdef(tt).. pd(tt) =e= sum(n, alpha(n)*p(tt-(ord(n)-1)));
+  98   
+  99   kdef.. k =e= sum(t, del(t)*(.365*(1-c)*p(t)*x(t)-rd(t)));
+ 100   
+ 101   zdef.. z =e= v*sum(t, .365*(xb(t)-x(t))*p(t+(card(t)-ord(t))));
+ 102   
+ 103   xtrack.. xdev =e= sum(t, sqr(xtr(t)-x(t)));
+ 104   
+ 105   ptrack.. pdev =e= sum(t, sqr(ptr(t)-p(t)));
+ 106   
+ 107   obj.. pi =e= k + z;
+ 108   
+ 109   objx.. pi =e= sum(t, del(t)*(.365*(1-c)*p(t)*x(t)-rd(t)))
+ 110               + v*sum(t, .365*(xb(t)-x(t))*p(t+(card(t)-ord(t))));
+ 111   
+ 112   Model otpop1 / dem, sup, adef, pdef, kdef, zdef, obj /
+ 113         otpop2 / dem, sup, adef, pdef, ptrack /
+ 114         otpop3 / dem, sup, adef, pdef, objx / ;
+ 115   
+ 116   x.up(t) = xb(t); p.lo(tt) = 1; p.fx(th) = phis(th); x.fx(th) = x74;
+ 117   
+ 118   Solve otpop2 minimizing pdev using nlp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 5
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+mdel definition
+
+
+ 119   
+ 120   Solve otpop3 maximizing pi using nlp;
+ 121   
+ 122   kdef.m = 1; zdef.m = 1;
+ 123   
+ 124   Solve otpop1 maximizing pi using nlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 6
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+E x e c u t i o n
+
+
+----     63 PARAMETER db74                 =       88.200  demand scaling constant
+
+----     63 PARAMETER db  demand scaling constant
+
+1974  88.200,    1975  91.728,    1976  95.397,    1977  99.213,    1978 103.182,    1979 107.309,    1980 111.601,    1981 116.065,    1982 120.708,    1983 125.536,    1984 130.558,    1985 135.780,    1986 141.211,    1987 146.859,    1988 152.734
+1989 158.843,    1990 165.197
+
+
+----     63 PARAMETER rd  absorptive capacity
+
+1974 20.000,    1975 21.400,    1976 22.898,    1977 24.501,    1978 26.216,    1979 28.051,    1980 30.015,    1981 32.116,    1982 34.364,    1983 36.769,    1984 39.343,    1985 42.097,    1986 45.044,    1987 48.197,    1988 51.571,    1989 55.181
+1990 59.043
+
+
+----     63 PARAMETER del  foreign assets accumulation
+
+1974 1.605,    1975 1.558,    1976 1.513,    1977 1.469,    1978 1.426,    1979 1.384,    1980 1.344,    1981 1.305,    1982 1.267,    1983 1.230,    1984 1.194,    1985 1.159,    1986 1.126,    1987 1.093,    1988 1.061,    1989 1.030,    1990 1.000
+
+
+----     63 PARAMETER con                  =        0.004  shift parameter constant
+
+----     63 PARAMETER y  value of year
+
+1965 1965.000,    1966 1966.000,    1967 1967.000,    1968 1968.000,    1969 1969.000,    1970 1970.000,    1971 1971.000,    1972 1972.000,    1973 1973.000,    1974 1974.000,    1975 1975.000,    1976 1976.000,    1977 1977.000,    1978 1978.000
+1979 1979.000,    1980 1980.000,    1981 1981.000,    1982 1982.000,    1983 1983.000,    1984 1984.000,    1985 1985.000,    1986 1986.000,    1987 1987.000,    1988 1988.000,    1989 1989.000,    1990 1990.000
+
+
+----     63 PARAMETER xb  opec production capacity
+
+1974 32.250,    1975 35.250,    1976 38.250,    1977 41.250,    1978 44.250,    1979 47.250,    1980 50.250,    1981 51.150,    1982 52.050,    1983 52.950,    1984 53.850,    1985 54.750,    1986 55.650,    1987 56.550,    1988 57.450,    1989 58.350
+1990 59.250
+
+
+----     63 PARAMETER xtr  x target
+
+1974 29.400,    1975 29.988,    1976 30.588,    1977 31.200,    1978 31.824,    1979 32.460,    1980 33.109,    1981 33.771,    1982 34.447,    1983 35.136,    1984 35.838,    1985 36.555,    1986 37.286,    1987 38.032,    1988 38.793,    1989 39.569
+1990 40.360
+
+
+----     63 PARAMETER ptr  p target
+
+1974 10.000,    1975 10.200,    1976 10.404,    1977 10.612,    1978 10.824,    1979 11.041,    1980 11.262,    1981 11.487,    1982 11.717,    1983 11.951,    1984 12.190,    1985 12.434,    1986 12.682,    1987 12.936,    1988 13.195,    1989 13.459
+1990 13.728
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 7
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Equation Listing    SOLVE otpop2 Using NLP From line 118
+
+
+---- dem  =E=  energy demand        (mill bpd)
+
+dem(1974)..  d(1974) + (0)*p(1974) =E= 0 ; (LHS = -88.2, INFES = 88.2 ****)
+     
+dem(1975)..  d(1975) + (0)*p(1975) =E= 0 ; (LHS = -91.728, INFES = 91.728 ****)
+     
+dem(1976)..  d(1976) + (0)*p(1976) =E= 0 ; (LHS = -95.39712, INFES = 95.39712 ****)
+     
+REMAINING 14 ENTRIES SKIPPED
+
+
+---- sup  =E=  opec supply          (mill bpd)
+
+sup(1974)..  x(1974) - d(1974) + (1.58489319246111)*as(1974) + (0)*p(1974) =E= 0 ; (LHS = 29.4, INFES = 29.4 ****)
+     
+sup(1975)..  x(1975) - d(1975) + (1)*as(1975) + (0)*p(1975) =E= 0 ; (LHS = 0)
+     
+sup(1976)..  x(1976) - d(1976) + (1)*as(1976) + (0)*p(1976) =E= 0 ; (LHS = 0)
+     
+REMAINING 14 ENTRIES SKIPPED
+
+
+---- adef  =E=  shift parameter definition
+
+adef(1975)..  (0.0128878802995451)*d(1974) - as(1974) + as(1975) + (0)*pd(1971) =E= 0 ; (LHS = 0)
+     
+adef(1976)..  (0.0128878802995451)*d(1975) - as(1975) + as(1976) + (0)*pd(1972) =E= 0 ; (LHS = 0)
+     
+adef(1977)..  (0.0128878802995451)*d(1976) - as(1976) + as(1977) + (0)*pd(1973) =E= 0 ; (LHS = 0)
+     
+REMAINING 13 ENTRIES SKIPPED
+
+
+---- pdef  =E=  expected price definition ($ per bbl)
+
+pdef(1965)..  - 0.5*p(1965) + pd(1965) =E= 0 ; (LHS = -1.75, INFES = 1.75 ****)
+     
+pdef(1966)..  - 0.3*p(1965) - 0.5*p(1966) + pd(1966) =E= 0 ; (LHS = -2.8, INFES = 2.8 ****)
+     
+pdef(1967)..  - 0.2*p(1965) - 0.3*p(1966) - 0.5*p(1967) + pd(1967) =E= 0 ; (LHS = -3.5, INFES = 3.5 ****)
+     
+REMAINING 23 ENTRIES SKIPPED
+
+
+---- ptrack  =E=  p tracking error definition
+
+ptrack..  (0)*p(1974) + (18.4)*p(1975) + (18.808)*p(1976) + (19.22416)*p(1977) + (19.6486432)*p(1978) + (20.081616064)*p(1979) + (20.52324838528)*p(1980) + (20.9737133529856)*p(1981) + (21.4331876200453)*p(1982) + (21.9018513724462)*p(1983)
+     
+      + (22.3798883998951)*p(1984) + (22.867486167893)*p(1985) + (23.3648358912509)*p(1986) + (23.8721326090759)*p(1987) + (24.3895752612574)*p(1988) + (24.9173667664826)*p(1989) + (25.4557141018122)*p(1990) + pdev =E= 0 ;
+     
+      (LHS = -1913.6695511591, INFES = 1913.6695511591 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 8
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop2 Using NLP From line 118
+
+
+---- x  sales of opec oil    (mill bpd)
+
+x(1974)
+                (.LO, .L, .UP, .M = 29.4, 29.4, 29.4, 0)
+        1       sup(1974)
+
+x(1975)
+                (.LO, .L, .UP, .M = 0, 0, 35.25, 0)
+        1       sup(1975)
+
+x(1976)
+                (.LO, .L, .UP, .M = 0, 0, 38.25, 0)
+        1       sup(1976)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- d  demand for energy    (mill bpd)
+
+d(1974)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1974)
+       -1       sup(1974)
+       (0.0129) adef(1975)
+
+d(1975)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1975)
+       -1       sup(1975)
+       (0.0129) adef(1976)
+
+d(1976)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1976)
+       -1       sup(1976)
+       (0.0129) adef(1977)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- as  shift parameter
+
+as(1974)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1.5849) sup(1974)
+       -1       adef(1975)
+
+as(1975)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1)      sup(1975)
+        1       adef(1975)
+       -1       adef(1976)
+
+as(1976)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:37 Page 9
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop2 Using NLP From line 118
+
+
+     as  shift parameter
+
+       (1)      sup(1976)
+        1       adef(1976)
+       -1       adef(1977)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- p  price of energy          ($ per bbl)
+
+p(1965)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1965)
+       -0.3     pdef(1966)
+       -0.2     pdef(1967)
+
+p(1966)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1966)
+       -0.3     pdef(1967)
+       -0.2     pdef(1968)
+
+p(1967)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1967)
+       -0.3     pdef(1968)
+       -0.2     pdef(1969)
+
+REMAINING 23 ENTRIES SKIPPED
+
+---- pd  expected price of energy ($ per bbl)
+
+pd(1965)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1965)
+
+pd(1966)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1966)
+
+pd(1967)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1967)
+
+REMAINING 23 ENTRIES SKIPPED
+
+---- pdev  price deviation
+
+pdev
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ptrack
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 10
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Model Statistics    SOLVE otpop2 Using NLP From line 118
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           77
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES          104  16 projected
+NON ZERO ELEMENTS           285     NON LINEAR N-Z            100
+DERIVATIVE POOL              20     CONSTANT POOL              53
+CODE LENGTH                 420
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 11
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Solution Report     SOLVE otpop2 Using NLP From line 118
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   otpop2              OBJECTIVE  pdev
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  118
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/otpop/convert.opt"
+>>  gams otpop-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/otpop/convert.opt"
+Gams      : otpop-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 12
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Equation Listing    SOLVE otpop3 Using NLP From line 120
+
+
+---- dem  =E=  energy demand        (mill bpd)
+
+dem(1974)..  d(1974) + (0)*p(1974) =E= 0 ; (LHS = -88.2, INFES = 88.2 ****)
+     
+dem(1975)..  d(1975) + (0)*p(1975) =E= 0 ; (LHS = -91.728, INFES = 91.728 ****)
+     
+dem(1976)..  d(1976) + (0)*p(1976) =E= 0 ; (LHS = -95.39712, INFES = 95.39712 ****)
+     
+REMAINING 14 ENTRIES SKIPPED
+
+
+---- sup  =E=  opec supply          (mill bpd)
+
+sup(1974)..  x(1974) - d(1974) + (1.58489319246111)*as(1974) + (0)*p(1974) =E= 0 ; (LHS = 29.4, INFES = 29.4 ****)
+     
+sup(1975)..  x(1975) - d(1975) + (1)*as(1975) + (0)*p(1975) =E= 0 ; (LHS = 0)
+     
+sup(1976)..  x(1976) - d(1976) + (1)*as(1976) + (0)*p(1976) =E= 0 ; (LHS = 0)
+     
+REMAINING 14 ENTRIES SKIPPED
+
+
+---- adef  =E=  shift parameter definition
+
+adef(1975)..  (0.0128878802995451)*d(1974) - as(1974) + as(1975) + (0)*pd(1971) =E= 0 ; (LHS = 0)
+     
+adef(1976)..  (0.0128878802995451)*d(1975) - as(1975) + as(1976) + (0)*pd(1972) =E= 0 ; (LHS = 0)
+     
+adef(1977)..  (0.0128878802995451)*d(1976) - as(1976) + as(1977) + (0)*pd(1973) =E= 0 ; (LHS = 0)
+     
+REMAINING 13 ENTRIES SKIPPED
+
+
+---- pdef  =E=  expected price definition ($ per bbl)
+
+pdef(1965)..  - 0.5*p(1965) + pd(1965) =E= 0 ; (LHS = -1.75, INFES = 1.75 ****)
+     
+pdef(1966)..  - 0.3*p(1965) - 0.5*p(1966) + pd(1966) =E= 0 ; (LHS = -2.8, INFES = 2.8 ****)
+     
+pdef(1967)..  - 0.2*p(1965) - 0.3*p(1966) - 0.5*p(1967) + pd(1967) =E= 0 ; (LHS = -3.5, INFES = 3.5 ****)
+     
+REMAINING 23 ENTRIES SKIPPED
+
+
+---- objx  =E=  alternate criterion definition
+
+objx..  - (4.30163387703293)*x(1974) - (0.335243580294459)*x(1975) - (0.322821437179087)*x(1976) - (0.310761104057366)*x(1977) - (0.299052042774142)*x(1978) - (0.287684022110817)*x(1979) - (0.276647108845453)*x(1980) - (0.265931659073256)*x(1981)
+     
+      - (0.25552830977986)*x(1982) - (0.245427970660058)*x(1983) - (0.235621816174814)*x(1984) - (0.226101277839625)*x(1985) - (0.2168580367375)*x(1986) - (0.20788401625)*x(1987) - (0.199171375)*x(1988) - (0.1907125)*x(1989) - (0.1825)*x(1990)
+     
+      - (12.9150785984768)*p(1974) + (0)*p(1975) + (0)*p(1976) + (0)*p(1977) + (0)*p(1978) + (0)*p(1979) + (0)*p(1980) + (0)*p(1981) + (0)*p(1982) + (0)*p(1983) + (0)*p(1984) + (0)*p(1985) + (0)*p(1986) + (0)*p(1987) + (0)*p(1988) + (0)*p(1989)
+     
+      - (74.0356875)*p(1990) + pi =E= -752.983789346618 ; (LHS = -203.186473484768, INFES = 549.79731586185 ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 13
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop3 Using NLP From line 120
+
+
+---- x  sales of opec oil    (mill bpd)
+
+x(1974)
+                (.LO, .L, .UP, .M = 29.4, 29.4, 29.4, 0)
+        1       sup(1974)
+      (-4.3016) objx
+
+x(1975)
+                (.LO, .L, .UP, .M = 0, 0, 35.25, 0)
+        1       sup(1975)
+      (-0.3352) objx
+
+x(1976)
+                (.LO, .L, .UP, .M = 0, 0, 38.25, 0)
+        1       sup(1976)
+      (-0.3228) objx
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- d  demand for energy    (mill bpd)
+
+d(1974)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1974)
+       -1       sup(1974)
+       (0.0129) adef(1975)
+
+d(1975)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1975)
+       -1       sup(1975)
+       (0.0129) adef(1976)
+
+d(1976)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1976)
+       -1       sup(1976)
+       (0.0129) adef(1977)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- as  shift parameter
+
+as(1974)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1.5849) sup(1974)
+       -1       adef(1975)
+
+as(1975)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1)      sup(1975)
+        1       adef(1975)
+       -1       adef(1976)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 14
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop3 Using NLP From line 120
+
+
+     as  shift parameter
+
+
+as(1976)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1)      sup(1976)
+        1       adef(1976)
+       -1       adef(1977)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- p  price of energy          ($ per bbl)
+
+p(1965)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1965)
+       -0.3     pdef(1966)
+       -0.2     pdef(1967)
+
+p(1966)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1966)
+       -0.3     pdef(1967)
+       -0.2     pdef(1968)
+
+p(1967)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1967)
+       -0.3     pdef(1968)
+       -0.2     pdef(1969)
+
+REMAINING 23 ENTRIES SKIPPED
+
+---- pd  expected price of energy ($ per bbl)
+
+pd(1965)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1965)
+
+pd(1966)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1966)
+
+pd(1967)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1967)
+
+REMAINING 23 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 15
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop3 Using NLP From line 120
+
+
+---- pi  criterion
+
+pi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objx
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 16
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Model Statistics    SOLVE otpop3 Using NLP From line 120
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           77
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES          104  16 projected
+NON ZERO ELEMENTS           302     NON LINEAR N-Z            117
+DERIVATIVE POOL              20     CONSTANT POOL              72
+CODE LENGTH                 506
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 17
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Solution Report     SOLVE otpop3 Using NLP From line 120
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   otpop3              OBJECTIVE  pi
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  120
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/otpop/convert.opt"
+>>  gams otpop-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/otpop/convert.opt"
+Gams      : otpop-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 18
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Equation Listing    SOLVE otpop1 Using NLP From line 124
+
+
+---- dem  =E=  energy demand        (mill bpd)
+
+dem(1974)..  d(1974) + (0)*p(1974) =E= 0 ; (LHS = -88.2, INFES = 88.2 ****)
+     
+dem(1975)..  d(1975) + (0)*p(1975) =E= 0 ; (LHS = -91.728, INFES = 91.728 ****)
+     
+dem(1976)..  d(1976) + (0)*p(1976) =E= 0 ; (LHS = -95.39712, INFES = 95.39712 ****)
+     
+REMAINING 14 ENTRIES SKIPPED
+
+
+---- sup  =E=  opec supply          (mill bpd)
+
+sup(1974)..  x(1974) - d(1974) + (1.58489319246111)*as(1974) + (0)*p(1974) =E= 0 ; (LHS = 29.4, INFES = 29.4 ****)
+     
+sup(1975)..  x(1975) - d(1975) + (1)*as(1975) + (0)*p(1975) =E= 0 ; (LHS = 0)
+     
+sup(1976)..  x(1976) - d(1976) + (1)*as(1976) + (0)*p(1976) =E= 0 ; (LHS = 0)
+     
+REMAINING 14 ENTRIES SKIPPED
+
+
+---- adef  =E=  shift parameter definition
+
+adef(1975)..  (0.0128878802995451)*d(1974) - as(1974) + as(1975) + (0)*pd(1971) =E= 0 ; (LHS = 0)
+     
+adef(1976)..  (0.0128878802995451)*d(1975) - as(1975) + as(1976) + (0)*pd(1972) =E= 0 ; (LHS = 0)
+     
+adef(1977)..  (0.0128878802995451)*d(1976) - as(1976) + as(1977) + (0)*pd(1973) =E= 0 ; (LHS = 0)
+     
+REMAINING 13 ENTRIES SKIPPED
+
+
+---- pdef  =E=  expected price definition ($ per bbl)
+
+pdef(1965)..  - 0.5*p(1965) + pd(1965) =E= 0 ; (LHS = -1.75, INFES = 1.75 ****)
+     
+pdef(1966)..  - 0.3*p(1965) - 0.5*p(1966) + pd(1966) =E= 0 ; (LHS = -2.8, INFES = 2.8 ****)
+     
+pdef(1967)..  - 0.2*p(1965) - 0.3*p(1966) - 0.5*p(1967) + pd(1967) =E= 0 ; (LHS = -3.5, INFES = 3.5 ****)
+     
+REMAINING 23 ENTRIES SKIPPED
+
+
+---- kdef  =E=  foreign assets       (bill $)
+
+kdef..  - (4.39288387703293)*x(1974) - (0.426493580294459)*x(1975) - (0.414071437179087)*x(1976) - (0.402011104057366)*x(1977) - (0.390302042774142)*x(1978) - (0.378934022110817)*x(1979) - (0.367897108845453)*x(1980) - (0.357181659073256)*x(1981)
+     
+      - (0.34677830977986)*x(1982) - (0.336677970660058)*x(1983) - (0.326871816174814)*x(1984) - (0.317351277839625)*x(1985) - (0.3081080367375)*x(1986) - (0.29913401625)*x(1987) - (0.290421375)*x(1988) - (0.2819625)*x(1989) - (0.27375)*x(1990)
+     
+      - (12.9150785984768)*p(1974) + (0)*p(1975) + (0)*p(1976) + (0)*p(1977) + (0)*p(1978) + (0)*p(1979) + (0)*p(1980) + (0)*p(1981) + (0)*p(1982) + (0)*p(1983) + (0)*p(1984) + (0)*p(1985) + (0)*p(1986) + (0)*p(1987) + (0)*p(1988) + (0)*p(1989)
+     
+      + (0)*p(1990) + k =E= -752.983789346618 ; (LHS = -129.150785984768, INFES = 623.83300336185 ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 19
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Equation Listing    SOLVE otpop1 Using NLP From line 124
+
+
+---- zdef  =E=  nonproduced reserves (bill $)
+
+zdef..  (0.09125)*x(1974) + (0.09125)*x(1975) + (0.09125)*x(1976) + (0.09125)*x(1977) + (0.09125)*x(1978) + (0.09125)*x(1979) + (0.09125)*x(1980) + (0.09125)*x(1981) + (0.09125)*x(1982) + (0.09125)*x(1983) + (0.09125)*x(1984) + (0.09125)*x(1985)
+     
+      + (0.09125)*x(1986) + (0.09125)*x(1987) + (0.09125)*x(1988) + (0.09125)*x(1989) + (0.09125)*x(1990) - (74.0356875)*p(1990) + z =E= 0 ; (LHS = -74.0356875, INFES = 74.0356875 ****)
+     
+
+---- obj  =E=  criterion definition
+
+obj..  - k - z + pi =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 20
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop1 Using NLP From line 124
+
+
+---- x  sales of opec oil    (mill bpd)
+
+x(1974)
+                (.LO, .L, .UP, .M = 29.4, 29.4, 29.4, 0)
+        1       sup(1974)
+      (-4.3929) kdef
+       (0.0912) zdef
+
+x(1975)
+                (.LO, .L, .UP, .M = 0, 0, 35.25, 0)
+        1       sup(1975)
+      (-0.4265) kdef
+       (0.0912) zdef
+
+x(1976)
+                (.LO, .L, .UP, .M = 0, 0, 38.25, 0)
+        1       sup(1976)
+      (-0.4141) kdef
+       (0.0912) zdef
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- d  demand for energy    (mill bpd)
+
+d(1974)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1974)
+       -1       sup(1974)
+       (0.0129) adef(1975)
+
+d(1975)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1975)
+       -1       sup(1975)
+       (0.0129) adef(1976)
+
+d(1976)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dem(1976)
+       -1       sup(1976)
+       (0.0129) adef(1977)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- as  shift parameter
+
+as(1974)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1.5849) sup(1974)
+       -1       adef(1975)
+
+as(1975)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 21
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop1 Using NLP From line 124
+
+
+     as  shift parameter
+
+       (1)      sup(1975)
+        1       adef(1975)
+       -1       adef(1976)
+
+as(1976)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1)      sup(1976)
+        1       adef(1976)
+       -1       adef(1977)
+
+REMAINING 14 ENTRIES SKIPPED
+
+---- p  price of energy          ($ per bbl)
+
+p(1965)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1965)
+       -0.3     pdef(1966)
+       -0.2     pdef(1967)
+
+p(1966)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1966)
+       -0.3     pdef(1967)
+       -0.2     pdef(1968)
+
+p(1967)
+                (.LO, .L, .UP, .M = 3.5, 3.5, 3.5, 0)
+       -0.5     pdef(1967)
+       -0.3     pdef(1968)
+       -0.2     pdef(1969)
+
+REMAINING 23 ENTRIES SKIPPED
+
+---- pd  expected price of energy ($ per bbl)
+
+pd(1965)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1965)
+
+pd(1966)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1966)
+
+pd(1967)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pdef(1967)
+
+REMAINING 23 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 22
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Column Listing      SOLVE otpop1 Using NLP From line 124
+
+
+---- k  final foreign assets     (bill $)
+
+k
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       kdef
+       -1       obj
+
+
+---- z  value of oil in ground   (bill $)
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       zdef
+       -1       obj
+
+
+---- pi  criterion
+
+pi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 23
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Model Statistics    SOLVE otpop1 Using NLP From line 124
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           79
+BLOCKS OF VARIABLES           8     SINGLE VARIABLES          106  16 projected
+NON ZERO ELEMENTS           324     NON LINEAR N-Z            135
+DERIVATIVE POOL              20     CONSTANT POOL              72
+CODE LENGTH                 508
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:37 Page 24
+A Dynamic model of OPEC Trade and Production  (OTPOP,SEQ=47)
+Solution Report     SOLVE otpop1 Using NLP From line 124
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   otpop1              OBJECTIVE  pi
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  124
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/otpop/convert.opt"
+>>  gams otpop-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/otpop/convert.opt"
+Gams      : otpop-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/otpop/otpop.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/otpop/otpop-scalar.gms.lst

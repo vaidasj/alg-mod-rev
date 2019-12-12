@@ -1,0 +1,2190 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 2
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This model finds an optimal forest management plan, converting existing
+         forests into highly managed ones. various types of sustained yield
+         conditions can be imposed.
+       
+       
+      Bergendorff, H, Glenshaw, P, and Meeraus, A, The Planning of Investment
+      Programs in the Paper Industry. Tech. rep., The World Bank, 1980.
+       
+  16   
+  17   Sets  c     commodities      / pulplogs,  sawlogs,  residuals,  pulp,  sawnwood /
+  18         cf(c) final products   / pulp,  sawnwood  /
+  19         cl(c) log types        / pulplogs,  sawlogs /
+  20         s     species          / nigra,  brutia /
+  21         k     site classes     / good, medium, poor /
+  22         at    tree age         / a-10, a-20, a-30, a-40, a-50, a-60, a-70, a-80, a-90
+  23                                  a-100,a-110,a-120,a-130,a-140,a-150,a-160,a-170 /
+  24         u(at) initial age      / a-10, a-20, a-30, a-40, a-50, a-60, a-70, a-80, a-90 /
+  25         p     processes        / pulp-pl,  pulp-sl,  pulp-rs,  sawing    /
+  26         m     productive units / pulp-mill,  saw-mill /
+  27         te    extended horizon / period-1*period-12 /
+  28         t(te) model horizon    / period-1*period-9 /
+  29   
+  30   Alias (t,tp);
+  31   
+  32   Parameter  scd(k)    site class distribution / good .25, medium .50 , poor .25 /
+  33              land(s)   land available (1000ha) / nigra 143.679, brutia 227.58 /
+  34   
+  35   
+  36   Table  is(at,s)  initial age distribution of existing forest (proportion)
+  37   
+  38                        nigra    brutia
+  39   (a-10,a-20,a-30)      .2        .2
+  40   (a-40,a-50,a-60)     8.5       12.7
+  41   (a-70,a-80,a-90)    24.6      20.6
+  42   
+  43   
+  44   Table  yef(at,s,cl) yield of existing forest (m3 per ha)
+  45   
+  46         nigra.pulplogs  nigra.sawlogs   brutia.pulplogs  brutia.sawlogs
+  47   a-10       38.8            1.2             17.8             3.2
+  48   a-20       48.4            8.6             16.8            19.1
+  49   a-30       43.4           26.6             15.4            32.6
+  50   a-40       34.4           45.6             16.0            41.0
+  51   a-50       27.8           59.2             18.2            46.8
+  52   a-60       28.5           66.5             16.8            53.2
+  53   a-70       27.3           72.7             17.5            55.5
+  54   a-80       25.2           79.8             17.3            54.7
+  55   a-90       26.4           83.8             17.0            54.0
+  56   a-100      27.1           85.9             16.3            51.7
+  57   a-110      27.8           88.2             14.9            47.1
+  58   a-120      28.3           89.7             12.0            38.0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 3
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+C o m p i l a t i o n
+
+
+  59   a-130      28.8           91.2              9.1            28.9
+  60   a-140      28.8           91.2              6.2            19.8
+  61   a-150      28.3           89.7              3.1             9.9
+  62   a-160      27.8           82.2              1.2             3.8
+  63   a-170      27.1           85.9               .5             1.5
+  64   
+  65   Table ymf(at,k,s,cl)  yield of managed forest (m3 per ha)
+  66   
+  67                 nigra.pulplogs  nigra.sawlogs   brutia.pulplogs  brutia.sawlogs
+  68    a-10.good                                          17.5
+  69    a-10.medium
+  70    a-10.poor
+  71   
+  72    a-20.good            120.0                         66.8
+  73    a-20.medium           95.0                         51.1
+  74    a-20.poor             80.0                         37.8
+  75   
+  76    a-30.good            132.6        37.4             91.3         25.7
+  77    a-30.medium          120.2        14.8             81.4         10.0
+  78    a-30.poor            115.0                         71.3
+  79   
+  80    a-40.good            121.0        99.0             91.3         74.7
+  81    a-40.medium          115.5        59.5             86.5         44.5
+  82    a-40.poor            119.0        21.0             90.1         15.9
+  83   
+  84    a-50.good            108.0       162.0             76.0        114.0
+  85    a-50.medium          112.0       108.0             77.0         74.0
+  86    a-50.poor            112.2        57.8             92.0         47.6
+  87   
+  88    a-60.good            104.0       221.0             76.0        116.0
+  89    a-60.medium          106.0       159.0             76.0        113.0
+  90    a-60.poor            110.0        90.0             95.2         77.8
+  91   
+  92    a-70.good            105.0       270.0             78.0        200.0
+  93    a-70.medium           98.0       207.0             72.0        153.0
+  94    a-70.poor             97.0       128.0             88.0        116.0
+  95   
+  96    a-80.good            102.0       323.0             76.0        240.0
+  97    a-80.medium          105.0       235.0             80.0        177.0
+  98    a-80.poor             92.0       163.0             84.0        148.0
+  99   
+ 100   
+ 101   Parameters yw(te,at,s,cl)    yield of existing forest  (m3 per@ha)
+ 102              yv(te,te,s,cl,k) yield of managed forest   (m3 per ha)
+ 103              iad(at,s)        initial age distribution  (proportions) ;
+ 104   
+ 105      iad(u,s) = is(u,s)/sum(at, is(at,s))/100;
+ 106   
+ 107      yw(t,at,s,cl)$u(at) = yef(at+(ord(t)-1),s,cl);
+ 108      loop(at, yv(t,t+ord(at),s,cl,k) = ymf(at,k,s,cl) ); yv(te,te+3,s,cl,k) = ymf("a-30",k,s,cl) ;
+ 109   
+ 110   Display yw, yv, iad;
+ 111   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 4
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+C o m p i l a t i o n
+
+
+ 112   Sets  wpos(u,te) w possibility
+ 113         vpos(t,te) v possibility;
+ 114   
+ 115   wpos(u,t) = yes$sum((s,cl), yw(t,u,s,cl)) ;
+ 116   vpos(t,te) = yes$sum((s,cl,k), yv(t,te,s,cl,k)) ;
+ 117   
+ 118   
+ 119   Table  a(c,p) input output matrix
+ 120   
+ 121                 pulp-pl  pulp-sl  pulp-rs    sawing
+ 122   
+ 123   pulplogs       -1.0
+ 124   sawlogs                 -1.0               -1.0
+ 125   residuals                        -1.0       0.4
+ 126   pulp             .207     .207     .207
+ 127   sawnwood                                    0.6
+ 128   
+ 129   
+ 130   Table  b(m,p)  capacity utilization
+ 131   
+ 132                 pulp-pl  pulp-sl  pulp-rs  sawing
+ 133   
+ 134   pulp-mill        1        1        1
+ 135   saw-mill                                   1
+ 136   
+ 137   
+ 138   Parameter pc(p)     process cost (us$ per m3 input)    / (pulp-pl,pulp-sl,pulp-rs)  5.96, sawing  6.00 /
+ 139             pd(cf)    sales price  (us$ per unit)        / pulp      147.0 ,  sawnwood  70.0 /
+ 140             nu(m)     investment costs (us$ per m3 input) / pulp-mill  37.8 ,  saw-mill  61.5 /
+ 141             age(at)   age of trees    ( years )
+ 142             avl(t,te) plant live in periods
+ 143             delt(t)   discount factors ;
+ 144   
+ 145    Scalars mup  planting cost  (us$ per ha)  / 150.0 /
+ 146            muc  cutting cost   (us$ per m3)  /   7.0 /
+ 147            life plant life     (years)       /  30   /
+ 148            rho  discount rate                /    .1 /
+ 149            sgm  capital recovery factor   ;
+ 150   
+ 151     age(at) = 10*ord(at);
+ 152   
+ 153     avl(t,t)   = 1;
+ 154     avl(t,t-1) = 1;
+ 155     avl(t,t-2) = 1;
+ 156   
+ 157     sgm     = rho/(1-(1+rho)**(-life));
+ 158     delt(t) = (1+rho)**(-10*(ord(t)-1));
+ 159   
+ 160   Display age, avl, sgm, delt;
+ 161   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 5
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+model definition
+
+
+ 163   
+ 164    Equations  efs(s,k,u)    existing forest stock  (1000ha)
+ 165               pfs(s,k,t)    planted forest stock   (1000ha)
+ 166               lbal(cl,te)   log balances
+ 167               bal(c,t)      material balances of wood processing
+ 168               cap(m,t)      wood processing capacities
+ 169               sy1(te)       sustained yield constraint - all logs
+ 170               sy2(cl,te)    sustained yield constraint - log type
+ 171               sy3(cl,te)    sustained yield constraint - pulp logs
+ 172               sy4(c,t)      sustained yield constraint - pulp
+ 173               wbnd          cutting restrictions
+ 174               ainvc(t)      investment cost
+ 175               aproc(t)      process cost
+ 176               asales(t)     sales revenue
+ 177               acutc(t)      cutting cost
+ 178               aplnt(t)      planting cost
+ 179               benefit
+ 180   
+ 181    Variables  w(s,k,u,te)   cutting of existing forest  (1000ha per year)
+ 182               v(s,k,t,te)   management of new forest    (1000ha per year)
+ 183               r(c,te)       supply of logs to industry  (1000m3 per year)
+ 184               z(p,t)        process level               (1000m3 input per year)
+ 185               h(m,t)        capacity expansion          (1000m3 input per year)
+ 186               x(c,t)        final shipments             (1000 units per year)
+ 187               phik(t)       investment cost             (1000us$ per year)
+ 188               phir(t)       process cost                (1000us$ per year)
+ 189               phix(t)       sales revenue               (1000us$ per year)
+ 190               phil(t)       cutting cost                (1000us$ per year)
+ 191               phip(t)       planting cost               (1000us$ per year)
+ 192               phi           total benefits              (discounted cost);
+ 193   
+ 194   Positive Variables w, v, r, z, h, x;
+ 195   
+
+ 197   
+
+ 198   efs(s,k,u)..   10.*sum(t$wpos(u,t), w(s,k,u,t)) =l= iad(u,s)*scd(k)*land(s) ;
+
+ 199   pfs(s,k,t)..   sum(te$vpos(t,te), v(s,k,t,te)) =l= sum(u$wpos(u,t), w(s,k,u,t)) + sum(tp$vpos(tp,t), v(s,k,tp,t));
+
+ 200   lbal(cl,te)..   r(cl,te) =e= sum((k,s,t), yv(t,te,s,cl,k)*v(s,k,t,te)) + sum((k,s,u), yw(te,u,s,cl)*w(s,k,u,te));
+
+ 201   sy1(te-1)..       sum(cl, r(cl,te)) =g= sum(cl, r(cl,te-1)) ;
+
+ 202   sy2(cl,te-1)..     r(cl,te) =g= r(cl,te-1) ;
+
+ 203   sy3("pulplogs",te-1)..   r("pulplogs",te) =g= r("pulplogs",te-1) ;
+
+ 204   sy4("pulp",t-1)..  x("pulp",t) =g= x("pulp",t-1) ;
+
+ 205   wbnd.. sum((s,k,u,te)$wpos(u,te), w(s,k,u,te)$((ord(u)+ord(te)) le 5)) =e= 0 ;
+
+ 206   bal(c,t)..     sum(p, a(c,p)*z(p,t)) + r(c,t)$cl(c)  =g= x(c,t)$cf(c) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 6
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+model definition
+
+
+
+ 207   cap(m,t)..     sum(p, b(m,p)*z(p,t)) =l= sum(tp$avl(t,tp), h(m,tp)) ;
+
+ 208   
+
+ 209   ainvc(t)..     phik(t) =e= sgm*sum(tp$avl(t,tp), sum(m,nu(m)*h(m,tp)));
+
+ 210   aproc(t)..     phir(t) =e= sum(p, pc(p)*z(p,t));
+
+ 211   asales(t)..    phix(t) =e= sum(cf, pd(cf)*x(cf,t));
+
+ 212   acutc(t)..     phil(t) =e= muc*sum(cl, r(cl,t));
+
+ 213   aplnt(t)..     phip(t) =e= mup*sum((s,k,te)$vpos(t,te), v(s,k,t,te)) ;
+
+ 214   
+
+ 215   benefit..      phi =e= sum(t, delt(t)*( phix(t) - phik(t) - phir(t) - phil(t) - phip(t))) ;
+
+ 216   
+ 218   
+ 219   models antala base case       / efs, pfs, lbal, bal, cap, sy2, ainvc, aproc, asales, acutc, aplnt, benefit, wbnd /
+ 220          antalb case b          / efs, pfs, lbal, bal, cap, sy2, ainvc, aproc, asales, acutc, aplnt, benefit /
+ 221          antalc case c          / efs, pfs, lbal, bal, cap, sy1, ainvc, aproc, asales, acutc, aplnt, benefit /
+ 222          antald case d          / efs, pfs, lbal, bal, cap, sy3, ainvc, aproc, asales, acutc, aplnt, benefit /
+ 223          antale case e          / efs, pfs, lbal, bal, cap,      ainvc, aproc, asales, acutc, aplnt, benefit /
+ 224          antalf case f          / efs, pfs, lbal, bal, cap, sy4, ainvc, aproc, asales, acutc, aplnt, benefit /
+ 225   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 7
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+case definition and reports
+
+
+ 227   
+ 228   Parameters rp(*,* ,s,k)  rotation period for new forest (percent)
+ 229              tc(s,k)       total new cut (1000ha)
+ 230              csum(*,t,s)   cutting summary of old forest ;
+ 231   
+ 232   Solve antala using lp maximizing phi;
+ 233   
+ 234   tc(s,k) = sum((t,tp), v.l(s,k,t,tp));
+ 235   rp("case-a",at,s,k) = (100*sum(t, v.l(s,k,t,t+ord(at)))/tc(s,k))$tc(s,k) ;
+ 236   rp("case-a","total-cut",s,k) = tc(s,k);
+ 237   csum("case-a",t,s)   = sum((k,u), w.l(s,k,u,t));
+ 238   
+ 239   Solve antalb using lp maximizing phi;
+ 240   
+ 241   tc(s,k) = sum((t,tp), v.l(s,k,t,tp));
+ 242   rp("case-b",at,s,k) = (100*sum(t, v.l(s,k,t,t+ord(at)))/tc(s,k))$tc(s,k) ;
+ 243   rp("case-b","total-cut",s,k) = tc(s,k);
+ 244   csum("case-b",t,s)   = sum((k,u), w.l(s,k,u,t));
+ 245   
+ 246   Display rp, csum;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 8
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+----    110 PARAMETER yw  yield of existing forest  (m3 per@ha)
+
+INDEX 1 = period-1
+
+               pulplogs     sawlogs
+
+a-10.nigra       38.800       1.200
+a-10.brutia      17.800       3.200
+a-20.nigra       48.400       8.600
+a-20.brutia      16.800      19.100
+a-30.nigra       43.400      26.600
+a-30.brutia      15.400      32.600
+a-40.nigra       34.400      45.600
+a-40.brutia      16.000      41.000
+a-50.nigra       27.800      59.200
+a-50.brutia      18.200      46.800
+a-60.nigra       28.500      66.500
+a-60.brutia      16.800      53.200
+a-70.nigra       27.300      72.700
+a-70.brutia      17.500      55.500
+a-80.nigra       25.200      79.800
+a-80.brutia      17.300      54.700
+a-90.nigra       26.400      83.800
+a-90.brutia      17.000      54.000
+
+INDEX 1 = period-2
+
+               pulplogs     sawlogs
+
+a-10.nigra       48.400       8.600
+a-10.brutia      16.800      19.100
+a-20.nigra       43.400      26.600
+a-20.brutia      15.400      32.600
+a-30.nigra       34.400      45.600
+a-30.brutia      16.000      41.000
+a-40.nigra       27.800      59.200
+a-40.brutia      18.200      46.800
+a-50.nigra       28.500      66.500
+a-50.brutia      16.800      53.200
+a-60.nigra       27.300      72.700
+a-60.brutia      17.500      55.500
+a-70.nigra       25.200      79.800
+a-70.brutia      17.300      54.700
+a-80.nigra       26.400      83.800
+a-80.brutia      17.000      54.000
+a-90.nigra       27.100      85.900
+a-90.brutia      16.300      51.700
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 9
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yw  yield of existing forest  (m3 per@ha)
+
+INDEX 1 = period-3
+
+               pulplogs     sawlogs
+
+a-10.nigra       43.400      26.600
+a-10.brutia      15.400      32.600
+a-20.nigra       34.400      45.600
+a-20.brutia      16.000      41.000
+a-30.nigra       27.800      59.200
+a-30.brutia      18.200      46.800
+a-40.nigra       28.500      66.500
+a-40.brutia      16.800      53.200
+a-50.nigra       27.300      72.700
+a-50.brutia      17.500      55.500
+a-60.nigra       25.200      79.800
+a-60.brutia      17.300      54.700
+a-70.nigra       26.400      83.800
+a-70.brutia      17.000      54.000
+a-80.nigra       27.100      85.900
+a-80.brutia      16.300      51.700
+a-90.nigra       27.800      88.200
+a-90.brutia      14.900      47.100
+
+INDEX 1 = period-4
+
+               pulplogs     sawlogs
+
+a-10.nigra       34.400      45.600
+a-10.brutia      16.000      41.000
+a-20.nigra       27.800      59.200
+a-20.brutia      18.200      46.800
+a-30.nigra       28.500      66.500
+a-30.brutia      16.800      53.200
+a-40.nigra       27.300      72.700
+a-40.brutia      17.500      55.500
+a-50.nigra       25.200      79.800
+a-50.brutia      17.300      54.700
+a-60.nigra       26.400      83.800
+a-60.brutia      17.000      54.000
+a-70.nigra       27.100      85.900
+a-70.brutia      16.300      51.700
+a-80.nigra       27.800      88.200
+a-80.brutia      14.900      47.100
+a-90.nigra       28.300      89.700
+a-90.brutia      12.000      38.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 10
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yw  yield of existing forest  (m3 per@ha)
+
+INDEX 1 = period-5
+
+               pulplogs     sawlogs
+
+a-10.nigra       27.800      59.200
+a-10.brutia      18.200      46.800
+a-20.nigra       28.500      66.500
+a-20.brutia      16.800      53.200
+a-30.nigra       27.300      72.700
+a-30.brutia      17.500      55.500
+a-40.nigra       25.200      79.800
+a-40.brutia      17.300      54.700
+a-50.nigra       26.400      83.800
+a-50.brutia      17.000      54.000
+a-60.nigra       27.100      85.900
+a-60.brutia      16.300      51.700
+a-70.nigra       27.800      88.200
+a-70.brutia      14.900      47.100
+a-80.nigra       28.300      89.700
+a-80.brutia      12.000      38.000
+a-90.nigra       28.800      91.200
+a-90.brutia       9.100      28.900
+
+INDEX 1 = period-6
+
+               pulplogs     sawlogs
+
+a-10.nigra       28.500      66.500
+a-10.brutia      16.800      53.200
+a-20.nigra       27.300      72.700
+a-20.brutia      17.500      55.500
+a-30.nigra       25.200      79.800
+a-30.brutia      17.300      54.700
+a-40.nigra       26.400      83.800
+a-40.brutia      17.000      54.000
+a-50.nigra       27.100      85.900
+a-50.brutia      16.300      51.700
+a-60.nigra       27.800      88.200
+a-60.brutia      14.900      47.100
+a-70.nigra       28.300      89.700
+a-70.brutia      12.000      38.000
+a-80.nigra       28.800      91.200
+a-80.brutia       9.100      28.900
+a-90.nigra       28.800      91.200
+a-90.brutia       6.200      19.800
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 11
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yw  yield of existing forest  (m3 per@ha)
+
+INDEX 1 = period-7
+
+               pulplogs     sawlogs
+
+a-10.nigra       27.300      72.700
+a-10.brutia      17.500      55.500
+a-20.nigra       25.200      79.800
+a-20.brutia      17.300      54.700
+a-30.nigra       26.400      83.800
+a-30.brutia      17.000      54.000
+a-40.nigra       27.100      85.900
+a-40.brutia      16.300      51.700
+a-50.nigra       27.800      88.200
+a-50.brutia      14.900      47.100
+a-60.nigra       28.300      89.700
+a-60.brutia      12.000      38.000
+a-70.nigra       28.800      91.200
+a-70.brutia       9.100      28.900
+a-80.nigra       28.800      91.200
+a-80.brutia       6.200      19.800
+a-90.nigra       28.300      89.700
+a-90.brutia       3.100       9.900
+
+INDEX 1 = period-8
+
+               pulplogs     sawlogs
+
+a-10.nigra       25.200      79.800
+a-10.brutia      17.300      54.700
+a-20.nigra       26.400      83.800
+a-20.brutia      17.000      54.000
+a-30.nigra       27.100      85.900
+a-30.brutia      16.300      51.700
+a-40.nigra       27.800      88.200
+a-40.brutia      14.900      47.100
+a-50.nigra       28.300      89.700
+a-50.brutia      12.000      38.000
+a-60.nigra       28.800      91.200
+a-60.brutia       9.100      28.900
+a-70.nigra       28.800      91.200
+a-70.brutia       6.200      19.800
+a-80.nigra       28.300      89.700
+a-80.brutia       3.100       9.900
+a-90.nigra       27.800      82.200
+a-90.brutia       1.200       3.800
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 12
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yw  yield of existing forest  (m3 per@ha)
+
+INDEX 1 = period-9
+
+               pulplogs     sawlogs
+
+a-10.nigra       26.400      83.800
+a-10.brutia      17.000      54.000
+a-20.nigra       27.100      85.900
+a-20.brutia      16.300      51.700
+a-30.nigra       27.800      88.200
+a-30.brutia      14.900      47.100
+a-40.nigra       28.300      89.700
+a-40.brutia      12.000      38.000
+a-50.nigra       28.800      91.200
+a-50.brutia       9.100      28.900
+a-60.nigra       28.800      91.200
+a-60.brutia       6.200      19.800
+a-70.nigra       28.300      89.700
+a-70.brutia       3.100       9.900
+a-80.nigra       27.800      82.200
+a-80.brutia       1.200       3.800
+a-90.nigra       27.100      85.900
+a-90.brutia       0.500       1.500
+
+
+----    110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-1  INDEX 2 = period-2
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-1  INDEX 2 = period-3
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-1  INDEX 2 = period-4
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 13
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-1  INDEX 2 = period-5
+
+                       good      medium        poor
+
+nigra .pulplogs     121.000     115.500     119.000
+nigra .sawlogs       99.000      59.500      21.000
+brutia.pulplogs      91.300      86.500      90.100
+brutia.sawlogs       74.700      44.500      15.900
+
+INDEX 1 = period-1  INDEX 2 = period-6
+
+                       good      medium        poor
+
+nigra .pulplogs     108.000     112.000     112.200
+nigra .sawlogs      162.000     108.000      57.800
+brutia.pulplogs      76.000      77.000      92.000
+brutia.sawlogs      114.000      74.000      47.600
+
+INDEX 1 = period-1  INDEX 2 = period-7
+
+                       good      medium        poor
+
+nigra .pulplogs     104.000     106.000     110.000
+nigra .sawlogs      221.000     159.000      90.000
+brutia.pulplogs      76.000      76.000      95.200
+brutia.sawlogs      116.000     113.000      77.800
+
+INDEX 1 = period-1  INDEX 2 = period-8
+
+                       good      medium        poor
+
+nigra .pulplogs     105.000      98.000      97.000
+nigra .sawlogs      270.000     207.000     128.000
+brutia.pulplogs      78.000      72.000      88.000
+brutia.sawlogs      200.000     153.000     116.000
+
+INDEX 1 = period-1  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     102.000     105.000      92.000
+nigra .sawlogs      323.000     235.000     163.000
+brutia.pulplogs      76.000      80.000      84.000
+brutia.sawlogs      240.000     177.000     148.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 14
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-2  INDEX 2 = period-3
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-2  INDEX 2 = period-4
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-2  INDEX 2 = period-5
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-2  INDEX 2 = period-6
+
+                       good      medium        poor
+
+nigra .pulplogs     121.000     115.500     119.000
+nigra .sawlogs       99.000      59.500      21.000
+brutia.pulplogs      91.300      86.500      90.100
+brutia.sawlogs       74.700      44.500      15.900
+
+INDEX 1 = period-2  INDEX 2 = period-7
+
+                       good      medium        poor
+
+nigra .pulplogs     108.000     112.000     112.200
+nigra .sawlogs      162.000     108.000      57.800
+brutia.pulplogs      76.000      77.000      92.000
+brutia.sawlogs      114.000      74.000      47.600
+
+INDEX 1 = period-2  INDEX 2 = period-8
+
+                       good      medium        poor
+
+nigra .pulplogs     104.000     106.000     110.000
+nigra .sawlogs      221.000     159.000      90.000
+brutia.pulplogs      76.000      76.000      95.200
+brutia.sawlogs      116.000     113.000      77.800
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 15
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-2  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     105.000      98.000      97.000
+nigra .sawlogs      270.000     207.000     128.000
+brutia.pulplogs      78.000      72.000      88.000
+brutia.sawlogs      200.000     153.000     116.000
+
+INDEX 1 = period-3  INDEX 2 = period-4
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-3  INDEX 2 = period-5
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-3  INDEX 2 = period-6
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-3  INDEX 2 = period-7
+
+                       good      medium        poor
+
+nigra .pulplogs     121.000     115.500     119.000
+nigra .sawlogs       99.000      59.500      21.000
+brutia.pulplogs      91.300      86.500      90.100
+brutia.sawlogs       74.700      44.500      15.900
+
+INDEX 1 = period-3  INDEX 2 = period-8
+
+                       good      medium        poor
+
+nigra .pulplogs     108.000     112.000     112.200
+nigra .sawlogs      162.000     108.000      57.800
+brutia.pulplogs      76.000      77.000      92.000
+brutia.sawlogs      114.000      74.000      47.600
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 16
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-3  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     104.000     106.000     110.000
+nigra .sawlogs      221.000     159.000      90.000
+brutia.pulplogs      76.000      76.000      95.200
+brutia.sawlogs      116.000     113.000      77.800
+
+INDEX 1 = period-4  INDEX 2 = period-5
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-4  INDEX 2 = period-6
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-4  INDEX 2 = period-7
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-4  INDEX 2 = period-8
+
+                       good      medium        poor
+
+nigra .pulplogs     121.000     115.500     119.000
+nigra .sawlogs       99.000      59.500      21.000
+brutia.pulplogs      91.300      86.500      90.100
+brutia.sawlogs       74.700      44.500      15.900
+
+INDEX 1 = period-4  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     108.000     112.000     112.200
+nigra .sawlogs      162.000     108.000      57.800
+brutia.pulplogs      76.000      77.000      92.000
+brutia.sawlogs      114.000      74.000      47.600
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 17
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-5  INDEX 2 = period-6
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-5  INDEX 2 = period-7
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-5  INDEX 2 = period-8
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-5  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     121.000     115.500     119.000
+nigra .sawlogs       99.000      59.500      21.000
+brutia.pulplogs      91.300      86.500      90.100
+brutia.sawlogs       74.700      44.500      15.900
+
+INDEX 1 = period-6  INDEX 2 = period-7
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-6  INDEX 2 = period-8
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-6  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 18
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+        110 PARAMETER yv  yield of managed forest   (m3 per ha)
+
+INDEX 1 = period-6  INDEX 2 = period-9
+
+                       good      medium        poor
+
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-7  INDEX 2 = period-8
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-7  INDEX 2 = period-9
+
+                       good      medium        poor
+
+nigra .pulplogs     120.000      95.000      80.000
+brutia.pulplogs      66.800      51.100      37.800
+
+INDEX 1 = period-7  INDEX 2 = period-10
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-8  INDEX 2 = period-9
+
+                       good
+
+brutia.pulplogs      17.500
+
+INDEX 1 = period-8  INDEX 2 = period-11
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+
+INDEX 1 = period-9  INDEX 2 = period-12
+
+                       good      medium        poor
+
+nigra .pulplogs     132.600     120.200     115.000
+nigra .sawlogs       37.400      14.800
+brutia.pulplogs      91.300      81.400      71.300
+brutia.sawlogs       25.700      10.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 19
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+----    110 PARAMETER iad  initial age distribution  (proportions)
+
+           nigra      brutia
+
+a-10 2.002002E-5 1.990050E-5
+a-20 2.002002E-5 1.990050E-5
+a-30 2.002002E-5 1.990050E-5
+a-40 8.508509E-4       0.001
+a-50 8.508509E-4       0.001
+a-60 8.508509E-4       0.001
+a-70       0.002       0.002
+a-80       0.002       0.002
+a-90       0.002       0.002
+
+
+----    160 PARAMETER age  age of trees    ( years )
+
+a-10   10.000,    a-20   20.000,    a-30   30.000,    a-40   40.000,    a-50   50.000,    a-60   60.000,    a-70   70.000,    a-80   80.000,    a-90   90.000,    a-100 100.000,    a-110 110.000,    a-120 120.000,    a-130 130.000,    a-140 140.000
+a-150 150.000,    a-160 160.000,    a-170 170.000
+
+
+----    160 PARAMETER avl  plant live in periods
+
+            period-1    period-2    period-3    period-4    period-5    period-6    period-7    period-8    period-9
+
+period-1       1.000
+period-2       1.000       1.000
+period-3       1.000       1.000       1.000
+period-4                   1.000       1.000       1.000
+period-5                               1.000       1.000       1.000
+period-6                                           1.000       1.000       1.000
+period-7                                                       1.000       1.000       1.000
+period-8                                                                   1.000       1.000       1.000
+period-9                                                                               1.000       1.000       1.000
+
+
+----    160 PARAMETER sgm                  =        0.106  capital recovery factor
+
+----    160 PARAMETER delt  discount factors
+
+period-1       1.000,    period-2       0.386,    period-3       0.149,    period-4       0.057,    period-5       0.022,    period-6       0.009,    period-7       0.003,    period-8       0.001,    period-9 4.881859E-4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 20
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antala Using LP From line 232
+
+
+---- efs  =L=  existing forest stock  (1000ha)
+
+efs(nigra,good,a-10)..  10*w(nigra,good,a-10,period-1) + 10*w(nigra,good,a-10,period-2) + 10*w(nigra,good,a-10,period-3) + 10*w(nigra,good,a-10,period-4) + 10*w(nigra,good,a-10,period-5) + 10*w(nigra,good,a-10,period-6) + 10*w(nigra,good,a-10,period-7)
+     
+      + 10*w(nigra,good,a-10,period-8) + 10*w(nigra,good,a-10,period-9) =L= 0.000719114114114114 ; (LHS = 0)
+     
+efs(nigra,good,a-20)..  10*w(nigra,good,a-20,period-1) + 10*w(nigra,good,a-20,period-2) + 10*w(nigra,good,a-20,period-3) + 10*w(nigra,good,a-20,period-4) + 10*w(nigra,good,a-20,period-5) + 10*w(nigra,good,a-20,period-6) + 10*w(nigra,good,a-20,period-7)
+     
+      + 10*w(nigra,good,a-20,period-8) + 10*w(nigra,good,a-20,period-9) =L= 0.000719114114114114 ; (LHS = 0)
+     
+efs(nigra,good,a-30)..  10*w(nigra,good,a-30,period-1) + 10*w(nigra,good,a-30,period-2) + 10*w(nigra,good,a-30,period-3) + 10*w(nigra,good,a-30,period-4) + 10*w(nigra,good,a-30,period-5) + 10*w(nigra,good,a-30,period-6) + 10*w(nigra,good,a-30,period-7)
+     
+      + 10*w(nigra,good,a-30,period-8) + 10*w(nigra,good,a-30,period-9) =L= 0.000719114114114114 ; (LHS = 0)
+     
+REMAINING 51 ENTRIES SKIPPED
+
+
+---- pfs  =L=  planted forest stock   (1000ha)
+
+pfs(nigra,good,period-1)..  - w(nigra,good,a-10,period-1) - w(nigra,good,a-20,period-1) - w(nigra,good,a-30,period-1) - w(nigra,good,a-40,period-1) - w(nigra,good,a-50,period-1) - w(nigra,good,a-60,period-1) - w(nigra,good,a-70,period-1)
+     
+      - w(nigra,good,a-80,period-1) - w(nigra,good,a-90,period-1) + v(nigra,good,period-1,period-2) + v(nigra,good,period-1,period-3) + v(nigra,good,period-1,period-4) + v(nigra,good,period-1,period-5) + v(nigra,good,period-1,period-6)
+     
+      + v(nigra,good,period-1,period-7) + v(nigra,good,period-1,period-8) + v(nigra,good,period-1,period-9) =L= 0 ; (LHS = 0)
+     
+pfs(nigra,good,period-2)..  - w(nigra,good,a-10,period-2) - w(nigra,good,a-20,period-2) - w(nigra,good,a-30,period-2) - w(nigra,good,a-40,period-2) - w(nigra,good,a-50,period-2) - w(nigra,good,a-60,period-2) - w(nigra,good,a-70,period-2)
+     
+      - w(nigra,good,a-80,period-2) - w(nigra,good,a-90,period-2) - v(nigra,good,period-1,period-2) + v(nigra,good,period-2,period-3) + v(nigra,good,period-2,period-4) + v(nigra,good,period-2,period-5) + v(nigra,good,period-2,period-6)
+     
+      + v(nigra,good,period-2,period-7) + v(nigra,good,period-2,period-8) + v(nigra,good,period-2,period-9) =L= 0 ; (LHS = 0)
+     
+pfs(nigra,good,period-3)..  - w(nigra,good,a-10,period-3) - w(nigra,good,a-20,period-3) - w(nigra,good,a-30,period-3) - w(nigra,good,a-40,period-3) - w(nigra,good,a-50,period-3) - w(nigra,good,a-60,period-3) - w(nigra,good,a-70,period-3)
+     
+      - w(nigra,good,a-80,period-3) - w(nigra,good,a-90,period-3) - v(nigra,good,period-1,period-3) - v(nigra,good,period-2,period-3) + v(nigra,good,period-3,period-4) + v(nigra,good,period-3,period-5) + v(nigra,good,period-3,period-6)
+     
+      + v(nigra,good,period-3,period-7) + v(nigra,good,period-3,period-8) + v(nigra,good,period-3,period-9) =L= 0 ; (LHS = 0)
+     
+REMAINING 51 ENTRIES SKIPPED
+
+
+---- lbal  =E=  log balances
+
+lbal(pulplogs,period-1)..  - 38.8*w(nigra,good,a-10,period-1) - 48.4*w(nigra,good,a-20,period-1) - 43.4*w(nigra,good,a-30,period-1) - 34.4*w(nigra,good,a-40,period-1) - 27.8*w(nigra,good,a-50,period-1) - 28.5*w(nigra,good,a-60,period-1)
+     
+      - 27.3*w(nigra,good,a-70,period-1) - 25.2*w(nigra,good,a-80,period-1) - 26.4*w(nigra,good,a-90,period-1) - 38.8*w(nigra,medium,a-10,period-1) - 48.4*w(nigra,medium,a-20,period-1) - 43.4*w(nigra,medium,a-30,period-1)
+     
+      - 34.4*w(nigra,medium,a-40,period-1) - 27.8*w(nigra,medium,a-50,period-1) - 28.5*w(nigra,medium,a-60,period-1) - 27.3*w(nigra,medium,a-70,period-1) - 25.2*w(nigra,medium,a-80,period-1) - 26.4*w(nigra,medium,a-90,period-1)
+     
+      - 38.8*w(nigra,poor,a-10,period-1) - 48.4*w(nigra,poor,a-20,period-1) - 43.4*w(nigra,poor,a-30,period-1) - 34.4*w(nigra,poor,a-40,period-1) - 27.8*w(nigra,poor,a-50,period-1) - 28.5*w(nigra,poor,a-60,period-1) - 27.3*w(nigra,poor,a-70,period-1)
+     
+      - 25.2*w(nigra,poor,a-80,period-1) - 26.4*w(nigra,poor,a-90,period-1) - 17.8*w(brutia,good,a-10,period-1) - 16.8*w(brutia,good,a-20,period-1) - 15.4*w(brutia,good,a-30,period-1) - 16*w(brutia,good,a-40,period-1) - 18.2*w(brutia,good,a-50,period-1)
+     
+      - 16.8*w(brutia,good,a-60,period-1) - 17.5*w(brutia,good,a-70,period-1) - 17.3*w(brutia,good,a-80,period-1) - 17*w(brutia,good,a-90,period-1) - 17.8*w(brutia,medium,a-10,period-1) - 16.8*w(brutia,medium,a-20,period-1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 21
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antala Using LP From line 232
+
+
+     lbal  =E=  log balances     
+     
+      - 15.4*w(brutia,medium,a-30,period-1) - 16*w(brutia,medium,a-40,period-1) - 18.2*w(brutia,medium,a-50,period-1) - 16.8*w(brutia,medium,a-60,period-1) - 17.5*w(brutia,medium,a-70,period-1) - 17.3*w(brutia,medium,a-80,period-1)
+     
+      - 17*w(brutia,medium,a-90,period-1) - 17.8*w(brutia,poor,a-10,period-1) - 16.8*w(brutia,poor,a-20,period-1) - 15.4*w(brutia,poor,a-30,period-1) - 16*w(brutia,poor,a-40,period-1) - 18.2*w(brutia,poor,a-50,period-1) - 16.8*w(brutia,poor,a-60,period-1)
+     
+      - 17.5*w(brutia,poor,a-70,period-1) - 17.3*w(brutia,poor,a-80,period-1) - 17*w(brutia,poor,a-90,period-1) + r(pulplogs,period-1) =E= 0 ; (LHS = 0)
+     
+lbal(pulplogs,period-2)..  - 48.4*w(nigra,good,a-10,period-2) - 43.4*w(nigra,good,a-20,period-2) - 34.4*w(nigra,good,a-30,period-2) - 27.8*w(nigra,good,a-40,period-2) - 28.5*w(nigra,good,a-50,period-2) - 27.3*w(nigra,good,a-60,period-2)
+     
+      - 25.2*w(nigra,good,a-70,period-2) - 26.4*w(nigra,good,a-80,period-2) - 27.1*w(nigra,good,a-90,period-2) - 48.4*w(nigra,medium,a-10,period-2) - 43.4*w(nigra,medium,a-20,period-2) - 34.4*w(nigra,medium,a-30,period-2)
+     
+      - 27.8*w(nigra,medium,a-40,period-2) - 28.5*w(nigra,medium,a-50,period-2) - 27.3*w(nigra,medium,a-60,period-2) - 25.2*w(nigra,medium,a-70,period-2) - 26.4*w(nigra,medium,a-80,period-2) - 27.1*w(nigra,medium,a-90,period-2)
+     
+      - 48.4*w(nigra,poor,a-10,period-2) - 43.4*w(nigra,poor,a-20,period-2) - 34.4*w(nigra,poor,a-30,period-2) - 27.8*w(nigra,poor,a-40,period-2) - 28.5*w(nigra,poor,a-50,period-2) - 27.3*w(nigra,poor,a-60,period-2) - 25.2*w(nigra,poor,a-70,period-2)
+     
+      - 26.4*w(nigra,poor,a-80,period-2) - 27.1*w(nigra,poor,a-90,period-2) - 16.8*w(brutia,good,a-10,period-2) - 15.4*w(brutia,good,a-20,period-2) - 16*w(brutia,good,a-30,period-2) - 18.2*w(brutia,good,a-40,period-2) - 16.8*w(brutia,good,a-50,period-2)
+     
+      - 17.5*w(brutia,good,a-60,period-2) - 17.3*w(brutia,good,a-70,period-2) - 17*w(brutia,good,a-80,period-2) - 16.3*w(brutia,good,a-90,period-2) - 16.8*w(brutia,medium,a-10,period-2) - 15.4*w(brutia,medium,a-20,period-2)
+     
+      - 16*w(brutia,medium,a-30,period-2) - 18.2*w(brutia,medium,a-40,period-2) - 16.8*w(brutia,medium,a-50,period-2) - 17.5*w(brutia,medium,a-60,period-2) - 17.3*w(brutia,medium,a-70,period-2) - 17*w(brutia,medium,a-80,period-2)
+     
+      - 16.3*w(brutia,medium,a-90,period-2) - 16.8*w(brutia,poor,a-10,period-2) - 15.4*w(brutia,poor,a-20,period-2) - 16*w(brutia,poor,a-30,period-2) - 18.2*w(brutia,poor,a-40,period-2) - 16.8*w(brutia,poor,a-50,period-2)
+     
+      - 17.5*w(brutia,poor,a-60,period-2) - 17.3*w(brutia,poor,a-70,period-2) - 17*w(brutia,poor,a-80,period-2) - 16.3*w(brutia,poor,a-90,period-2) - 17.5*v(brutia,good,period-1,period-2) + r(pulplogs,period-2) =E= 0 ; (LHS = 0)
+     
+lbal(pulplogs,period-3)..  - 43.4*w(nigra,good,a-10,period-3) - 34.4*w(nigra,good,a-20,period-3) - 27.8*w(nigra,good,a-30,period-3) - 28.5*w(nigra,good,a-40,period-3) - 27.3*w(nigra,good,a-50,period-3) - 25.2*w(nigra,good,a-60,period-3)
+     
+      - 26.4*w(nigra,good,a-70,period-3) - 27.1*w(nigra,good,a-80,period-3) - 27.8*w(nigra,good,a-90,period-3) - 43.4*w(nigra,medium,a-10,period-3) - 34.4*w(nigra,medium,a-20,period-3) - 27.8*w(nigra,medium,a-30,period-3)
+     
+      - 28.5*w(nigra,medium,a-40,period-3) - 27.3*w(nigra,medium,a-50,period-3) - 25.2*w(nigra,medium,a-60,period-3) - 26.4*w(nigra,medium,a-70,period-3) - 27.1*w(nigra,medium,a-80,period-3) - 27.8*w(nigra,medium,a-90,period-3)
+     
+      - 43.4*w(nigra,poor,a-10,period-3) - 34.4*w(nigra,poor,a-20,period-3) - 27.8*w(nigra,poor,a-30,period-3) - 28.5*w(nigra,poor,a-40,period-3) - 27.3*w(nigra,poor,a-50,period-3) - 25.2*w(nigra,poor,a-60,period-3) - 26.4*w(nigra,poor,a-70,period-3)
+     
+      - 27.1*w(nigra,poor,a-80,period-3) - 27.8*w(nigra,poor,a-90,period-3) - 15.4*w(brutia,good,a-10,period-3) - 16*w(brutia,good,a-20,period-3) - 18.2*w(brutia,good,a-30,period-3) - 16.8*w(brutia,good,a-40,period-3) - 17.5*w(brutia,good,a-50,period-3)
+     
+      - 17.3*w(brutia,good,a-60,period-3) - 17*w(brutia,good,a-70,period-3) - 16.3*w(brutia,good,a-80,period-3) - 14.9*w(brutia,good,a-90,period-3) - 15.4*w(brutia,medium,a-10,period-3) - 16*w(brutia,medium,a-20,period-3)
+     
+      - 18.2*w(brutia,medium,a-30,period-3) - 16.8*w(brutia,medium,a-40,period-3) - 17.5*w(brutia,medium,a-50,period-3) - 17.3*w(brutia,medium,a-60,period-3) - 17*w(brutia,medium,a-70,period-3) - 16.3*w(brutia,medium,a-80,period-3)
+     
+      - 14.9*w(brutia,medium,a-90,period-3) - 15.4*w(brutia,poor,a-10,period-3) - 16*w(brutia,poor,a-20,period-3) - 18.2*w(brutia,poor,a-30,period-3) - 16.8*w(brutia,poor,a-40,period-3) - 17.5*w(brutia,poor,a-50,period-3)
+     
+      - 17.3*w(brutia,poor,a-60,period-3) - 17*w(brutia,poor,a-70,period-3) - 16.3*w(brutia,poor,a-80,period-3) - 14.9*w(brutia,poor,a-90,period-3) - 120*v(nigra,good,period-1,period-3) - 95*v(nigra,medium,period-1,period-3)
+     
+      - 80*v(nigra,poor,period-1,period-3) - 66.8*v(brutia,good,period-1,period-3) - 17.5*v(brutia,good,period-2,period-3) - 51.1*v(brutia,medium,period-1,period-3) - 37.8*v(brutia,poor,period-1,period-3) + r(pulplogs,period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 22
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antala Using LP From line 232
+
+
+---- bal  =G=  material balances of wood processing
+
+bal(pulplogs,period-1)..  r(pulplogs,period-1) - z(pulp-pl,period-1) =G= 0 ; (LHS = 0)
+     
+bal(pulplogs,period-2)..  r(pulplogs,period-2) - z(pulp-pl,period-2) =G= 0 ; (LHS = 0)
+     
+bal(pulplogs,period-3)..  r(pulplogs,period-3) - z(pulp-pl,period-3) =G= 0 ; (LHS = 0)
+     
+REMAINING 42 ENTRIES SKIPPED
+
+
+---- cap  =L=  wood processing capacities
+
+cap(pulp-mill,period-1)..  z(pulp-pl,period-1) + z(pulp-sl,period-1) + z(pulp-rs,period-1) - h(pulp-mill,period-1) =L= 0 ; (LHS = 0)
+     
+cap(pulp-mill,period-2)..  z(pulp-pl,period-2) + z(pulp-sl,period-2) + z(pulp-rs,period-2) - h(pulp-mill,period-1) - h(pulp-mill,period-2) =L= 0 ; (LHS = 0)
+     
+cap(pulp-mill,period-3)..  z(pulp-pl,period-3) + z(pulp-sl,period-3) + z(pulp-rs,period-3) - h(pulp-mill,period-1) - h(pulp-mill,period-2) - h(pulp-mill,period-3) =L= 0 ; (LHS = 0)
+     
+REMAINING 15 ENTRIES SKIPPED
+
+
+---- sy2  =G=  sustained yield constraint - log type
+
+sy2(pulplogs,period-1)..  - r(pulplogs,period-1) + r(pulplogs,period-2) =G= 0 ; (LHS = 0)
+     
+sy2(pulplogs,period-2)..  - r(pulplogs,period-2) + r(pulplogs,period-3) =G= 0 ; (LHS = 0)
+     
+sy2(pulplogs,period-3)..  - r(pulplogs,period-3) + r(pulplogs,period-4) =G= 0 ; (LHS = 0)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+
+---- ainvc  =E=  investment cost
+
+ainvc(period-1)..  - 4.00979558394956*h(pulp-mill,period-1) - 6.52387376753699*h(saw-mill,period-1) + phik(period-1) =E= 0 ; (LHS = 0)
+     
+ainvc(period-2)..  - 4.00979558394956*h(pulp-mill,period-1) - 4.00979558394956*h(pulp-mill,period-2) - 6.52387376753699*h(saw-mill,period-1) - 6.52387376753699*h(saw-mill,period-2) + phik(period-2) =E= 0 ; (LHS = 0)
+     
+ainvc(period-3)..  - 4.00979558394956*h(pulp-mill,period-1) - 4.00979558394956*h(pulp-mill,period-2) - 4.00979558394956*h(pulp-mill,period-3) - 6.52387376753699*h(saw-mill,period-1) - 6.52387376753699*h(saw-mill,period-2)
+     
+      - 6.52387376753699*h(saw-mill,period-3) + phik(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- aproc  =E=  process cost
+
+aproc(period-1)..  - 5.96*z(pulp-pl,period-1) - 5.96*z(pulp-sl,period-1) - 5.96*z(pulp-rs,period-1) - 6*z(sawing,period-1) + phir(period-1) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 23
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antala Using LP From line 232
+
+
+     aproc  =E=  process cost
+
+aproc(period-2)..  - 5.96*z(pulp-pl,period-2) - 5.96*z(pulp-sl,period-2) - 5.96*z(pulp-rs,period-2) - 6*z(sawing,period-2) + phir(period-2) =E= 0 ; (LHS = 0)
+     
+aproc(period-3)..  - 5.96*z(pulp-pl,period-3) - 5.96*z(pulp-sl,period-3) - 5.96*z(pulp-rs,period-3) - 6*z(sawing,period-3) + phir(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- asales  =E=  sales revenue
+
+asales(period-1)..  - 147*x(pulp,period-1) - 70*x(sawnwood,period-1) + phix(period-1) =E= 0 ; (LHS = 0)
+     
+asales(period-2)..  - 147*x(pulp,period-2) - 70*x(sawnwood,period-2) + phix(period-2) =E= 0 ; (LHS = 0)
+     
+asales(period-3)..  - 147*x(pulp,period-3) - 70*x(sawnwood,period-3) + phix(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- acutc  =E=  cutting cost
+
+acutc(period-1)..  - 7*r(pulplogs,period-1) - 7*r(sawlogs,period-1) + phil(period-1) =E= 0 ; (LHS = 0)
+     
+acutc(period-2)..  - 7*r(pulplogs,period-2) - 7*r(sawlogs,period-2) + phil(period-2) =E= 0 ; (LHS = 0)
+     
+acutc(period-3)..  - 7*r(pulplogs,period-3) - 7*r(sawlogs,period-3) + phil(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- aplnt  =E=  planting cost
+
+aplnt(period-1)..  - 150*v(nigra,good,period-1,period-2) - 150*v(nigra,good,period-1,period-3) - 150*v(nigra,good,period-1,period-4) - 150*v(nigra,good,period-1,period-5) - 150*v(nigra,good,period-1,period-6) - 150*v(nigra,good,period-1,period-7)
+     
+      - 150*v(nigra,good,period-1,period-8) - 150*v(nigra,good,period-1,period-9) - 150*v(nigra,medium,period-1,period-2) - 150*v(nigra,medium,period-1,period-3) - 150*v(nigra,medium,period-1,period-4) - 150*v(nigra,medium,period-1,period-5)
+     
+      - 150*v(nigra,medium,period-1,period-6) - 150*v(nigra,medium,period-1,period-7) - 150*v(nigra,medium,period-1,period-8) - 150*v(nigra,medium,period-1,period-9) - 150*v(nigra,poor,period-1,period-2) - 150*v(nigra,poor,period-1,period-3)
+     
+      - 150*v(nigra,poor,period-1,period-4) - 150*v(nigra,poor,period-1,period-5) - 150*v(nigra,poor,period-1,period-6) - 150*v(nigra,poor,period-1,period-7) - 150*v(nigra,poor,period-1,period-8) - 150*v(nigra,poor,period-1,period-9)
+     
+      - 150*v(brutia,good,period-1,period-2) - 150*v(brutia,good,period-1,period-3) - 150*v(brutia,good,period-1,period-4) - 150*v(brutia,good,period-1,period-5) - 150*v(brutia,good,period-1,period-6) - 150*v(brutia,good,period-1,period-7)
+     
+      - 150*v(brutia,good,period-1,period-8) - 150*v(brutia,good,period-1,period-9) - 150*v(brutia,medium,period-1,period-2) - 150*v(brutia,medium,period-1,period-3) - 150*v(brutia,medium,period-1,period-4) - 150*v(brutia,medium,period-1,period-5)
+     
+      - 150*v(brutia,medium,period-1,period-6) - 150*v(brutia,medium,period-1,period-7) - 150*v(brutia,medium,period-1,period-8) - 150*v(brutia,medium,period-1,period-9) - 150*v(brutia,poor,period-1,period-2) - 150*v(brutia,poor,period-1,period-3)
+     
+      - 150*v(brutia,poor,period-1,period-4) - 150*v(brutia,poor,period-1,period-5) - 150*v(brutia,poor,period-1,period-6) - 150*v(brutia,poor,period-1,period-7) - 150*v(brutia,poor,period-1,period-8) - 150*v(brutia,poor,period-1,period-9)
+     
+      + phip(period-1) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 24
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antala Using LP From line 232
+
+
+     aplnt  =E=  planting cost
+
+aplnt(period-2)..  - 150*v(nigra,good,period-2,period-3) - 150*v(nigra,good,period-2,period-4) - 150*v(nigra,good,period-2,period-5) - 150*v(nigra,good,period-2,period-6) - 150*v(nigra,good,period-2,period-7) - 150*v(nigra,good,period-2,period-8)
+     
+      - 150*v(nigra,good,period-2,period-9) - 150*v(nigra,medium,period-2,period-3) - 150*v(nigra,medium,period-2,period-4) - 150*v(nigra,medium,period-2,period-5) - 150*v(nigra,medium,period-2,period-6) - 150*v(nigra,medium,period-2,period-7)
+     
+      - 150*v(nigra,medium,period-2,period-8) - 150*v(nigra,medium,period-2,period-9) - 150*v(nigra,poor,period-2,period-3) - 150*v(nigra,poor,period-2,period-4) - 150*v(nigra,poor,period-2,period-5) - 150*v(nigra,poor,period-2,period-6)
+     
+      - 150*v(nigra,poor,period-2,period-7) - 150*v(nigra,poor,period-2,period-8) - 150*v(nigra,poor,period-2,period-9) - 150*v(brutia,good,period-2,period-3) - 150*v(brutia,good,period-2,period-4) - 150*v(brutia,good,period-2,period-5)
+     
+      - 150*v(brutia,good,period-2,period-6) - 150*v(brutia,good,period-2,period-7) - 150*v(brutia,good,period-2,period-8) - 150*v(brutia,good,period-2,period-9) - 150*v(brutia,medium,period-2,period-3) - 150*v(brutia,medium,period-2,period-4)
+     
+      - 150*v(brutia,medium,period-2,period-5) - 150*v(brutia,medium,period-2,period-6) - 150*v(brutia,medium,period-2,period-7) - 150*v(brutia,medium,period-2,period-8) - 150*v(brutia,medium,period-2,period-9) - 150*v(brutia,poor,period-2,period-3)
+     
+      - 150*v(brutia,poor,period-2,period-4) - 150*v(brutia,poor,period-2,period-5) - 150*v(brutia,poor,period-2,period-6) - 150*v(brutia,poor,period-2,period-7) - 150*v(brutia,poor,period-2,period-8) - 150*v(brutia,poor,period-2,period-9)
+     
+      + phip(period-2) =E= 0 ; (LHS = 0)
+     
+aplnt(period-3)..  - 150*v(nigra,good,period-3,period-4) - 150*v(nigra,good,period-3,period-5) - 150*v(nigra,good,period-3,period-6) - 150*v(nigra,good,period-3,period-7) - 150*v(nigra,good,period-3,period-8) - 150*v(nigra,good,period-3,period-9)
+     
+      - 150*v(nigra,medium,period-3,period-4) - 150*v(nigra,medium,period-3,period-5) - 150*v(nigra,medium,period-3,period-6) - 150*v(nigra,medium,period-3,period-7) - 150*v(nigra,medium,period-3,period-8) - 150*v(nigra,medium,period-3,period-9)
+     
+      - 150*v(nigra,poor,period-3,period-4) - 150*v(nigra,poor,period-3,period-5) - 150*v(nigra,poor,period-3,period-6) - 150*v(nigra,poor,period-3,period-7) - 150*v(nigra,poor,period-3,period-8) - 150*v(nigra,poor,period-3,period-9)
+     
+      - 150*v(brutia,good,period-3,period-4) - 150*v(brutia,good,period-3,period-5) - 150*v(brutia,good,period-3,period-6) - 150*v(brutia,good,period-3,period-7) - 150*v(brutia,good,period-3,period-8) - 150*v(brutia,good,period-3,period-9)
+     
+      - 150*v(brutia,medium,period-3,period-4) - 150*v(brutia,medium,period-3,period-5) - 150*v(brutia,medium,period-3,period-6) - 150*v(brutia,medium,period-3,period-7) - 150*v(brutia,medium,period-3,period-8) - 150*v(brutia,medium,period-3,period-9)
+     
+      - 150*v(brutia,poor,period-3,period-4) - 150*v(brutia,poor,period-3,period-5) - 150*v(brutia,poor,period-3,period-6) - 150*v(brutia,poor,period-3,period-7) - 150*v(brutia,poor,period-3,period-8) - 150*v(brutia,poor,period-3,period-9)
+     
+      + phip(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- benefit  =E=  
+
+benefit..  phik(period-1) + 0.385543289429531*phik(period-2) + 0.148643628024143*phik(period-3) + 0.057308553301168*phik(period-4) + 0.0220949281521799*phik(period-5) + 0.00851855127950061*phik(period-6) + 0.00328427028147281*phik(period-7)
+     
+      + 0.00126622836769468*phik(period-8) + 0.000488185850049993*phik(period-9) + phir(period-1) + 0.385543289429531*phir(period-2) + 0.148643628024143*phir(period-3) + 0.057308553301168*phir(period-4) + 0.0220949281521799*phir(period-5)
+     
+      + 0.00851855127950061*phir(period-6) + 0.00328427028147281*phir(period-7) + 0.00126622836769468*phir(period-8) + 0.000488185850049993*phir(period-9) - phix(period-1) - 0.385543289429531*phix(period-2) - 0.148643628024143*phix(period-3)
+     
+      - 0.057308553301168*phix(period-4) - 0.0220949281521799*phix(period-5) - 0.00851855127950061*phix(period-6) - 0.00328427028147281*phix(period-7) - 0.00126622836769468*phix(period-8) - 0.000488185850049993*phix(period-9) + phil(period-1)
+     
+      + 0.385543289429531*phil(period-2) + 0.148643628024143*phil(period-3) + 0.057308553301168*phil(period-4) + 0.0220949281521799*phil(period-5) + 0.00851855127950061*phil(period-6) + 0.00328427028147281*phil(period-7)
+     
+      + 0.00126622836769468*phil(period-8) + 0.000488185850049993*phil(period-9) + phip(period-1) + 0.385543289429531*phip(period-2) + 0.148643628024143*phip(period-3) + 0.057308553301168*phip(period-4) + 0.0220949281521799*phip(period-5)
+     
+      + 0.00851855127950061*phip(period-6) + 0.00328427028147281*phip(period-7) + 0.00126622836769468*phip(period-8) + 0.000488185850049993*phip(period-9) + phi =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 25
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antala Using LP From line 232
+
+
+---- wbnd  =E=  cutting restrictions
+
+wbnd..  w(nigra,good,a-10,period-1) + w(nigra,good,a-10,period-2) + w(nigra,good,a-10,period-3) + w(nigra,good,a-10,period-4) + w(nigra,good,a-20,period-1) + w(nigra,good,a-20,period-2) + w(nigra,good,a-20,period-3) + w(nigra,good,a-30,period-1)
+     
+      + w(nigra,good,a-30,period-2) + w(nigra,good,a-40,period-1) + w(nigra,medium,a-10,period-1) + w(nigra,medium,a-10,period-2) + w(nigra,medium,a-10,period-3) + w(nigra,medium,a-10,period-4) + w(nigra,medium,a-20,period-1)
+     
+      + w(nigra,medium,a-20,period-2) + w(nigra,medium,a-20,period-3) + w(nigra,medium,a-30,period-1) + w(nigra,medium,a-30,period-2) + w(nigra,medium,a-40,period-1) + w(nigra,poor,a-10,period-1) + w(nigra,poor,a-10,period-2) + w(nigra,poor,a-10,period-3)
+     
+      + w(nigra,poor,a-10,period-4) + w(nigra,poor,a-20,period-1) + w(nigra,poor,a-20,period-2) + w(nigra,poor,a-20,period-3) + w(nigra,poor,a-30,period-1) + w(nigra,poor,a-30,period-2) + w(nigra,poor,a-40,period-1) + w(brutia,good,a-10,period-1)
+     
+      + w(brutia,good,a-10,period-2) + w(brutia,good,a-10,period-3) + w(brutia,good,a-10,period-4) + w(brutia,good,a-20,period-1) + w(brutia,good,a-20,period-2) + w(brutia,good,a-20,period-3) + w(brutia,good,a-30,period-1) + w(brutia,good,a-30,period-2)
+     
+      + w(brutia,good,a-40,period-1) + w(brutia,medium,a-10,period-1) + w(brutia,medium,a-10,period-2) + w(brutia,medium,a-10,period-3) + w(brutia,medium,a-10,period-4) + w(brutia,medium,a-20,period-1) + w(brutia,medium,a-20,period-2)
+     
+      + w(brutia,medium,a-20,period-3) + w(brutia,medium,a-30,period-1) + w(brutia,medium,a-30,period-2) + w(brutia,medium,a-40,period-1) + w(brutia,poor,a-10,period-1) + w(brutia,poor,a-10,period-2) + w(brutia,poor,a-10,period-3)
+     
+      + w(brutia,poor,a-10,period-4) + w(brutia,poor,a-20,period-1) + w(brutia,poor,a-20,period-2) + w(brutia,poor,a-20,period-3) + w(brutia,poor,a-30,period-1) + w(brutia,poor,a-30,period-2) + w(brutia,poor,a-40,period-1) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 26
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antala Using LP From line 232
+
+
+---- w  cutting of existing forest  (1000ha per year)
+
+w(nigra,good,a-10,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       efs(nigra,good,a-10)
+       -1       pfs(nigra,good,period-1)
+      -38.8     lbal(pulplogs,period-1)
+       -1.2     lbal(sawlogs,period-1)
+        1       wbnd
+
+w(nigra,good,a-10,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       efs(nigra,good,a-10)
+       -1       pfs(nigra,good,period-2)
+      -48.4     lbal(pulplogs,period-2)
+       -8.6     lbal(sawlogs,period-2)
+        1       wbnd
+
+w(nigra,good,a-10,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       efs(nigra,good,a-10)
+       -1       pfs(nigra,good,period-3)
+      -43.4     lbal(pulplogs,period-3)
+      -26.6     lbal(sawlogs,period-3)
+        1       wbnd
+
+REMAINING 483 ENTRIES SKIPPED
+
+---- v  management of new forest    (1000ha per year)
+
+v(nigra,good,period-1,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       pfs(nigra,good,period-1)
+       -1       pfs(nigra,good,period-2)
+     -150       aplnt(period-1)
+
+v(nigra,good,period-1,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       pfs(nigra,good,period-1)
+       -1       pfs(nigra,good,period-3)
+     -120       lbal(pulplogs,period-3)
+     -150       aplnt(period-1)
+
+v(nigra,good,period-1,period-4)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       pfs(nigra,good,period-1)
+       -1       pfs(nigra,good,period-4)
+     -132.6     lbal(pulplogs,period-4)
+      -37.4     lbal(sawlogs,period-4)
+     -150       aplnt(period-1)
+
+REMAINING 231 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 27
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antala Using LP From line 232
+
+
+---- r  supply of logs to industry  (1000m3 per year)
+
+r(pulplogs,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       lbal(pulplogs,period-1)
+        1       bal(pulplogs,period-1)
+       -1       sy2(pulplogs,period-1)
+       -7       acutc(period-1)
+
+r(pulplogs,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       lbal(pulplogs,period-2)
+        1       bal(pulplogs,period-2)
+        1       sy2(pulplogs,period-1)
+       -1       sy2(pulplogs,period-2)
+       -7       acutc(period-2)
+
+r(pulplogs,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       lbal(pulplogs,period-3)
+        1       bal(pulplogs,period-3)
+        1       sy2(pulplogs,period-2)
+       -1       sy2(pulplogs,period-3)
+       -7       acutc(period-3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- z  process level               (1000m3 input per year)
+
+z(pulp-pl,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulplogs,period-1)
+        0.207   bal(pulp,period-1)
+        1       cap(pulp-mill,period-1)
+       -5.96    aproc(period-1)
+
+z(pulp-pl,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulplogs,period-2)
+        0.207   bal(pulp,period-2)
+        1       cap(pulp-mill,period-2)
+       -5.96    aproc(period-2)
+
+z(pulp-pl,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulplogs,period-3)
+        0.207   bal(pulp,period-3)
+        1       cap(pulp-mill,period-3)
+       -5.96    aproc(period-3)
+
+REMAINING 33 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 28
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antala Using LP From line 232
+
+
+---- h  capacity expansion          (1000m3 input per year)
+
+h(pulp-mill,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cap(pulp-mill,period-1)
+       -1       cap(pulp-mill,period-2)
+       -1       cap(pulp-mill,period-3)
+       -4.0098  ainvc(period-1)
+       -4.0098  ainvc(period-2)
+       -4.0098  ainvc(period-3)
+
+h(pulp-mill,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cap(pulp-mill,period-2)
+       -1       cap(pulp-mill,period-3)
+       -1       cap(pulp-mill,period-4)
+       -4.0098  ainvc(period-2)
+       -4.0098  ainvc(period-3)
+       -4.0098  ainvc(period-4)
+
+h(pulp-mill,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cap(pulp-mill,period-3)
+       -1       cap(pulp-mill,period-4)
+       -1       cap(pulp-mill,period-5)
+       -4.0098  ainvc(period-3)
+       -4.0098  ainvc(period-4)
+       -4.0098  ainvc(period-5)
+
+REMAINING 15 ENTRIES SKIPPED
+
+---- x  final shipments             (1000 units per year)
+
+x(pulp,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulp,period-1)
+     -147       asales(period-1)
+
+x(pulp,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulp,period-2)
+     -147       asales(period-2)
+
+x(pulp,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulp,period-3)
+     -147       asales(period-3)
+
+REMAINING 15 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 29
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antala Using LP From line 232
+
+
+---- phik  investment cost             (1000us$ per year)
+
+phik(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ainvc(period-1)
+        1       benefit
+
+phik(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ainvc(period-2)
+        0.3855  benefit
+
+phik(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ainvc(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phir  process cost                (1000us$ per year)
+
+phir(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aproc(period-1)
+        1       benefit
+
+phir(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aproc(period-2)
+        0.3855  benefit
+
+phir(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aproc(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phix  sales revenue               (1000us$ per year)
+
+phix(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       asales(period-1)
+       -1       benefit
+
+phix(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       asales(period-2)
+       -0.3855  benefit
+
+phix(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       asales(period-3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 30
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antala Using LP From line 232
+
+
+     phix  sales revenue               (1000us$ per year)
+
+       -0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phil  cutting cost                (1000us$ per year)
+
+phil(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acutc(period-1)
+        1       benefit
+
+phil(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acutc(period-2)
+        0.3855  benefit
+
+phil(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acutc(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phip  planting cost               (1000us$ per year)
+
+phip(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aplnt(period-1)
+        1       benefit
+
+phip(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aplnt(period-2)
+        0.3855  benefit
+
+phip(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aplnt(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phi  total benefits              (discounted cost)
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       benefit
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 31
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Model Statistics    SOLVE antala Using LP From line 232
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS          264
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES          862
+NON ZERO ELEMENTS         3,488
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 32
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Solution Report     SOLVE antala Using LP From line 232
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   antala              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  232
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+>>  gams tfordy-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+Gams      : tfordy-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 33
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antalb Using LP From line 239
+
+
+---- efs  =L=  existing forest stock  (1000ha)
+
+efs(nigra,good,a-10)..  10*w(nigra,good,a-10,period-1) + 10*w(nigra,good,a-10,period-2) + 10*w(nigra,good,a-10,period-3) + 10*w(nigra,good,a-10,period-4) + 10*w(nigra,good,a-10,period-5) + 10*w(nigra,good,a-10,period-6) + 10*w(nigra,good,a-10,period-7)
+     
+      + 10*w(nigra,good,a-10,period-8) + 10*w(nigra,good,a-10,period-9) =L= 0.000719114114114114 ; (LHS = 0)
+     
+efs(nigra,good,a-20)..  10*w(nigra,good,a-20,period-1) + 10*w(nigra,good,a-20,period-2) + 10*w(nigra,good,a-20,period-3) + 10*w(nigra,good,a-20,period-4) + 10*w(nigra,good,a-20,period-5) + 10*w(nigra,good,a-20,period-6) + 10*w(nigra,good,a-20,period-7)
+     
+      + 10*w(nigra,good,a-20,period-8) + 10*w(nigra,good,a-20,period-9) =L= 0.000719114114114114 ; (LHS = 0)
+     
+efs(nigra,good,a-30)..  10*w(nigra,good,a-30,period-1) + 10*w(nigra,good,a-30,period-2) + 10*w(nigra,good,a-30,period-3) + 10*w(nigra,good,a-30,period-4) + 10*w(nigra,good,a-30,period-5) + 10*w(nigra,good,a-30,period-6) + 10*w(nigra,good,a-30,period-7)
+     
+      + 10*w(nigra,good,a-30,period-8) + 10*w(nigra,good,a-30,period-9) =L= 0.000719114114114114 ; (LHS = 0)
+     
+REMAINING 51 ENTRIES SKIPPED
+
+
+---- pfs  =L=  planted forest stock   (1000ha)
+
+pfs(nigra,good,period-1)..  - w(nigra,good,a-10,period-1) - w(nigra,good,a-20,period-1) - w(nigra,good,a-30,period-1) - w(nigra,good,a-40,period-1) - w(nigra,good,a-50,period-1) - w(nigra,good,a-60,period-1) - w(nigra,good,a-70,period-1)
+     
+      - w(nigra,good,a-80,period-1) - w(nigra,good,a-90,period-1) + v(nigra,good,period-1,period-2) + v(nigra,good,period-1,period-3) + v(nigra,good,period-1,period-4) + v(nigra,good,period-1,period-5) + v(nigra,good,period-1,period-6)
+     
+      + v(nigra,good,period-1,period-7) + v(nigra,good,period-1,period-8) + v(nigra,good,period-1,period-9) =L= 0 ; (LHS = 0)
+     
+pfs(nigra,good,period-2)..  - w(nigra,good,a-10,period-2) - w(nigra,good,a-20,period-2) - w(nigra,good,a-30,period-2) - w(nigra,good,a-40,period-2) - w(nigra,good,a-50,period-2) - w(nigra,good,a-60,period-2) - w(nigra,good,a-70,period-2)
+     
+      - w(nigra,good,a-80,period-2) - w(nigra,good,a-90,period-2) - v(nigra,good,period-1,period-2) + v(nigra,good,period-2,period-3) + v(nigra,good,period-2,period-4) + v(nigra,good,period-2,period-5) + v(nigra,good,period-2,period-6)
+     
+      + v(nigra,good,period-2,period-7) + v(nigra,good,period-2,period-8) + v(nigra,good,period-2,period-9) =L= 0 ; (LHS = 0)
+     
+pfs(nigra,good,period-3)..  - w(nigra,good,a-10,period-3) - w(nigra,good,a-20,period-3) - w(nigra,good,a-30,period-3) - w(nigra,good,a-40,period-3) - w(nigra,good,a-50,period-3) - w(nigra,good,a-60,period-3) - w(nigra,good,a-70,period-3)
+     
+      - w(nigra,good,a-80,period-3) - w(nigra,good,a-90,period-3) - v(nigra,good,period-1,period-3) - v(nigra,good,period-2,period-3) + v(nigra,good,period-3,period-4) + v(nigra,good,period-3,period-5) + v(nigra,good,period-3,period-6)
+     
+      + v(nigra,good,period-3,period-7) + v(nigra,good,period-3,period-8) + v(nigra,good,period-3,period-9) =L= 0 ; (LHS = 0)
+     
+REMAINING 51 ENTRIES SKIPPED
+
+
+---- lbal  =E=  log balances
+
+lbal(pulplogs,period-1)..  - 38.8*w(nigra,good,a-10,period-1) - 48.4*w(nigra,good,a-20,period-1) - 43.4*w(nigra,good,a-30,period-1) - 34.4*w(nigra,good,a-40,period-1) - 27.8*w(nigra,good,a-50,period-1) - 28.5*w(nigra,good,a-60,period-1)
+     
+      - 27.3*w(nigra,good,a-70,period-1) - 25.2*w(nigra,good,a-80,period-1) - 26.4*w(nigra,good,a-90,period-1) - 38.8*w(nigra,medium,a-10,period-1) - 48.4*w(nigra,medium,a-20,period-1) - 43.4*w(nigra,medium,a-30,period-1)
+     
+      - 34.4*w(nigra,medium,a-40,period-1) - 27.8*w(nigra,medium,a-50,period-1) - 28.5*w(nigra,medium,a-60,period-1) - 27.3*w(nigra,medium,a-70,period-1) - 25.2*w(nigra,medium,a-80,period-1) - 26.4*w(nigra,medium,a-90,period-1)
+     
+      - 38.8*w(nigra,poor,a-10,period-1) - 48.4*w(nigra,poor,a-20,period-1) - 43.4*w(nigra,poor,a-30,period-1) - 34.4*w(nigra,poor,a-40,period-1) - 27.8*w(nigra,poor,a-50,period-1) - 28.5*w(nigra,poor,a-60,period-1) - 27.3*w(nigra,poor,a-70,period-1)
+     
+      - 25.2*w(nigra,poor,a-80,period-1) - 26.4*w(nigra,poor,a-90,period-1) - 17.8*w(brutia,good,a-10,period-1) - 16.8*w(brutia,good,a-20,period-1) - 15.4*w(brutia,good,a-30,period-1) - 16*w(brutia,good,a-40,period-1) - 18.2*w(brutia,good,a-50,period-1)
+     
+      - 16.8*w(brutia,good,a-60,period-1) - 17.5*w(brutia,good,a-70,period-1) - 17.3*w(brutia,good,a-80,period-1) - 17*w(brutia,good,a-90,period-1) - 17.8*w(brutia,medium,a-10,period-1) - 16.8*w(brutia,medium,a-20,period-1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 34
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antalb Using LP From line 239
+
+
+     lbal  =E=  log balances     
+     
+      - 15.4*w(brutia,medium,a-30,period-1) - 16*w(brutia,medium,a-40,period-1) - 18.2*w(brutia,medium,a-50,period-1) - 16.8*w(brutia,medium,a-60,period-1) - 17.5*w(brutia,medium,a-70,period-1) - 17.3*w(brutia,medium,a-80,period-1)
+     
+      - 17*w(brutia,medium,a-90,period-1) - 17.8*w(brutia,poor,a-10,period-1) - 16.8*w(brutia,poor,a-20,period-1) - 15.4*w(brutia,poor,a-30,period-1) - 16*w(brutia,poor,a-40,period-1) - 18.2*w(brutia,poor,a-50,period-1) - 16.8*w(brutia,poor,a-60,period-1)
+     
+      - 17.5*w(brutia,poor,a-70,period-1) - 17.3*w(brutia,poor,a-80,period-1) - 17*w(brutia,poor,a-90,period-1) + r(pulplogs,period-1) =E= 0 ; (LHS = 0)
+     
+lbal(pulplogs,period-2)..  - 48.4*w(nigra,good,a-10,period-2) - 43.4*w(nigra,good,a-20,period-2) - 34.4*w(nigra,good,a-30,period-2) - 27.8*w(nigra,good,a-40,period-2) - 28.5*w(nigra,good,a-50,period-2) - 27.3*w(nigra,good,a-60,period-2)
+     
+      - 25.2*w(nigra,good,a-70,period-2) - 26.4*w(nigra,good,a-80,period-2) - 27.1*w(nigra,good,a-90,period-2) - 48.4*w(nigra,medium,a-10,period-2) - 43.4*w(nigra,medium,a-20,period-2) - 34.4*w(nigra,medium,a-30,period-2)
+     
+      - 27.8*w(nigra,medium,a-40,period-2) - 28.5*w(nigra,medium,a-50,period-2) - 27.3*w(nigra,medium,a-60,period-2) - 25.2*w(nigra,medium,a-70,period-2) - 26.4*w(nigra,medium,a-80,period-2) - 27.1*w(nigra,medium,a-90,period-2)
+     
+      - 48.4*w(nigra,poor,a-10,period-2) - 43.4*w(nigra,poor,a-20,period-2) - 34.4*w(nigra,poor,a-30,period-2) - 27.8*w(nigra,poor,a-40,period-2) - 28.5*w(nigra,poor,a-50,period-2) - 27.3*w(nigra,poor,a-60,period-2) - 25.2*w(nigra,poor,a-70,period-2)
+     
+      - 26.4*w(nigra,poor,a-80,period-2) - 27.1*w(nigra,poor,a-90,period-2) - 16.8*w(brutia,good,a-10,period-2) - 15.4*w(brutia,good,a-20,period-2) - 16*w(brutia,good,a-30,period-2) - 18.2*w(brutia,good,a-40,period-2) - 16.8*w(brutia,good,a-50,period-2)
+     
+      - 17.5*w(brutia,good,a-60,period-2) - 17.3*w(brutia,good,a-70,period-2) - 17*w(brutia,good,a-80,period-2) - 16.3*w(brutia,good,a-90,period-2) - 16.8*w(brutia,medium,a-10,period-2) - 15.4*w(brutia,medium,a-20,period-2)
+     
+      - 16*w(brutia,medium,a-30,period-2) - 18.2*w(brutia,medium,a-40,period-2) - 16.8*w(brutia,medium,a-50,period-2) - 17.5*w(brutia,medium,a-60,period-2) - 17.3*w(brutia,medium,a-70,period-2) - 17*w(brutia,medium,a-80,period-2)
+     
+      - 16.3*w(brutia,medium,a-90,period-2) - 16.8*w(brutia,poor,a-10,period-2) - 15.4*w(brutia,poor,a-20,period-2) - 16*w(brutia,poor,a-30,period-2) - 18.2*w(brutia,poor,a-40,period-2) - 16.8*w(brutia,poor,a-50,period-2)
+     
+      - 17.5*w(brutia,poor,a-60,period-2) - 17.3*w(brutia,poor,a-70,period-2) - 17*w(brutia,poor,a-80,period-2) - 16.3*w(brutia,poor,a-90,period-2) - 17.5*v(brutia,good,period-1,period-2) + r(pulplogs,period-2) =E= 0 ; (LHS = 0)
+     
+lbal(pulplogs,period-3)..  - 43.4*w(nigra,good,a-10,period-3) - 34.4*w(nigra,good,a-20,period-3) - 27.8*w(nigra,good,a-30,period-3) - 28.5*w(nigra,good,a-40,period-3) - 27.3*w(nigra,good,a-50,period-3) - 25.2*w(nigra,good,a-60,period-3)
+     
+      - 26.4*w(nigra,good,a-70,period-3) - 27.1*w(nigra,good,a-80,period-3) - 27.8*w(nigra,good,a-90,period-3) - 43.4*w(nigra,medium,a-10,period-3) - 34.4*w(nigra,medium,a-20,period-3) - 27.8*w(nigra,medium,a-30,period-3)
+     
+      - 28.5*w(nigra,medium,a-40,period-3) - 27.3*w(nigra,medium,a-50,period-3) - 25.2*w(nigra,medium,a-60,period-3) - 26.4*w(nigra,medium,a-70,period-3) - 27.1*w(nigra,medium,a-80,period-3) - 27.8*w(nigra,medium,a-90,period-3)
+     
+      - 43.4*w(nigra,poor,a-10,period-3) - 34.4*w(nigra,poor,a-20,period-3) - 27.8*w(nigra,poor,a-30,period-3) - 28.5*w(nigra,poor,a-40,period-3) - 27.3*w(nigra,poor,a-50,period-3) - 25.2*w(nigra,poor,a-60,period-3) - 26.4*w(nigra,poor,a-70,period-3)
+     
+      - 27.1*w(nigra,poor,a-80,period-3) - 27.8*w(nigra,poor,a-90,period-3) - 15.4*w(brutia,good,a-10,period-3) - 16*w(brutia,good,a-20,period-3) - 18.2*w(brutia,good,a-30,period-3) - 16.8*w(brutia,good,a-40,period-3) - 17.5*w(brutia,good,a-50,period-3)
+     
+      - 17.3*w(brutia,good,a-60,period-3) - 17*w(brutia,good,a-70,period-3) - 16.3*w(brutia,good,a-80,period-3) - 14.9*w(brutia,good,a-90,period-3) - 15.4*w(brutia,medium,a-10,period-3) - 16*w(brutia,medium,a-20,period-3)
+     
+      - 18.2*w(brutia,medium,a-30,period-3) - 16.8*w(brutia,medium,a-40,period-3) - 17.5*w(brutia,medium,a-50,period-3) - 17.3*w(brutia,medium,a-60,period-3) - 17*w(brutia,medium,a-70,period-3) - 16.3*w(brutia,medium,a-80,period-3)
+     
+      - 14.9*w(brutia,medium,a-90,period-3) - 15.4*w(brutia,poor,a-10,period-3) - 16*w(brutia,poor,a-20,period-3) - 18.2*w(brutia,poor,a-30,period-3) - 16.8*w(brutia,poor,a-40,period-3) - 17.5*w(brutia,poor,a-50,period-3)
+     
+      - 17.3*w(brutia,poor,a-60,period-3) - 17*w(brutia,poor,a-70,period-3) - 16.3*w(brutia,poor,a-80,period-3) - 14.9*w(brutia,poor,a-90,period-3) - 120*v(nigra,good,period-1,period-3) - 95*v(nigra,medium,period-1,period-3)
+     
+      - 80*v(nigra,poor,period-1,period-3) - 66.8*v(brutia,good,period-1,period-3) - 17.5*v(brutia,good,period-2,period-3) - 51.1*v(brutia,medium,period-1,period-3) - 37.8*v(brutia,poor,period-1,period-3) + r(pulplogs,period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 35
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antalb Using LP From line 239
+
+
+---- bal  =G=  material balances of wood processing
+
+bal(pulplogs,period-1)..  r(pulplogs,period-1) - z(pulp-pl,period-1) =G= 0 ; (LHS = 0)
+     
+bal(pulplogs,period-2)..  r(pulplogs,period-2) - z(pulp-pl,period-2) =G= 0 ; (LHS = 0)
+     
+bal(pulplogs,period-3)..  r(pulplogs,period-3) - z(pulp-pl,period-3) =G= 0 ; (LHS = 0)
+     
+REMAINING 42 ENTRIES SKIPPED
+
+
+---- cap  =L=  wood processing capacities
+
+cap(pulp-mill,period-1)..  z(pulp-pl,period-1) + z(pulp-sl,period-1) + z(pulp-rs,period-1) - h(pulp-mill,period-1) =L= 0 ; (LHS = 0)
+     
+cap(pulp-mill,period-2)..  z(pulp-pl,period-2) + z(pulp-sl,period-2) + z(pulp-rs,period-2) - h(pulp-mill,period-1) - h(pulp-mill,period-2) =L= 0 ; (LHS = 0)
+     
+cap(pulp-mill,period-3)..  z(pulp-pl,period-3) + z(pulp-sl,period-3) + z(pulp-rs,period-3) - h(pulp-mill,period-1) - h(pulp-mill,period-2) - h(pulp-mill,period-3) =L= 0 ; (LHS = 0)
+     
+REMAINING 15 ENTRIES SKIPPED
+
+
+---- sy2  =G=  sustained yield constraint - log type
+
+sy2(pulplogs,period-1)..  - r(pulplogs,period-1) + r(pulplogs,period-2) =G= 0 ; (LHS = 0)
+     
+sy2(pulplogs,period-2)..  - r(pulplogs,period-2) + r(pulplogs,period-3) =G= 0 ; (LHS = 0)
+     
+sy2(pulplogs,period-3)..  - r(pulplogs,period-3) + r(pulplogs,period-4) =G= 0 ; (LHS = 0)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+
+---- ainvc  =E=  investment cost
+
+ainvc(period-1)..  - 4.00979558394956*h(pulp-mill,period-1) - 6.52387376753699*h(saw-mill,period-1) + phik(period-1) =E= 0 ; (LHS = 0)
+     
+ainvc(period-2)..  - 4.00979558394956*h(pulp-mill,period-1) - 4.00979558394956*h(pulp-mill,period-2) - 6.52387376753699*h(saw-mill,period-1) - 6.52387376753699*h(saw-mill,period-2) + phik(period-2) =E= 0 ; (LHS = 0)
+     
+ainvc(period-3)..  - 4.00979558394956*h(pulp-mill,period-1) - 4.00979558394956*h(pulp-mill,period-2) - 4.00979558394956*h(pulp-mill,period-3) - 6.52387376753699*h(saw-mill,period-1) - 6.52387376753699*h(saw-mill,period-2)
+     
+      - 6.52387376753699*h(saw-mill,period-3) + phik(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- aproc  =E=  process cost
+
+aproc(period-1)..  - 5.96*z(pulp-pl,period-1) - 5.96*z(pulp-sl,period-1) - 5.96*z(pulp-rs,period-1) - 6*z(sawing,period-1) + phir(period-1) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 36
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antalb Using LP From line 239
+
+
+     aproc  =E=  process cost
+
+aproc(period-2)..  - 5.96*z(pulp-pl,period-2) - 5.96*z(pulp-sl,period-2) - 5.96*z(pulp-rs,period-2) - 6*z(sawing,period-2) + phir(period-2) =E= 0 ; (LHS = 0)
+     
+aproc(period-3)..  - 5.96*z(pulp-pl,period-3) - 5.96*z(pulp-sl,period-3) - 5.96*z(pulp-rs,period-3) - 6*z(sawing,period-3) + phir(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- asales  =E=  sales revenue
+
+asales(period-1)..  - 147*x(pulp,period-1) - 70*x(sawnwood,period-1) + phix(period-1) =E= 0 ; (LHS = 0)
+     
+asales(period-2)..  - 147*x(pulp,period-2) - 70*x(sawnwood,period-2) + phix(period-2) =E= 0 ; (LHS = 0)
+     
+asales(period-3)..  - 147*x(pulp,period-3) - 70*x(sawnwood,period-3) + phix(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- acutc  =E=  cutting cost
+
+acutc(period-1)..  - 7*r(pulplogs,period-1) - 7*r(sawlogs,period-1) + phil(period-1) =E= 0 ; (LHS = 0)
+     
+acutc(period-2)..  - 7*r(pulplogs,period-2) - 7*r(sawlogs,period-2) + phil(period-2) =E= 0 ; (LHS = 0)
+     
+acutc(period-3)..  - 7*r(pulplogs,period-3) - 7*r(sawlogs,period-3) + phil(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- aplnt  =E=  planting cost
+
+aplnt(period-1)..  - 150*v(nigra,good,period-1,period-2) - 150*v(nigra,good,period-1,period-3) - 150*v(nigra,good,period-1,period-4) - 150*v(nigra,good,period-1,period-5) - 150*v(nigra,good,period-1,period-6) - 150*v(nigra,good,period-1,period-7)
+     
+      - 150*v(nigra,good,period-1,period-8) - 150*v(nigra,good,period-1,period-9) - 150*v(nigra,medium,period-1,period-2) - 150*v(nigra,medium,period-1,period-3) - 150*v(nigra,medium,period-1,period-4) - 150*v(nigra,medium,period-1,period-5)
+     
+      - 150*v(nigra,medium,period-1,period-6) - 150*v(nigra,medium,period-1,period-7) - 150*v(nigra,medium,period-1,period-8) - 150*v(nigra,medium,period-1,period-9) - 150*v(nigra,poor,period-1,period-2) - 150*v(nigra,poor,period-1,period-3)
+     
+      - 150*v(nigra,poor,period-1,period-4) - 150*v(nigra,poor,period-1,period-5) - 150*v(nigra,poor,period-1,period-6) - 150*v(nigra,poor,period-1,period-7) - 150*v(nigra,poor,period-1,period-8) - 150*v(nigra,poor,period-1,period-9)
+     
+      - 150*v(brutia,good,period-1,period-2) - 150*v(brutia,good,period-1,period-3) - 150*v(brutia,good,period-1,period-4) - 150*v(brutia,good,period-1,period-5) - 150*v(brutia,good,period-1,period-6) - 150*v(brutia,good,period-1,period-7)
+     
+      - 150*v(brutia,good,period-1,period-8) - 150*v(brutia,good,period-1,period-9) - 150*v(brutia,medium,period-1,period-2) - 150*v(brutia,medium,period-1,period-3) - 150*v(brutia,medium,period-1,period-4) - 150*v(brutia,medium,period-1,period-5)
+     
+      - 150*v(brutia,medium,period-1,period-6) - 150*v(brutia,medium,period-1,period-7) - 150*v(brutia,medium,period-1,period-8) - 150*v(brutia,medium,period-1,period-9) - 150*v(brutia,poor,period-1,period-2) - 150*v(brutia,poor,period-1,period-3)
+     
+      - 150*v(brutia,poor,period-1,period-4) - 150*v(brutia,poor,period-1,period-5) - 150*v(brutia,poor,period-1,period-6) - 150*v(brutia,poor,period-1,period-7) - 150*v(brutia,poor,period-1,period-8) - 150*v(brutia,poor,period-1,period-9)
+     
+      + phip(period-1) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 37
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Equation Listing    SOLVE antalb Using LP From line 239
+
+
+     aplnt  =E=  planting cost
+
+aplnt(period-2)..  - 150*v(nigra,good,period-2,period-3) - 150*v(nigra,good,period-2,period-4) - 150*v(nigra,good,period-2,period-5) - 150*v(nigra,good,period-2,period-6) - 150*v(nigra,good,period-2,period-7) - 150*v(nigra,good,period-2,period-8)
+     
+      - 150*v(nigra,good,period-2,period-9) - 150*v(nigra,medium,period-2,period-3) - 150*v(nigra,medium,period-2,period-4) - 150*v(nigra,medium,period-2,period-5) - 150*v(nigra,medium,period-2,period-6) - 150*v(nigra,medium,period-2,period-7)
+     
+      - 150*v(nigra,medium,period-2,period-8) - 150*v(nigra,medium,period-2,period-9) - 150*v(nigra,poor,period-2,period-3) - 150*v(nigra,poor,period-2,period-4) - 150*v(nigra,poor,period-2,period-5) - 150*v(nigra,poor,period-2,period-6)
+     
+      - 150*v(nigra,poor,period-2,period-7) - 150*v(nigra,poor,period-2,period-8) - 150*v(nigra,poor,period-2,period-9) - 150*v(brutia,good,period-2,period-3) - 150*v(brutia,good,period-2,period-4) - 150*v(brutia,good,period-2,period-5)
+     
+      - 150*v(brutia,good,period-2,period-6) - 150*v(brutia,good,period-2,period-7) - 150*v(brutia,good,period-2,period-8) - 150*v(brutia,good,period-2,period-9) - 150*v(brutia,medium,period-2,period-3) - 150*v(brutia,medium,period-2,period-4)
+     
+      - 150*v(brutia,medium,period-2,period-5) - 150*v(brutia,medium,period-2,period-6) - 150*v(brutia,medium,period-2,period-7) - 150*v(brutia,medium,period-2,period-8) - 150*v(brutia,medium,period-2,period-9) - 150*v(brutia,poor,period-2,period-3)
+     
+      - 150*v(brutia,poor,period-2,period-4) - 150*v(brutia,poor,period-2,period-5) - 150*v(brutia,poor,period-2,period-6) - 150*v(brutia,poor,period-2,period-7) - 150*v(brutia,poor,period-2,period-8) - 150*v(brutia,poor,period-2,period-9)
+     
+      + phip(period-2) =E= 0 ; (LHS = 0)
+     
+aplnt(period-3)..  - 150*v(nigra,good,period-3,period-4) - 150*v(nigra,good,period-3,period-5) - 150*v(nigra,good,period-3,period-6) - 150*v(nigra,good,period-3,period-7) - 150*v(nigra,good,period-3,period-8) - 150*v(nigra,good,period-3,period-9)
+     
+      - 150*v(nigra,medium,period-3,period-4) - 150*v(nigra,medium,period-3,period-5) - 150*v(nigra,medium,period-3,period-6) - 150*v(nigra,medium,period-3,period-7) - 150*v(nigra,medium,period-3,period-8) - 150*v(nigra,medium,period-3,period-9)
+     
+      - 150*v(nigra,poor,period-3,period-4) - 150*v(nigra,poor,period-3,period-5) - 150*v(nigra,poor,period-3,period-6) - 150*v(nigra,poor,period-3,period-7) - 150*v(nigra,poor,period-3,period-8) - 150*v(nigra,poor,period-3,period-9)
+     
+      - 150*v(brutia,good,period-3,period-4) - 150*v(brutia,good,period-3,period-5) - 150*v(brutia,good,period-3,period-6) - 150*v(brutia,good,period-3,period-7) - 150*v(brutia,good,period-3,period-8) - 150*v(brutia,good,period-3,period-9)
+     
+      - 150*v(brutia,medium,period-3,period-4) - 150*v(brutia,medium,period-3,period-5) - 150*v(brutia,medium,period-3,period-6) - 150*v(brutia,medium,period-3,period-7) - 150*v(brutia,medium,period-3,period-8) - 150*v(brutia,medium,period-3,period-9)
+     
+      - 150*v(brutia,poor,period-3,period-4) - 150*v(brutia,poor,period-3,period-5) - 150*v(brutia,poor,period-3,period-6) - 150*v(brutia,poor,period-3,period-7) - 150*v(brutia,poor,period-3,period-8) - 150*v(brutia,poor,period-3,period-9)
+     
+      + phip(period-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- benefit  =E=  
+
+benefit..  phik(period-1) + 0.385543289429531*phik(period-2) + 0.148643628024143*phik(period-3) + 0.057308553301168*phik(period-4) + 0.0220949281521799*phik(period-5) + 0.00851855127950061*phik(period-6) + 0.00328427028147281*phik(period-7)
+     
+      + 0.00126622836769468*phik(period-8) + 0.000488185850049993*phik(period-9) + phir(period-1) + 0.385543289429531*phir(period-2) + 0.148643628024143*phir(period-3) + 0.057308553301168*phir(period-4) + 0.0220949281521799*phir(period-5)
+     
+      + 0.00851855127950061*phir(period-6) + 0.00328427028147281*phir(period-7) + 0.00126622836769468*phir(period-8) + 0.000488185850049993*phir(period-9) - phix(period-1) - 0.385543289429531*phix(period-2) - 0.148643628024143*phix(period-3)
+     
+      - 0.057308553301168*phix(period-4) - 0.0220949281521799*phix(period-5) - 0.00851855127950061*phix(period-6) - 0.00328427028147281*phix(period-7) - 0.00126622836769468*phix(period-8) - 0.000488185850049993*phix(period-9) + phil(period-1)
+     
+      + 0.385543289429531*phil(period-2) + 0.148643628024143*phil(period-3) + 0.057308553301168*phil(period-4) + 0.0220949281521799*phil(period-5) + 0.00851855127950061*phil(period-6) + 0.00328427028147281*phil(period-7)
+     
+      + 0.00126622836769468*phil(period-8) + 0.000488185850049993*phil(period-9) + phip(period-1) + 0.385543289429531*phip(period-2) + 0.148643628024143*phip(period-3) + 0.057308553301168*phip(period-4) + 0.0220949281521799*phip(period-5)
+     
+      + 0.00851855127950061*phip(period-6) + 0.00328427028147281*phip(period-7) + 0.00126622836769468*phip(period-8) + 0.000488185850049993*phip(period-9) + phi =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 38
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antalb Using LP From line 239
+
+
+---- w  cutting of existing forest  (1000ha per year)
+
+w(nigra,good,a-10,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       efs(nigra,good,a-10)
+       -1       pfs(nigra,good,period-1)
+      -38.8     lbal(pulplogs,period-1)
+       -1.2     lbal(sawlogs,period-1)
+
+w(nigra,good,a-10,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       efs(nigra,good,a-10)
+       -1       pfs(nigra,good,period-2)
+      -48.4     lbal(pulplogs,period-2)
+       -8.6     lbal(sawlogs,period-2)
+
+w(nigra,good,a-10,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       efs(nigra,good,a-10)
+       -1       pfs(nigra,good,period-3)
+      -43.4     lbal(pulplogs,period-3)
+      -26.6     lbal(sawlogs,period-3)
+
+REMAINING 483 ENTRIES SKIPPED
+
+---- v  management of new forest    (1000ha per year)
+
+v(nigra,good,period-1,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       pfs(nigra,good,period-1)
+       -1       pfs(nigra,good,period-2)
+     -150       aplnt(period-1)
+
+v(nigra,good,period-1,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       pfs(nigra,good,period-1)
+       -1       pfs(nigra,good,period-3)
+     -120       lbal(pulplogs,period-3)
+     -150       aplnt(period-1)
+
+v(nigra,good,period-1,period-4)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       pfs(nigra,good,period-1)
+       -1       pfs(nigra,good,period-4)
+     -132.6     lbal(pulplogs,period-4)
+      -37.4     lbal(sawlogs,period-4)
+     -150       aplnt(period-1)
+
+REMAINING 231 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 39
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antalb Using LP From line 239
+
+
+---- r  supply of logs to industry  (1000m3 per year)
+
+r(pulplogs,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       lbal(pulplogs,period-1)
+        1       bal(pulplogs,period-1)
+       -1       sy2(pulplogs,period-1)
+       -7       acutc(period-1)
+
+r(pulplogs,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       lbal(pulplogs,period-2)
+        1       bal(pulplogs,period-2)
+        1       sy2(pulplogs,period-1)
+       -1       sy2(pulplogs,period-2)
+       -7       acutc(period-2)
+
+r(pulplogs,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       lbal(pulplogs,period-3)
+        1       bal(pulplogs,period-3)
+        1       sy2(pulplogs,period-2)
+       -1       sy2(pulplogs,period-3)
+       -7       acutc(period-3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- z  process level               (1000m3 input per year)
+
+z(pulp-pl,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulplogs,period-1)
+        0.207   bal(pulp,period-1)
+        1       cap(pulp-mill,period-1)
+       -5.96    aproc(period-1)
+
+z(pulp-pl,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulplogs,period-2)
+        0.207   bal(pulp,period-2)
+        1       cap(pulp-mill,period-2)
+       -5.96    aproc(period-2)
+
+z(pulp-pl,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulplogs,period-3)
+        0.207   bal(pulp,period-3)
+        1       cap(pulp-mill,period-3)
+       -5.96    aproc(period-3)
+
+REMAINING 33 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 40
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antalb Using LP From line 239
+
+
+---- h  capacity expansion          (1000m3 input per year)
+
+h(pulp-mill,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cap(pulp-mill,period-1)
+       -1       cap(pulp-mill,period-2)
+       -1       cap(pulp-mill,period-3)
+       -4.0098  ainvc(period-1)
+       -4.0098  ainvc(period-2)
+       -4.0098  ainvc(period-3)
+
+h(pulp-mill,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cap(pulp-mill,period-2)
+       -1       cap(pulp-mill,period-3)
+       -1       cap(pulp-mill,period-4)
+       -4.0098  ainvc(period-2)
+       -4.0098  ainvc(period-3)
+       -4.0098  ainvc(period-4)
+
+h(pulp-mill,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cap(pulp-mill,period-3)
+       -1       cap(pulp-mill,period-4)
+       -1       cap(pulp-mill,period-5)
+       -4.0098  ainvc(period-3)
+       -4.0098  ainvc(period-4)
+       -4.0098  ainvc(period-5)
+
+REMAINING 15 ENTRIES SKIPPED
+
+---- x  final shipments             (1000 units per year)
+
+x(pulp,period-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulp,period-1)
+     -147       asales(period-1)
+
+x(pulp,period-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulp,period-2)
+     -147       asales(period-2)
+
+x(pulp,period-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       bal(pulp,period-3)
+     -147       asales(period-3)
+
+REMAINING 15 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 41
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antalb Using LP From line 239
+
+
+---- phik  investment cost             (1000us$ per year)
+
+phik(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ainvc(period-1)
+        1       benefit
+
+phik(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ainvc(period-2)
+        0.3855  benefit
+
+phik(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ainvc(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phir  process cost                (1000us$ per year)
+
+phir(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aproc(period-1)
+        1       benefit
+
+phir(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aproc(period-2)
+        0.3855  benefit
+
+phir(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aproc(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phix  sales revenue               (1000us$ per year)
+
+phix(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       asales(period-1)
+       -1       benefit
+
+phix(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       asales(period-2)
+       -0.3855  benefit
+
+phix(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       asales(period-3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 42
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Column Listing      SOLVE antalb Using LP From line 239
+
+
+     phix  sales revenue               (1000us$ per year)
+
+       -0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phil  cutting cost                (1000us$ per year)
+
+phil(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acutc(period-1)
+        1       benefit
+
+phil(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acutc(period-2)
+        0.3855  benefit
+
+phil(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acutc(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phip  planting cost               (1000us$ per year)
+
+phip(period-1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aplnt(period-1)
+        1       benefit
+
+phip(period-2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aplnt(period-2)
+        0.3855  benefit
+
+phip(period-3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aplnt(period-3)
+        0.1486  benefit
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- phi  total benefits              (discounted cost)
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       benefit
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 43
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Model Statistics    SOLVE antalb Using LP From line 239
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS          263
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES          862
+NON ZERO ELEMENTS         3,428
+
+
+GENERATION TIME      =        0.007 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 44
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+Solution Report     SOLVE antalb Using LP From line 239
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   antalb              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  239
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+>>  gams tfordy-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tfordy/convert.opt"
+Gams      : tfordy-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 45
+Antalya Forestry Model - Dynamic       (TFORDY,SEQ=62)
+E x e c u t i o n
+
+
+----    246 PARAMETER rp  rotation period for new forest (percent)
+
+                      ( ALL       0.000 )
+
+
+----    246 PARAMETER csum  cutting summary of old forest
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tfordy/tfordy.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tfordy/tfordy-scalar.gms.lst

@@ -1,0 +1,151 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 2
+Peacefully Coexisting Armies of Queens - tight (COEXX,SEQ=218)
+C o m p i l a t i o n
+
+
+       This is a tighter formulation than the original COEX problem.
+       We have set the size of the board to 5 in order to find
+       solutions quickly. In addition we fix the position of one queen.
+       
+       Two armies of queens (black and white) peacefully coexist on a
+       chessboard when they are placed on the board in such a way that
+       no two queens from opposing armies can attack each other. The
+       problem is to find the maximum two equal-sized armies.
+       
+       
+      Bosch, R, Mind Sharpener. OPTIMA MPS Newsletter (2000).
+       
+  17   
+  19  Sets i  size of chess board     / 1* 5 /    ! use 8 for chess (13)
+  20       s  diagonal offsets        / 1* 7 /    ! 2i-3 diagonals
+  21   
+  22  scalar idiags correct size of s; idiags = 2*card(i) - 3;
+  23  abort$(card(s) <> idiags) 's has incorrect size',idiags;
+  24   
+  25  Alias (i,j)
+  26   
+  27  Parameter sh(s)    shift values for diagonals
+  28            rev(s,i) reverse shift order;
+  29   
+  30  sh(s)  = ord(s) - card(i) + 1 ;
+  31  rev(s,i) = card(i) + 1 - 2*ord(i) + sh(s);
+  32   
+  33  Binary Variable xw(i,j) has a white queen
+  34                  xb(i,j) has a black queen
+  35                  wa(i)   white in row i
+  36                  wb(i)   white in column j
+  37                  wc(s)   white in diagonal s
+  38                  wd(s)   white in backward diagonal s;
+  39         Variable tot;
+  40   
+  41  Equations aw(i,j) white in row i
+  42            bw(j,i) white in column j
+  43            cw(s,i) white in diagonal s
+  44            dw(s,i) white in backward diagonal s
+  45            ew      total white
+  46            ab(i,j) black in row i
+  47            bb(j,i) black in column j
+  48            cb(s,i) black in diagonal s
+  49            db(s,i) black in backward diagonal s
+  50            eb      total black;
+  51   
+  52  aw(i,j).. wa(i) =g=  xw(i,j);
+  53   
+  54  bw(j,i).. wb(j) =g=  xw(i,j);
+  55   
+  56  cw(s,i).. wc(s) =g=  xw(i,i+sh(s));
+  57   
+  58  dw(s,i).. wd(s) =g= xw(i,i+rev(s,i));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 3
+Peacefully Coexisting Armies of Queens - tight (COEXX,SEQ=218)
+C o m p i l a t i o n
+
+
+  59   
+  60  ab(i,j).. 1-wa(i) =g= xb(i,j);
+  61   
+  62  bb(j,i).. 1-wb(j) =g= xb(i,j);
+  63   
+  64  cb(s,i).. 1-wc(s) =g= xb(i,i+sh(s));
+  65   
+  66  db(s,i).. 1-wd(s) =g= xb(i,i+rev(s,i));
+  67   
+  68  eb..  tot =e= sum((i,j), xb(i,j));
+  69   
+  70  ew..  tot =e= sum((i,j), xw(i,j));
+  71   
+  72   
+  73  Model army / all /;
+  74   
+  75  option limcol=0,limrow=0;
+  76   
+  77  xb.fx('1','1') = 1; ! fix one position in the NW corner
+  78   
+  79  Solve army maximizing tot using mip;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 4
+Peacefully Coexisting Armies of Queens - tight (COEXX,SEQ=218)
+Model Statistics    SOLVE army Using MIP From line 79
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS          242
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           75
+NON ZERO ELEMENTS           484     DISCRETE VARIABLES         73
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 5
+Peacefully Coexisting Armies of Queens - tight (COEXX,SEQ=218)
+Solution Report     SOLVE army Using MIP From line 79
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   army                OBJECTIVE  tot
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  79
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/coexx/convert.opt"
+>>  ampl coexx-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/coexx/convert.opt"
+Ampl      : coexx-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/coexx/coexx.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/coexx/coexx-scalar.mod.lst

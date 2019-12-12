@@ -1,0 +1,1361 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 2
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+C o m p i l a t i o n
+
+
+   4   
+       
+         The delivery and settlement of mortgage-backed securities is governed
+         by an extensive set of rules and regulations. Forward delivery
+         settlements of not yet pooled mortgages are on a to-be-announced
+         (TPA) basis. Some allowed variance allows to structure the TBAs in
+         a cost effective manner.
+       
+       
+      Dahl, H, Meeraus, A, and Zenios, S A, Some Financial Optimization
+      Models: Risk Management. In Zenios, S A, Ed, Financial Optimization.
+      Cambridge University Press, New York, NY, 1993.
+       
+  19   
+  20  Sets
+  21   
+  22      p        gnma pools                / gn999001*gn999011 /
+  23      i        tbas                      / 20580252 /
+  24      l        lots                      / l1*l4 /
+  25      c3(p)    class 3 high risk pools   / gn999010*gn999011 / ;
+  26   
+  27  * note:
+  28  *   class1  in the box
+  29  *   class2  delivery within 48 hours
+  30  *   class3  delayed delivery
+  31   
+  32  Alias  (p,pp), (i,ii), (l,ll) ;
+  33   
+  34   
+  35  Table  pv(p,*)   value of pools
+  36                     original    adjusted
+  37      gn999001            50          50
+  38      gn999002           100         100
+  39      gn999003           300         300
+  40      gn999004           400         400
+  41      gn999005           450         450
+  42      gn999006           450         450
+  43      gn999007           475         475
+  44      gn999008           700         700
+  45      gn999009          1000        1000
+  46      gn999010          1000        1000
+  47      gn999011          5000        5000 ;
+  48   
+  49   
+  50  Table tbainfo(i,*)   tba information table
+  51   
+  52                quantity  selling   market  variation  maxpools
+  53    20580252        5000   100.88      100        .05         3 ;
+  54   
+  55   
+  56   
+  57  Parameter
+  58      o(p)           original face value of pools
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 3
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+C o m p i l a t i o n
+
+
+  59      a(p)           adjusted face value of pools
+  60      head           first incremental step for allocation
+  61      steps          incremental step size between head and tail
+  62      tail(p)        tail of pools
+  63      splitcost(p)   cost of splitting pools
+  64      futprice(i)    agreed delivery price
+  65      mktprice(i)    market price
+  66      futamt(i)      agreed quantity
+  67      var(i)         agreed upper and lower relative deviation
+  68      maxpools(i)    maximum number of pools in 1 mill dollar tba lots
+  69      lsize(i,l)     tba lot sizes
+  70      maxp(i,l)      maximum number of pools to allocate to each lot
+  71      m(p,i,l)       upper bound on the number of value incremental steps
+  72      mb(p)          upper bound on the number of box incremental steps
+  73      n              total number of lots in the allocation ;
+  74   
+  75    o(p)          =  pv(p,"original") ;
+  76    a(p)          =  pv(p,"adjusted") ;
+  77    head          =  25 ;
+  78    steps         =  5 ;
+  79    tail(p)       =  mod((o(p)-head$(o(p) gt head)),steps) ;
+  80    splitcost(p)  =  .00001 ;
+  81    futamt(i)     =  tbainfo(i,"quantity") ;
+  82    futprice(i)   =  tbainfo(i,"selling")/100 ;
+  83    mktprice(i)   =  tbainfo(i,"market")/100 ;
+  84    var(i)        =  tbainfo(i,"variation") ;
+  85    maxpools(i)   =  tbainfo(i,"maxpools") ;
+  86   
+  87    lsize(i,l) = 0 ;
+  88    Loop(l,
+  89       lsize(i,l) = min(1000,futamt(i)-sum(ll$(ord(ll) lt ord(l)), lsize(i,ll)))) ;
+  90   
+  91    maxp(i,l) = (maxpools(i)-2) $ (lsize(i,l) lt 500)
+  92              + (maxpools(i)-1) $ (lsize(i,l) ge 500
+  93                                    and lsize(i,l) lt 1000)
+  94              +  maxpools(i)    $ (lsize(i,l) eq 1000) ;
+  95   
+  96    m(p,i,l) = floor(
+  97                 max( 0,
+  98                   ((1+var(i))*lsize(i,l)*o(p)/a(p)-head) / steps ) );
+  99   
+ 100    mb(p) = floor( max(0,o(p)-head)/steps) ;
+ 101   
+ 102    n =  sum((i,l)$lsize(i,l), 1) ;
+ 103   
+ 104   
+ 105   
+ 106  Variable
+ 107      profit       total profit ;
+ 108   
+ 109  Positive Variable
+ 110      v(p,i,l)     allocated pool values by tba lot
+ 111      b(p)         adjusted face value of pools remaining in box ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 4
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+C o m p i l a t i o n
+
+
+ 112   
+ 113  Binary Variable
+ 114      z(p,i,l)     decision whether to allocated pool to tba lot
+ 115      zb1(p)       auxiliary binary variable to determine splits
+ 116      zb2(p)       auxiliary binary variable to determine splits
+ 117      w(i,l)       decision whether to fail tba lot  (0=failed)
+ 118      u0(p,i,l)    auxiliary binary variable for minimum allocation
+ 119      u0b(p)       auxiliary binary variable for minimum boxing
+ 120      ut(p,i,l)    auxiliary binary variable for tail allocation
+ 121      ubt(p)       auxiliary binary variable for tail boxing
+ 122      s(p)         decision whether to split pools
+ 123      f1(i,l)      binary variable for one big pool allocation
+ 124      f2(i,l)      binary variable for two big pools allocation
+ 125   
+ 126  Integer Variable
+ 127      u(p,i,l)     auxiliary integer variable for allocation steps
+ 128      ub(p)        auxiliary integer variable for box steps ;
+ 129   
+ 130   
+ 131   
+ 132  Equation
+ 133      loval(i,l)            lower limit on allocated value by tba lot
+ 134      upval(i,l)            upper limit on allocated value by tba lot
+ 135      supply(p)             allocate value and boxed amounts
+ 136      class3con(i,l)        constraint on use of class 3 pools
+ 137   
+ 138      splitsize(p,i,l)      allocate head step and tail variables
+ 139      stepcon(p,i,l)        allocate step only after head allocation
+ 140      tailcon(p,i,l)        allocate tail only after head allocation
+ 141      onetail(p)            allocate tail only once for each pool
+ 142   
+ 143      boxsize(p)            allocate boxed head step and tail variables
+ 144      stepboxcon(p)         allocate boxed steps after boxed head
+ 145      boxtailcon(p)         allocate boxed tail after boxed head
+ 146   
+ 147      zdet(p,i,l)           determination of whether to allocate pool
+ 148      zbox1def(p)           definition of zb1
+ 149      zbox2def(p)           definition of zb2
+ 150      splitdet(p)           determination of whether to split
+ 151   
+ 152      f1det(p,i,l)          determination of single big allocated pools
+ 153      f2det(p,pp,i,l)       determination of two big pools
+ 154      maxpool1(i,l)         constraint on maximum pools per lot
+ 155      maxpool2(i,l)         constraint on maximum pools per lot
+ 156      maxpool3(i,l)         constraint on maximum pools per lot
+ 157   
+ 158      profitdef             definition of profits   ;
+ 159   
+ 160   
+ 161   
+ 162   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 5
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+equations and model definition
+
+
+ 164   
+ 165  *
+ 166  * the value of pools assigned to a tba lot must be above the lower limit
+ 167  * given by the agreement on delivery and variance, unless the lot is
+ 168  * failed in which case it must be zero.
+ 169  *
+ 170   
+ 171    loval(i,l)$lsize(i,l)..
+ 172   
+ 173       sum(p, v(p,i,l))  =g=  (1-var(i))*lsize(i,l)*w(i,l) ;
+ 174   
+ 175   
+ 176   
+ 177  *
+ 178  * the value of pools assigned to a tba lot must be below the upper limit
+ 179  * given by the agreement on delivery and variance, unless the lot is
+ 180  * failed in which case it must be zero.
+ 181  *
+ 182   
+ 183    upval(i,l)$lsize(i,l)..
+ 184   
+ 185       sum(p, v(p,i,l))  =l=  (1+var(i))*lsize(i,l)*w(i,l) ;
+ 186   
+ 187   
+ 188   
+ 189  *
+ 190  * no more than the adjusted face value of a pool can be assigned
+ 191  * or boxed.
+ 192  *
+ 193   
+ 194    supply(p)..
+ 195   
+ 196       sum((i,l)$lsize(i,l), v(p,i,l)) + b(p)  =e=  a(p) ;
+ 197   
+ 198   
+ 199   
+ 200  *
+ 201  * it is illegal to use only class 3 pools in a lot.
+ 202  *
+ 203   
+ 204    class3con(i,l)$lsize(i,l)..
+ 205   
+ 206       sum(p$(not c3(p)), v(p,i,l))  =g=  w(i,l) ;
+ 207   
+ 208   
+ 209   
+ 210  *
+ 211  * pools must be allocated in a minimum amount of head dollars of
+ 212  * original face value and with increments of steps dollars original face
+ 213  * value, except possibly for the tail.
+ 214  *
+ 215   
+ 216    splitsize(p,i,l)$lsize(i,l)..
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 6
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+equations and model definition
+
+
+ 217   
+ 218       v(p,i,l)*o(p)/a(p)  =e=
+ 219               head*u0(p,i,l) + steps*u(p,i,l) + tail(p)*ut(p,i,l) ;
+ 220   
+ 221   
+ 222   
+ 223  *
+ 224  * the steps increments in a split pool only applies after
+ 225  * the head has been allocated for the tba lot.
+ 226  *
+ 227   
+ 228    stepcon(p,i,l)$lsize(i,l)..
+ 229   
+ 230        u(p,i,l) =l= m(p,i,l)*u0(p,i,l) ;
+ 231   
+ 232   
+ 233   
+ 234  *
+ 235  * the tail increment in a split pool only applies after
+ 236  * the head has been allocated for the tba lot.
+ 237  *
+ 238   
+ 239    tailcon(p,i,l)$(lsize(i,l) and tail(p))..
+ 240        ut(p,i,l) =l= u0(p,i,l) ;
+ 241   
+ 242   
+ 243   
+ 244  *
+ 245  * the tail of a pool can not be split.
+ 246  *
+ 247   
+ 248    onetail(p)$tail(p)..
+ 249   
+ 250       sum((i,l)$lsize(i,l), ut(p,i,l))  + ubt(p)  =l=  1 ;
+ 251   
+ 252   
+ 253   
+ 254  *
+ 255  * the above size rules for split pools also apply to what remains in
+ 256  * the box.
+ 257  *
+ 258   
+ 259    boxsize(p)..
+ 260   
+ 261        b(p)*o(p)/a(p) =e= head*u0b(p) + steps*ub(p) + tail(p)*ubt(p) ;
+ 262   
+ 263   
+ 264   
+ 265  *
+ 266  * this also applies to the box.
+ 267  *
+ 268   
+ 269    stepboxcon(p)..  ub(p) =l= mb(p)*u0b(p) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 7
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+equations and model definition
+
+
+ 270   
+ 271   
+ 272   
+ 273  *
+ 274  * the box tail increment in a split pool only applies after
+ 275  * the box head has been allocated for the pool.
+ 276  *
+ 277   
+ 278    boxtailcon(p)$tail(p).. ubt(p) =l= u0b(p) ;
+ 279   
+ 280   
+ 281   
+ 282  *
+ 283  * if a pool is not allocated to tba lot, the value of that allocation
+ 284  * must be zero.
+ 285  *
+ 286   
+ 287    zdet(p,i,l)$lsize(i,l)..  v(p,i,l)  =l=  (1+var(i))*lsize(i,l)*z(p,i,l) ;
+ 288   
+ 289   
+ 290   
+ 291  *
+ 292  * zb1 is 1 if something or nothing - but not everything - of a
+ 293  * pool is boxed. it is zero if everything is boxed.
+ 294  *
+ 295   
+ 296    zbox1def(p)..    zb1(p)  =g=  (a(p) - b(p))/a(p) ;
+ 297   
+ 298   
+ 299   
+ 300  *
+ 301  * zb2 is 1 if something or everything of a pool is boxed. it is zero
+ 302  * if nothing remains in the box.  thus zb1 + zb2 equals 1 if
+ 303  * everything or nothing remains in the box and 2 otherwise.
+ 304  *
+ 305   
+ 306    zbox2def(p)..  zb2(p)  =g=  1 - (a(p) - b(p))/a(p) ;
+ 307   
+ 308   
+ 309   
+ 310  *
+ 311  * a pool is split if it is allocated to more than one lot or - if
+ 312  * allocated to only one lot - if it is not fully allocated, (i.e.,
+ 313  * a fraction, but not all original value, remains in the box).
+ 314  *
+ 315   
+ 316    splitdet(p)..  sum((i,l)$lsize(i,l), z(p,i,l)) + zb1(p) + zb2(p) - 2 =l=  n*s(p) ;
+ 317   
+ 318   
+ 319   
+ 320  *
+ 321  * a single pool allocation is big if it is greater than or equal to
+ 322  * the lower value requirement.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 8
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+equations and model definition
+
+
+ 323  *
+ 324   
+ 325    f1det(p,i,l)$lsize(i,l)..
+ 326   
+ 327        2*var(i)*lsize(i,l)*f1(i,l) =g= v(p,i,l) - (1-var(i))*lsize(i,l) ;
+ 328   
+ 329   
+ 330   
+ 331  *
+ 332  * a two pool allocation is big if the sum of the allocated values for
+ 333  * those two pools is greater than or equal to the minimum allocation
+ 334  * value requirement.
+ 335  *
+ 336   
+ 337    f2det(p,pp,i,l)$(lsize(i,l) and ord(p) lt ord(pp))..
+ 338   
+ 339       2*var(i)*lsize(i,l)*f2(i,l) =g= v(p,i,l) + v(pp,i,l) - (1-var(i))*lsize(i,l) ;
+ 340   
+ 341   
+ 342   
+ 343  *
+ 344  * no more than the specified number of pools can be allocated to a
+ 345  * lot.  if a big single pool allocation takes place then only that
+ 346  * pool can be allocated, and if a big two pool allocation takes place
+ 347  * for a tba lot, then only those two pools can be allocated to the lot.
+ 348  *
+ 349   
+ 350    maxpool1(i,l)$lsize(i,l)..  sum(p, z(p,i,l))  =l=  maxp(i,l) ;
+ 351   
+ 352   
+ 353    maxpool2(i,l)$lsize(i,l).. sum(p, z(p,i,l))  =l=  1 + (1 - f1(i,l))*maxp(i,l) ;
+ 354   
+ 355   
+ 356    maxpool3(i,l)$lsize(i,l).. sum(p, z(p,i,l))  =l=  2 + (1 - f2(i,l))*maxp(i,l) ;
+ 357   
+ 358   
+ 359   
+ 360  *
+ 361  * total profit equals margin times delivery minus splitting costs.
+ 362  *
+ 363   
+ 364    profitdef..
+ 365   
+ 366        profit =e=
+ 367          sum((p,i,l)$lsize(i,l), (futprice(i)-mktprice(i))*v(p,i,l))
+ 368             - sum(p, splitcost(p)*s(p)) ;
+ 369   
+ 370   
+ 371   
+ 372  Model poolassign    pool to tab lot assignment model / all /;
+ 373   
+ 374    u.up(p,i,l) = m(p,i,l) ;
+ 375    ub.up(p)    = mb(p) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 9
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+equations and model definition
+
+
+ 376   
+ 377  * help the mip code along
+ 378  u.prior(p,i,l) = 2;
+ 379  ub.prior(p)    = 2;
+ 380  poolassign.prioropt=1;
+ 381  poolassign.optcr = .0001;
+ 382   
+ 383  Solve poolassign maximizing profit using  mip ;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 10
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Equation Listing    SOLVE poolassign Using MIP From line 383
+
+
+---- loval  =G=  lower limit on allocated value by tba lot
+
+loval(20580252,l1)..  v(gn999001,20580252,l1) + v(gn999002,20580252,l1) + v(gn999003,20580252,l1) + v(gn999004,20580252,l1) + v(gn999005,20580252,l1) + v(gn999006,20580252,l1) + v(gn999007,20580252,l1) + v(gn999008,20580252,l1) + v(gn999009,20580252,l1)
+     
+      + v(gn999010,20580252,l1) + v(gn999011,20580252,l1) - 950*w(20580252,l1) =G= 0 ; (LHS = 0)
+     
+loval(20580252,l2)..  v(gn999001,20580252,l2) + v(gn999002,20580252,l2) + v(gn999003,20580252,l2) + v(gn999004,20580252,l2) + v(gn999005,20580252,l2) + v(gn999006,20580252,l2) + v(gn999007,20580252,l2) + v(gn999008,20580252,l2) + v(gn999009,20580252,l2)
+     
+      + v(gn999010,20580252,l2) + v(gn999011,20580252,l2) - 950*w(20580252,l2) =G= 0 ; (LHS = 0)
+     
+loval(20580252,l3)..  v(gn999001,20580252,l3) + v(gn999002,20580252,l3) + v(gn999003,20580252,l3) + v(gn999004,20580252,l3) + v(gn999005,20580252,l3) + v(gn999006,20580252,l3) + v(gn999007,20580252,l3) + v(gn999008,20580252,l3) + v(gn999009,20580252,l3)
+     
+      + v(gn999010,20580252,l3) + v(gn999011,20580252,l3) - 950*w(20580252,l3) =G= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- upval  =L=  upper limit on allocated value by tba lot
+
+upval(20580252,l1)..  v(gn999001,20580252,l1) + v(gn999002,20580252,l1) + v(gn999003,20580252,l1) + v(gn999004,20580252,l1) + v(gn999005,20580252,l1) + v(gn999006,20580252,l1) + v(gn999007,20580252,l1) + v(gn999008,20580252,l1) + v(gn999009,20580252,l1)
+     
+      + v(gn999010,20580252,l1) + v(gn999011,20580252,l1) - 1050*w(20580252,l1) =L= 0 ; (LHS = 0)
+     
+upval(20580252,l2)..  v(gn999001,20580252,l2) + v(gn999002,20580252,l2) + v(gn999003,20580252,l2) + v(gn999004,20580252,l2) + v(gn999005,20580252,l2) + v(gn999006,20580252,l2) + v(gn999007,20580252,l2) + v(gn999008,20580252,l2) + v(gn999009,20580252,l2)
+     
+      + v(gn999010,20580252,l2) + v(gn999011,20580252,l2) - 1050*w(20580252,l2) =L= 0 ; (LHS = 0)
+     
+upval(20580252,l3)..  v(gn999001,20580252,l3) + v(gn999002,20580252,l3) + v(gn999003,20580252,l3) + v(gn999004,20580252,l3) + v(gn999005,20580252,l3) + v(gn999006,20580252,l3) + v(gn999007,20580252,l3) + v(gn999008,20580252,l3) + v(gn999009,20580252,l3)
+     
+      + v(gn999010,20580252,l3) + v(gn999011,20580252,l3) - 1050*w(20580252,l3) =L= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- supply  =E=  allocate value and boxed amounts
+
+supply(gn999001)..  v(gn999001,20580252,l1) + v(gn999001,20580252,l2) + v(gn999001,20580252,l3) + v(gn999001,20580252,l4) + b(gn999001) =E= 50 ; (LHS = 0, INFES = 50 ****)
+     
+supply(gn999002)..  v(gn999002,20580252,l1) + v(gn999002,20580252,l2) + v(gn999002,20580252,l3) + v(gn999002,20580252,l4) + b(gn999002) =E= 100 ; (LHS = 0, INFES = 100 ****)
+     
+supply(gn999003)..  v(gn999003,20580252,l1) + v(gn999003,20580252,l2) + v(gn999003,20580252,l3) + v(gn999003,20580252,l4) + b(gn999003) =E= 300 ; (LHS = 0, INFES = 300 ****)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- class3con  =G=  constraint on use of class 3 pools
+
+class3con(20580252,l1)..  v(gn999001,20580252,l1) + v(gn999002,20580252,l1) + v(gn999003,20580252,l1) + v(gn999004,20580252,l1) + v(gn999005,20580252,l1) + v(gn999006,20580252,l1) + v(gn999007,20580252,l1) + v(gn999008,20580252,l1)
+     
+      + v(gn999009,20580252,l1) - w(20580252,l1) =G= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 11
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Equation Listing    SOLVE poolassign Using MIP From line 383
+
+
+     class3con  =G=  constraint on use of class 3 pools
+
+class3con(20580252,l2)..  v(gn999001,20580252,l2) + v(gn999002,20580252,l2) + v(gn999003,20580252,l2) + v(gn999004,20580252,l2) + v(gn999005,20580252,l2) + v(gn999006,20580252,l2) + v(gn999007,20580252,l2) + v(gn999008,20580252,l2)
+     
+      + v(gn999009,20580252,l2) - w(20580252,l2) =G= 0 ; (LHS = 0)
+     
+class3con(20580252,l3)..  v(gn999001,20580252,l3) + v(gn999002,20580252,l3) + v(gn999003,20580252,l3) + v(gn999004,20580252,l3) + v(gn999005,20580252,l3) + v(gn999006,20580252,l3) + v(gn999007,20580252,l3) + v(gn999008,20580252,l3)
+     
+      + v(gn999009,20580252,l3) - w(20580252,l3) =G= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- splitsize  =E=  allocate head step and tail variables
+
+splitsize(gn999001,20580252,l1)..  v(gn999001,20580252,l1) - 25*u0(gn999001,20580252,l1) - 5*u(gn999001,20580252,l1) =E= 0 ; (LHS = 0)
+     
+splitsize(gn999001,20580252,l2)..  v(gn999001,20580252,l2) - 25*u0(gn999001,20580252,l2) - 5*u(gn999001,20580252,l2) =E= 0 ; (LHS = 0)
+     
+splitsize(gn999001,20580252,l3)..  v(gn999001,20580252,l3) - 25*u0(gn999001,20580252,l3) - 5*u(gn999001,20580252,l3) =E= 0 ; (LHS = 0)
+     
+REMAINING 41 ENTRIES SKIPPED
+
+
+---- stepcon  =L=  allocate step only after head allocation
+
+stepcon(gn999001,20580252,l1)..  - 205*u0(gn999001,20580252,l1) + u(gn999001,20580252,l1) =L= 0 ; (LHS = 0)
+     
+stepcon(gn999001,20580252,l2)..  - 205*u0(gn999001,20580252,l2) + u(gn999001,20580252,l2) =L= 0 ; (LHS = 0)
+     
+stepcon(gn999001,20580252,l3)..  - 205*u0(gn999001,20580252,l3) + u(gn999001,20580252,l3) =L= 0 ; (LHS = 0)
+     
+REMAINING 41 ENTRIES SKIPPED
+
+
+---- tailcon  =L=  allocate tail only after head allocation
+
+                NONE
+
+
+---- onetail  =L=  allocate tail only once for each pool
+
+                NONE
+
+
+---- boxsize  =E=  allocate boxed head step and tail variables
+
+boxsize(gn999001)..  b(gn999001) - 25*u0b(gn999001) - 5*ub(gn999001) =E= 0 ; (LHS = 0)
+     
+boxsize(gn999002)..  b(gn999002) - 25*u0b(gn999002) - 5*ub(gn999002) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 12
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Equation Listing    SOLVE poolassign Using MIP From line 383
+
+
+     boxsize  =E=  allocate boxed head step and tail variables
+
+boxsize(gn999003)..  b(gn999003) - 25*u0b(gn999003) - 5*ub(gn999003) =E= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- stepboxcon  =L=  allocate boxed steps after boxed head
+
+stepboxcon(gn999001)..  - 5*u0b(gn999001) + ub(gn999001) =L= 0 ; (LHS = 0)
+     
+stepboxcon(gn999002)..  - 15*u0b(gn999002) + ub(gn999002) =L= 0 ; (LHS = 0)
+     
+stepboxcon(gn999003)..  - 55*u0b(gn999003) + ub(gn999003) =L= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- boxtailcon  =L=  allocate boxed tail after boxed head
+
+                NONE
+
+
+---- zdet  =L=  determination of whether to allocate pool
+
+zdet(gn999001,20580252,l1)..  v(gn999001,20580252,l1) - 1050*z(gn999001,20580252,l1) =L= 0 ; (LHS = 0)
+     
+zdet(gn999001,20580252,l2)..  v(gn999001,20580252,l2) - 1050*z(gn999001,20580252,l2) =L= 0 ; (LHS = 0)
+     
+zdet(gn999001,20580252,l3)..  v(gn999001,20580252,l3) - 1050*z(gn999001,20580252,l3) =L= 0 ; (LHS = 0)
+     
+REMAINING 41 ENTRIES SKIPPED
+
+
+---- zbox1def  =G=  definition of zb1
+
+zbox1def(gn999001)..  0.02*b(gn999001) + zb1(gn999001) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+zbox1def(gn999002)..  0.01*b(gn999002) + zb1(gn999002) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+zbox1def(gn999003)..  0.00333333333333333*b(gn999003) + zb1(gn999003) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- zbox2def  =G=  definition of zb2
+
+zbox2def(gn999001)..  - 0.02*b(gn999001) + zb2(gn999001) =G= 0 ; (LHS = 0)
+     
+zbox2def(gn999002)..  - 0.01*b(gn999002) + zb2(gn999002) =G= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 13
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Equation Listing    SOLVE poolassign Using MIP From line 383
+
+
+     zbox2def  =G=  definition of zb2
+
+zbox2def(gn999003)..  - 0.00333333333333333*b(gn999003) + zb2(gn999003) =G= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- splitdet  =L=  determination of whether to split
+
+splitdet(gn999001)..  z(gn999001,20580252,l1) + z(gn999001,20580252,l2) + z(gn999001,20580252,l3) + z(gn999001,20580252,l4) + zb1(gn999001) + zb2(gn999001) - 4*s(gn999001) =L= 2 ; (LHS = 0)
+     
+splitdet(gn999002)..  z(gn999002,20580252,l1) + z(gn999002,20580252,l2) + z(gn999002,20580252,l3) + z(gn999002,20580252,l4) + zb1(gn999002) + zb2(gn999002) - 4*s(gn999002) =L= 2 ; (LHS = 0)
+     
+splitdet(gn999003)..  z(gn999003,20580252,l1) + z(gn999003,20580252,l2) + z(gn999003,20580252,l3) + z(gn999003,20580252,l4) + zb1(gn999003) + zb2(gn999003) - 4*s(gn999003) =L= 2 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- f1det  =G=  determination of single big allocated pools
+
+f1det(gn999001,20580252,l1)..  - v(gn999001,20580252,l1) + 100*f1(20580252,l1) =G= -950 ; (LHS = 0)
+     
+f1det(gn999001,20580252,l2)..  - v(gn999001,20580252,l2) + 100*f1(20580252,l2) =G= -950 ; (LHS = 0)
+     
+f1det(gn999001,20580252,l3)..  - v(gn999001,20580252,l3) + 100*f1(20580252,l3) =G= -950 ; (LHS = 0)
+     
+REMAINING 41 ENTRIES SKIPPED
+
+
+---- f2det  =G=  determination of two big pools
+
+f2det(gn999001,gn999002,20580252,l1)..  - v(gn999001,20580252,l1) - v(gn999002,20580252,l1) + 100*f2(20580252,l1) =G= -950 ; (LHS = 0)
+     
+f2det(gn999001,gn999002,20580252,l2)..  - v(gn999001,20580252,l2) - v(gn999002,20580252,l2) + 100*f2(20580252,l2) =G= -950 ; (LHS = 0)
+     
+f2det(gn999001,gn999002,20580252,l3)..  - v(gn999001,20580252,l3) - v(gn999002,20580252,l3) + 100*f2(20580252,l3) =G= -950 ; (LHS = 0)
+     
+REMAINING 217 ENTRIES SKIPPED
+
+
+---- maxpool1  =L=  constraint on maximum pools per lot
+
+maxpool1(20580252,l1)..  z(gn999001,20580252,l1) + z(gn999002,20580252,l1) + z(gn999003,20580252,l1) + z(gn999004,20580252,l1) + z(gn999005,20580252,l1) + z(gn999006,20580252,l1) + z(gn999007,20580252,l1) + z(gn999008,20580252,l1)
+     
+      + z(gn999009,20580252,l1) + z(gn999010,20580252,l1) + z(gn999011,20580252,l1) =L= 3 ; (LHS = 0)
+     
+maxpool1(20580252,l2)..  z(gn999001,20580252,l2) + z(gn999002,20580252,l2) + z(gn999003,20580252,l2) + z(gn999004,20580252,l2) + z(gn999005,20580252,l2) + z(gn999006,20580252,l2) + z(gn999007,20580252,l2) + z(gn999008,20580252,l2)
+     
+      + z(gn999009,20580252,l2) + z(gn999010,20580252,l2) + z(gn999011,20580252,l2) =L= 3 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 14
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Equation Listing    SOLVE poolassign Using MIP From line 383
+
+
+     maxpool1  =L=  constraint on maximum pools per lot
+
+maxpool1(20580252,l3)..  z(gn999001,20580252,l3) + z(gn999002,20580252,l3) + z(gn999003,20580252,l3) + z(gn999004,20580252,l3) + z(gn999005,20580252,l3) + z(gn999006,20580252,l3) + z(gn999007,20580252,l3) + z(gn999008,20580252,l3)
+     
+      + z(gn999009,20580252,l3) + z(gn999010,20580252,l3) + z(gn999011,20580252,l3) =L= 3 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- maxpool2  =L=  constraint on maximum pools per lot
+
+maxpool2(20580252,l1)..  z(gn999001,20580252,l1) + z(gn999002,20580252,l1) + z(gn999003,20580252,l1) + z(gn999004,20580252,l1) + z(gn999005,20580252,l1) + z(gn999006,20580252,l1) + z(gn999007,20580252,l1) + z(gn999008,20580252,l1)
+     
+      + z(gn999009,20580252,l1) + z(gn999010,20580252,l1) + z(gn999011,20580252,l1) + 3*f1(20580252,l1) =L= 4 ; (LHS = 0)
+     
+maxpool2(20580252,l2)..  z(gn999001,20580252,l2) + z(gn999002,20580252,l2) + z(gn999003,20580252,l2) + z(gn999004,20580252,l2) + z(gn999005,20580252,l2) + z(gn999006,20580252,l2) + z(gn999007,20580252,l2) + z(gn999008,20580252,l2)
+     
+      + z(gn999009,20580252,l2) + z(gn999010,20580252,l2) + z(gn999011,20580252,l2) + 3*f1(20580252,l2) =L= 4 ; (LHS = 0)
+     
+maxpool2(20580252,l3)..  z(gn999001,20580252,l3) + z(gn999002,20580252,l3) + z(gn999003,20580252,l3) + z(gn999004,20580252,l3) + z(gn999005,20580252,l3) + z(gn999006,20580252,l3) + z(gn999007,20580252,l3) + z(gn999008,20580252,l3)
+     
+      + z(gn999009,20580252,l3) + z(gn999010,20580252,l3) + z(gn999011,20580252,l3) + 3*f1(20580252,l3) =L= 4 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- maxpool3  =L=  constraint on maximum pools per lot
+
+maxpool3(20580252,l1)..  z(gn999001,20580252,l1) + z(gn999002,20580252,l1) + z(gn999003,20580252,l1) + z(gn999004,20580252,l1) + z(gn999005,20580252,l1) + z(gn999006,20580252,l1) + z(gn999007,20580252,l1) + z(gn999008,20580252,l1)
+     
+      + z(gn999009,20580252,l1) + z(gn999010,20580252,l1) + z(gn999011,20580252,l1) + 3*f2(20580252,l1) =L= 5 ; (LHS = 0)
+     
+maxpool3(20580252,l2)..  z(gn999001,20580252,l2) + z(gn999002,20580252,l2) + z(gn999003,20580252,l2) + z(gn999004,20580252,l2) + z(gn999005,20580252,l2) + z(gn999006,20580252,l2) + z(gn999007,20580252,l2) + z(gn999008,20580252,l2)
+     
+      + z(gn999009,20580252,l2) + z(gn999010,20580252,l2) + z(gn999011,20580252,l2) + 3*f2(20580252,l2) =L= 5 ; (LHS = 0)
+     
+maxpool3(20580252,l3)..  z(gn999001,20580252,l3) + z(gn999002,20580252,l3) + z(gn999003,20580252,l3) + z(gn999004,20580252,l3) + z(gn999005,20580252,l3) + z(gn999006,20580252,l3) + z(gn999007,20580252,l3) + z(gn999008,20580252,l3)
+     
+      + z(gn999009,20580252,l3) + z(gn999010,20580252,l3) + z(gn999011,20580252,l3) + 3*f2(20580252,l3) =L= 5 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- profitdef  =E=  definition of profits
+
+profitdef..  profit - 0.00879999999999992*v(gn999001,20580252,l1) - 0.00879999999999992*v(gn999001,20580252,l2) - 0.00879999999999992*v(gn999001,20580252,l3) - 0.00879999999999992*v(gn999001,20580252,l4) - 0.00879999999999992*v(gn999002,20580252,l1)
+     
+      - 0.00879999999999992*v(gn999002,20580252,l2) - 0.00879999999999992*v(gn999002,20580252,l3) - 0.00879999999999992*v(gn999002,20580252,l4) - 0.00879999999999992*v(gn999003,20580252,l1) - 0.00879999999999992*v(gn999003,20580252,l2)
+     
+      - 0.00879999999999992*v(gn999003,20580252,l3) - 0.00879999999999992*v(gn999003,20580252,l4) - 0.00879999999999992*v(gn999004,20580252,l1) - 0.00879999999999992*v(gn999004,20580252,l2) - 0.00879999999999992*v(gn999004,20580252,l3)
+     
+      - 0.00879999999999992*v(gn999004,20580252,l4) - 0.00879999999999992*v(gn999005,20580252,l1) - 0.00879999999999992*v(gn999005,20580252,l2) - 0.00879999999999992*v(gn999005,20580252,l3) - 0.00879999999999992*v(gn999005,20580252,l4)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 15
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Equation Listing    SOLVE poolassign Using MIP From line 383
+
+
+     profitdef  =E=  definition of profits     
+     
+      - 0.00879999999999992*v(gn999006,20580252,l1) - 0.00879999999999992*v(gn999006,20580252,l2) - 0.00879999999999992*v(gn999006,20580252,l3) - 0.00879999999999992*v(gn999006,20580252,l4) - 0.00879999999999992*v(gn999007,20580252,l1)
+     
+      - 0.00879999999999992*v(gn999007,20580252,l2) - 0.00879999999999992*v(gn999007,20580252,l3) - 0.00879999999999992*v(gn999007,20580252,l4) - 0.00879999999999992*v(gn999008,20580252,l1) - 0.00879999999999992*v(gn999008,20580252,l2)
+     
+      - 0.00879999999999992*v(gn999008,20580252,l3) - 0.00879999999999992*v(gn999008,20580252,l4) - 0.00879999999999992*v(gn999009,20580252,l1) - 0.00879999999999992*v(gn999009,20580252,l2) - 0.00879999999999992*v(gn999009,20580252,l3)
+     
+      - 0.00879999999999992*v(gn999009,20580252,l4) - 0.00879999999999992*v(gn999010,20580252,l1) - 0.00879999999999992*v(gn999010,20580252,l2) - 0.00879999999999992*v(gn999010,20580252,l3) - 0.00879999999999992*v(gn999010,20580252,l4)
+     
+      - 0.00879999999999992*v(gn999011,20580252,l1) - 0.00879999999999992*v(gn999011,20580252,l2) - 0.00879999999999992*v(gn999011,20580252,l3) - 0.00879999999999992*v(gn999011,20580252,l4) + 1E-5*s(gn999001) + 1E-5*s(gn999002) + 1E-5*s(gn999003)
+     
+      + 1E-5*s(gn999004) + 1E-5*s(gn999005) + 1E-5*s(gn999006) + 1E-5*s(gn999007) + 1E-5*s(gn999008) + 1E-5*s(gn999009) + 1E-5*s(gn999010) + 1E-5*s(gn999011) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 16
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+---- profit  total profit
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       profitdef
+
+
+---- v  allocated pool values by tba lot
+
+v(gn999001,20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       loval(20580252,l1)
+        1       upval(20580252,l1)
+        1       supply(gn999001)
+        1       class3con(20580252,l1)
+        1       splitsize(gn999001,20580252,l1)
+        1       zdet(gn999001,20580252,l1)
+       -1       f1det(gn999001,20580252,l1)
+       -1       f2det(gn999001,gn999002,20580252,l1)
+       -1       f2det(gn999001,gn999003,20580252,l1)
+       -1       f2det(gn999001,gn999004,20580252,l1)
+       -1       f2det(gn999001,gn999005,20580252,l1)
+       -1       f2det(gn999001,gn999006,20580252,l1)
+       -1       f2det(gn999001,gn999007,20580252,l1)
+       -1       f2det(gn999001,gn999008,20580252,l1)
+       -1       f2det(gn999001,gn999009,20580252,l1)
+       -1       f2det(gn999001,gn999010,20580252,l1)
+       -1       f2det(gn999001,gn999011,20580252,l1)
+       -0.0088  profitdef
+
+v(gn999001,20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       loval(20580252,l2)
+        1       upval(20580252,l2)
+        1       supply(gn999001)
+        1       class3con(20580252,l2)
+        1       splitsize(gn999001,20580252,l2)
+        1       zdet(gn999001,20580252,l2)
+       -1       f1det(gn999001,20580252,l2)
+       -1       f2det(gn999001,gn999002,20580252,l2)
+       -1       f2det(gn999001,gn999003,20580252,l2)
+       -1       f2det(gn999001,gn999004,20580252,l2)
+       -1       f2det(gn999001,gn999005,20580252,l2)
+       -1       f2det(gn999001,gn999006,20580252,l2)
+       -1       f2det(gn999001,gn999007,20580252,l2)
+       -1       f2det(gn999001,gn999008,20580252,l2)
+       -1       f2det(gn999001,gn999009,20580252,l2)
+       -1       f2det(gn999001,gn999010,20580252,l2)
+       -1       f2det(gn999001,gn999011,20580252,l2)
+       -0.0088  profitdef
+
+v(gn999001,20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 17
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     v  allocated pool values by tba lot
+
+        1       loval(20580252,l3)
+        1       upval(20580252,l3)
+        1       supply(gn999001)
+        1       class3con(20580252,l3)
+        1       splitsize(gn999001,20580252,l3)
+        1       zdet(gn999001,20580252,l3)
+       -1       f1det(gn999001,20580252,l3)
+       -1       f2det(gn999001,gn999002,20580252,l3)
+       -1       f2det(gn999001,gn999003,20580252,l3)
+       -1       f2det(gn999001,gn999004,20580252,l3)
+       -1       f2det(gn999001,gn999005,20580252,l3)
+       -1       f2det(gn999001,gn999006,20580252,l3)
+       -1       f2det(gn999001,gn999007,20580252,l3)
+       -1       f2det(gn999001,gn999008,20580252,l3)
+       -1       f2det(gn999001,gn999009,20580252,l3)
+       -1       f2det(gn999001,gn999010,20580252,l3)
+       -1       f2det(gn999001,gn999011,20580252,l3)
+       -0.0088  profitdef
+
+REMAINING 41 ENTRIES SKIPPED
+
+---- b  adjusted face value of pools remaining in box
+
+b(gn999001)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       supply(gn999001)
+        1       boxsize(gn999001)
+        0.02    zbox1def(gn999001)
+       -0.02    zbox2def(gn999001)
+
+b(gn999002)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       supply(gn999002)
+        1       boxsize(gn999002)
+        0.01    zbox1def(gn999002)
+       -0.01    zbox2def(gn999002)
+
+b(gn999003)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       supply(gn999003)
+        1       boxsize(gn999003)
+        0.0033  zbox1def(gn999003)
+       -0.0033  zbox2def(gn999003)
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- z  decision whether to allocated pool to tba lot
+
+z(gn999001,20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1050       zdet(gn999001,20580252,l1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 18
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     z  decision whether to allocated pool to tba lot
+
+        1       splitdet(gn999001)
+        1       maxpool1(20580252,l1)
+        1       maxpool2(20580252,l1)
+        1       maxpool3(20580252,l1)
+
+z(gn999001,20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1050       zdet(gn999001,20580252,l2)
+        1       splitdet(gn999001)
+        1       maxpool1(20580252,l2)
+        1       maxpool2(20580252,l2)
+        1       maxpool3(20580252,l2)
+
+z(gn999001,20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+    -1050       zdet(gn999001,20580252,l3)
+        1       splitdet(gn999001)
+        1       maxpool1(20580252,l3)
+        1       maxpool2(20580252,l3)
+        1       maxpool3(20580252,l3)
+
+REMAINING 41 ENTRIES SKIPPED
+
+---- zb1  auxiliary binary variable to determine splits
+
+zb1(gn999001)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       zbox1def(gn999001)
+        1       splitdet(gn999001)
+
+zb1(gn999002)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       zbox1def(gn999002)
+        1       splitdet(gn999002)
+
+zb1(gn999003)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       zbox1def(gn999003)
+        1       splitdet(gn999003)
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- zb2  auxiliary binary variable to determine splits
+
+zb2(gn999001)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       zbox2def(gn999001)
+        1       splitdet(gn999001)
+
+zb2(gn999002)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 19
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     zb2  auxiliary binary variable to determine splits
+
+        1       zbox2def(gn999002)
+        1       splitdet(gn999002)
+
+zb2(gn999003)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       zbox2def(gn999003)
+        1       splitdet(gn999003)
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- w  decision whether to fail tba lot  (0=failed)
+
+w(20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -950       loval(20580252,l1)
+    -1050       upval(20580252,l1)
+       -1       class3con(20580252,l1)
+
+w(20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -950       loval(20580252,l2)
+    -1050       upval(20580252,l2)
+       -1       class3con(20580252,l2)
+
+w(20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -950       loval(20580252,l3)
+    -1050       upval(20580252,l3)
+       -1       class3con(20580252,l3)
+
+REMAINING ENTRY SKIPPED
+
+---- u0  auxiliary binary variable for minimum allocation
+
+u0(gn999001,20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -25       splitsize(gn999001,20580252,l1)
+     -205       stepcon(gn999001,20580252,l1)
+
+u0(gn999001,20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -25       splitsize(gn999001,20580252,l2)
+     -205       stepcon(gn999001,20580252,l2)
+
+u0(gn999001,20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -25       splitsize(gn999001,20580252,l3)
+     -205       stepcon(gn999001,20580252,l3)
+
+REMAINING 41 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 20
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+---- u0b  auxiliary binary variable for minimum boxing
+
+u0b(gn999001)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -25       boxsize(gn999001)
+       -5       stepboxcon(gn999001)
+
+u0b(gn999002)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -25       boxsize(gn999002)
+      -15       stepboxcon(gn999002)
+
+u0b(gn999003)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -25       boxsize(gn999003)
+      -55       stepboxcon(gn999003)
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- s  decision whether to split pools
+
+s(gn999001)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -4       splitdet(gn999001)
+  1.0000000E-5  profitdef
+
+s(gn999002)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -4       splitdet(gn999002)
+  1.0000000E-5  profitdef
+
+s(gn999003)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -4       splitdet(gn999003)
+  1.0000000E-5  profitdef
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- f1  binary variable for one big pool allocation
+
+f1(20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      100       f1det(gn999001,20580252,l1)
+      100       f1det(gn999002,20580252,l1)
+      100       f1det(gn999003,20580252,l1)
+      100       f1det(gn999004,20580252,l1)
+      100       f1det(gn999005,20580252,l1)
+      100       f1det(gn999006,20580252,l1)
+      100       f1det(gn999007,20580252,l1)
+      100       f1det(gn999008,20580252,l1)
+      100       f1det(gn999009,20580252,l1)
+      100       f1det(gn999010,20580252,l1)
+      100       f1det(gn999011,20580252,l1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 21
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     f1  binary variable for one big pool allocation
+
+        3       maxpool2(20580252,l1)
+
+f1(20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      100       f1det(gn999001,20580252,l2)
+      100       f1det(gn999002,20580252,l2)
+      100       f1det(gn999003,20580252,l2)
+      100       f1det(gn999004,20580252,l2)
+      100       f1det(gn999005,20580252,l2)
+      100       f1det(gn999006,20580252,l2)
+      100       f1det(gn999007,20580252,l2)
+      100       f1det(gn999008,20580252,l2)
+      100       f1det(gn999009,20580252,l2)
+      100       f1det(gn999010,20580252,l2)
+      100       f1det(gn999011,20580252,l2)
+        3       maxpool2(20580252,l2)
+
+f1(20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      100       f1det(gn999001,20580252,l3)
+      100       f1det(gn999002,20580252,l3)
+      100       f1det(gn999003,20580252,l3)
+      100       f1det(gn999004,20580252,l3)
+      100       f1det(gn999005,20580252,l3)
+      100       f1det(gn999006,20580252,l3)
+      100       f1det(gn999007,20580252,l3)
+      100       f1det(gn999008,20580252,l3)
+      100       f1det(gn999009,20580252,l3)
+      100       f1det(gn999010,20580252,l3)
+      100       f1det(gn999011,20580252,l3)
+        3       maxpool2(20580252,l3)
+
+REMAINING ENTRY SKIPPED
+
+---- f2  binary variable for two big pools allocation
+
+f2(20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      100       f2det(gn999001,gn999002,20580252,l1)
+      100       f2det(gn999001,gn999003,20580252,l1)
+      100       f2det(gn999001,gn999004,20580252,l1)
+      100       f2det(gn999001,gn999005,20580252,l1)
+      100       f2det(gn999001,gn999006,20580252,l1)
+      100       f2det(gn999001,gn999007,20580252,l1)
+      100       f2det(gn999001,gn999008,20580252,l1)
+      100       f2det(gn999001,gn999009,20580252,l1)
+      100       f2det(gn999001,gn999010,20580252,l1)
+      100       f2det(gn999001,gn999011,20580252,l1)
+      100       f2det(gn999002,gn999003,20580252,l1)
+      100       f2det(gn999002,gn999004,20580252,l1)
+      100       f2det(gn999002,gn999005,20580252,l1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 22
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     f2  binary variable for two big pools allocation
+
+      100       f2det(gn999002,gn999006,20580252,l1)
+      100       f2det(gn999002,gn999007,20580252,l1)
+      100       f2det(gn999002,gn999008,20580252,l1)
+      100       f2det(gn999002,gn999009,20580252,l1)
+      100       f2det(gn999002,gn999010,20580252,l1)
+      100       f2det(gn999002,gn999011,20580252,l1)
+      100       f2det(gn999003,gn999004,20580252,l1)
+      100       f2det(gn999003,gn999005,20580252,l1)
+      100       f2det(gn999003,gn999006,20580252,l1)
+      100       f2det(gn999003,gn999007,20580252,l1)
+      100       f2det(gn999003,gn999008,20580252,l1)
+      100       f2det(gn999003,gn999009,20580252,l1)
+      100       f2det(gn999003,gn999010,20580252,l1)
+      100       f2det(gn999003,gn999011,20580252,l1)
+      100       f2det(gn999004,gn999005,20580252,l1)
+      100       f2det(gn999004,gn999006,20580252,l1)
+      100       f2det(gn999004,gn999007,20580252,l1)
+      100       f2det(gn999004,gn999008,20580252,l1)
+      100       f2det(gn999004,gn999009,20580252,l1)
+      100       f2det(gn999004,gn999010,20580252,l1)
+      100       f2det(gn999004,gn999011,20580252,l1)
+      100       f2det(gn999005,gn999006,20580252,l1)
+      100       f2det(gn999005,gn999007,20580252,l1)
+      100       f2det(gn999005,gn999008,20580252,l1)
+      100       f2det(gn999005,gn999009,20580252,l1)
+      100       f2det(gn999005,gn999010,20580252,l1)
+      100       f2det(gn999005,gn999011,20580252,l1)
+      100       f2det(gn999006,gn999007,20580252,l1)
+      100       f2det(gn999006,gn999008,20580252,l1)
+      100       f2det(gn999006,gn999009,20580252,l1)
+      100       f2det(gn999006,gn999010,20580252,l1)
+      100       f2det(gn999006,gn999011,20580252,l1)
+      100       f2det(gn999007,gn999008,20580252,l1)
+      100       f2det(gn999007,gn999009,20580252,l1)
+      100       f2det(gn999007,gn999010,20580252,l1)
+      100       f2det(gn999007,gn999011,20580252,l1)
+      100       f2det(gn999008,gn999009,20580252,l1)
+      100       f2det(gn999008,gn999010,20580252,l1)
+      100       f2det(gn999008,gn999011,20580252,l1)
+      100       f2det(gn999009,gn999010,20580252,l1)
+      100       f2det(gn999009,gn999011,20580252,l1)
+      100       f2det(gn999010,gn999011,20580252,l1)
+        3       maxpool3(20580252,l1)
+
+f2(20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      100       f2det(gn999001,gn999002,20580252,l2)
+      100       f2det(gn999001,gn999003,20580252,l2)
+      100       f2det(gn999001,gn999004,20580252,l2)
+      100       f2det(gn999001,gn999005,20580252,l2)
+      100       f2det(gn999001,gn999006,20580252,l2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 23
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     f2  binary variable for two big pools allocation
+
+      100       f2det(gn999001,gn999007,20580252,l2)
+      100       f2det(gn999001,gn999008,20580252,l2)
+      100       f2det(gn999001,gn999009,20580252,l2)
+      100       f2det(gn999001,gn999010,20580252,l2)
+      100       f2det(gn999001,gn999011,20580252,l2)
+      100       f2det(gn999002,gn999003,20580252,l2)
+      100       f2det(gn999002,gn999004,20580252,l2)
+      100       f2det(gn999002,gn999005,20580252,l2)
+      100       f2det(gn999002,gn999006,20580252,l2)
+      100       f2det(gn999002,gn999007,20580252,l2)
+      100       f2det(gn999002,gn999008,20580252,l2)
+      100       f2det(gn999002,gn999009,20580252,l2)
+      100       f2det(gn999002,gn999010,20580252,l2)
+      100       f2det(gn999002,gn999011,20580252,l2)
+      100       f2det(gn999003,gn999004,20580252,l2)
+      100       f2det(gn999003,gn999005,20580252,l2)
+      100       f2det(gn999003,gn999006,20580252,l2)
+      100       f2det(gn999003,gn999007,20580252,l2)
+      100       f2det(gn999003,gn999008,20580252,l2)
+      100       f2det(gn999003,gn999009,20580252,l2)
+      100       f2det(gn999003,gn999010,20580252,l2)
+      100       f2det(gn999003,gn999011,20580252,l2)
+      100       f2det(gn999004,gn999005,20580252,l2)
+      100       f2det(gn999004,gn999006,20580252,l2)
+      100       f2det(gn999004,gn999007,20580252,l2)
+      100       f2det(gn999004,gn999008,20580252,l2)
+      100       f2det(gn999004,gn999009,20580252,l2)
+      100       f2det(gn999004,gn999010,20580252,l2)
+      100       f2det(gn999004,gn999011,20580252,l2)
+      100       f2det(gn999005,gn999006,20580252,l2)
+      100       f2det(gn999005,gn999007,20580252,l2)
+      100       f2det(gn999005,gn999008,20580252,l2)
+      100       f2det(gn999005,gn999009,20580252,l2)
+      100       f2det(gn999005,gn999010,20580252,l2)
+      100       f2det(gn999005,gn999011,20580252,l2)
+      100       f2det(gn999006,gn999007,20580252,l2)
+      100       f2det(gn999006,gn999008,20580252,l2)
+      100       f2det(gn999006,gn999009,20580252,l2)
+      100       f2det(gn999006,gn999010,20580252,l2)
+      100       f2det(gn999006,gn999011,20580252,l2)
+      100       f2det(gn999007,gn999008,20580252,l2)
+      100       f2det(gn999007,gn999009,20580252,l2)
+      100       f2det(gn999007,gn999010,20580252,l2)
+      100       f2det(gn999007,gn999011,20580252,l2)
+      100       f2det(gn999008,gn999009,20580252,l2)
+      100       f2det(gn999008,gn999010,20580252,l2)
+      100       f2det(gn999008,gn999011,20580252,l2)
+      100       f2det(gn999009,gn999010,20580252,l2)
+      100       f2det(gn999009,gn999011,20580252,l2)
+      100       f2det(gn999010,gn999011,20580252,l2)
+        3       maxpool3(20580252,l2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 24
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     f2  binary variable for two big pools allocation
+
+
+f2(20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      100       f2det(gn999001,gn999002,20580252,l3)
+      100       f2det(gn999001,gn999003,20580252,l3)
+      100       f2det(gn999001,gn999004,20580252,l3)
+      100       f2det(gn999001,gn999005,20580252,l3)
+      100       f2det(gn999001,gn999006,20580252,l3)
+      100       f2det(gn999001,gn999007,20580252,l3)
+      100       f2det(gn999001,gn999008,20580252,l3)
+      100       f2det(gn999001,gn999009,20580252,l3)
+      100       f2det(gn999001,gn999010,20580252,l3)
+      100       f2det(gn999001,gn999011,20580252,l3)
+      100       f2det(gn999002,gn999003,20580252,l3)
+      100       f2det(gn999002,gn999004,20580252,l3)
+      100       f2det(gn999002,gn999005,20580252,l3)
+      100       f2det(gn999002,gn999006,20580252,l3)
+      100       f2det(gn999002,gn999007,20580252,l3)
+      100       f2det(gn999002,gn999008,20580252,l3)
+      100       f2det(gn999002,gn999009,20580252,l3)
+      100       f2det(gn999002,gn999010,20580252,l3)
+      100       f2det(gn999002,gn999011,20580252,l3)
+      100       f2det(gn999003,gn999004,20580252,l3)
+      100       f2det(gn999003,gn999005,20580252,l3)
+      100       f2det(gn999003,gn999006,20580252,l3)
+      100       f2det(gn999003,gn999007,20580252,l3)
+      100       f2det(gn999003,gn999008,20580252,l3)
+      100       f2det(gn999003,gn999009,20580252,l3)
+      100       f2det(gn999003,gn999010,20580252,l3)
+      100       f2det(gn999003,gn999011,20580252,l3)
+      100       f2det(gn999004,gn999005,20580252,l3)
+      100       f2det(gn999004,gn999006,20580252,l3)
+      100       f2det(gn999004,gn999007,20580252,l3)
+      100       f2det(gn999004,gn999008,20580252,l3)
+      100       f2det(gn999004,gn999009,20580252,l3)
+      100       f2det(gn999004,gn999010,20580252,l3)
+      100       f2det(gn999004,gn999011,20580252,l3)
+      100       f2det(gn999005,gn999006,20580252,l3)
+      100       f2det(gn999005,gn999007,20580252,l3)
+      100       f2det(gn999005,gn999008,20580252,l3)
+      100       f2det(gn999005,gn999009,20580252,l3)
+      100       f2det(gn999005,gn999010,20580252,l3)
+      100       f2det(gn999005,gn999011,20580252,l3)
+      100       f2det(gn999006,gn999007,20580252,l3)
+      100       f2det(gn999006,gn999008,20580252,l3)
+      100       f2det(gn999006,gn999009,20580252,l3)
+      100       f2det(gn999006,gn999010,20580252,l3)
+      100       f2det(gn999006,gn999011,20580252,l3)
+      100       f2det(gn999007,gn999008,20580252,l3)
+      100       f2det(gn999007,gn999009,20580252,l3)
+      100       f2det(gn999007,gn999010,20580252,l3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 25
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Column Listing      SOLVE poolassign Using MIP From line 383
+
+
+     f2  binary variable for two big pools allocation
+
+      100       f2det(gn999007,gn999011,20580252,l3)
+      100       f2det(gn999008,gn999009,20580252,l3)
+      100       f2det(gn999008,gn999010,20580252,l3)
+      100       f2det(gn999008,gn999011,20580252,l3)
+      100       f2det(gn999009,gn999010,20580252,l3)
+      100       f2det(gn999009,gn999011,20580252,l3)
+      100       f2det(gn999010,gn999011,20580252,l3)
+        3       maxpool3(20580252,l3)
+
+REMAINING ENTRY SKIPPED
+
+---- u  auxiliary integer variable for allocation steps
+
+u(gn999001,20580252,l1)
+                (.LO, .L, .UP, .M = 0, 0, 205, 0)
+       -5       splitsize(gn999001,20580252,l1)
+        1       stepcon(gn999001,20580252,l1)
+
+u(gn999001,20580252,l2)
+                (.LO, .L, .UP, .M = 0, 0, 205, 0)
+       -5       splitsize(gn999001,20580252,l2)
+        1       stepcon(gn999001,20580252,l2)
+
+u(gn999001,20580252,l3)
+                (.LO, .L, .UP, .M = 0, 0, 205, 0)
+       -5       splitsize(gn999001,20580252,l3)
+        1       stepcon(gn999001,20580252,l3)
+
+REMAINING 41 ENTRIES SKIPPED
+
+---- ub  auxiliary integer variable for box steps
+
+ub(gn999001)
+                (.LO, .L, .UP, .M = 0, 0, 5, 0)
+       -5       boxsize(gn999001)
+        1       stepboxcon(gn999001)
+
+ub(gn999002)
+                (.LO, .L, .UP, .M = 0, 0, 15, 0)
+       -5       boxsize(gn999002)
+        1       stepboxcon(gn999002)
+
+ub(gn999003)
+                (.LO, .L, .UP, .M = 0, 0, 55, 0)
+       -5       boxsize(gn999003)
+        1       stepboxcon(gn999003)
+
+REMAINING 8 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 26
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Model Statistics    SOLVE poolassign Using MIP From line 383
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          21     SINGLE EQUATIONS          487
+BLOCKS OF VARIABLES          14     SINGLE VARIABLES          255
+NON ZERO ELEMENTS         1,619     DISCRETE VARIABLES        199
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 27
+Financial Optimization: Financial Engineering (TBA,SEQ=115)
+Solution Report     SOLVE poolassign Using MIP From line 383
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   poolassign          OBJECTIVE  profit
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  383
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tba/convert.opt"
+>>  gams tba-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tba/convert.opt"
+Gams      : tba-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tba/tba.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tba/tba-scalar.gms.lst

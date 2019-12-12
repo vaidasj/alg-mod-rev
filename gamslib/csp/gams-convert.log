@@ -1,0 +1,66 @@
+--- Job csp.gms Start 12/13/18 11:24:22 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- csp.gms(133) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- csp.gms(87) 4 Mb
+--- Generating MIP model p1A
+--- csp.gms(89) 4 Mb
+---   52 rows  31 columns  107 non-zeroes
+---   24 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/csp/convert.opt"
+>>  gams csp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/csp/convert.opt"
+--- Writing Gams      : csp-scalar.gms
+
+--- Restarting execution
+--- csp.gms(89) 2 Mb
+--- Reading solution for model p1A
+--- csp.gms(98) 3 Mb
+--- Generating MIP model p2
+--- csp.gms(112) 3 Mb
+---   64 rows  50 columns  151 non-zeroes
+---   43 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.020
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/csp/convert.opt"
+>>  gams csp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/csp/convert.opt"
+--- Writing Gams      : csp-scalar.gms
+
+--- Restarting execution
+--- csp.gms(112) 2 Mb
+--- Reading solution for model p2
+--- csp.gms(115) 3 Mb
+--- Generating MIP model p3
+--- csp.gms(125) 3 Mb
+---   10 rows  20 columns  47 non-zeroes
+---   19 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.032
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/csp/convert.opt"
+>>  gams csp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/csp/convert.opt"
+--- Writing Gams      : csp-scalar.gms
+
+--- Restarting execution
+--- csp.gms(125) 2 Mb
+--- Reading solution for model p3
+--- csp.gms(132) 3 Mb
+*** Status: Normal completion
+--- Job csp.gms Stop 12/13/18 11:24:22 elapsed 0:00:00.041

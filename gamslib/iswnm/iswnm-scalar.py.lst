@@ -1,0 +1,1245 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+   3  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 2
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Network Nodes and Arc Definition
+
+
+   6   
+       
+         This is the surface water network submodel of the integrated
+         Indus river basin model.
+       
+       
+      Duloy, J H, and O'Mara, G T, Issues of Efficiency and Interdependence
+      in Water Resource Investments: Lessons from the Indus Basin of Pakistan.
+      Tech. rep., The World Bank, 1984.
+       
+  18   
+  19   
+  20   Set n  nodes of the indus river system/
+  21            feroz-b    ferozepur barrage                 - sutlej river
+  22            sulem-b    sulemanki barrage                 - sutlej river
+  23            islam-b    islam barrage                     - sutlej river
+  24            panjnad-b  panjnad barrage                   - panjnad river
+  25            ravi-i     ravi inflow at madhopur           - ravi river
+  26            mr-tail    tail of marrala ravi link cannal  - ravi river
+  27            balloki-b  balloki barrage                   - ravi river
+  28            sidhnai-b  sidhani barrage                   - ravi river
+  29            tp-tail    tail of taunsa panjnad link canal - jhelum+chenab
+  30            marala-b   marrala barrage                   - chenab river
+  31            khanki-b   khanki barrage                    - chenab river
+  32            qadira-b   qadirabad barrage                 - chenab river
+  33            trimmu-b   trimmu barrage                    - chenab river
+  34            mangla-r   mangla reservoir                  - jehlum river
+  35            rasul-b    rasul barrage                     - jhelum river
+  36            cj-tail    tail of chasma jehlum link        - jehlum river
+  37            tarbela-r  tarbela reservoir                 - indus river
+  38            amanda-h   amandara head works               - swat river
+  39            munda-h    munda head works                  - swat river
+  40            warsak-d   warsak reservoir                  - kabul river
+  41            k-s-jct    kabul and swat river jct          - kabul river
+  42            kabul-tail kabul river tail                  - indus river
+  43            kalabagh-r kalabagh reservoir                - indus river
+  44            chasma-r   chasma reservoir                  - indus river
+  45            taunsa-b   taunsa barrage                    - indus river
+  46            mithankot  indus and panjnad river jct       - indus river
+  47            gudu-b     gudu barrage                      - indus river
+  48            sukkur-b   sukkur barrage                    - indus river
+  49            kotri-b    kotri barrage                     - indus river
+  50            a-sea      arabian sea
+  51            a1         diversion point for uj uj link and r.p.c
+  52            a2         div. for brbd link uc link and uc int.
+  53            a3         div. for mr cross link
+  54            a4         mr cross tail and brbd link
+  55            a5         div. for cbd and ud canals
+  56            a6         diversion to lcc feeder
+  57            a7         div. for gugera and jhang canals
+  58            a8         divesion point for maili+l pakpattan canals
+  59            a9         smb link to l-bahawl canal
+  60            a10        diversion point for lj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 3
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Network Nodes and Arc Definition
+
+
+  61            /
+  62        c  irrigation canals in the indus river irrigation system/
+  63            ud          upper dipalpur
+  64            cbd         central bari doab canal
+  65            ray         raya canal
+  66            uc          upper chenab canal
+  67            mr          marala ravi canal
+  68            sad         sadiqia canal
+  69            foc         fordwah canal
+  70            pak         upper pakpattan+u-bahawal+qaim+u-mailsi canal
+  71            ld          lower dipalpur canal
+  72            lbd         lower bari doab canal
+  73            jha         jhang canal (lcc)
+  74            gug         gugera branch canal (lcc)
+  75            uj          upper jehlum canal
+  76            lj          lower jehlum canal
+  77            bah         bahawal canal
+  78            mai         lowwer mailsi+ lower pakpattan canal
+  79            sid         sidhnai canal
+  80            hav         haveli canal
+  81            ran         rangpur canal
+  82            pan         panjnad canal
+  83            abb         abbasia canal
+  84            lsw         lower swat canal
+  85            usw         upper swat canal
+  86            war         warsak canal
+  87            kab         kabul river canal
+  88            tha         thal canal
+  89            pah         paharpur canal
+  90            muz         muzffgarh canal
+  91            dgk         dera ghazi khan canal
+  92            p+d         pat plus desert canal
+  93            beg         begari canal
+  94            gho         ghotki canal
+  95            nw          north west canal
+  96            ric         rice canal
+  97            dad         dadu canal
+  98            kw          khairpur west canal
+  99            ke          khairpur east canal
+ 100            roh         rohri canal
+ 101            nar         nara canal
+ 102            kal         kalri canal
+ 103            lch         lined channel
+ 104            ful         fuleli canal
+ 105            pin         pinyari canal/
+ 106       i  system inflows /
+ 107            swat     swat river at chakdara
+ 108            kabul    kabul river at warsak
+ 109            indus    indus river at tarbela
+ 110            haro     haro river at gariall
+ 111            soan     soan river at dhok pathan
+ 112            jehlum   jehlum river at mangls
+ 113            chenab   chenab river at marrala
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 4
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Network Nodes and Arc Definition
+
+
+ 114            ravi     ravi river below madhopur
+ 115            sutlej   sutlej river below ferozpur /
+ 116   
+ 117       nc(n,c)  node to canal map/
+ 118            sulem-b.   (sad,foc,pak),     a8.         mai
+ 119            a9.         bah         ,     panjnad-b. (pan,abb)
+ 120   
+ 121            balloki-b. (lbd,ld)     ,     sidhnai-b.  sid
+ 122   
+ 123            marala-b.   mr          ,     a2.        (uc,ray)
+ 124            a5.        (cbd,ud)     ,     a7.        (jha,gug)
+ 125            trimmu-b.  (ran,hav)
+ 126            a1.         uj          ,     a10.        lj
+ 127            amanda-h.   usw         ,     munda-h.    lsw
+ 128            warsak-d.   war         ,     k-s-jct.    kab
+ 129            kalabagh-r. tha         ,     chasma-r.   pah
+ 130            taunsa-b.  (muz,dgk)    ,     gudu-b.    (p+d,beg,gho)
+ 131            sukkur-b.  (nw,ric,dad,kw,ke,roh,nar)
+ 132            kotri-b.   (kal,lch,ful,pin)/
+ 133               ;
+ 134   Alias (n,n1);
+ 135   Set nn(n,n1) water flow system node to node /
+ 136  *--  sutlej ravi system
+ 137            sulem-b.        (feroz-b,  balloki-b)
+ 138            islam-b.         sulem-b
+ 139            a9.             (a8,       islam-b)
+ 140            a8.              sidhnai-b
+ 141            panjnad-b.      (tp-tail,  islam-b)
+ 142  *--  ravi chenab system
+ 143            ravi-i.          a3
+ 144            a3.              marala-b
+ 145            a4.             (a3,a2)
+ 146            a5.              a4
+ 147            a2.              marala-b
+ 148            balloki-b.      (ravi-i,   a2,        a6)
+ 149            a6.              qadira-b
+ 150            a7.             (a6,       khanki-b)
+ 151            sidhnai-b.      (trimmu-b, balloki-b)
+ 152  *--  chenab jehlum system
+ 153            khanki-b.       (a1,       marala-b)
+ 154            qadira-b.       (rasul-b,  khanki-b)
+ 155            trimmu-b.       (qadira-b, cj-tail)
+ 156            tp-tail.        (trimmu-b, sidhnai-b)
+ 157            a1.              mangla-r
+ 158            rasul-b.         mangla-r
+ 159            a10.            (rasul-b,  a1)
+ 160            cj-tail.        (rasul-b,  chasma-r)
+ 161  *--  kabul swat system
+ 162            munda-h.         amanda-h
+ 163            k-s-jct.        (munda-h,  warsak-d)
+ 164  *--  indus river
+ 165            kabul-tail.     (k-s-jct,  tarbela-r)
+ 166            kalabagh-r.      kabul-tail
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 5
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Network Nodes and Arc Definition
+
+
+ 167            chasma-r.        kalabagh-r
+ 168            taunsa-b.        chasma-r
+ 169            mithankot.      (panjnad-b,taunsa-b)
+ 170            gudu-b.          mithankot
+ 171            sukkur-b.        gudu-b
+ 172            kotri-b.         sukkur-b
+ 173            a-sea.           kotri-b /
+ 174   
+ 175       ni(n,i) node to rim station inflow map /
+ 176            amanda-h.    swat    ,  warsak-d.    kabul,
+ 177            tarbela-r.   indus   ,  kabul-tail.  haro
+ 178            kalabagh-r.  soan    ,  mangla-r.    jehlum
+ 179            marala-b.    chenab  ,  ravi-i.      ravi
+ 180            feroz-b.     sutlej  /
+ 181   
+ 182       e    / pex  pan evaporation
+ 183              hcx  height of water in link canal from sea(feet)
+ 184              hwr  height of groundwater from sea (feet)/
+ 185   
+ 186       m        months /jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec/
+ 187       s        seasons / rabi,kharif /
+ 188       sm(s,m)  season to months mapping
+ 189                    /rabi.(jan,feb,mar,oct,nov,dec)
+ 190                     kharif.(apr,may,jun,jul,aug,sep)/
+ 191       nb(n)    ;
+ 192      nb(n) = yes; nb("a-sea")=no;
+ 193   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 6
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+flow capacities
+
+
+ 195   
+ 196   Parameter ccap(c)  canal capacity at the canal head (maf)/
+ 197             ud    .131,   cbd   .163,   ray   .110,   uc    .506
+ 198             mr    .166,   sad   .332,   foc   .204,   pak   .478
+ 199             ld    .244,   lbd   .518,   jha   .410,   gug   .433
+ 200             uj    .345,   lj    .464,   bah   .346,   mai   .362
+ 201             sid   .268,   hav   .068,   ran   .176,   pan   .671
+ 202             abb   .080,   usw   .117,   lsw   .060,   war   .044
+ 203             kab   .027,   tha   .577,   pah   .037,   muz   .495
+ 204             dgk   .529,   p+d   .799,   beg  1.155,   gho   .648
+ 205             nw    .566,   ric   .829,   dad   .319,   kw    .157
+ 206             ke    .207,   roh   .981,   nar   .873,   kal   .546
+ 207             lch   .205,   ful   .894,   pin   .831/
+ 208   
+ 209      ncap(n,n1) node to node transfer capacity (maf)/
+ 210           chasma-r.  cj-tail   1.307,     taunsa-b.  tp-tail    .724
+ 211   
+ 212           mangla-r.  a1         .685,      a1.        a10        .199
+ 213           rasul-b.   a10        .328,      a1.        khanki-b   .422
+ 214           rasul-b.   qadira-b  1.232,
+ 215   
+ 216           marala-b.  a3         .985,      a3.        a4         .199
+ 217           a3.        ravi-i     .938,      marala-b.  a2         .995
+ 218           a2.        balloki-b  .698,      a2.        a4         .310
+ 219           a4.        a5         .310
+ 220   
+ 221           khanki-b.  a7         .499,      qadira-b.  a6        1.146
+ 222           a6.        a7         .270,      a6.        balloki-b  .808
+ 223   
+ 224           balloki-b. sulem-b   1.172,      trimmu-b.  sidhnai-b 1.03
+ 225           sidhnai-b. a8         .662,      a8.        a9         .640
+ 226           islam-b.   a9         .299 /
+ 227             ;
+ 228   
+ 229    Display n,c,nc,nn, ni;
+ 230    Display ccap, ncap ;
+ 231   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 7
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+loss coefficient calculations for link canals
+
+
+ 233   
+ 234   
+ 235  *- following calculation are to compute loss coefficients coeffl(n1,n,m)
+ 236  *  all the data needed for these calculations is given below except
+ 237  *  link canal capacity is from above
+ 238  *
+ 239   
+ 240   Table madjust(n1,n,m) monthly adjustment factor for operational losses
+ 241   
+ 242                         jan feb mar apr may jun jul aug sep oct nov dec
+ 243  chasma-r.cj-tail       4   4   4   4   5   6   6   6   5   4   4   4
+ 244  taunsa-b.tp-tail       4   4   4   4   5   6   6   6   5   4   4   4
+ 245  mangla-r.a1            4   4   4   4   5   6   6   6   5   4   4   4
+ 246  a1.khanki-b            4   4   4   4   5   6   6   6   5   4   4   4
+ 247  rasul-b.qadira-b       4   4   4   4   5   6   6   6   5   4   4   4
+ 248  marala-b.a3            4   4   4   4   5   6   6   6   5   4   4   4
+ 249  a3.ravi-i              4   4   4   4   5   6   6   6   5   4   4   4
+ 250  marala-b.a2            4   4   4   4   5   6   6   6   5   4   4   4
+ 251  a2.balloki-b           4   4   4   4   5   6   6   6   5   4   4   4
+ 252  a3.a4                  4   4   4   4   5   6   6   6   5   4   4   4
+ 253  a2.a4                  4   4   4   4   5   6   6   6   5   4   4   4
+ 254  a4.a5                  4   4   4   4   5   6   6   6   5   4   4   4
+ 255  khanki-b.a7            4   4   4   4   5   6   6   6   5   4   4   4
+ 256  qadira-b.a6            4   4   4   4   5   6   6   6   5   4   4   4
+ 257  a6.balloki-b           4   4   4   4   5   6   6   6   5   4   4   4
+ 258  a6.a7                  4   4   4   4   5   6   6   6   5   4   4   4
+ 259  balloki-b.sulem-b      4   4   4   4   5   6   6   6   5   4   4   4
+ 260  trimmu-b.sidhnai-b     4   4   4   4   5   6   6   6   5   4   4   4
+ 261  sidhnai-b.a8           2   2   2   2   3   3   3   3   3   2   2   2
+ 262  a8.a9                  2   2   2   2   3   3   3   3   3   2   2   2
+ 263  rasul-b.a10            4   4   4   4   5   6   6   6   5   4   4   4
+ 264  a1.a10                 4   4   4   4   5   6   6   6   5   4   4   4
+ 265   
+ 266   Table linkpar(e,n1,n,m) evaporation(ft) height of canal and gw(ft)
+ 267   
+ 268                               jan     feb     mar     apr     may    jun
+ 269   pex.chasma-r.cj-tail       0.260   0.331   0.517   0.760   1.057   1.143
+ 270   pex.taunsa-b.tp-tail       0.260   0.331   0.517   0.760   1.057   1.143
+ 271   pex.mangla-r.a1            0.240   0.306   0.531   0.752   0.973   1.018
+ 272   pex.a1.khanki-b            0.240   0.306   0.531   0.752   0.973   1.018
+ 273   pex.rasul-b.qadira-b       0.240   0.306   0.531   0.752   0.973   1.018
+ 274   pex.marala-b.a3            0.208   0.297   0.517   0.762   0.957   0.998
+ 275   pex.a3.ravi-i              0.208   0.297   0.517   0.762   0.957   0.998
+ 276   pex.marala-b.a2            0.208   0.297   0.517   0.762   0.957   0.998
+ 277   pex.a2.balloki-b           0.208   0.297   0.517   0.762   0.957   0.998
+ 278   pex.a3.a4                  0.208   0.297   0.517   0.762   0.957   0.998
+ 279   pex.a2.a4                  0.208   0.297   0.517   0.762   0.957   0.998
+ 280   pex.a4.a5                  0.243   0.313   0.565   0.785   0.975   1.048
+ 281   pex.khanki-b.a7            0.208   0.297   0.517   0.762   0.957   0.998
+ 282   pex.qadira-b.a6            0.208   0.297   0.517   0.762   0.957   0.998
+ 283   pex.a6.balloki-b           0.208   0.297   0.517   0.762   0.957   0.998
+ 284   pex.a6.a7                  0.208   0.297   0.517   0.762   0.957   0.998
+ 285   pex.balloki-b.sulem-b      0.243   0.313   0.565   0.785   0.975   1.048
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 8
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+loss coefficient calculations for link canals
+
+
+ 286   pex.trimmu-b.sidhnai-b     0.214   0.310   0.526   0.769   0.964   1.008
+ 287   pex.sidhnai-b.a8           0.260   0.331   0.583   0.813   1.002   1.051
+ 288   pex.a8.a9                  0.260   0.331   0.583   0.813   1.002   1.051
+ 289   pex.rasul-b.a10            0.240   0.306   0.531   0.752   0.973   1.018
+ 290   pex.a1.a10                 0.240   0.306   0.531   0.752   0.973   1.018
+ 291   
+ 292   hcx.chasma-r.cj-tail      648.32  650.13  650.60  651.31  651.73  652.01
+ 293   hcx.taunsa-b.tp-tail      409.40  410.55  410.85  411.29  411.56  411.73
+ 294   hcx.mangla-r.a1           630.16  630.54  630.41  630.93  631.85  631.94
+ 295   hcx.a1.khanki-b           630.16  630.54  630.41  630.93  631.85  631.94
+ 296   hcx.rasul-b.qadira-b      630.16  630.54  630.41  630.93  631.85  631.94
+ 297   hcx.marala-b.a3           669.05  669.07  669.34  670.22  671.23  672.12
+ 298   hcx.a3.ravi-i             669.05  669.07  669.34  670.22  671.23  672.12
+ 299   hcx.marala-b.a2           669.05  669.07  669.34  670.22  671.23  672.12
+ 300   hcx.a2.balloki-b          669.05  669.07  669.34  670.22  671.23  672.12
+ 301   hcx.a3.a4                 669.05  669.07  669.34  670.22  671.23  672.12
+ 302   hcx.a2.a4                 669.05  669.07  669.34  670.22  671.23  672.12
+ 303   hcx.a4.a5                 628.69  629.09  628.92  629.72  631.18  631.95
+ 304   hcx.khanki-b.a7           669.05  669.07  669.34  670.22  671.23  672.12
+ 305   hcx.qadira-b.a6           669.05  669.07  669.34  670.22  671.23  672.12
+ 306   hcx.a6.balloki-b          669.05  669.07  669.34  670.22  671.23  672.12
+ 307   hcx.a6.a7                 669.05  669.07  669.34  670.22  671.23  672.12
+ 308   hcx.balloki-b.sulem-b     628.69  629.09  628.92  629.72  631.18  631.95
+ 309   hcx.trimmu-b.sidhnai-b    540.08  540.94  541.66  541.67  541.95  542.23
+ 310   hcx.sidhnai-b.a8          454.64  455.00  455.55  455.68  456.00  456.57
+ 311   hcx.a8.a9                 454.64  455.00  455.55  455.68  456.00  456.57
+ 312   hcx.rasul-b.a10           630.16  630.54  630.41  630.93  631.85  631.94
+ 313   hcx.a1.a10                630.16  630.54  630.41  630.93  631.85  631.94
+ 314   
+ 315   hwr.chasma-r.cj-tail       640.0   640.0   640.0   640.0   640.0   640.0
+ 316   hwr.taunsa-b.tp-tail       403.0   403.0   403.0   403.0   403.0   403.0
+ 317   hwr.mangla-r.a1            620.0   620.0   620.0   620.0   620.0   620.0
+ 318   hwr.a1.khanki-b            620.0   620.0   620.0   620.0   620.0   620.0
+ 319   hwr.rasul-b.qadira-b       620.0   620.0   620.0   620.0   620.0   620.0
+ 320   hwr.marala-b.a3            655.0   655.0   655.0   655.0   655.0   655.0
+ 321   hwr.a3.ravi-i              655.0   655.0   655.0   655.0   655.0   655.0
+ 322   hwr.marala-b.a2            655.0   655.0   655.0   655.0   655.0   655.0
+ 323   hwr.a2.balloki-b           655.0   655.0   655.0   655.0   655.0   655.0
+ 324   hwr.a3.a4                  655.0   655.0   655.0   655.0   655.0   655.0
+ 325   hwr.a2.a4                  655.0   655.0   655.0   655.0   655.0   655.0
+ 326   hwr.a4.a5                  613.0   613.0   613.0   613.0   613.0   613.0
+ 327   hwr.khanki-b.a7            655.0   655.0   655.0   655.0   655.0   655.0
+ 328   hwr.qadira-b.a6            655.0   655.0   655.0   655.0   655.0   655.0
+ 329   hwr.a6.balloki-b           655.0   655.0   655.0   655.0   655.0   655.0
+ 330   hwr.a6.a7                  655.0   655.0   655.0   655.0   655.0   655.0
+ 331   hwr.balloki-b.sulem-b      613.0   613.0   613.0   613.0   613.0   613.0
+ 332   hwr.trimmu-b.sidhnai-b     523.0   523.0   523.0   523.0   523.0   523.0
+ 333   hwr.sidhnai-b.a8           435.0   435.0   435.0   435.0   435.0   435.0
+ 334   hwr.a8.a9                  435.0   435.0   435.0   435.0   435.0   435.0
+ 335   hwr.rasul-b.a10            620.0   620.0   620.0   620.0   620.0   620.0
+ 336   hwr.a1.a10                 620.0   620.0   620.0   620.0   620.0   620.0
+ 337   
+ 338   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 9
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+loss coefficient calculations for link canals
+
+
+ 339     +                         jul     aug     sep     oct     nov    dec
+ 340   pex.chasma-r.cj-tail       1.057   0.899   0.721   0.631   0.402   0.245
+ 341   pex.taunsa-b.tp-tail       1.057   0.899   0.721   0.631   0.402   0.245
+ 342   pex.mangla-r.a1            0.894   0.793   0.717   0.583   0.354   0.232
+ 343   pex.a1.khanki-b            0.894   0.793   0.717   0.583   0.354   0.232
+ 344   pex.rasul-b.qadira-b       0.894   0.793   0.717   0.583   0.354   0.232
+ 345   pex.marala-b.a3            0.835   0.745   0.679   0.533   0.329   0.217
+ 346   pex.a3.ravi-i              0.835   0.745   0.679   0.533   0.329   0.217
+ 347   pex.marala-b.a2            0.835   0.745   0.679   0.533   0.329   0.217
+ 348   pex.a2.balloki-b           0.835   0.745   0.679   0.533   0.329   0.217
+ 349   pex.a3.a4                  0.835   0.745   0.679   0.533   0.329   0.217
+ 350   pex.a2.a4                  0.835   0.745   0.679   0.533   0.329   0.217
+ 351   pex.a4.a5                  0.934   0.843   0.750   0.579   0.364   0.264
+ 352   pex.khanki-b.a7            0.835   0.745   0.679   0.533   0.329   0.217
+ 353   pex.qadira-b.a6            0.835   0.745   0.679   0.533   0.329   0.217
+ 354   pex.a6.balloki-b           0.835   0.745   0.679   0.533   0.329   0.217
+ 355   pex.a6.a7                  0.835   0.745   0.679   0.533   0.329   0.217
+ 356   pex.balloki-b.sulem-b      0.934   0.843   0.750   0.579   0.364   0.264
+ 357   pex.trimmu-b.sidhnai-b     0.826   0.741   0.683   0.554   0.326   0.226
+ 358   pex.sidhnai-b.a8           0.952   0.898   0.762   0.604   0.385   0.273
+ 359   pex.a8.a9                  0.952   0.898   0.762   0.604   0.385   0.273
+ 360   pex.rasul-b.a10            0.894   0.793   0.717   0.583   0.354   0.232
+ 361   pex.a1.a10                 0.894   0.793   0.717   0.583   0.354   0.232
+ 362   
+ 363   hcx.chasma-r.cj-tail      652.33  651.92  651.79  652.06  651.75  649.83
+ 364   hcx.taunsa-b.tp-tail      411.94  411.67  411.59  411.76  411.57  410.36
+ 365   hcx.mangla-r.a1           632.27  632.12  632.02  631.25  630.76  630.69
+ 366   hcx.a1.khanki-b           632.27  632.12  632.02  631.25  630.76  630.69
+ 367   hcx.rasul-b.qadira-b      632.27  632.12  632.02  631.25  630.76  630.69
+ 368   hcx.marala-b.a3           671.97  671.95  671.74  669.81  668.93  668.80
+ 369   hcx.a3.ravi-i             671.97  671.95  671.74  669.81  668.93  668.80
+ 370   hcx.marala-b.a2           671.97  671.95  671.74  669.81  668.93  668.80
+ 371   hcx.a2.balloki-b          671.97  671.95  671.74  669.81  668.93  668.80
+ 372   hcx.a3.a4                 671.97  671.95  671.74  669.81  668.93  668.80
+ 373   hcx.a2.a4                 671.97  671.95  671.74  669.81  668.93  668.80
+ 374   hcx.a4.a5                 632.10  631.88  631.92  630.60  628.97  628.69
+ 375   hcx.khanki-b.a7           671.97  671.95  671.74  669.81  668.93  668.80
+ 376   hcx.qadira-b.a6           671.97  671.95  671.74  669.81  668.93  668.80
+ 377   hcx.a6.balloki-b          671.97  671.95  671.74  669.81  668.93  668.80
+ 378   hcx.a6.a7                 671.97  671.95  671.74  669.81  668.93  668.80
+ 379   hcx.balloki-b.sulem-b     632.10  631.88  631.92  630.60  628.97  628.69
+ 380   hcx.trimmu-b.sidhnai-b    542.01  541.75  542.06  541.88  541.61  541.23
+ 381   hcx.sidhnai-b.a8          457.19  457.13  457.07  456.22  455.45  454.81
+ 382   hcx.a8.a9                 457.19  457.13  457.07  456.22  455.45  454.81
+ 383   hcx.rasul-b.a10           632.27  632.12  632.02  631.25  630.76  630.69
+ 384   hcx.a1.a10                632.27  632.12  632.02  631.25  630.76  630.69
+ 385   
+ 386   hwr.chasma-r.cj-tail       640.0   640.0   640.0   640.0   640.0   640.0
+ 387   hwr.taunsa-b.tp-tail       403.0   403.0   403.0   403.0   403.0   403.0
+ 388   hwr.mangla-r.a1            620.0   620.0   620.0   620.0   620.0   620.0
+ 389   hwr.a1.khanki-b            620.0   620.0   620.0   620.0   620.0   620.0
+ 390   hwr.rasul-b.qadira-b       620.0   620.0   620.0   620.0   620.0   620.0
+ 391   hwr.marala-b.a3            655.0   655.0   655.0   655.0   655.0   655.0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 10
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+loss coefficient calculations for link canals
+
+
+ 392   hwr.a3.ravi-i              655.0   655.0   655.0   655.0   655.0   655.0
+ 393   hwr.marala-b.a2            655.0   655.0   655.0   655.0   655.0   655.0
+ 394   hwr.a2.balloki-b           655.0   655.0   655.0   655.0   655.0   655.0
+ 395   hwr.a3.a4                  655.0   655.0   655.0   655.0   655.0   655.0
+ 396   hwr.a2.a4                  655.0   655.0   655.0   655.0   655.0   655.0
+ 397   hwr.a4.a5                  613.0   613.0   613.0   613.0   613.0   613.0
+ 398   hwr.khanki-b.a7            655.0   655.0   655.0   655.0   655.0   655.0
+ 399   hwr.qadira-b.a6            655.0   655.0   655.0   655.0   655.0   655.0
+ 400   hwr.a6.balloki-b           655.0   655.0   655.0   655.0   655.0   655.0
+ 401   hwr.a6.a7                  655.0   655.0   655.0   655.0   655.0   655.0
+ 402   hwr.balloki-b.sulem-b      613.0   613.0   613.0   613.0   613.0   613.0
+ 403   hwr.trimmu-b.sidhnai-b     523.0   523.0   523.0   523.0   523.0   523.0
+ 404   hwr.sidhnai-b.a8           435.0   435.0   435.0   435.0   435.0   435.0
+ 405   hwr.a8.a9                  435.0   435.0   435.0   435.0   435.0   435.0
+ 406   hwr.rasul-b.a10            620.0   620.0   620.0   620.0   620.0   620.0
+ 407   hwr.a1.a10                 620.0   620.0   620.0   620.0   620.0   620.0
+ 408   
+ 409   Set e1 /length, width /
+ 410   
+ 411   Table lw(n1,n,e1) length(miles) and width( feet) of link canals
+ 412   
+ 413                       length     width
+ 414   chasma-r.cj-tail       56       362
+ 415   taunsa-b.tp-tail       39       190
+ 416   mangla-r.a1            44       180
+ 417   a1.khanki-b            36       120
+ 418   rasul-b.qadira-b       27       350
+ 419   marala-b.a3            56.8     250
+ 420   a3.ravi-i               4       250
+ 421   marala-b.a2            23       250
+ 422   a2.balloki-b           68       150
+ 423   a3.a4                   4        50
+ 424   a2.a4                  35.2      90
+ 425   a4.a5                  75.6      90
+ 426   khanki-b.a7            41.6     120
+ 427   qadira-b.a6            14       320
+ 428   a6.balloki-b           55       160
+ 429   a6.a7                  18        90
+ 430   balloki-b.sulem-b      47       325
+ 431   trimmu-b.sidhnai-b     41       253
+ 432   sidhnai-b.a8           39       140
+ 433   a8.a9                  26        90
+ 434   rasul-b.a10            12       100
+ 435   a1.a10                 15        50
+ 436   
+ 437   Parameter caf    conversion factor from cfs to acre feet per month
+ 438             cmft   conversion from mile-feet to acre-feet
+ 439             per    permeability in cfs per square feet
+ 440             philc  seepage proportionality contant
+ 441             coeffl node to node transfer efficiency for link canals
+ 442             ;
+ 443  *  note : canal mile = 5000 feet
+ 444   caf = 3600*24*30/43560 ;  cmft = 5000/43560 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 11
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+loss coefficient calculations for link canals
+
+
+ 445   per = 2e-5 ;
+ 446   
+ 447   Set g / 1,2,3,4,5,6/
+ 448   
+ 449   Table function(*,g)  function of canal width
+ 450   
+ 451                          1    2      3      4       5      6
+ 452           input          0    10    30     100     300     500
+ 453           output         0   .36    .67    .90    1.30    1.90
+ 454   
+ 455       Parameter step  grid point for function
+ 456                 ftn   function value
+ 457                 ftna  interpolated function output
+ 458                 ftni  function input
+ 459                 ftno  function output
+ 460                 ;
+ 461   ftni(g) = function("input",g);  ftno(g) = function("output",g);
+ 462   step(n1,n,g) = (ftni(g) le lw(n1,n,"width")) and
+ 463                  (ftni(g+1) gt lw(n1,n,"width") );
+ 464   ftna(n1,n,g) = (ftno(g) +(lw(n1,n,"width")-ftni(g))*(ftno(g+1)-
+ 465                   ftno(g))/(ftni(g+1)-ftni(g)))$step(n1,n,g);
+ 466   ftn(n1,n) = sum(g, ftna(n1,n,g))  ;
+ 467   
+ 468   philc(n1,n)  = lw(n1,n,"length")*5000*ftn(n1,n)*per*caf;
+ 469   
+ 470   coeffl(n1,n,m)$(ncap(n1,n) ne 0) =1-(lw(n1,n,"length")*lw(n1,n,"width")
+ 471               *cmft*linkpar("pex",n1,n,m) + philc(n1,n)*madjust(n1,n,m)*(
+ 472                 linkpar("hcx",n1,n,m)-linkpar("hwr",n1,n,m)))/
+ 473                 ncap(n1,n)/1000000;
+ 474   Display coeffl ;
+ 475  *-- link canal loss calculations finished
+ 476   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 12
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+runoff and seepage
+
+
+ 478   
+ 479   Table seepage(n1,n,m) seepage from river reaches(000 acre feet)
+ 480   
+ 481                           jan     feb     mar     apr     may     jun
+ 482  sukkur-b.kotri-b         2.0
+ 483  gudu-b.sukkur-b        -11.0   -10.5     2.0     2.0
+ 484  taunsa-b.mithankot      -6.3    -7.5     3.2     1.6
+ 485  tp-tail.panjnad-b      -14.3   -16.6     0.8     0.4
+ 486  kalabagh-r.chasma-r    -39.8   -36.0     0.2     0.2
+ 487  chasma-r.taunsa-b     -154.2  -159.0     3.8     0.8
+ 488  sidhnai-b.tp-tail      -16.5   -17.4
+ 489  trimmu-b.tp-tail                -0.6
+ 490  panjnad-b.mithankot      1.0     1.0     1.0     1.0
+ 491  islam-b.panjnad-b
+ 492  sulem-b.islam-b       -127.0  -127.0
+ 493  balloki-b.sidhnai-b   -120.0  -120.0
+ 494  ravi-i.balloki-b
+ 495  qadira-b.trimmu-b       -1.5    -2.2    -0.4    -0.9    -0.9     1.1
+ 496  khanki-b.qadira-b       -1.2    -1.2            -0.4    -0.4     1.2
+ 497  marala-b.khanki-b                3.0            -1.0    -1.0     3.0
+ 498  rasul-b.cj-tail                 -0.9    -0.4    -0.4    -0.4    -0.4
+ 499  cj-tail.trimmu-b                -0.1    -0.2    -0.2    -0.2    -0.2
+ 500  mangla-r.rasul-b        -0.3    -0.3            -0.1    -0.1     0.3
+ 501  amanda-h.munda-h       -54.0   -54.0
+ 502  munda-h.k-s-jct        -41.0   -41.0
+ 503  warsak-d.k-s-jct       -18.0   -18.0
+ 504  k-s-jct.kabul-tail      -7.0    -7.0
+ 505   
+ 506    +                      jul     aug     sep     oct     nov     dec
+ 507  sukkur-b.kotri-b                 9.0     3.0    16.0     7.0     1.0
+ 508  gudu-b.sukkur-b                  8.0    14.0    18.0    -8.0    -9.0
+ 509  taunsa-b.mithankot      -0.6     3.2    13.8    24.4    -2.8    -5.3
+ 510  tp-tail.panjnad-b       -1.4     0.8     0.3     5.6   -16.2   -16.4
+ 511  kalabagh-r.chasma-r              0.1     2.2     3.2   -35.0   -35.6
+ 512  chasma-r.taunsa-b                2.9    10.8    16.8  -154.0  -157.4
+ 513  sidhnai-b.tp-tail       -1.8                           -16.5   -16.5
+ 514  trimmu-b.tp-tail        -1.2
+ 515  panjnad-b.mithankot              2.0     4.0     7.0     4.0     2.0
+ 516  islam-b.panjnad-b                8.0
+ 517  sulem-b.islam-b                 12.0                  -127.0  -127.0
+ 518  balloki-b.sidhnai-b              5.0                  -120.0  -120.0
+ 519  ravi-i.balloki-b                 5.0
+ 520  qadira-b.trimmu-b       -6.1     1.0     6.1     5.1            -0.7
+ 521  khanki-b.qadira-b       -3.7     0.8     0.4     0.8    -0.6    -0.6
+ 522  marala-b.khanki-b       -9.0     2.0     5.0     2.0
+ 523  rasul-b.cj-tail         -0.9             1.3     4.7     0.9
+ 524  cj-tail.trimmu-b        -0.4             0.6     2.2     0.4
+ 525  mangla-r.rasul-b        -0.9     0.2     1.0     2.0    -1.5    -1.5
+ 526  amanda-h.munda-h                                       -54.0   -54.0
+ 527  munda-h.k-s-jct                                        -41.0   -41.0
+ 528  warsak-d.k-s-jct                                       -18.0   -18.0
+ 529  k-s-jct.kabul-tail                                      -7.0    -7.0
+ 530   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 13
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+runoff and seepage
+
+
+ 532   
+ 533   Table runoff(n,m) rainfall runoff to nodes (000 af)
+ 534   
+ 535                   jan     feb     mar     apr     may     jun
+ 536   chasma-r        4.2     4.5     5.1     3.5     2.6     5.4
+ 537   taunsa-b       22.8    28.4    36.5    25.8    17.5    30.4
+ 538   gudu-b          9.1    10.4    11.0     7.4     6.5    10.6
+ 539   rasul-b         2.2     2.2     2.3     1.6     1.3     2.8
+ 540   trimmu-b       36.5    36.2    36.5    26.0    22.5    53.9
+ 541   panjnad-b      10.6    12.3    14.7     9.9     8.4    14.0
+ 542   khanki-b        6.5     6.2     6.0     4.2     3.8     9.3
+ 543   qadira-b        6.5     6.2     6.0     4.2     3.8     9.3
+ 544   balloki-b      23.3    21.5    20.5    14.6    14.0    35.9
+ 545   sidhnai-b      15.7    16.1    16.4    12.2    11.5    26.5
+ 546   sulem-b         8.9     6.0     7.7     5.5     5.2    13.7
+ 547   islam-b        13.7    13.5    13.9     9.6     8.4    20.0
+ 548   tp-tail         9.0     9.5     9.4     6.7     7.5    13.4
+ 549   cj-tail        22.7    22.4    24.2    16.6    13.2    28.3
+ 550   kabul-tail     30.7    32.7    52.1    37.6    16.4     6.6
+ 551   
+ 552     +             jul     aug     sep     oct     nov     dec
+ 553   chasma-r       19.3    19.5     7.0      .8      .7     1.8
+ 554   taunsa-b      111.6   102.0    34.6     5.1     5.5    11.4
+ 555   gudu-b         55.5    52.3     9.3     1.0     3.1     5.8
+ 556   rasul-b         9.8    10.4     3.7      .4      .3      .9
+ 557   trimmu-b      170.4   191.0    71.4     7.2     5.1    15.5
+ 558   panjnad-b      86.4    70.2    12.8     1.6     3.7     6.2
+ 559   khanki-b       29.9    33.5    12.6     1.2      .8     2.6
+ 560   qadira-b       29.9    33.5    12.6     1.2      .8     2.6
+ 561   balloki-b     113.0   126.9    48.3     4.6     3.1     9.8
+ 562   sidhnai-b      94.4    95.5    34.1     3.4     3.5     8.4
+ 563   sulem-b        52.1    47.3    17.8     1.9     2.6     4.2
+ 564   islam-b        93.4    80.7    24.2     2.5     3.2     6.6
+ 565   tp-tail        49.1    48.6    16.9     2.0     1.5     5.4
+ 566   cj-tail       100.7   105.3    38.0     4.4     3.2     9.1
+ 567   kabul-tail     26.9    43.3    17.3     4.9     6.6    14.3
+ 568   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 14
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+rim station inflows and tributories
+
+
+ 570   
+ 571   Table inflow(i,m) system inflows measured atthe rim stations (maf)
+ 572   
+ 573                 jan     feb     mar     apr     may     jun
+ 574   swat         0.081   0.078   0.124   0.329   0.588   0.760
+ 575   kabul        0.395   0.297   0.297   0.862   2.171   3.038
+ 576   indus        0.979   0.954   1.183   1.618   2.716   8.227
+ 577   haro         0.021   0.023   0.033   0.030   0.016   0.041
+ 578   soan         0.020   0.025   0.035   0.027   0.012   0.032
+ 579   jehlum       0.450   0.543   1.213   2.037   2.921   3.990
+ 580   chenab       0.419   0.607   1.096   1.732   2.049   2.813
+ 581   ravi          .131    .129    .168    .069    .057    .149
+ 582   sutlej        .0      .021    .111    .190    .360    .375
+ 583   
+ 584      +          jul     aug     sep     oct     nov     dec
+ 585   swat         0.908   0.850   0.518   0.226   0.128   0.103
+ 586   kabul        2.928   2.413   1.576   0.820   0.524   0.458
+ 587   indus       13.540  13.039   9.306   4.518   1.837   1.206
+ 588   haro         0.089   0.142   0.128   0.058   0.027   0.020
+ 589   soan         0.164   0.404   0.293   0.033   0.013   0.016
+ 590   jehlum       4.039   2.898   1.938   1.255   0.782   0.620
+ 591   chenab       4.610   5.286   3.492   1.284   0.400   0.343
+ 592   ravi          .526   2.051   1.994    .510    .214    .154
+ 593   sutlej        .340   1.535   2.63    1.348    .028    .0
+ 594   
+ 595   Table trib(n1,n,m) tributory inflows (maf)
+ 596   
+ 597                           jan     feb     mar     apr     may     jun
+ 598   marala-b.khanki-b     0.007   0.006   0.007   0.050   0.141   0.731
+ 599   mangla-r.rasul-b                              0.120   0.180   0.150
+ 600   balloki-b.sidhnai-b   0.005   0.007   0.006           0.001   0.009
+ 601   amanda-h.munda-h      0.115   0.105   0.249   0.278   0.418   0.596
+ 602   munda-h.k-s-jct       0.004   0.003   0.009   0.014   0.011   0.006
+ 603   warsak-d.k-s-jct      0.032   0.029   0.059   0.113   0.093   0.054
+ 604   tarbela-r.kalabagh-r  0.064   0.077   0.121   0.073   0.067   0.079
+ 605   
+ 606      +                   jul     aug     sep     oct     nov     dec
+ 607   marala-b.khanki-b     0.691   0.859   0.409   0.017   0.007   0.008
+ 608   mangla-r.rasul-b      0.170   0.320   0.210   0.060
+ 609   balloki-b.sidhnai-b   0.096   0.206   0.040   0.002   0.003   0.009
+ 610   amanda-h.munda-h      0.687   0.247   0.103   0.105   0.114   0.232
+ 611   munda-h.k-s-jct       0.007   0.006   0.006   0.004   0.004   0.004
+ 612   warsak-d.k-s-jct      0.063   0.051   0.046   0.036   0.032   0.033
+ 613   tarbela-r.kalabagh-r  0.379   0.740   0.190   0.080   0.045   0.069
+ 614   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 15
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+reservoir chracteristics
+
+
+ 616   
+ 617   Parameter  rcap(n)  live capacity of reservoirs (maf)/
+ 618                       tarbela-r   9.093
+ 619                       mangla-r    5.251
+ 620                       chasma-r    0.500 /
+ 621             ircont(n) initial reservoir contenst (maf)/
+ 622                       tarbela-r       9.093
+ 623                       mangla-r        5.251
+ 624                       chasma-r        0.500 /
+ 625   
+ 626   Table rulelo(n,m)  lower rule curve(ratio of reservoir contents to capacity)
+ 627   
+ 628              jan feb mar apr may jun jul aug sep oct nov dec
+ 629   tarbela-r   43  30  14   4   0  10  46 100 100  64  59  53
+ 630   chasma-r     0   0   0   0   0   0   0   0   0   0   0   0
+ 631   mangla-r    16   6   0   7  21  48  74  95  83  55  35  24
+ 632   
+ 633   Table ruleup(n,m) upper rule curve
+ 634   
+ 635                   jan feb mar apr may jun jul aug sep oct nov dec
+ 636   tarbela-r        69  47  37  26  13  48  73 100 100 100  87  77
+ 637   chasma-r        100 100 100 100 100 100 100 100 100 100 100 100
+ 638   mangla-r         39  28  19  31  42  59  87 100 100  90  68  49
+ 639   
+ 640   Table  revapl(n,m)  evaporation losses from reservoirs in 000 af
+ 641   
+ 642               jan feb mar apr may jun   jul   aug sep oct nov dec
+ 643   tarbela-r    1   5   7   9   16  28    10     1  12  29  12   5
+ 644   chasma-r     3   3   1                  6     3   7  15   6   3
+ 645   mangla-r     1   5   4   5   12  17  -1.9  -2.5   4  22  10  50
+ 646   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 16
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+report on the input data
+
+
+ 648   
+ 649     Parameter rep1
+ 650               rep2
+ 651                 ;
+ 652   rep1(i,m) = inflow(i,m);  rep1(i,s)=sum(m$sm(s,m), inflow(i,m));
+ 653   rep1(i,"annual") = sum(m, inflow(i,m) );
+ 654   rep1("total",m) = sum(i, rep1(i,m));
+ 655   rep1("total",s) = sum(i, rep1(i,s));
+ 656   rep1("total","annual") = sum(s, rep1("total", s)) ;
+ 657   display " system inflows at rim stations maf ", rep1;
+ 658   rep1(i,m) = 0; rep1(i,s) = 0; rep1(i,"annual")=0;
+ 659   
+ 660   rep1(n,m) = runoff(n,m);  rep1(n,s)=sum(m$sm(s,m), runoff(n,m));
+ 661   rep1(n,"annual") = sum(m, runoff(n,m)) ;
+ 662   rep1("total",m) = sum(n, rep1(n,m));
+ 663   rep1("total",s) = sum(n, rep1(n,s));
+ 664   rep1("total","annual") = sum(s, rep1("total", s)) ;
+ 665   display " runoff to nodes from rainfall 000 af", rep1;
+ 666   rep1(n,m) = 0; rep1(n,s) = 0; rep1(n,"annual")=0;
+ 667  *
+ 668   rep2(n,n1,m)=trib(n,n1,m); rep2(n,n1,s) = sum(m$sm(s,m), trib(n,n1,m));
+ 669   rep2(n,n1,"annual") = sum(s, rep2(n,n1,s) );
+ 670   display " tributory inflow in maf", rep2;
+ 671   rep2(n,n1,m) = 0; rep2(n,n1,s) = 0; rep2(n,n1,"annual")=0;
+ 672   rep2(n,n1,m)=seepage(n,n1,m);
+ 673   rep2(n,n1,s)=sum(m$sm(s,m), seepage(n,n1,m));
+ 674   rep2(n,n1,"annual") = sum(s, rep2(n,n1,s) );
+ 675   display " seepage from/to river reaches 000 af", rep2;
+ 676   rep2(n,n1,m) = 0; rep2(n,n1,s) = 0; rep2(n,n1,"annual")=0;
+ 677   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 17
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+model definition
+
+
+ 679   
+ 680   Positive Variables
+ 681             rcont(n,m)    end of the month reservoir contents (maf)
+ 682             canaldiv(c,m) monthly diversion to canal         (maf)
+ 683             f(n,n1,m)     flow to node n from node n1        (maf)
+ 684    variable vol           total reservoir volumne
+ 685   
+ 686   Equations nbal(n,m)   water balance at a node (maf)
+ 687             defvol      ;
+ 688   
+ 689   defvol.. vol =e= sum((n,m)$rcap(n), rcont(n,m));
+ 690      ;
+ 691   nbal(n,m)$nb(n)..
+ 692                sum(i$ni(n,i), inflow(i,m)) + runoff(n,m)/1000 +
+ 693                sum(n1, trib(n,n1,m)) +  sum(n1$nn(n,n1),
+ 694                f(n,n1,m)*coeffl(n1,n,m)$coeffl(n1,n,m) + (f(n,n1,m) -
+ 695                seepage(n1,n,m)/1000 )$(coeffl(n1,n,m) eq 0)) -
+ 696                sum(n1$nn(n1,n), f(n1,n,m)) +
+ 697                (rcont(n,m--1) -rcont(n,m)-revapl(n,m)/1000)$rcap(n)-
+ 698                sum(c$nc(n,c), canaldiv(c,m)) =e= 0 ;
+ 699   
+ 700   
+ 701   canaldiv.up(c,m) = ccap(c);
+ 702   f.up(n,n1,m) = inf            ;
+ 703   f.up(n,n1,m)$( ncap(n1,n) ne 0 ) = ncap(n1,n);
+ 704   rcont.lo(n,m) = rulelo(n,m)*rcap(n)/100 ;
+ 705   rcont.up(n,m) = ruleup(n,m)*rcap(n)/100 ;
+ 706   rcont.fx(n,"sep")$rcap(n) = ircont(n) ;
+ 707   
+ 708  model canal / all /; solve canal max vol using lp;
+
+
+COMPILATION TIME     =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 18
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+E x e c u t i o n
+
+
+----    229 SET n  nodes of the indus river system
+
+feroz-b   ,    sulem-b   ,    islam-b   ,    panjnad-b ,    ravi-i    ,    mr-tail   ,    balloki-b ,    sidhnai-b ,    tp-tail   ,    marala-b  ,    khanki-b  ,    qadira-b  ,    trimmu-b  ,    mangla-r  ,    rasul-b   ,    cj-tail   ,    tarbela-r 
+amanda-h  ,    munda-h   ,    warsak-d  ,    k-s-jct   ,    kabul-tail,    kalabagh-r,    chasma-r  ,    taunsa-b  ,    mithankot ,    gudu-b    ,    sukkur-b  ,    kotri-b   ,    a-sea     ,    a1        ,    a2        ,    a3        ,    a4        
+a5        ,    a6        ,    a7        ,    a8        ,    a9        ,    a10       
+
+
+----    229 SET c  irrigation canals in the indus river irrigation system
+
+ud ,    cbd,    ray,    uc ,    mr ,    sad,    foc,    pak,    ld ,    lbd,    jha,    gug,    uj ,    lj ,    bah,    mai,    sid,    hav,    ran,    pan,    abb,    lsw,    usw,    war,    kab,    tha,    pah,    muz,    dgk,    p+d,    beg,    gho
+nw ,    ric,    dad,    kw ,    ke ,    roh,    nar,    kal,    lch,    ful,    pin
+
+
+----    229 SET nc  node to canal map
+
+                    ud         cbd         ray          uc          mr         sad         foc         pak          ld         lbd         jha         gug          uj          lj         bah         mai         sid         hav         ran         pan
+
+sulem-b                                                                        YES         YES         YES
+panjnad-b                                                                                                                                                                                                                                              YES
+balloki-b                                                                                                          YES         YES
+sidhnai-b                                                                                                                                                                                                          YES
+marala-b                                                           YES
+trimmu-b                                                                                                                                                                                                                       YES         YES
+a1                                                                                                                                                                 YES
+a2                                         YES         YES
+a5                 YES         YES
+a7                                                                                                                                         YES         YES
+a8                                                                                                                                                                                                     YES
+a9                                                                                                                                                                                         YES
+a10                                                                                                                                                                            YES
+
+         +         abb         lsw         usw         war         kab         tha         pah         muz         dgk         p+d         beg         gho          nw         ric         dad          kw          ke         roh         nar         kal
+
+panjnad-b          YES
+amanda-h                                   YES
+munda-h                        YES
+warsak-d                                               YES
+k-s-jct                                                            YES
+kalabagh-r                                                                     YES
+chasma-r                                                                                   YES
+taunsa-b                                                                                               YES         YES
+gudu-b                                                                                                                         YES         YES         YES
+sukkur-b                                                                                                                                                           YES         YES         YES         YES         YES         YES         YES
+kotri-b                                                                                                                                                                                                                                                YES
+
+         +         lch         ful         pin
+
+kotri-b            YES         YES         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 19
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+E x e c u t i o n
+
+
+----    229 SET nn  water flow system node to node
+
+               feroz-b     sulem-b     islam-b   panjnad-b      ravi-i   balloki-b   sidhnai-b     tp-tail    marala-b    khanki-b    qadira-b    trimmu-b    mangla-r     rasul-b     cj-tail   tarbela-r    amanda-h     munda-h    warsak-d     k-s-jct
+
+sulem-b            YES                                                         YES
+islam-b                        YES
+panjnad-b                                  YES                                                         YES
+balloki-b                                                          YES
+sidhnai-b                                                                      YES                                                                     YES
+tp-tail                                                                                    YES                                                         YES
+khanki-b                                                                                                           YES
+qadira-b                                                                                                                       YES                                             YES
+trimmu-b                                                                                                                                   YES                                             YES
+rasul-b                                                                                                                                                            YES
+cj-tail                                                                                                                                                                        YES
+munda-h                                                                                                                                                                                                            YES
+k-s-jct                                                                                                                                                                                                                        YES         YES
+kabul-tail                                                                                                                                                                                             YES                                             YES
+mithankot                                              YES
+a1                                                                                                                                                                 YES
+a2                                                                                                                 YES
+a3                                                                                                                 YES
+a6                                                                                                                                         YES
+a7                                                                                                                             YES
+a8                                                                                         YES
+a9                                         YES
+a10                                                                                                                                                                            YES
+
+         +  kabul-tail  kalabagh-r    chasma-r    taunsa-b   mithankot      gudu-b    sukkur-b     kotri-b          a1          a2          a3          a4          a6          a8
+
+ravi-i                                                                                                                                     YES
+balloki-b                                                                                                                      YES                                 YES
+khanki-b                                                                                                           YES
+cj-tail                                    YES
+kalabagh-r         YES
+chasma-r                       YES
+taunsa-b                                   YES
+mithankot                                              YES
+gudu-b                                                             YES
+sukkur-b                                                                       YES
+kotri-b                                                                                    YES
+a-sea                                                                                                  YES
+a4                                                                                                                             YES         YES
+a5                                                                                                                                                     YES
+a7                                                                                                                                                                 YES
+a9                                                                                                                                                                             YES
+a10                                                                                                                YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 20
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+E x e c u t i o n
+
+
+----    229 SET ni  node to rim station inflow map
+
+                  swat       kabul       indus        haro        soan      jehlum      chenab        ravi      sutlej
+
+feroz-b                                                                                                            YES
+ravi-i                                                                                                 YES
+marala-b                                                                                   YES
+mangla-r                                                                       YES
+tarbela-r                                  YES
+amanda-h           YES
+warsak-d                       YES
+kabul-tail                                             YES
+kalabagh-r                                                         YES
+
+
+----    230 PARAMETER ccap  canal capacity at the canal head (maf)
+
+ud  0.131,    cbd 0.163,    ray 0.110,    uc  0.506,    mr  0.166,    sad 0.332,    foc 0.204,    pak 0.478,    ld  0.244,    lbd 0.518,    jha 0.410,    gug 0.433,    uj  0.345,    lj  0.464,    bah 0.346,    mai 0.362,    sid 0.268,    hav 0.068
+ran 0.176,    pan 0.671,    abb 0.080,    lsw 0.060,    usw 0.117,    war 0.044,    kab 0.027,    tha 0.577,    pah 0.037,    muz 0.495,    dgk 0.529,    p+d 0.799,    beg 1.155,    gho 0.648,    nw  0.566,    ric 0.829,    dad 0.319,    kw  0.157
+ke  0.207,    roh 0.981,    nar 0.873,    kal 0.546,    lch 0.205,    ful 0.894,    pin 0.831
+
+
+----    230 PARAMETER ncap  node to node transfer capacity (maf)
+
+              sulem-b      ravi-i   balloki-b   sidhnai-b     tp-tail    khanki-b    qadira-b     cj-tail          a1          a2          a3          a4          a5          a6          a7          a8          a9         a10
+
+islam-b                                                                                                                                                                                                         0.299
+balloki-b       1.172
+sidhnai-b                                                                                                                                                                                           0.662
+marala-b                                                                                                                    0.995       0.985
+khanki-b                                                                                                                                                                                0.499
+qadira-b                                                                                                                                                                    1.146
+trimmu-b                                            1.030
+mangla-r                                                                                                        0.685
+rasul-b                                                                                 1.232                                                                                                                               0.328
+chasma-r                                                                                            1.307
+taunsa-b                                                        0.724
+a1                                                                          0.422                                                                                                                                           0.199
+a2                                      0.698                                                                                                       0.310
+a3                          0.938                                                                                                                   0.199
+a4                                                                                                                                                              0.310
+a6                                      0.808                                                                                                                                           0.270
+a8                                                                                                                                                                                                              0.640
+
+
+----    474 PARAMETER coeffl  node to node transfer efficiency for link canals
+
+                            jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec
+
+islam-b  .a9              1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+balloki-b.sulem-b         0.979       0.978       0.978       0.977       0.969       0.961       0.961       0.962       0.968       0.976       0.978       0.979
+sidhnai-b.a8              0.986       0.986       0.985       0.985       0.977       0.977       0.976       0.976       0.977       0.985       0.986       0.986
+marala-b .a2              0.991       0.991       0.990       0.989       0.986       0.982       0.983       0.983       0.986       0.990       0.991       0.991
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 21
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+E x e c u t i o n
+
+
+        474 PARAMETER coeffl  node to node transfer efficiency for link canals
+
+                            jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec
+
+marala-b .a3              0.977       0.976       0.976       0.974       0.965       0.956       0.957       0.957       0.964       0.975       0.977       0.977
+khanki-b .a7              0.974       0.973       0.973       0.971       0.961       0.951       0.952       0.952       0.960       0.972       0.974       0.974
+qadira-b .a6              0.994       0.994       0.994       0.994       0.992       0.989       0.990       0.990       0.991       0.994       0.994       0.994
+trimmu-b .sidhnai-b       0.980       0.979       0.978       0.978       0.972       0.966       0.966       0.967       0.972       0.978       0.978       0.979
+mangla-r .a1              0.983       0.983       0.982       0.981       0.975       0.970       0.969       0.969       0.975       0.981       0.982       0.982
+rasul-b  .qadira-b        0.992       0.992       0.992       0.991       0.988       0.986       0.985       0.986       0.988       0.991       0.992       0.992
+rasul-b  .a10             0.992       0.992       0.992       0.991       0.988       0.986       0.985       0.985       0.988       0.991       0.991       0.992
+chasma-r .cj-tail         0.987       0.984       0.983       0.982       0.976       0.971       0.970       0.971       0.976       0.981       0.981       0.985
+taunsa-b .tp-tail         0.991       0.989       0.989       0.988       0.984       0.981       0.980       0.981       0.984       0.987       0.988       0.990
+a1       .khanki-b        0.980       0.980       0.980       0.978       0.971       0.965       0.964       0.964       0.970       0.978       0.979       0.979
+a1       .a10             0.986       0.986       0.986       0.985       0.980       0.976       0.975       0.976       0.980       0.985       0.986       0.986
+a2       .balloki-b       0.967       0.967       0.966       0.963       0.951       0.939       0.940       0.940       0.950       0.965       0.967       0.968
+a2       .a4              0.967       0.967       0.966       0.963       0.951       0.939       0.939       0.940       0.950       0.965       0.967       0.967
+a3       .ravi-i          0.998       0.998       0.998       0.998       0.997       0.997       0.997       0.997       0.997       0.998       0.998       0.998
+a3       .a4              0.995       0.995       0.995       0.995       0.993       0.991       0.991       0.991       0.993       0.995       0.995       0.995
+a4       .a5              0.920       0.918       0.918       0.914       0.883       0.854       0.853       0.855       0.879       0.910       0.919       0.920
+a6       .balloki-b       0.977       0.976       0.976       0.974       0.965       0.956       0.957       0.957       0.965       0.975       0.977       0.977
+a6       .a7              0.981       0.980       0.980       0.979       0.971       0.964       0.964       0.965       0.971       0.979       0.981       0.981
+a8       .a9              0.992       0.991       0.991       0.991       0.986       0.986       0.986       0.986       0.986       0.991       0.991       0.992
+
+
+----    657  system inflows at rim stations maf 
+
+----    657 PARAMETER rep1  
+
+               jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec        rabi      kharif      annual
+
+swat         0.081       0.078       0.124       0.329       0.588       0.760       0.908       0.850       0.518       0.226       0.128       0.103       0.740       3.953       4.693
+kabul        0.395       0.297       0.297       0.862       2.171       3.038       2.928       2.413       1.576       0.820       0.524       0.458       2.791      12.988      15.779
+indus        0.979       0.954       1.183       1.618       2.716       8.227      13.540      13.039       9.306       4.518       1.837       1.206      10.677      48.446      59.123
+haro         0.021       0.023       0.033       0.030       0.016       0.041       0.089       0.142       0.128       0.058       0.027       0.020       0.182       0.446       0.628
+soan         0.020       0.025       0.035       0.027       0.012       0.032       0.164       0.404       0.293       0.033       0.013       0.016       0.142       0.932       1.074
+jehlum       0.450       0.543       1.213       2.037       2.921       3.990       4.039       2.898       1.938       1.255       0.782       0.620       4.863      17.823      22.686
+chenab       0.419       0.607       1.096       1.732       2.049       2.813       4.610       5.286       3.492       1.284       0.400       0.343       4.149      19.982      24.131
+ravi         0.131       0.129       0.168       0.069       0.057       0.149       0.526       2.051       1.994       0.510       0.214       0.154       1.306       4.846       6.152
+sutlej                   0.021       0.111       0.190       0.360       0.375       0.340       1.535       2.630       1.348       0.028                   1.508       5.430       6.938
+total        2.496       2.677       4.260       6.894      10.890      19.425      27.144      28.618      21.875      10.052       3.953       2.920      26.358     114.846     141.204
+
+
+----    665  runoff to nodes from rainfall 000 af
+
+----    665 PARAMETER rep1  
+
+                   jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec        rabi      kharif      annual
+
+sulem-b          8.900       6.000       7.700       5.500       5.200      13.700      52.100      47.300      17.800       1.900       2.600       4.200      31.300     141.600     172.900
+islam-b         13.700      13.500      13.900       9.600       8.400      20.000      93.400      80.700      24.200       2.500       3.200       6.600      53.400     236.300     289.700
+panjnad-b       10.600      12.300      14.700       9.900       8.400      14.000      86.400      70.200      12.800       1.600       3.700       6.200      49.100     201.700     250.800
+balloki-b       23.300      21.500      20.500      14.600      14.000      35.900     113.000     126.900      48.300       4.600       3.100       9.800      82.800     352.700     435.500
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 22
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+E x e c u t i o n
+
+
+        665 PARAMETER rep1  
+
+                   jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec        rabi      kharif      annual
+
+sidhnai-b       15.700      16.100      16.400      12.200      11.500      26.500      94.400      95.500      34.100       3.400       3.500       8.400      63.500     274.200     337.700
+tp-tail          9.000       9.500       9.400       6.700       7.500      13.400      49.100      48.600      16.900       2.000       1.500       5.400      36.800     142.200     179.000
+khanki-b         6.500       6.200       6.000       4.200       3.800       9.300      29.900      33.500      12.600       1.200       0.800       2.600      23.300      93.300     116.600
+qadira-b         6.500       6.200       6.000       4.200       3.800       9.300      29.900      33.500      12.600       1.200       0.800       2.600      23.300      93.300     116.600
+trimmu-b        36.500      36.200      36.500      26.000      22.500      53.900     170.400     191.000      71.400       7.200       5.100      15.500     137.000     535.200     672.200
+rasul-b          2.200       2.200       2.300       1.600       1.300       2.800       9.800      10.400       3.700       0.400       0.300       0.900       8.300      29.600      37.900
+cj-tail         22.700      22.400      24.200      16.600      13.200      28.300     100.700     105.300      38.000       4.400       3.200       9.100      86.000     302.100     388.100
+kabul-tail      30.700      32.700      52.100      37.600      16.400       6.600      26.900      43.300      17.300       4.900       6.600      14.300     141.300     148.100     289.400
+chasma-r         4.200       4.500       5.100       3.500       2.600       5.400      19.300      19.500       7.000       0.800       0.700       1.800      17.100      57.300      74.400
+taunsa-b        22.800      28.400      36.500      25.800      17.500      30.400     111.600     102.000      34.600       5.100       5.500      11.400     109.700     321.900     431.600
+gudu-b           9.100      10.400      11.000       7.400       6.500      10.600      55.500      52.300       9.300       1.000       3.100       5.800      40.400     141.600     182.000
+total          222.400     228.100     262.300     185.400     142.600     280.100    1042.400    1060.000     360.600      42.200      43.700     104.600     903.300    3071.100    3974.400
+
+
+----    670  tributory inflow in maf
+
+----    670 PARAMETER rep2  
+
+                             jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec        rabi      kharif      annual
+
+balloki-b.sidhnai-b        0.005       0.007       0.006                   0.001       0.009       0.096       0.206       0.040       0.002       0.003       0.009       0.032       0.352       0.384
+marala-b .khanki-b         0.007       0.006       0.007       0.050       0.141       0.731       0.691       0.859       0.409       0.017       0.007       0.008       0.052       2.881       2.933
+mangla-r .rasul-b                                              0.120       0.180       0.150       0.170       0.320       0.210       0.060                               0.060       1.150       1.210
+tarbela-r.kalabagh-r       0.064       0.077       0.121       0.073       0.067       0.079       0.379       0.740       0.190       0.080       0.045       0.069       0.456       1.528       1.984
+amanda-h .munda-h          0.115       0.105       0.249       0.278       0.418       0.596       0.687       0.247       0.103       0.105       0.114       0.232       0.920       2.329       3.249
+munda-h  .k-s-jct          0.004       0.003       0.009       0.014       0.011       0.006       0.007       0.006       0.006       0.004       0.004       0.004       0.028       0.050       0.078
+warsak-d .k-s-jct          0.032       0.029       0.059       0.113       0.093       0.054       0.063       0.051       0.046       0.036       0.032       0.033       0.221       0.420       0.641
+
+
+----    675  seepage from/to river reaches 000 af
+
+----    675 PARAMETER rep2  
+
+                              jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec        rabi      kharif      annual
+
+sulem-b   .islam-b       -127.000    -127.000                                                                  12.000                            -127.000    -127.000    -508.000      12.000    -496.000
+islam-b   .panjnad-b                                                                                            8.000                                                                   8.000       8.000
+panjnad-b .mithankot        1.000       1.000       1.000       1.000                                           2.000       4.000       7.000       4.000       2.000      16.000       7.000      23.000
+ravi-i    .balloki-b                                                                                            5.000                                                                   5.000       5.000
+balloki-b .sidhnai-b     -120.000    -120.000                                                                   5.000                            -120.000    -120.000    -480.000       5.000    -475.000
+sidhnai-b .tp-tail        -16.500     -17.400                                                      -1.800                                         -16.500     -16.500     -66.900      -1.800     -68.700
+tp-tail   .panjnad-b      -14.300     -16.600       0.800       0.400                              -1.400       0.800       0.300       5.600     -16.200     -16.400     -57.100       0.100     -57.000
+marala-b  .khanki-b                     3.000                  -1.000      -1.000       3.000      -9.000       2.000       5.000       2.000                               5.000      -1.000       4.000
+khanki-b  .qadira-b        -1.200      -1.200                  -0.400      -0.400       1.200      -3.700       0.800       0.400       0.800      -0.600      -0.600      -2.800      -2.100      -4.900
+qadira-b  .trimmu-b        -1.500      -2.200      -0.400      -0.900      -0.900       1.100      -6.100       1.000       6.100       5.100                  -0.700       0.300       0.300       0.600
+trimmu-b  .tp-tail                     -0.600                                                      -1.200                                                                  -0.600      -1.200      -1.800
+mangla-r  .rasul-b         -0.300      -0.300                  -0.100      -0.100       0.300      -0.900       0.200       1.000       2.000      -1.500      -1.500      -1.600       0.400      -1.200
+rasul-b   .cj-tail                     -0.900      -0.400      -0.400      -0.400      -0.400      -0.900                   1.300       4.700       0.900                   4.300      -0.800       3.500
+cj-tail   .trimmu-b                    -0.100      -0.200      -0.200      -0.200      -0.200      -0.400                   0.600       2.200       0.400                   2.300      -0.400       1.900
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 23
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+E x e c u t i o n
+
+
+        675 PARAMETER rep2  
+
+                              jan         feb         mar         apr         may         jun         jul         aug         sep         oct         nov         dec        rabi      kharif      annual
+
+amanda-h  .munda-h        -54.000     -54.000                                                                                                     -54.000     -54.000    -216.000                -216.000
+munda-h   .k-s-jct        -41.000     -41.000                                                                                                     -41.000     -41.000    -164.000                -164.000
+warsak-d  .k-s-jct        -18.000     -18.000                                                                                                     -18.000     -18.000     -72.000                 -72.000
+k-s-jct   .kabul-tail      -7.000      -7.000                                                                                                      -7.000      -7.000     -28.000                 -28.000
+kalabagh-r.chasma-r       -39.800     -36.000       0.200       0.200                                           0.100       2.200       3.200     -35.000     -35.600    -143.000       2.500    -140.500
+chasma-r  .taunsa-b      -154.200    -159.000       3.800       0.800                                           2.900      10.800      16.800    -154.000    -157.400    -604.000      14.500    -589.500
+taunsa-b  .mithankot       -6.300      -7.500       3.200       1.600                              -0.600       3.200      13.800      24.400      -2.800      -5.300       5.700      18.000      23.700
+gudu-b    .sukkur-b       -11.000     -10.500       2.000       2.000                                           8.000      14.000      18.000      -8.000      -9.000     -18.500      24.000       5.500
+sukkur-b  .kotri-b          2.000                                                                               9.000       3.000      16.000       7.000       1.000      26.000      12.000      38.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 24
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Equation Listing    SOLVE canal Using LP From line 708
+
+
+---- nbal  =E=  water balance at a node (maf)
+
+nbal(feroz-b,jan)..  - f(sulem-b,feroz-b,jan) =E= 0 ; (LHS = 0)
+     
+nbal(feroz-b,feb)..  - f(sulem-b,feroz-b,feb) =E= -0.021 ; (LHS = 0, INFES = 0.021 ****)
+     
+nbal(feroz-b,mar)..  - f(sulem-b,feroz-b,mar) =E= -0.111 ; (LHS = 0, INFES = 0.111 ****)
+     
+REMAINING 453 ENTRIES SKIPPED
+
+
+---- defvol  =E=  
+
+defvol..  - rcont(mangla-r,jan) - rcont(mangla-r,feb) - rcont(mangla-r,mar) - rcont(mangla-r,apr) - rcont(mangla-r,may) - rcont(mangla-r,jun) - rcont(mangla-r,jul) - rcont(mangla-r,aug) - rcont(mangla-r,sep) - rcont(mangla-r,oct) - rcont(mangla-r,nov)
+     
+      - rcont(mangla-r,dec) - rcont(tarbela-r,jan) - rcont(tarbela-r,feb) - rcont(tarbela-r,mar) - rcont(tarbela-r,apr) - rcont(tarbela-r,may) - rcont(tarbela-r,jun) - rcont(tarbela-r,jul) - rcont(tarbela-r,aug) - rcont(tarbela-r,sep)
+     
+      - rcont(tarbela-r,oct) - rcont(tarbela-r,nov) - rcont(tarbela-r,dec) - rcont(chasma-r,jan) - rcont(chasma-r,feb) - rcont(chasma-r,mar) - rcont(chasma-r,apr) - rcont(chasma-r,may) - rcont(chasma-r,jun) - rcont(chasma-r,jul) - rcont(chasma-r,aug)
+     
+      - rcont(chasma-r,sep) - rcont(chasma-r,oct) - rcont(chasma-r,nov) - rcont(chasma-r,dec) + vol =E= 0 ; (LHS = -73.3137, INFES = 73.3137 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 25
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Column Listing      SOLVE canal Using LP From line 708
+
+
+---- rcont  end of the month reservoir contents (maf)
+
+rcont(mangla-r,jan)
+                (.LO, .L, .UP, .M = 0.84016, 0.84016, 2.04789, 0)
+       -1       nbal(mangla-r,jan)
+        1       nbal(mangla-r,feb)
+       -1       defvol
+        0       (OLD LEVEL ****)
+
+rcont(mangla-r,feb)
+                (.LO, .L, .UP, .M = 0.31506, 0.31506, 1.47028, 0)
+       -1       nbal(mangla-r,feb)
+        1       nbal(mangla-r,mar)
+       -1       defvol
+        0       (OLD LEVEL ****)
+
+rcont(mangla-r,mar)
+                (.LO, .L, .UP, .M = 0, 0, 0.99769, 0)
+       -1       nbal(mangla-r,mar)
+        1       nbal(mangla-r,apr)
+       -1       defvol
+
+REMAINING 33 ENTRIES SKIPPED
+
+---- canaldiv  monthly diversion to canal         (maf)
+
+canaldiv(ud,jan)
+                (.LO, .L, .UP, .M = 0, 0, 0.131, 0)
+       -1       nbal(a5,jan)
+
+canaldiv(ud,feb)
+                (.LO, .L, .UP, .M = 0, 0, 0.131, 0)
+       -1       nbal(a5,feb)
+
+canaldiv(ud,mar)
+                (.LO, .L, .UP, .M = 0, 0, 0.131, 0)
+       -1       nbal(a5,mar)
+
+REMAINING 513 ENTRIES SKIPPED
+
+---- f  flow to node n from node n1        (maf)
+
+f(sulem-b,feroz-b,jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(feroz-b,jan)
+        1       nbal(sulem-b,jan)
+
+f(sulem-b,feroz-b,feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(feroz-b,feb)
+        1       nbal(sulem-b,feb)
+
+f(sulem-b,feroz-b,mar)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 26
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Column Listing      SOLVE canal Using LP From line 708
+
+
+     f  flow to node n from node n1        (maf)
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(feroz-b,mar)
+        1       nbal(sulem-b,mar)
+
+REMAINING 597 ENTRIES SKIPPED
+
+---- vol  total reservoir volumne
+
+vol
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defvol
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 27
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Model Statistics    SOLVE canal Using LP From line 708
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS          457
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES        1,153  20 projected
+NON ZERO ELEMENTS         1,813
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 28
+Indus Surface Water Network Submodule (ISWNM,SEQ=89)
+Solution Report     SOLVE canal Using LP From line 708
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   canal               OBJECTIVE  vol
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  708
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/iswnm/convert.opt"
+>>  pyomo iswnm-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/iswnm/convert.opt"
+Pyomo     : iswnm-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/iswnm/iswnm.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/iswnm/iswnm-scalar.py.lst

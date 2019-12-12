@@ -1,0 +1,724 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 2
+Piecewise Linear Approximations (IMSL,SEQ=59)
+C o m p i l a t i o n
+
+
+   3   
+       
+         This sample problem finds the best piecewise linear approximation in terms
+         of the sum of absolute deviations from the sampled observation. The
+         calculation of the interpolation weights relies on equal intervals of the
+         approximation function. The sine function is also implemented as a power
+         series expansion to demonstrate certain language features. The problem is
+         solved in its primal and dual version.
+       
+       
+      IMSL, LP/PROTRAN - A Problem Solving System for Linear Programming .
+      Tech. rep., IMSL INC, 1984.
+       
+  18   
+  19   
+  20   Sets n   x-coordinate labels for data           / d-00 * d-60 /
+  21        m   x-coordinate labels for approximation  / a-00 * a-10 /
+  22   
+  23   Parameters y(n)   data values
+  24              t(n)   x-coordinate values for data
+  25              s(m)   x-coordinate values for approximation
+  26              w(m,n) interpolation weights
+  27   
+  28   Scalars deltn  data increments
+  29           deltm  approximation increment ;
+  30   
+  31   t(n)  = (ord(n)-1)/(card(n)-1); s(m)  = (ord(m)-1)/(card(m)-1) ;
+  32   deltm = 1/(card(m)-1);          deltn = 1/(card(n)-1);
+  33   
+  34   w(m+floor(t(n)/deltm),n)$(ord(m) eq 1) = 1 - mod(t(n),deltm)/deltm;
+  35   w(m+1,n)$w(m,n) = 1-w(m,n) ;
+  36   
+  37  *  the function sin(x) is evaluated for x between 0 and pi.
+  38  *  the sets l and r are only used for the power series approximation of sin(x).
+  39   
+  40   Sets l   length of power series               / 0*6 /
+  41        r   set needed for factorial calculation / 0*14 / ;
+  42   
+  43   Abort$(card(l) gt 2*card(r)-1) "incorrect approximation sets",l,r;
+  44   
+  46  Scalar   pi  / 3.1415926538979 /;
+  48   
+  49   y(n) = sum(l, power(-1,ord(l)-1)*power(t(n)*pi,2*ord(l)-1) / prod(r$(ord(r) le 2*ord(l)-1), ord(r)) );
+  50   y(n) = round(y(n),6);
+  51   
+  52   Display y,t,s,deltm,deltn,w;
+  53   
+  54   Parameter test(n,*)  comparison of approximating sin() ;
+  55   
+  56             test(n,"power-ser") = y(n);
+  57             test(n,"sinus-fun") = sin(t(n)*pi);
+  58             test(n,"error")     = test(n,"sinus-fun") - test(n,"power-ser");
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 3
+Piecewise Linear Approximations (IMSL,SEQ=59)
+C o m p i l a t i o n
+
+
+  60             Display test;
+  61   
+  62   Variables ym(m)  approximation values
+  63             dp(n)  positive deviation
+  64             dn(n)  negative deviation
+  65             tdev   total deviation
+  66             tdual  total dual value
+  67             z(n)   dual values of deviations ;
+  68   
+  69   Positive variables dp, dn;
+  70   
+  71   Equations ddev(n)  deviation definitions
+  72             ddual(m) dual definition
+  73             dtdev    total dev definition
+  74             dtdual   total dual definition ;
+  75   
+  76   ddev(n)..  sum(m, w(m,n)*ym(m)) - y(n) =e= dp(n) - dn(n);
+  77   
+  78   ddual(m).. sum(n, w(m,n)*z(n)) =e= 0;
+  79   
+  80   dtdev..  tdev =e= sum(n, dp(n) + dn(n));
+  81   
+  82   dtdual.. tdual =e= sum(n, y(n)*z(n)) + 1;
+  83   
+  84   Model primal / ddev, dtdev /
+  85         dual   / ddual, dtdual /;
+  86   
+  87   Solve primal using lp minimizing tdev;
+  88   
+  89   Parameter prep(n,*) primal solution report
+  90             primaldev sum of absolute deviations from primal solution;
+  91   
+  92    prep(n,"t")    = t(n);
+  93    prep(n,"y")    = y(n);
+  94    prep(n,"dev")  = dp.l(n) - dn.l(n) ;
+  95    primaldev = sum(n, abs(prep(n,"dev")));
+  96   
+  97   Display prep,primaldev;
+  98   
+  99   
+ 100   z.lo(n) = -1; z.up(n) = 1;
+ 101   Solve dual using lp maximizing tdual ;
+ 102   
+ 103   Parameter drep(n,*) dual solution report
+ 104             dualdev   sum of absolute deviations from dual solution;
+ 105   
+ 106   drep(n,"t")  = t(n);
+ 107   drep(n,"y")  = y(n);
+ 108   drep(n,"dev")= sum(m, -ddual.m(m)*w(m,n)) - y(n);
+ 109   dualdev = sum(n, abs(drep(n,"dev")));
+ 110   
+ 111   Display drep,dualdev;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 4
+Piecewise Linear Approximations (IMSL,SEQ=59)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 5
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+----     52 PARAMETER y  data values
+
+d-01       0.052,    d-02       0.105,    d-03       0.156,    d-04       0.208,    d-05       0.259,    d-06       0.309,    d-07       0.358,    d-08       0.407,    d-09       0.454,    d-10       0.500,    d-11       0.545,    d-12       0.588
+d-13       0.629,    d-14       0.669,    d-15       0.707,    d-16       0.743,    d-17       0.777,    d-18       0.809,    d-19       0.839,    d-20       0.866,    d-21       0.891,    d-22       0.914,    d-23       0.934,    d-24       0.951
+d-25       0.966,    d-26       0.978,    d-27       0.988,    d-28       0.995,    d-29       0.999,    d-30       1.000,    d-31       0.999,    d-32       0.995,    d-33       0.988,    d-34       0.978,    d-35       0.966,    d-36       0.951
+d-37       0.934,    d-38       0.914,    d-39       0.891,    d-40       0.866,    d-41       0.839,    d-42       0.809,    d-43       0.777,    d-44       0.743,    d-45       0.707,    d-46       0.669,    d-47       0.629,    d-48       0.588
+d-49       0.545,    d-50       0.500,    d-51       0.454,    d-52       0.407,    d-53       0.358,    d-54       0.309,    d-55       0.259,    d-56       0.208,    d-57       0.156,    d-58       0.105,    d-59       0.052,    d-60 2.100000E-5
+
+
+----     52 PARAMETER t  x-coordinate values for data
+
+d-01 0.017,    d-02 0.033,    d-03 0.050,    d-04 0.067,    d-05 0.083,    d-06 0.100,    d-07 0.117,    d-08 0.133,    d-09 0.150,    d-10 0.167,    d-11 0.183,    d-12 0.200,    d-13 0.217,    d-14 0.233,    d-15 0.250,    d-16 0.267,    d-17 0.283
+d-18 0.300,    d-19 0.317,    d-20 0.333,    d-21 0.350,    d-22 0.367,    d-23 0.383,    d-24 0.400,    d-25 0.417,    d-26 0.433,    d-27 0.450,    d-28 0.467,    d-29 0.483,    d-30 0.500,    d-31 0.517,    d-32 0.533,    d-33 0.550,    d-34 0.567
+d-35 0.583,    d-36 0.600,    d-37 0.617,    d-38 0.633,    d-39 0.650,    d-40 0.667,    d-41 0.683,    d-42 0.700,    d-43 0.717,    d-44 0.733,    d-45 0.750,    d-46 0.767,    d-47 0.783,    d-48 0.800,    d-49 0.817,    d-50 0.833,    d-51 0.850
+d-52 0.867,    d-53 0.883,    d-54 0.900,    d-55 0.917,    d-56 0.933,    d-57 0.950,    d-58 0.967,    d-59 0.983,    d-60 1.000
+
+
+----     52 PARAMETER s  x-coordinate values for approximation
+
+a-01 0.100,    a-02 0.200,    a-03 0.300,    a-04 0.400,    a-05 0.500,    a-06 0.600,    a-07 0.700,    a-08 0.800,    a-09 0.900,    a-10 1.000
+
+
+----     52 PARAMETER deltm                =        0.100  approximation increment
+            PARAMETER deltn                =        0.017  data increments
+
+----     52 PARAMETER w  interpolation weights
+
+            d-00        d-01        d-02        d-03        d-04        d-05        d-06        d-07        d-08        d-09        d-10        d-11        d-12        d-13        d-14        d-15        d-16        d-17        d-18        d-19
+
+a-00       1.000       0.833       0.667       0.500       0.333       0.167
+a-01                   0.167       0.333       0.500       0.667       0.833       1.000       0.833       0.667       0.500       0.333       0.167
+a-02                                                                                           0.167       0.333       0.500       0.667       0.833       1.000       0.833       0.667       0.500       0.333       0.167
+a-03                                                                                                                                                                   0.167       0.333       0.500       0.667       0.833 2.22045E-16       0.833
+a-04                                                                                                                                                                                                                               1.000       0.167
+
+   +        d-20        d-21        d-22        d-23        d-24        d-25        d-26        d-27        d-28        d-29        d-30        d-31        d-32        d-33        d-34        d-35        d-36        d-37        d-38        d-39
+
+a-03       0.667       0.500       0.333       0.167
+a-04       0.333       0.500       0.667       0.833       1.000       0.833       0.667       0.500       0.333       0.167
+a-05                                                                   0.167       0.333       0.500       0.667       0.833       1.000       0.833       0.667       0.500       0.333       0.167
+a-06                                                                                                                                           0.167       0.333       0.500       0.667       0.833 2.22045E-16       0.833       0.667       0.500
+a-07                                                                                                                                                                                                       1.000       0.167       0.333       0.500
+
+   +        d-40        d-41        d-42        d-43        d-44        d-45        d-46        d-47        d-48        d-49        d-50        d-51        d-52        d-53        d-54        d-55        d-56        d-57        d-58        d-59
+
+a-06       0.333       0.167
+a-07       0.667       0.833 1.33227E-15       0.833       0.667       0.500       0.333       0.167
+a-08                               1.000       0.167       0.333       0.500       0.667       0.833       1.000       0.833       0.667       0.500       0.333       0.167
+a-09                                                                                                                   0.167       0.333       0.500       0.667       0.833       1.000       0.833       0.667       0.500       0.333       0.167
+a-10                                                                                                                                                                                           0.167       0.333       0.500       0.667       0.833
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 6
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+         52 PARAMETER w  interpolation weights
+
+   +        d-60
+
+a-10       1.000
+
+
+----     60 PARAMETER test  comparison of approximating sin()
+
+       power-ser   sinus-fun       error
+
+d-01       0.052       0.052 -4.37519E-8
+d-02       0.105       0.105 4.632779E-7
+d-03       0.156       0.156 4.650554E-7
+d-04       0.208       0.208 -3.09162E-7
+d-05       0.259       0.259 4.512732E-8
+d-06       0.309       0.309 -5.59575E-9
+d-07       0.358       0.358 -5.04211E-8
+d-08       0.407       0.407 -3.56887E-7
+d-09       0.454       0.454 4.997807E-7
+d-10       0.500       0.500 4.44713E-11
+d-11       0.545       0.545 3.506240E-8
+d-12       0.588       0.588 2.523423E-7
+d-13       0.629       0.629 3.911017E-7
+d-14       0.669       0.669 -3.93588E-7
+d-15       0.707       0.707 -2.18759E-7
+d-16       0.743       0.743 -1.74468E-7
+d-17       0.777       0.777 -3.84881E-8
+d-18       0.809       0.809 -5.57072E-9
+d-19       0.839       0.839 -4.32001E-7
+d-20       0.866       0.866 4.038358E-7
+d-21       0.891       0.891 -4.75763E-7
+d-22       0.914       0.914 4.576886E-7
+d-23       0.934       0.934 4.265395E-7
+d-24       0.951       0.951 -4.83667E-7
+d-25       0.966       0.966 -1.73678E-7
+d-26       0.978       0.978 -3.99238E-7
+d-27       0.988       0.988 3.406168E-7
+d-28       0.995       0.995 -1.04617E-7
+d-29       0.999       0.999 -4.65238E-7
+d-30       1.000       1.000
+d-31       0.999       0.999 -4.65254E-7
+d-32       0.995       0.995 -1.04649E-7
+d-33       0.988       0.988 3.405686E-7
+d-34       0.978       0.978 -3.99302E-7
+d-35       0.966       0.966 -1.73757E-7
+d-36       0.951       0.951 -4.83762E-7
+d-37       0.934       0.934 4.264291E-7
+d-38       0.914       0.914 4.575632E-7
+d-39       0.891       0.891 -4.75903E-7
+d-40       0.866       0.866 4.036817E-7
+d-41       0.839       0.839 -4.32169E-7
+d-42       0.809       0.809 -5.75182E-9
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 7
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+         60 PARAMETER test  comparison of approximating sin()
+
+       power-ser   sinus-fun       error
+
+d-43       0.777       0.777 -3.86820E-8
+d-44       0.743       0.743 -1.74674E-7
+d-45       0.707       0.707 -2.18977E-7
+d-46       0.669       0.669 -3.93817E-7
+d-47       0.629       0.629 -6.09138E-7
+d-48       0.588       0.588 -7.47907E-7
+d-49       0.545       0.545 -9.65196E-7
+d-50       0.500       0.500 -1.00022E-6
+d-51       0.454       0.454 -1.50049E-6
+d-52       0.407       0.407 -2.35717E-6
+d-53       0.358       0.358 -3.05071E-6
+d-54       0.309       0.309 -4.00589E-6
+d-55       0.259       0.259 -5.95517E-6
+d-56       0.208       0.208 -7.30946E-6
+d-57       0.156       0.156 -9.53525E-6
+d-58       0.105       0.105 -1.25370E-5
+d-59       0.052       0.052 -1.60441E-5
+d-60 2.100000E-5 -3.0811E-10 -2.10003E-5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 8
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Equation Listing    SOLVE primal Using LP From line 87
+
+
+---- ddev  =E=  deviation definitions
+
+ddev(d-00)..  ym(a-00) - dp(d-00) + dn(d-00) =E= 0 ; (LHS = 0)
+     
+ddev(d-01)..  0.833333333333333*ym(a-00) + 0.166666666666667*ym(a-01) - dp(d-01) + dn(d-01) =E= 0.052336 ; (LHS = 0, INFES = 0.052336 ****)
+     
+ddev(d-02)..  0.666666666666667*ym(a-00) + 0.333333333333333*ym(a-01) - dp(d-02) + dn(d-02) =E= 0.104528 ; (LHS = 0, INFES = 0.104528 ****)
+     
+REMAINING 58 ENTRIES SKIPPED
+
+
+---- dtdev  =E=  total dev definition
+
+dtdev..  - dp(d-00) - dp(d-01) - dp(d-02) - dp(d-03) - dp(d-04) - dp(d-05) - dp(d-06) - dp(d-07) - dp(d-08) - dp(d-09) - dp(d-10) - dp(d-11) - dp(d-12) - dp(d-13) - dp(d-14) - dp(d-15) - dp(d-16) - dp(d-17) - dp(d-18) - dp(d-19) - dp(d-20) - dp(d-21)
+     
+      - dp(d-22) - dp(d-23) - dp(d-24) - dp(d-25) - dp(d-26) - dp(d-27) - dp(d-28) - dp(d-29) - dp(d-30) - dp(d-31) - dp(d-32) - dp(d-33) - dp(d-34) - dp(d-35) - dp(d-36) - dp(d-37) - dp(d-38) - dp(d-39) - dp(d-40) - dp(d-41) - dp(d-42) - dp(d-43)
+     
+      - dp(d-44) - dp(d-45) - dp(d-46) - dp(d-47) - dp(d-48) - dp(d-49) - dp(d-50) - dp(d-51) - dp(d-52) - dp(d-53) - dp(d-54) - dp(d-55) - dp(d-56) - dp(d-57) - dp(d-58) - dp(d-59) - dp(d-60) - dn(d-00) - dn(d-01) - dn(d-02) - dn(d-03) - dn(d-04)
+     
+      - dn(d-05) - dn(d-06) - dn(d-07) - dn(d-08) - dn(d-09) - dn(d-10) - dn(d-11) - dn(d-12) - dn(d-13) - dn(d-14) - dn(d-15) - dn(d-16) - dn(d-17) - dn(d-18) - dn(d-19) - dn(d-20) - dn(d-21) - dn(d-22) - dn(d-23) - dn(d-24) - dn(d-25) - dn(d-26)
+     
+      - dn(d-27) - dn(d-28) - dn(d-29) - dn(d-30) - dn(d-31) - dn(d-32) - dn(d-33) - dn(d-34) - dn(d-35) - dn(d-36) - dn(d-37) - dn(d-38) - dn(d-39) - dn(d-40) - dn(d-41) - dn(d-42) - dn(d-43) - dn(d-44) - dn(d-45) - dn(d-46) - dn(d-47) - dn(d-48)
+     
+      - dn(d-49) - dn(d-50) - dn(d-51) - dn(d-52) - dn(d-53) - dn(d-54) - dn(d-55) - dn(d-56) - dn(d-57) - dn(d-58) - dn(d-59) - dn(d-60) + tdev =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:40 Page 9
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Column Listing      SOLVE primal Using LP From line 87
+
+
+---- ym  approximation values
+
+ym(a-00)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ddev(d-00)
+        0.8333  ddev(d-01)
+        0.6667  ddev(d-02)
+        0.5     ddev(d-03)
+        0.3333  ddev(d-04)
+        0.1667  ddev(d-05)
+
+ym(a-01)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.1667  ddev(d-01)
+        0.3333  ddev(d-02)
+        0.5     ddev(d-03)
+        0.6667  ddev(d-04)
+        0.8333  ddev(d-05)
+        1       ddev(d-06)
+        0.8333  ddev(d-07)
+        0.6667  ddev(d-08)
+        0.5     ddev(d-09)
+        0.3333  ddev(d-10)
+        0.1667  ddev(d-11)
+
+ym(a-02)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.1667  ddev(d-07)
+        0.3333  ddev(d-08)
+        0.5     ddev(d-09)
+        0.6667  ddev(d-10)
+        0.8333  ddev(d-11)
+        1       ddev(d-12)
+        0.8333  ddev(d-13)
+        0.6667  ddev(d-14)
+        0.5     ddev(d-15)
+        0.3333  ddev(d-16)
+        0.1667  ddev(d-17)
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- dp  positive deviation
+
+dp(d-00)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(d-00)
+       -1       dtdev
+
+dp(d-01)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(d-01)
+       -1       dtdev
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 10
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Column Listing      SOLVE primal Using LP From line 87
+
+
+     dp  positive deviation
+
+dp(d-02)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ddev(d-02)
+       -1       dtdev
+
+REMAINING 58 ENTRIES SKIPPED
+
+---- dn  negative deviation
+
+dn(d-00)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(d-00)
+       -1       dtdev
+
+dn(d-01)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(d-01)
+       -1       dtdev
+
+dn(d-02)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ddev(d-02)
+       -1       dtdev
+
+REMAINING 58 ENTRIES SKIPPED
+
+---- tdev  total deviation
+
+tdev
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dtdev
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 11
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Model Statistics    SOLVE primal Using LP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           62
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          134
+NON ZERO ELEMENTS           359
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 12
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Solution Report     SOLVE primal Using LP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   primal              OBJECTIVE  tdev
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/imsl/convert.opt"
+>>  ampl imsl-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/imsl/convert.opt"
+Ampl      : imsl-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 13
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+----     97 PARAMETER prep  primal solution report
+
+               t           y
+
+d-01       0.017       0.052
+d-02       0.033       0.105
+d-03       0.050       0.156
+d-04       0.067       0.208
+d-05       0.083       0.259
+d-06       0.100       0.309
+d-07       0.117       0.358
+d-08       0.133       0.407
+d-09       0.150       0.454
+d-10       0.167       0.500
+d-11       0.183       0.545
+d-12       0.200       0.588
+d-13       0.217       0.629
+d-14       0.233       0.669
+d-15       0.250       0.707
+d-16       0.267       0.743
+d-17       0.283       0.777
+d-18       0.300       0.809
+d-19       0.317       0.839
+d-20       0.333       0.866
+d-21       0.350       0.891
+d-22       0.367       0.914
+d-23       0.383       0.934
+d-24       0.400       0.951
+d-25       0.417       0.966
+d-26       0.433       0.978
+d-27       0.450       0.988
+d-28       0.467       0.995
+d-29       0.483       0.999
+d-30       0.500       1.000
+d-31       0.517       0.999
+d-32       0.533       0.995
+d-33       0.550       0.988
+d-34       0.567       0.978
+d-35       0.583       0.966
+d-36       0.600       0.951
+d-37       0.617       0.934
+d-38       0.633       0.914
+d-39       0.650       0.891
+d-40       0.667       0.866
+d-41       0.683       0.839
+d-42       0.700       0.809
+d-43       0.717       0.777
+d-44       0.733       0.743
+d-45       0.750       0.707
+d-46       0.767       0.669
+d-47       0.783       0.629
+d-48       0.800       0.588
+d-49       0.817       0.545
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 14
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+         97 PARAMETER prep  primal solution report
+
+               t           y
+
+d-50       0.833       0.500
+d-51       0.850       0.454
+d-52       0.867       0.407
+d-53       0.883       0.358
+d-54       0.900       0.309
+d-55       0.917       0.259
+d-56       0.933       0.208
+d-57       0.950       0.156
+d-58       0.967       0.105
+d-59       0.983       0.052
+d-60       1.000 2.100000E-5
+
+
+----     97 PARAMETER primaldev            =        0.000  sum of absolute deviations from primal solution
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 15
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Equation Listing    SOLVE dual Using LP From line 101
+
+
+---- ddual  =E=  dual definition
+
+ddual(a-00)..  z(d-00) + 0.833333333333333*z(d-01) + 0.666666666666667*z(d-02) + 0.5*z(d-03) + 0.333333333333333*z(d-04) + 0.166666666666667*z(d-05) =E= 0 ; (LHS = 0)
+     
+ddual(a-01)..  0.166666666666667*z(d-01) + 0.333333333333333*z(d-02) + 0.5*z(d-03) + 0.666666666666667*z(d-04) + 0.833333333333333*z(d-05) + z(d-06) + 0.833333333333333*z(d-07) + 0.666666666666667*z(d-08) + 0.5*z(d-09) + 0.333333333333333*z(d-10)
+     
+      + 0.166666666666667*z(d-11) =E= 0 ; (LHS = 0)
+     
+ddual(a-02)..  0.166666666666667*z(d-07) + 0.333333333333333*z(d-08) + 0.5*z(d-09) + 0.666666666666667*z(d-10) + 0.833333333333333*z(d-11) + z(d-12) + 0.833333333333333*z(d-13) + 0.666666666666667*z(d-14) + 0.5*z(d-15) + 0.333333333333333*z(d-16)
+     
+      + 0.166666666666667*z(d-17) =E= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- dtdual  =E=  total dual definition
+
+dtdual..  tdual - 0.052336*z(d-01) - 0.104528*z(d-02) - 0.156434*z(d-03) - 0.207912*z(d-04) - 0.258819*z(d-05) - 0.309017*z(d-06) - 0.358368*z(d-07) - 0.406737*z(d-08) - 0.45399*z(d-09) - 0.5*z(d-10) - 0.544639*z(d-11) - 0.587785*z(d-12) - 0.62932*z(d-13)
+     
+      - 0.669131*z(d-14) - 0.707107*z(d-15) - 0.743145*z(d-16) - 0.777146*z(d-17) - 0.809017*z(d-18) - 0.838671*z(d-19) - 0.866025*z(d-20) - 0.891007*z(d-21) - 0.913545*z(d-22) - 0.93358*z(d-23) - 0.951057*z(d-24) - 0.965926*z(d-25) - 0.978148*z(d-26)
+     
+      - 0.987688*z(d-27) - 0.994522*z(d-28) - 0.99863*z(d-29) - z(d-30) - 0.99863*z(d-31) - 0.994522*z(d-32) - 0.987688*z(d-33) - 0.978148*z(d-34) - 0.965926*z(d-35) - 0.951057*z(d-36) - 0.93358*z(d-37) - 0.913545*z(d-38) - 0.891007*z(d-39)
+     
+      - 0.866025*z(d-40) - 0.838671*z(d-41) - 0.809017*z(d-42) - 0.777146*z(d-43) - 0.743145*z(d-44) - 0.707107*z(d-45) - 0.669131*z(d-46) - 0.629321*z(d-47) - 0.587786*z(d-48) - 0.54464*z(d-49) - 0.500001*z(d-50) - 0.453992*z(d-51) - 0.406739*z(d-52)
+     
+      - 0.358371*z(d-53) - 0.309021*z(d-54) - 0.258825*z(d-55) - 0.207919*z(d-56) - 0.156444*z(d-57) - 0.104541*z(d-58) - 0.052352*z(d-59) - 2.1E-5*z(d-60) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 16
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Column Listing      SOLVE dual Using LP From line 101
+
+
+---- tdual  total dual value
+
+tdual
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dtdual
+
+
+---- z  dual values of deviations
+
+z(d-00)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+        1       ddual(a-00)
+
+z(d-01)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+        0.8333  ddual(a-00)
+        0.1667  ddual(a-01)
+       -0.0523  dtdual
+
+z(d-02)
+                (.LO, .L, .UP, .M = -1, 0, 1, 0)
+        0.6667  ddual(a-00)
+        0.3333  ddual(a-01)
+       -0.1045  dtdual
+
+REMAINING 58 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 17
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Model Statistics    SOLVE dual Using LP From line 101
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           12
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           62
+NON ZERO ELEMENTS           175
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 18
+Piecewise Linear Approximations (IMSL,SEQ=59)
+Solution Report     SOLVE dual Using LP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   dual                OBJECTIVE  tdual
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/imsl/convert.opt"
+>>  ampl imsl-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/imsl/convert.opt"
+Ampl      : imsl-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 19
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+----    111 PARAMETER drep  dual solution report
+
+               t           y         dev
+
+d-01       0.017       0.052      -0.052
+d-02       0.033       0.105      -0.105
+d-03       0.050       0.156      -0.156
+d-04       0.067       0.208      -0.208
+d-05       0.083       0.259      -0.259
+d-06       0.100       0.309      -0.309
+d-07       0.117       0.358      -0.358
+d-08       0.133       0.407      -0.407
+d-09       0.150       0.454      -0.454
+d-10       0.167       0.500      -0.500
+d-11       0.183       0.545      -0.545
+d-12       0.200       0.588      -0.588
+d-13       0.217       0.629      -0.629
+d-14       0.233       0.669      -0.669
+d-15       0.250       0.707      -0.707
+d-16       0.267       0.743      -0.743
+d-17       0.283       0.777      -0.777
+d-18       0.300       0.809      -0.809
+d-19       0.317       0.839      -0.839
+d-20       0.333       0.866      -0.866
+d-21       0.350       0.891      -0.891
+d-22       0.367       0.914      -0.914
+d-23       0.383       0.934      -0.934
+d-24       0.400       0.951      -0.951
+d-25       0.417       0.966      -0.966
+d-26       0.433       0.978      -0.978
+d-27       0.450       0.988      -0.988
+d-28       0.467       0.995      -0.995
+d-29       0.483       0.999      -0.999
+d-30       0.500       1.000      -1.000
+d-31       0.517       0.999      -0.999
+d-32       0.533       0.995      -0.995
+d-33       0.550       0.988      -0.988
+d-34       0.567       0.978      -0.978
+d-35       0.583       0.966      -0.966
+d-36       0.600       0.951      -0.951
+d-37       0.617       0.934      -0.934
+d-38       0.633       0.914      -0.914
+d-39       0.650       0.891      -0.891
+d-40       0.667       0.866      -0.866
+d-41       0.683       0.839      -0.839
+d-42       0.700       0.809      -0.809
+d-43       0.717       0.777      -0.777
+d-44       0.733       0.743      -0.743
+d-45       0.750       0.707      -0.707
+d-46       0.767       0.669      -0.669
+d-47       0.783       0.629      -0.629
+d-48       0.800       0.588      -0.588
+d-49       0.817       0.545      -0.545
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:40 Page 20
+Piecewise Linear Approximations (IMSL,SEQ=59)
+E x e c u t i o n
+
+
+        111 PARAMETER drep  dual solution report
+
+               t           y         dev
+
+d-50       0.833       0.500      -0.500
+d-51       0.850       0.454      -0.454
+d-52       0.867       0.407      -0.407
+d-53       0.883       0.358      -0.358
+d-54       0.900       0.309      -0.309
+d-55       0.917       0.259      -0.259
+d-56       0.933       0.208      -0.208
+d-57       0.950       0.156      -0.156
+d-58       0.967       0.105      -0.105
+d-59       0.983       0.052      -0.052
+d-60       1.000 2.100000E-5 -2.10000E-5
+
+
+----    111 PARAMETER dualdev              =       38.189  sum of absolute deviations from dual solution
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/imsl/imsl.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/imsl/imsl-scalar.mod.lst

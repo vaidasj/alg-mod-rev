@@ -1,0 +1,185 @@
+--- Job spatequ.gms Start 12/13/18 11:30:36 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- spatequ.gms(172) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- spatequ.gms(1) 4 Mb
+--- Generating LP model P2R3_Linear
+--- spatequ.gms(166) 4 Mb
+---   39 rows  37 columns  121 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.005
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/spatequ/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Aggregator did 12 substitutions.
+Reduced LP has 26 rows, 24 columns, and 78 nonzeros.
+Presolve time = 0.00 sec. (0.03 ticks)
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =             0.000000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.08 ticks)
+
+Optimal solution found.
+Objective :         429.545455
+
+--- Restarting execution
+--- spatequ.gms(166) 2 Mb
+--- Reading solution for model P2R3_Linear
+--- Generating NLP model P2R3_LinearLog
+--- spatequ.gms(167) 5 Mb
+---   39 rows  37 columns  121 non-zeroes
+---   93 nl-code  12 nl-non-zeroes
+--- spatequ.gms(167) 3 Mb
+--- Executing BARON: elapsed 0:00:00.030
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/spatequ/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Doing local search
+ Preprocessing found feasible solution with value  631.134583862     
+ Solving bounding LP
+ Starting multi-start local search
+ Done with local search
+===========================================================================
+  Iteration    Open nodes         Time (s)    Lower bound      Upper bound
+          1             0             0.03     573.759          631.135    
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.03
+ Total CPU time used:                 0.03
+
+ Total no. of BaR iterations:       1
+ Best solution found at node:       1
+ Max. no. of nodes in memory:       1
+ 
+ All done
+===========================================================================
+
+Solution      = 631.134583851972  found at node 1
+Best possible = 573.758712593
+Absolute gap  = 57.3758712589723  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- spatequ.gms(167) 2 Mb
+--- Reading solution for model P2R3_LinearLog
+--- Generating NLP model P2R3_NonLinear
+--- spatequ.gms(168) 5 Mb
+---   52 rows  50 columns  171 non-zeroes
+---   114 nl-code  24 nl-non-zeroes
+--- spatequ.gms(168) 3 Mb
+--- Executing BARON: elapsed 0:00:00.096
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/spatequ/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Doing local search
+ Preprocessing found feasible solution with value  7906.94628099     
+ Solving bounding LP
+ Starting multi-start local search
+ Done with local search
+===========================================================================
+  Iteration    Open nodes         Time (s)    Lower bound      Upper bound
+          1             0             0.02     7906.95          8785.50    
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.02
+ Total CPU time used:                 0.02
+
+ Total no. of BaR iterations:       1
+ Best solution found at node:       1
+ Max. no. of nodes in memory:       1
+ 
+ All done
+===========================================================================
+
+Solution      = 7906.94628099174  found at node 1
+Best possible = 8785.49586777
+Absolute gap  = 878.549586778264  optca = 1E-9
+Relative gap  = 0.10000  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- spatequ.gms(168) 2 Mb
+--- Reading solution for model P2R3_NonLinear
+--- spatequ.gms(169) 3 Mb
+--- Generating MCP model P2R3_MCP
+--- spatequ.gms(169) 5 Mb
+---   30 rows  30 columns  84 non-zeroes
+---   0 nl-code  0 nl-non-zeroes
+--- spatequ.gms(169) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.150
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/spatequ/convert.opt"
+>>  ampl spatequ-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/spatequ/convert.opt"
+--- Writing Ampl      : spatequ-scalar.mod
+
+--- Restarting execution
+--- spatequ.gms(169) 2 Mb
+--- Reading solution for model P2R3_MCP
+*** Status: Normal completion
+--- Job spatequ.gms Stop 12/13/18 11:30:36 elapsed 0:00:00.164

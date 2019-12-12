@@ -1,0 +1,374 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 2
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+C o m p i l a t i o n
+
+
+       
+      Scarf's Activity Analysis Example
+       
+       
+      Scarf, H, and Hansen, T, The Computation of Economic Equilibria.
+      Yale University Press, 1973.
+       
+  12   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/scarfdata.inc
+  14  sets
+  15          c       commodities
+  16   
+  17                  /capeop, nondurbl, durable, capbop, skillab, unsklab/
+  18   
+  19          h       consumers
+  20   
+  21                  /agent1,agent2,agent3,agent4,agent5/
+  22   
+  23          s       sectors
+  24   
+  25                  /d1, d2, n1, n2, n3, cd, c1, c2/;
+  26   
+  27  alias (c,cc);
+  28   
+  29  table e(c,h)  commodity endowments
+  30   
+  31               agent1     agent2     agent3     agent4     agent5
+  32  capbop         3         0.1         2          1           6
+  33  skillab        5         0.1         6          0.1         0.1
+  34  unsklab        0.1       7           0.1        8           0.5
+  35  durable        1         2           1.5        1           2
+  36   
+  37  table d(c,h) reference demands
+  38   
+  39               agent1     agent2     agent3     agent4     agent5
+  40  capeop         4         0.4          2         5          3
+  41  skillab        0.2                    0.5
+  42  unsklab                  0.6                    0.2        0.2
+  43  nondurbl       2         4           2          5          4
+  44  durable        3.2       1           1.5        4.5        2
+  45   
+  46  parameter  esub(h)  elasticities in demand
+  47   
+  48  /       agent1          1.2,
+  49          agent2          1.6,
+  50          agent3          0.8,
+  51          agent4          0.5,
+  52          agent5          0.6  /;
+  53   
+  54  table data(*,c,s)  activity analysis matrix
+  55   
+  56                           d1          d2          n1          n2          n3
+  57   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 3
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+C o m p i l a t i o n
+
+
+  58  output.nondurbl                                 6.0         8.0         7.0
+  59  output.durable          4.0         3.5
+  60  output.capeop           4.0         4.0         1.6         1.6         1.6
+  61  input .capbop           5.3         5.0         2.0         2.0         2.0
+  62  input .skillab          2.0         1.0         2.0         4.0         1.0
+  63  input .unsklab          1.0         6.0         3.0         1.0         8.0
+  64   
+  65                +          cd          c1          c2
+  66   
+  67  output.capeop           0.9         7.0         8.0
+  68  input .capbop           1.0         4.0         5.0
+  69  input .skillab                      3.0         2.0
+  70  input .unsklab                      1.0         8.0;
+  71   
+  72   
+  73  parameter       alpha(c,h)      demand function share parameter;
+  74  alpha(c,h) = d(c,h) / sum(cc, d(cc,h));
+  75   
+  76  parameter  a(c,s)  activity analysis matrix;
+  77  a(c,s) = data("output",c,s) - data("input",c,s);
+  78   
+  79  * For CES function definition
+  80  parameter rho(h);
+  81  * rho = r / r - 1,  r = 1-esub(h)
+  82  rho(h) = (esub(h)-1)/esub(h);
+  83  * lambda = alpha**(1/1-r)
+  84  parameter lambda(c,h);
+  85  lambda(c,h) = alpha(c,h)**(1/esub(h));
+  86   
+  87   
+  88  positive
+  89  variables
+  90   
+  91          p(c)    commodity price,
+  92          y(s)    production,
+  93          i(h)    income;
+  94   
+  95  equations
+  96          mkt(c)          commodity market,
+  97          profit(s)       zero profit,
+  98          income(h)       income index;
+  99   
+ 100  *       distinguish ces and cobb-douglas demand functions:
+ 101   
+ 102  mkt(c)..        sum(s, a(c,s) * y(s)) + sum(h, e(c,h)) =g=
+ 103   
+ 104                  sum(h$(esub(h) ne 1),
+ 105                  (i(h)/sum(cc, alpha(cc,h) * p(cc)**(1-esub(h)))) *
+ 106                  alpha(c,h) * (1/p(c))**esub(h)) +
+ 107   
+ 108                  sum(h$(esub(h) eq 1),
+ 109                  i(h) * alpha(c,h) / p(c));
+ 110   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 4
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+C o m p i l a t i o n
+
+
+ 111  profit(s)..     -sum(c, a(c,s) * p(c)) =g= 0;
+ 112   
+ 113  income(h)..     i(h) =g= sum(c, p(c) * e(c,h));
+ 114   
+ 115  model scarf / mkt.p, profit.y, income.i/;
+ 116   
+ 117  p.l(c) = 1;
+ 118  y.l(s) = 1;
+ 119  i.l(h) = sum(c, p.l(c) * e(c,h));
+ 120   
+ 121  p.lo(c)  = 0.00001$(smax(h, alpha(c,h)) gt eps);
+ 122   
+ 123  *       fix the price of numeraire commodity:
+ 124   
+ 125  i.fx(h)$(ord(h) eq 1) = i.l(h);
+ 126   
+ 127  solve scarf using mcp;
+ 128   
+ 129   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 5
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/scarfmcp.gms
+     2       13 INCLUDE        1      13  ./home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/scarfdata.inc
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 6
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+Equation Listing    SOLVE scarf Using MCP From line 127
+
+
+---- mkt  =G=  commodity market
+
+mkt(capeop)..  (12.3977085305932)*p(capeop) + (0.875179526130693)*p(nondurbl) + (0.604696863473961)*p(durable) + (0.0368552889693677)*p(skillab) + (0.0109555254448782)*p(unsklab) + 4*y(d1) + 4*y(d2) + 1.6*y(n1) + 1.6*y(n2) + 1.6*y(n3) + 0.9*y(cd)
+     
+      + 7*y(c1) + 8*y(c2) - (0.425531914893617)*i(agent1) - (0.0666666666666667)*i(agent2) - (0.333333333333333)*i(agent3) - (0.340136054421769)*i(agent4) - (0.326086956521739)*i(agent5) =G= 0 ; (LHS = 14.7746042653879)
+     
+mkt(nondurbl)..  (0.875179526130693)*p(capeop) + (17.5700435607713)*p(nondurbl) + (0.26580666262009)*p(durable) + (0.0450943111513505)*p(skillab) - (0.312115930131681)*p(unsklab) + 6*y(n1) + 8*y(n2) + 7*y(n3) - (0.212765957446809)*i(agent1)
+     
+      - (0.666666666666667)*i(agent2) - (0.333333333333333)*i(agent3) - (0.340136054421769)*i(agent4) - (0.434782608695652)*i(agent5) =G= 0 ; (LHS = 2.55599186945824)
+     
+mkt(durable)..  (0.604696863473961)*p(capeop) + (0.26580666262009)*p(nondurbl) + (11.1499965434372)*p(durable) + (0.0268175645088275)*p(skillab) - (0.0547100081960179)*p(unsklab) + 4*y(d1) + 3.5*y(d2) - (0.340425531914894)*i(agent1)
+     
+      - (0.166666666666667)*i(agent2) - (0.25)*i(agent3) - (0.306122448979592)*i(agent4) - (0.217391304347826)*i(agent5) =G= -7.5 ; (LHS = -4.49260762584405)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- profit  =G=  zero profit
+
+profit(d1)..  - 4*p(capeop) - 4*p(durable) + 5.3*p(capbop) + 2*p(skillab) + p(unsklab) =G= 0 ; (LHS = 0.3)
+     
+profit(d2)..  - 4*p(capeop) - 3.5*p(durable) + 5*p(capbop) + p(skillab) + 6*p(unsklab) =G= 0 ; (LHS = 4.5)
+     
+profit(n1)..  - 1.6*p(capeop) - 6*p(nondurbl) + 2*p(capbop) + 2*p(skillab) + 3*p(unsklab) =G= 0 ; (LHS = -0.6, INFES = 0.6 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- income  =G=  income index
+
+income(agent1)..  - p(durable) - 3*p(capbop) - 5*p(skillab) - 0.1*p(unsklab) + i(agent1) =G= 0 ; (LHS = 0)
+     
+income(agent2)..  - 2*p(durable) - 0.1*p(capbop) - 0.1*p(skillab) - 7*p(unsklab) + i(agent2) =G= 0 ; (LHS = 0)
+     
+income(agent3)..  - 1.5*p(durable) - 2*p(capbop) - 6*p(skillab) - 0.1*p(unsklab) + i(agent3) =G= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 7
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+Column Listing      SOLVE scarf Using MCP From line 127
+
+
+---- p  commodity price
+
+p(capeop)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (12.3977) mkt(capeop)
+       (0.8752) mkt(nondurbl)
+       (0.6047) mkt(durable)
+       (0.0369) mkt(skillab)
+       (0.011)  mkt(unsklab)
+       -4       profit(d1)
+       -4       profit(d2)
+       -1.6     profit(n1)
+       -1.6     profit(n2)
+       -1.6     profit(n3)
+       -0.9     profit(cd)
+       -7       profit(c1)
+       -8       profit(c2)
+
+p(nondurbl)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       (0.8752) mkt(capeop)
+      (17.57)   mkt(nondurbl)
+       (0.2658) mkt(durable)
+       (0.0451) mkt(skillab)
+      (-0.3121) mkt(unsklab)
+       -6       profit(n1)
+       -8       profit(n2)
+       -7       profit(n3)
+
+p(durable)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       (0.6047) mkt(capeop)
+       (0.2658) mkt(nondurbl)
+      (11.15)   mkt(durable)
+       (0.0268) mkt(skillab)
+      (-0.0547) mkt(unsklab)
+       -4       profit(d1)
+       -3.5     profit(d2)
+       -1       income(agent1)
+       -2       income(agent2)
+       -1.5     income(agent3)
+       -1       income(agent4)
+       -2       income(agent5)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- y  production
+
+y(d1)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        4       mkt(capeop)
+        4       mkt(durable)
+       -5.3     mkt(capbop)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 8
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+Column Listing      SOLVE scarf Using MCP From line 127
+
+
+     y  production
+
+       -2       mkt(skillab)
+       -1       mkt(unsklab)
+
+y(d2)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        4       mkt(capeop)
+        3.5     mkt(durable)
+       -5       mkt(capbop)
+       -1       mkt(skillab)
+       -6       mkt(unsklab)
+
+y(n1)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1.6     mkt(capeop)
+        6       mkt(nondurbl)
+       -2       mkt(capbop)
+       -2       mkt(skillab)
+       -3       mkt(unsklab)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- i  income
+
+i(agent1)
+                (.LO, .L, .UP, .M = 9.1, 9.1, 9.1, 0)
+      (-0.4255) mkt(capeop)
+      (-0.2128) mkt(nondurbl)
+      (-0.3404) mkt(durable)
+      (-0.0213) mkt(skillab)
+        1       income(agent1)
+
+i(agent2)
+                (.LO, .L, .UP, .M = 0, 9.2, +INF, 0)
+      (-0.0667) mkt(capeop)
+      (-0.6667) mkt(nondurbl)
+      (-0.1667) mkt(durable)
+      (-0.1)    mkt(unsklab)
+        1       income(agent2)
+
+i(agent3)
+                (.LO, .L, .UP, .M = 0, 9.6, +INF, 0)
+      (-0.3333) mkt(capeop)
+      (-0.3333) mkt(nondurbl)
+      (-0.25)   mkt(durable)
+      (-0.0833) mkt(skillab)
+        1       income(agent3)
+
+REMAINING 2 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 9
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+Model Statistics    SOLVE scarf Using MCP From line 127
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           19
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           19
+NON ZERO ELEMENTS           138     NON LINEAR N-Z             43
+DERIVATIVE POOL              20     CONSTANT POOL              41
+CODE LENGTH                 530
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:49 Page 10
+Scarf's Activity Analysis Example (SCARFMCP,SEQ=132)
+Solution Report     SOLVE scarf Using MCP From line 127
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   scarf               
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  127
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/convert.opt"
+>>  ampl scarfmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/convert.opt"
+Ampl      : scarfmcp-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/scarfmcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/scarfmcp/scarfmcp-scalar.mod.lst

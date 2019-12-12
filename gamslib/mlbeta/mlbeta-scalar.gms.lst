@@ -1,0 +1,187 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 2
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+C o m p i l a t i o n
+
+
+       
+      Fitting of beta distribution through maximum likelihood
+       
+       
+      Erwin Kalvelagen, April 2004
+       
+      Kotz, J, and Balakrishnan, N, Continuous Univariate Distributions,
+      Volumes I and II, 2nd Ed.. John Wiley and Sons, 1994.
+       
+  15   
+  16   
+  17  set i cases /i1*i75/;
+  18  parameter x(i) /
+  19   
+  20  i1  4.973016e-01, i2  3.558841e-01, i3  2.419578e-02, i4  1.913753e-01, i5  4.919495e-01
+  21  i6  9.790016e-01, i7  3.856570e-01, i8  1.568263e-01, i9  8.040481e-01, i10 8.108720e-01
+  22  i11 6.016693e-01, i12 3.691279e-02, i13 9.454942e-01, i14 1.853702e-01, i15 3.496894e-01
+  23  i16 4.249933e-01, i17 9.900851e-01, i18 6.308701e-01, i19 4.474022e-02, i20 4.408432e-03
+  24  i21 3.718974e-03, i22 1.066217e-01, i23 5.304127e-01, i24 6.781648e-01, i25 6.206926e-02
+  25  i26 4.048511e-01, i27 4.941163e-01, i28 1.644695e-01, i29 2.285463e-02, i30 5.654344e-05
+  26  i31 2.657641e-01, i32 7.316988e-01, i33 6.789551e-01, i34 3.624824e-01, i35 7.429815e-03
+  27  i36 1.503384e-01, i37 7.314336e-01, i38 4.586442e-02, i39 4.060616e-02, i40 3.395101e-01
+  28  i41 9.269645e-01, i42 2.192909e-03, i43 2.511850e-02, i44 4.152490e-01, i45 1.612197e-01
+  29  i46 1.512879e-02, i47 1.381864e-01, i48 5.730967e-03, i49 1.185086e-01, i50 7.411310e-01
+  30  i51 1.564168e-02, i52 2.206906e-01, i53 9.836009e-01, i54 4.632388e-01, i55 9.968135e-01
+  31  i56 8.792355e-04, i57 9.692757e-01, i58 9.823214e-01, i59 1.248862e-01, i60 1.598848e-01
+  32  i61 9.561613e-02, i62 2.513807e-01, i63 4.435097e-01, i64 8.852468e-01, i65 1.149253e-02
+  33  i66 6.575999e-01, i67 8.236305e-01, i68 7.388426e-01, i69 6.382491e-01, i70 3.426699e-01
+  34  i71 1.244351e-01, i72 2.753017e-05, i73 1.625740e-01, i74 2.953334e-02, i75 8.739085e-02
+  35   
+  36  /;
+  37   
+  38  scalar n;
+  39  n = card(i);
+  40   
+  41  scalar average; average = sum(i, x(i))/n;
+  42   
+  43  scalar stdev 'standard deviation'; stdev = sqrt(sum(i, sqr(x(i)-average))/(n-1));
+  44   
+  45  variables alpha,beta,like;
+  46  equations loglike;
+  47   
+  48  loglike.. like =e= n*[loggamma(alpha+beta)-loggamma(alpha)-loggamma(beta)] +
+  49                     sum(i, (alpha-1)*log(x(i))) +
+  50                     sum(i, (beta-1)*log(1-x(i)));
+  51   
+  52   
+  53  *
+  54  * lower bounds so log() is safe
+  55  *
+  56  alpha.lo = 0.0001;
+  57  beta.lo  = 0.0001;
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 3
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+C o m p i l a t i o n
+
+
+  59  *
+  60  * initial values using matching moments estimates
+  61  *
+  62  scalar tmp;
+  63  tmp = average*(1-average)/sqr(stdev) - 1;
+  64  alpha.l = tmp*average;
+  65  beta.l  = tmp*(1-average);
+  66   
+  67  display alpha.l,beta.l;
+  68   
+  69  model m /loglike/;
+  70  solve m using nlp maximimizing like;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 4
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+E x e c u t i o n
+
+
+----     67 VARIABLE alpha.L               =        0.406  
+            VARIABLE beta.L                =        0.702  
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 5
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+Equation Listing    SOLVE m Using NLP From line 70
+
+
+---- loglike  =E=  
+
+loglike..  - (8.45962814139972)*alpha + (1.82162215656902)*beta + like =E= 211.379702791012 ; (LHS = 186.150308056606, INFES = 25.2293947344053 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 6
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+Column Listing      SOLVE m Using NLP From line 70
+
+
+---- alpha  
+
+alpha
+                (.LO, .L, .UP, .M = 0.0001, 0.406253228038076, +INF, 0)
+      (-8.4596) loglike
+
+
+---- beta  
+
+beta
+                (.LO, .L, .UP, .M = 0.0001, 0.702047665836708, +INF, 0)
+       (1.8216) loglike
+
+
+---- like  
+
+like
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       loglike
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 7
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+Model Statistics    SOLVE m Using NLP From line 70
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             3     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              19
+CODE LENGTH                  18
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 8
+Fitting of beta distribution through maximum likelihood (MLBETA,SEQ=302)
+Solution Report     SOLVE m Using NLP From line 70
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  like
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  70
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mlbeta/convert.opt"
+>>  gams mlbeta-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mlbeta/convert.opt"
+Gams      : mlbeta-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mlbeta/mlbeta.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mlbeta/mlbeta-scalar.gms.lst

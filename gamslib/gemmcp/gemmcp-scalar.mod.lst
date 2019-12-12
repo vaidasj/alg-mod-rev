@@ -1,0 +1,2623 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 2
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+       
+             set definitions and input data for 1983 version of gemtap.
+       
+       
+      Rutherford, T F, GEMTAP: A General Equilibrium Model for Tax Policy.
+       
+  11   
+  12  sets
+  13          s   sectors (producer goods)
+  14   
+  15          /   agri,   mines,  crude,  const,  food,   textl,  paper,
+  16              refin,  chem,   lumbr,  metls,  equip,  vehcl,  trnsp,
+  17              trade,  fnanc,  realt,  srvcs,  govt/
+  18   
+  19          g   consumer goods
+  20   
+  21          /   food,   alchl,  tobac,  util,   housg,  frnsh,  appl,
+  22              clth,   trnsp,  vehcl,  servc,  bnkng,  readg,  n_dur,
+  23              petrl,  hlth,   educ,   savng /;
+  24   
+  25  alias (s,ss);
+  26   
+  27  sets
+  28   
+  29         hh   all households /h1*h14, hh2*hh14/,
+  30        h(hh) aggregated households /hh2*hh14/,
+  31       dh(hh) disaggregated households /h1*h14/;
+  32   
+  33  *       the following assignment omits h1 which appears to be
+  34  *       a residual account in this data set:
+  35   
+  36  set hmap(dh,h) mapping from disaggregated households
+  37      /   h2.hh2, h3.hh3, h4.hh4, h5.hh5, h6.hh6, h7.hh7, h8.hh8,
+  38          h9.hh9, h10.hh10, h11.hh11, h12.hh12, h13.hh13, h14.hh14 /;
+  39   
+  40  scalar gdk  government capital purchases.  (p. 118)    /  1.65084e+05/;
+  41   
+  42  scalar gsk  government capital ownership.  (table 6.3) /  1.13409e+05/;
+  43   
+  44  scalar gdl  government labor demand.  (p. 107)         /  2.72392e+05/;
+  45   
+  46  scalar gtl  labor tax payments by government.(p. 107)  /  4.41080e+04/;
+  47   
+  48  parameter count(hh)  population count /
+  49   
+  50          h1       0.347
+  51          h2       1.183
+  52          h3       3.753
+  53          h4       8.457
+  54          h5      13.328
+  55          h6      13.988
+  56          h7      12.876
+  57          h8      11.523
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 3
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+  58          h9      18.538
+  59          h10     13.362
+  60          h11     16.565
+  61          h12      4.501
+  62          h13      2.725
+  63          h14      0.573 /;
+  64   
+  65  parameter dk(s)   capital payments by sector.  (table 4.7)
+  66   
+  67  /agri  1.50670e+04, mines 9.14909e+02, crude 2.99886e+03, const 4.99169e+03,
+  68   food  6.71724e+03, textl 2.97874e+03, paper 4.31363e+03, refin 1.39132e+04,
+  69   chem  4.78283e+03, lumbr 2.57358e+03, metls 2.78550e+03, equip 1.43345e+03,
+  70   vehcl 2.49335e+02, trnsp 3.31062e+04, trade 2.77352e+04, fnanc 2.91767e+03,
+  71   realt 1.57818e+05, srvcs 2.90328e+04, govt  1.23209e+04/
+  72   
+  73  parameter sk(hh) capital ownership by household.  (table 6.2)
+  74   
+  75  /h1   -1.15989e+04, h2    1.32289e+02, h3    1.40763e+03, h4    5.82356e+03,
+  76   h5    1.51394e+04, h6    2.17343e+04, h7    2.44363e+04, h8    2.57096e+04,
+  77   h9    4.68859e+04, h10   4.02364e+04, h11   6.74481e+04, h12   3.33326e+04,
+  78   h13   4.47871e+04, h14   6.28510e+04/
+  79   
+  80  parameter dl(s)  labor demand by sector.  (table 4.1)
+  81   
+  82  /agri  1.92060e+04, mines 1.18360e+04, crude 1.92690e+04, const 1.12095e+05,
+  83   food  3.57680e+04, textl 2.79840e+04, paper 4.39730e+04, refin 6.36500e+03,
+  84   chem  4.58740e+04, lumbr 2.59050e+04, metls 1.82051e+05, equip 3.12680e+04,
+  85   vehcl 2.51430e+04, trnsp 1.46020e+05, trade 3.13381e+05, fnanc 1.02262e+05,
+  86   realt 1.68840e+04, srvcs 3.73269e+05, govt  3.07730e+04/
+  87   
+  88  parameter sl(hh)  labor supply by household.  (table 6.1)
+  89   
+  90  /h1   -4.07035e+02, h2    9.72331e+02, h3    4.94308e+03, h4    2.55985e+04,
+  91   h5    8.32951e+04, h6    1.27887e+05, h7    1.53337e+05, h8    1.72699e+05,
+  92   h9    3.26104e+05, h10   2.86196e+05, h11   3.83643e+05, h12   1.19378e+05,
+  93   h13   1.02400e+05, h14   5.56721e+04/
+  94   
+  95  parameter zta(hh)  labor endowment : supply ratios by household.
+  96  /h1    1.26791e+00, h2    1.27168e+00, h3    1.33304e+00, h4    1.40639e+00,
+  97   h5    1.48221e+00, h6    1.53994e+00, h7    1.58088e+00, h8    1.61328e+00,
+  98   h9    1.64773e+00, h10   1.68873e+00, h11   1.71083e+00, h12   1.69191e+00,
+  99   h13   1.63084e+00, h14   1.34709e+00 /;
+ 100   
+ 101  *       for increased comparability with 1973 dataset, we use a value
+ 102  *       of 1.75 for all households:
+ 103   
+ 104          zta(hh) = 1.75;
+ 105   
+ 106  scalar els  elasticity of labor supply /0.15/;
+ 107   
+ 108  parameter pit(hh) income tax payments by household.  (table 6.5)
+ 109   
+ 110  /h1    4.70693e+03, h2   -4.78527e+01, h3   -4.83605e+02, h4   -1.38173e+03,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 4
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 111   h5   -8.30128e+02, h6    2.07466e+03, h7    5.51451e+03, h8    9.36992e+03,
+ 112   h9    2.08846e+04, h10   2.25915e+04, h11   3.28106e+04, h12   1.08714e+04,
+ 113   h13   1.28299e+04, h14   1.30979e+04/
+ 114   
+ 115  parameter tau(hh) marginal tax rates by household.  (table 5.8)
+ 116   
+ 117  /h1    7.30000e-02, h2    1.00000e-03, h3    2.00000e-02, h4    6.10000e-02,
+ 118   h5    1.11000e-01, h6    1.39000e-01, h7    1.65000e-01, h8    1.95000e-01,
+ 119   h9    2.19000e-01, h10   2.56000e-01, h11   2.93000e-01, h12   3.43000e-01,
+ 120   h13   3.96000e-01, h14   4.01000e-01/
+ 121   
+ 122  parameter trn(hh) transfer levels by household (from government).  (table 6.5)
+ 123   
+ 124  /h1    4.62898e+02, h2    7.16898e+02, h3    9.99424e+03, h4    2.82718e+04,
+ 125   h5    4.06371e+04, h6    4.04673e+04, h7    3.55249e+04, h8    2.80239e+04,
+ 126   h9    4.10061e+04, h10   2.63098e+04, h11   3.01152e+04, h12   7.94427e+03,
+ 127   h13   4.27825e+03, h14   8.37153e+02/
+ 128   
+ 129  parameter tc(g) consumption tax payments by good.  (table 5.4)
+ 130   
+ 131  /food  1.02623e+02, alchl 3.43401e+01, tobac 4.92577e+01, util  5.27143e+01,
+ 132   frnsh 6.82659e+01, appl  5.61957e+01, clth  7.82538e+02, trnsp 1.29003e+00,
+ 133   vehcl 1.30150e+02, servc 8.53633e+00, readg 1.38249e+02, n_dur 9.66488e+01,
+ 134   petrl 7.99788e+01, hlth  4.19992e+01 /;
+ 135   
+ 136  *-----------------------------------------------------------------------------
+       
+      the following three vectors which appear in the 83 dataset are converted
+      to percentage rate form in table taxrate:
+       
+      parameter txo(s)
+      /
+       agri  5.42000e+02, mines 2.00500e+03, crude 1.61310e+04, const 2.34900e+03,
+       food  1.12890e+04, textl 1.69000e+02, paper 7.52000e+02, refin 9.20100e+03,
+       chem  1.45500e+03, lumbr 4.76000e+02, metls 2.48100e+03, equip 5.41000e+02,
+       vehcl 7.61000e+02, trnsp 2.03530e+04, trade 8.50440e+04, fnanc 8.57600e+03,
+       realt 1.76200e+04, srvcs 8.45000e+03 /
+       
+      parameter tk(s)
+      /
+       agri  1.01810e+04, mines 1.34009e+03, crude 5.18414e+03, const 4.60731e+03,
+       food  7.47776e+03, textl 3.00226e+03, paper 5.31437e+03, refin 9.16883e+03,
+       chem  7.16117e+03, lumbr 3.09542e+03, metls 1.15835e+04, equip 1.10355e+03,
+       vehcl 1.35867e+03, trnsp 3.50988e+04, trade 2.69098e+04, fnanc 2.22403e+04,
+       realt 1.09969e+05, srvcs 1.90732e+04, govt  3.35605e+03 /
+       
+      parameter tl(s)
+      /
+       agri  2.67400e+03, mines 1.26600e+03, crude 2.18700e+03, const 1.45680e+04,
+       food  5.23400e+03, textl 4.68000e+03, paper 5.97300e+03, refin 7.68000e+02,
+       chem  6.86600e+03, lumbr 1.18640e+04, metls 2.51540e+04, equip 3.27600e+03,
+       vehcl 3.93400e+03, trnsp 1.86950e+04, trade 4.33670e+04, fnanc 1.29190e+04,
+       realt 2.52100e+03, srvcs 4.43190e+04, govt  1.34930e+04/;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 5
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+       
+      parameter taxrate(s,*)  taxes (%) (tables 4.13 4.7 and 4.1 respectively);
+       
+      code:
+       
+      taxrate(s,"txo") = 100 * txo(s) / y(s);
+      taxrate(s,"tl") =  100 * tl(s) / dl(s);
+      taxrate(s,"tk") =  100 * tk(s) / dk(s);
+       
+      display taxrate;
+       
+      table tkval(s,*)  sectoral capital tax rates in 73 and 83
+       
+                   tk73       tk83
+      agri      54.0162      67.572
+      mines     95.0472     146.472
+      crude    101.5675     172.870
+      const    210.4031      92.300
+      food     346.9550     111.322
+      textl    253.4060     100.790
+      paper    162.5490     123.199
+      refin     46.3458      65.900
+      chem     186.6596     149.727
+      lumbr     91.2334     120.277
+      metls    171.6036     415.850
+      equip   2356.8627      76.986
+      vehcl    128.7486     544.917
+      trnsp    170.1676     106.019
+      trade    185.0761      97.024
+      fnanc    199.2051     762.262
+      realt     62.9748      69.681
+      srvcs     86.0299      65.695
+      govt      26.3711      27.239;
+       
+ 200  *-----------------------------------------------------------------------------
+ 201   
+ 202  table taxrate(s,*)  taxes (%) (tables 4.13 4.7 and 4.1 respectively)
+ 203   
+ 204                txo          tl          tk
+ 205   
+ 206  agri        0.311      13.923      67.572
+ 207  mines       4.529      10.696     146.472
+ 208  crude      19.296      11.350     172.870
+ 209  const       0.775      12.996      92.300
+ 210  food        4.016      14.633     111.322
+ 211  textl       0.133      16.724     100.790
+ 212  paper       0.454      13.583     123.199
+ 213  refin       4.698      12.066      65.900
+ 214  chem        0.618      14.967     149.727
+ 215  lumbr       0.427      45.798     120.277
+ 216  metls       0.337      13.817     415.850
+ 217  equip       0.700      10.477      76.986
+ 218  vehcl       0.682      15.647     544.917
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 6
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 219  trnsp       3.760      12.803     106.019
+ 220  trade      12.991      13.838      97.024
+ 221  fnanc       3.585      12.633     762.262
+ 222  realt       3.650      14.931      69.681
+ 223  srvcs       1.080      11.873      65.695
+ 224  govt                   43.847      27.239
+ 225   
+ 226   
+ 227  parameter gse(s) government commodity endowments. (table 6.3);
+ 228   
+ 229          gse(s) = 0;
+ 230   
+ 231  parameter gd(s) government commodity demands.  (table 6.4)
+ 232   
+ 233  /agri  5.74182e+02, mines 1.55043e+02, crude 3.63664e+02, const 4.50692e+04,
+ 234   food  2.67746e+03, textl 8.95648e+02, paper 4.45026e+03, refin 5.48673e+03,
+ 235   chem  4.57070e+03, lumbr 1.12229e+03, metls 1.78503e+05, equip 1.93211e+04,
+ 236   vehcl 2.35552e+03, trnsp 1.46367e+04, trade 4.89975e+03, fnanc 3.05061e+03,
+ 237   realt 3.17531e+03, srvcs 3.04402e+04, govt  6.39613e+02/
+ 238   
+ 239   
+ 240  parameter vm(s)  import levels by sectoral commodity.  (table 5.1)
+ 241   
+ 242  /agri  3.84500e+03, mines 3.49000e+03, crude 6.61250e+04, food  1.39690e+04,
+ 243   textl 1.60500e+04, paper 6.58100e+03, refin 2.23780e+04, chem  1.53900e+04,
+ 244   lumbr 8.32600e+03, metls 1.01264e+05, equip 5.50100e+03, vehcl 2.90780e+04,
+ 245   trnsp 5.29900e+03, trade 7.80800e+03, fnanc 7.43000e+02, srvcs 1.74900e+03/
+ 246   
+ 247  parameter vx(s) export levels by sectoral commodity.  (table 5.1)
+ 248   
+ 249  /agri  2.14831e+04, mines 5.09111e+03, crude 1.45680e+03, const 3.71680e+01,
+ 250   food  1.27640e+04, textl 4.89076e+03, paper 4.99139e+03, refin 5.75651e+03,
+ 251   chem  2.02557e+04, lumbr 5.10924e+03, metls 1.46532e+05, equip 1.51174e+04,
+ 252   vehcl 1.07298e+04, trnsp 1.52072e+04, trade 2.29182e+04, fnanc 8.49425e+02,
+ 253   realt 5.32137e+03, srvcs 9.01913e+03, govt  6.61772e+01/
+ 254   
+ 255  parameter el(hh) elasticity between leisure and consumption. (table 6.8)
+ 256   
+ 257  /h1    5.69000e-01, h2    6.74000e-01, h3    7.77000e-01, h4    8.38000e-01,
+ 258   h5    8.86000e-01, h6    9.48000e-01, h7    9.83000e-01, h8    9.90000e-01,
+ 259   h9    1.02700e+00, h10   1.00500e+00, h11   9.69000e-01, h12   7.38000e-01,
+ 260   h13   7.38000e-01, h14   7.38000e-01/
+ 261   
+ 262  parameter ec(hh) elasticity in current consumption.  (table 6.9)
+ 263   
+ 264  /h1    1.26791e+00, h2    1.27168e+00, h3    1.33304e+00, h4    1.40639e+00,
+ 265   h5    1.48221e+00, h6    1.53994e+00, h7    1.58088e+00, h8    1.61328e+00,
+ 266   h9    1.64773e+00, h10   1.68873e+00, h11   1.71083e+00, h12   1.69191e+00,
+ 267   h13   1.63084e+00, h14   1.34709e+00/
+ 268   
+ 269  parameter ekl(s) labor-capital elasticity. (table 6.11)
+ 270   
+ 271  /agri  1.92123e+00, mines 1.00000e+00, crude 1.00000e+00, const 1.00000e+00,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 7
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 272   food  1.68095e+00, textl 1.12108e+00, paper 1.11995e+00, refin 1.38332e+00,
+ 273   chem  1.04308e+00, lumbr 1.10632e+00, metls 1.55352e+00, equip 1.29132e+00,
+ 274   vehcl 1.09135e+00, trnsp 1.00000e+00, trade 1.00000e+00, fnanc 1.00000e+00,
+ 275   realt 1.00000e+00, srvcs 1.00000e+00, govt  1.00000e+00/
+ 276   
+ 277  parameter ekl73(s) labor-capital elasticity. table 6.11
+ 278   
+ 279  /agri  6.75900e-01, mines 1.00000e+00, crude 1.00000e+00, const 1.00000e+00,
+ 280   food  7.11700e-01, textl 9.02500e-01, paper 9.03300e-01, refin 7.83000e-01,
+ 281   chem  9.60300e-01, lumbr 9.12300e-01, metls 7.37300e-01, equip 8.15900e-01,
+ 282   vehcl 9.22800e-01, trnsp 1.00000e+00, trade 1.00000e+00, fnanc 1.00000e+00,
+ 283   realt 1.00000e+00, srvcs 1.00000e+00, govt  1.00000e+00/;
+ 284   
+ 285  parameter ekl83(s) labor-capital elasticity. (table 6.11)
+ 286   
+ 287  /agri  1.92123e+00, mines 1.00000e+00, crude 1.00000e+00, const 1.00000e+00,
+ 288   food  1.68095e+00, textl 1.12108e+00, paper 1.11995e+00, refin 1.38332e+00,
+ 289   chem  1.04308e+00, lumbr 1.10632e+00, metls 1.55352e+00, equip 1.29132e+00,
+ 290   vehcl 1.09135e+00, trnsp 1.00000e+00, trade 1.00000e+00, fnanc 1.00000e+00,
+ 291   realt 1.00000e+00, srvcs 1.00000e+00, govt  1.00000e+00/
+ 292   
+ 293  parameter       em(s)   elasticity of import supply
+ 294                  ex(s)   elasticity of export demand;
+ 295   
+ 296  em(s) = 0.465;
+ 297  ex(s) = 10;
+ 298   
+ 299  parameter y(s) gross output level by sector. (table 4.13)
+ 300   
+ 301  /agri  1.74055e+05, mines 4.42744e+04, crude 8.35975e+04, const 3.03029e+05,
+ 302   food  2.81073e+05, textl 1.26674e+05, paper 1.65760e+05, refin 1.95844e+05,
+ 303   chem  2.35265e+05, lumbr 1.11494e+05, metls 7.35374e+05, equip 7.72401e+04,
+ 304   vehcl 1.11519e+05, trnsp 5.41315e+05, trade 6.54613e+05, fnanc 2.39210e+05,
+ 305   realt 4.82737e+05, srvcs 7.82546e+05, govt  9.61957e+04 /;
+ 306   
+ 307   
+ 308  table z(s,g) consumption composition matrix. (table 4.10)
+ 309   
+ 310              food        alchl       tobac       util        housg       frnsh
+ 311  agri   3.49303e-02 3.49250e-02
+ 312  mines  8.89490e-06
+ 313  food   4.44127e-01 4.44162e-01 4.96879e-01
+ 314  textl                                                              1.51941e-01
+ 315  paper                                                              1.13370e-03
+ 316  refin                                                              2.57659e-05
+ 317  chem   2.13478e-04 1.95293e-04
+ 318  lumbr                                                              2.60854e-01
+ 319  metls                                                              9.58233e-02
+ 320  equip                                                              7.98743e-04
+ 321  trnsp  1.80389e-02 1.80321e-02 4.29918e-03 9.67120e-01             1.03579e-02
+ 322  trade  2.34928e-01 2.34938e-01 4.98822e-01                         4.79065e-01
+ 323  fnanc  8.89490e-06
+ 324  realt                                                  9.63414e-01
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 8
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 325  srvcs  2.67745e-01 2.67747e-01             4.22719e-03 3.65864e-02
+ 326  govt                                       2.86527e-02
+ 327   
+ 328  +           appl        clth        trnsp       vehcl       servc       bnkng
+ 329  textl  1.96668e-04 4.22525e-01             2.43355e-04
+ 330  paper              9.72015e-03
+ 331  chem   2.17739e-02 9.63838e-03             4.00725e-02
+ 332  lumbr  3.21973e-02                         4.23618e-04 2.15520e-03
+ 333  metls  5.17911e-01 5.98949e-02             1.54125e-02 2.28764e-04
+ 334  equip                                      2.40200e-02
+ 335  vehcl                                      4.15732e-01
+ 336  trnsp  8.28815e-03 3.03563e-03 9.43310e-01 1.55927e-02 4.17193e-02
+ 337  trade  4.18734e-01 4.71361e-01             2.05121e-01 1.32442e-03
+ 338  fnanc                                                  1.65312e-02 1.00000e+00
+ 339  realt                                                  6.51376e-03
+ 340  srvcs  8.99053e-04 2.38251e-02             2.83382e-01 8.99115e-01
+ 341  govt                           5.66898e-02             3.24123e-02
+ 342   
+ 343  +           readg       n_dur       petrl       hlth        educ        savng
+ 344  agri   4.41326e-02 6.14907e-04                                    -3.63988e-02
+ 345  mines              6.47270e-04 3.66763e-03                         2.50821e-03
+ 346  crude                                                              9.10418e-04
+ 347  const                                                              4.91561e-01
+ 348  food                                                              -7.32829e-04
+ 349  textl  8.28619e-03 2.39490e-03                                     2.14316e-03
+ 350  paper  1.66921e-01 1.60038e-01             5.69271e-03            -4.07667e-04
+ 351  refin                          6.58331e-01 1.93630e-05            -1.18903e-03
+ 352  chem   4.02524e-03 3.92213e-01 1.70587e-03 5.59009e-02             1.37297e-03
+ 353  lumbr              3.46290e-03 1.80823e-03                         1.71430e-02
+ 354  metls  1.33159e-01 7.86757e-02 8.52937e-05 1.55000e-02             2.84313e-01
+ 355  equip  9.83283e-02                                                 3.99168e-02
+ 356  vehcl                                                              7.10858e-02
+ 357  trnsp  1.06977e-01 2.17483e-02 2.67993e-02 1.04560e-03             1.71905e-02
+ 358  trade  2.68150e-01 3.40205e-01 3.07603e-01 7.96495e-02             1.19901e-01
+ 359  fnanc  5.43951e-05
+ 360  realt                                                              2.95876e-02
+ 361  srvcs  1.55407e-01                         8.42192e-01 1.00000e+00 -3.8905e-02
+ 362  govt   1.45598e-02
+ 363   
+ 364   
+ 365  table ras(s,s)  adjusted input-output table.  (tables 4.8 and 4.9)
+ 366   
+ 367              agri        mines       crude       const       food        textl
+ 368  agri   4.77039e+04 1.29167e+01 4.94328e+00 4.14308e+02 8.07202e+04 2.16489e+03
+ 369  mines  3.19103e+02 6.05761e+03 1.28523e+01 1.74414e+03 1.58516e+02 6.93484e+01
+ 370  crude  2.75040e+02 1.05530e+02 5.46406e+03 1.82005e+02 1.00093e+02 5.49454e+01
+ 371  const  2.68590e+03 4.87043e+02 1.08872e+04 2.86600e+02 1.46124e+03 5.88429e+02
+ 372  food   1.70603e+04 1.21148e+01 1.67424e+01 3.48826e+01 5.83569e+04 6.66520e+02
+ 373  textl  3.42696e+02 1.02025e+02 2.83085e+01 1.67936e+03 1.22183e+02 4.95362e+04
+ 374  paper  7.80488e+02 3.25057e+02 2.55315e+02 3.81202e+03 1.11966e+04 1.81391e+03
+ 375  refin  9.88521e+03 2.35625e+03 1.24116e+03 6.24300e+03 1.93248e+03 1.25882e+03
+ 376  chem   9.77087e+03 1.45763e+03 9.50792e+02 6.56288e+03 5.42140e+03 1.26869e+04
+ 377  lumbr  4.56307e+02 4.98159e+02 5.60705e+01 3.76413e+04 4.69320e+03 3.62200e+02
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 9
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 378  metls  2.03185e+03 4.63286e+03 3.27433e+03 3.80960e+04 7.48649e+03 1.61303e+03
+ 379  equip  5.35927e+02 1.06592e+02 5.83976e+01 5.32920e+02 2.83783e+01 4.00452e+01
+ 380  vehcl  1.70121e+02 2.10930e+02 3.52576e+01 3.80755e+02 3.22277e+01 1.79056e+01
+ 381  trnsp  6.02777e+03 3.34213e+03 2.53607e+03 9.87724e+03 1.02177e+04 3.74510e+03
+ 382  trade  1.34513e+04 3.00750e+03 1.51076e+03 3.21204e+04 2.11882e+04 7.67672e+03
+ 383  fnanc  2.55270e+03 6.17634e+02 7.68909e+02 2.51563e+03 1.28108e+03 6.32573e+02
+ 384  realt  7.40672e+03 8.34401e+02 7.56553e+03 4.67231e+02 5.58298e+02 4.84227e+02
+ 385  srvcs  3.93065e+03 2.15643e+03 2.06860e+03 2.08522e+04 7.80496e+03 3.21905e+03
+ 386  govt   7.84913e+02 5.72576e+02 1.07121e+03 8.76811e+02 1.79685e+03 1.22383e+03
+ 387   
+ 388  +           paper       refin       chem        lumbr       metls       equip
+ 389  agri   4.95558e+01 2.57982e+00 6.13878e+02 4.10659e+03 6.67960e+01 3.48058e+00
+ 390  mines  4.80497e+02 2.99266e+02 3.97423e+03 2.06994e+03 1.49215e+04 1.39879e+01
+ 391  crude  1.58425e+02 1.05766e+05 3.90772e+03 1.16685e+02 6.21400e+02 2.88911e+01
+ 392  const  1.26204e+03 1.38001e+03 2.06264e+03 1.15375e+03 8.36066e+03 3.29064e+02
+ 393  food   5.14232e+02 8.75865e+01 2.47313e+03 9.32015e+01 3.70207e+02 1.01664e+01
+ 394  textl  1.63620e+03 3.74388e+01 3.27421e+03 1.87451e+03 2.84958e+03 4.06322e+02
+ 395  paper  4.63469e+04 1.05641e+03 7.79450e+03 2.06093e+03 1.33010e+04 4.51683e+02
+ 396  refin  4.06976e+03 2.00380e+04 1.46170e+04 2.50776e+03 1.02380e+04 5.87484e+02
+ 397  chem   7.17832e+03 4.89943e+03 6.65589e+04 3.88466e+03 3.24850e+04 8.95859e+02
+ 398  lumbr  4.95827e+03 3.82156e+02 2.35622e+03 2.37056e+04 1.14772e+04 1.31904e+03
+ 399  metls  3.45937e+03 9.70241e+02 8.31886e+03 4.95921e+03 2.42505e+05 1.21644e+04
+ 400  equip  1.68734e+02 9.82306e+00 7.99628e+01 9.83550e+01 3.14783e+03 1.27697e+04
+ 401  vehcl  6.40378e+01 1.51190e+02 8.71123e+01 1.75502e+02 2.81914e+03 4.12245e+02
+ 402  trnsp  1.03269e+04 1.16825e+04 1.82501e+04 8.00805e+03 4.25135e+04 2.19451e+03
+ 403  trade  1.16057e+04 5.01511e+03 1.57178e+04 7.18179e+03 7.46440e+04 3.26569e+03
+ 404  fnanc  1.02228e+03 8.44861e+02 1.48315e+03 8.28850e+02 6.18708e+03 6.20171e+02
+ 405  realt  1.11894e+03 2.62709e+02 1.58982e+03 4.76650e+02 5.53245e+03 3.65087e+02
+ 406  srvcs  6.83419e+03 2.35907e+03 1.23156e+04 3.00436e+03 2.84889e+04 2.54310e+03
+ 407  govt   4.15367e+03 1.17168e+03 3.63197e+03 1.21178e+03 1.07284e+04 1.23522e+03
+ 408   
+ 409  +           vehcl       trnsp       trade       fnanc       realt       srvcs
+ 410  agri   1.52082e+00 4.91644e+01 8.73337e+02 4.84854e+00 4.31162e+03 2.60626e+03
+ 411  mines  4.38196e+01 9.75567e+03 4.67007e+00 5.24419e-01 2.40127e+01 1.13320e+02
+ 412  crude  2.61194e+01 2.93924e+04 4.70898e+02 7.15163e+01 1.70123e+02 6.09765e+02
+ 413  const  3.25754e+02 2.40091e+04 3.86461e+03 7.62033e+02 7.12670e+04 1.33394e+04
+ 414  food   2.69740e+01 1.64303e+02 4.83188e+02 1.47578e+01 9.62752e+00 6.62090e+03
+ 415  textl  2.61111e+03 4.85133e+02 3.71442e+02 1.64973e+02 2.33814e+01 4.00854e+03
+ 416  paper  6.22244e+02 3.04369e+03 1.11278e+04 6.03662e+03 3.09007e+03 2.12056e+04
+ 417  refin  4.10666e+02 4.84692e+04 1.10733e+04 1.18735e+03 1.89838e+03 1.40215e+04
+ 418  chem   5.36451e+03 3.25176e+03 1.62399e+03 1.35312e+02 1.27542e+03 1.83553e+04
+ 419  lumbr  2.10358e+03 4.08367e+02 9.40659e+02 2.70518e+01 7.10703e+01 2.67436e+03
+ 420  metls  2.38947e+04 8.37612e+03 2.37642e+03 7.60264e+02 8.25374e+02 2.00537e+04
+ 421  equip  4.30563e+02 6.16430e+03 3.06914e+01 6.41174e+01 1.09553e+01 1.25107e+03
+ 422  vehcl  3.01012e+04 9.05646e+02 4.43927e+02 3.53968e+01 4.16257e+01 8.12870e+03
+ 423  trnsp  2.25330e+03 9.36376e+04 2.96017e+04 9.49454e+03 9.99490e+03 4.07070e+04
+ 424  trade  8.26929e+03 1.55832e+04 1.22973e+04 1.42583e+03 3.51304e+03 2.94769e+04
+ 425  fnanc  3.80231e+02 5.55400e+03 7.08814e+03 4.20652e+04 2.05804e+04 8.10357e+03
+ 426  realt  1.13128e+02 4.24392e+03 1.37242e+04 3.72805e+03 3.96620e+04 2.46183e+04
+ 427  srvcs  2.60763e+03 2.19662e+04 4.69394e+04 1.75710e+04 1.53004e+04 7.48002e+04
+ 428  govt   4.79289e+02 1.17297e+04 1.42000e+04 6.69891e+03 5.80996e+03 1.74284e+04
+ 429   
+ 430   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 10
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 431   
+ 432  table rcs(g,hh)  adjusted consumption matrix.  tables 5.2 and 5.3
+ 433   
+ 434              h1          h2          h3          h4          h5          h6
+ 435  food   2.43154e+03 8.31012e+02 5.20838e+03 1.59696e+04 3.11945e+04 3.68235e+04
+ 436  alchl  5.99531e+02 7.09930e+01 4.47408e+02 1.47625e+03 3.10355e+03 3.85386e+03
+ 437  tobac  3.00241e+02 3.55527e+01 2.24052e+02 7.39320e+02 1.55420e+03 1.92995e+03
+ 438  util   8.09773e+02 2.90719e+02 1.91339e+03 6.31809e+03 1.27338e+04 1.49690e+04
+ 439  housg  6.12199e+03 1.58282e+03 9.48922e+03 2.39017e+04 4.04763e+04 4.36047e+04
+ 440  frnsh  6.29848e+02 7.45854e+01 4.70031e+02 1.55093e+03 3.26043e+03 4.04867e+03
+ 441  appl   5.18472e+02 1.02586e+02 5.15702e+02 1.73699e+03 3.94353e+03 4.88070e+03
+ 442  clth   7.22029e+03 1.94843e+02 1.20325e+03 3.92543e+03 8.34312e+03 1.02651e+04
+ 443  trnsp  1.10486e+02 4.72766e+01 3.05804e+02 9.45871e+02 1.87616e+03 2.21232e+03
+ 444  vehcl  1.20089e+03 2.59688e+02 1.40132e+03 5.15694e+03 1.18923e+04 1.47618e+04
+ 445  servc  7.30451e+02 8.64961e+01 5.45119e+02 1.79866e+03 3.78124e+03 4.69536e+03
+ 446  bnkng  1.60339e+03 1.89865e+02 1.19656e+03 3.94812e+03 8.30000e+03 1.03067e+04
+ 447  readg  1.27226e+03 1.50655e+02 9.49461e+02 3.13278e+03 6.58597e+03 8.17810e+03
+ 448  n_dur  8.91740e+02 6.01011e+01 3.35115e+02 1.09765e+03 2.25039e+03 2.69641e+03
+ 449  petrl  5.46878e+02 1.12026e+02 7.24765e+02 2.64345e+03 5.97935e+03 7.57259e+03
+ 450  hlth   3.59269e+03 3.64276e+02 2.89157e+03 9.48352e+03 1.84661e+04 2.22962e+04
+ 451  educ   4.10709e+02 4.86350e+01 3.06502e+02 1.01128e+03 2.12606e+03 2.64005e+03
+ 452  savng -4.6884e+04  -2.8102e+03 -1.2384e+04 -2.7382e+04 -3.3634e+04 -1.7098e+04
+ 453   
+ 454  +           h7          h8          h9          h10         h11         h12
+ 455  food   3.72263e+04 3.64173e+04 6.22303e+04 4.77327e+04 5.55705e+04 1.43476e+04
+ 456  alchl  4.09038e+03 4.27672e+03 7.88731e+03 6.63555e+03 8.87697e+03 3.07807e+03
+ 457  tobac  2.04850e+03 2.14176e+03 3.94985e+03 3.32301e+03 4.44547e+03 1.54143e+03
+ 458  util   1.49085e+04 1.44047e+04 2.47844e+04 1.92801e+04 2.31262e+04 6.46643e+03
+ 459  housg  4.07999e+04 3.67105e+04 5.06882e+04 3.22039e+04 3.40273e+04 9.89624e+03
+ 460  frnsh  4.29734e+03 4.49303e+03 8.28624e+03 6.97116e+03 9.32584e+03 3.23370e+03
+ 461  appl   5.31140e+03 5.50475e+03 9.62492e+03 7.56886e+03 9.51822e+03 2.77065e+03
+ 462  clth   1.07248e+04 1.10415e+04 1.98779e+04 1.64221e+04 2.13323e+04 7.18989e+03
+ 463  trnsp  2.24502e+03 2.23530e+03 3.80079e+03 2.91343e+03 3.50719e+03 9.92770e+02
+ 464  vehcl  1.65255e+04 1.69002e+04 2.91693e+04 2.27302e+04 2.85742e+04 8.05782e+03
+ 465  servc  4.98369e+03 5.21064e+03 9.60965e+03 8.08456e+03 1.08154e+04 3.75019e+03
+ 466  bnkng  1.09396e+04 1.14377e+04 2.10939e+04 1.77463e+04 2.37406e+04 8.23194e+03
+ 467  readg  8.68036e+03 9.07556e+03 1.67376e+04 1.40813e+04 1.88378e+04 6.53186e+03
+ 468  n_dur  2.77299e+03 2.88574e+03 5.33512e+03 4.58741e+03 6.38517e+03 2.59914e+03
+ 469  petrl  8.00777e+03 8.11209e+03 1.44354e+04 1.14639e+04 1.36132e+04 3.64777e+03
+ 470  hlth   2.30433e+04 2.30927e+04 4.00924e+04 3.17075e+04 3.96004e+04 1.21082e+04
+ 471  educ   2.80215e+03 2.92981e+03 5.40313e+03 4.54572e+03 6.08121e+03 2.10860e+03
+ 472  savng -1.49995e+03 1.01676e+04 4.23748e+04 5.79356e+04 1.13118e+05 4.77507e+04
+ 473   
+ 474  +           h13         h14
+ 475  food   8.11929e+03 5.24818e+02
+ 476  alchl  3.30288e+03 1.53387e+03
+ 477  tobac  1.65404e+03 7.68143e+02
+ 478  util   4.23549e+03 3.88370e+02
+ 479  housg  1.15294e+04 2.68036e+04
+ 480  frnsh  3.46990e+03 1.61143e+03
+ 481  appl   2.03276e+03 2.66599e+02
+ 482  clth   7.94568e+03 1.13218e+04
+ 483  trnsp  6.56467e+02 7.65529e+01
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 11
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 484  vehcl  6.14244e+03 1.59609e+03
+ 485  servc  4.02413e+03 1.86881e+03
+ 486  bnkng  8.83324e+03 4.10219e+03
+ 487  readg  7.00898e+03 3.25500e+03
+ 488  n_dur  3.92681e+03 1.30495e+04
+ 489  petrl  2.33556e+03 3.01442e+02
+ 490  hlth   9.46404e+03 1.86004e+03
+ 491  educ   2.26261e+03 1.05077e+03
+ 492  savng  4.67953e+04 3.21618e+04;
+ 493   
+ 494   
+ 495  *       convert into units consistent with the 1973 data:
+ 496   
+ 497  gdk = 1.e-5 * gdk;
+ 498  gsk = 1.e-5 * gsk;
+ 499  gdl = 1.e-5 * gdl;
+ 500  gtl = 1.e-5 * gtl;
+ 501   
+ 502  dk(s) = 1.e-5 * dk(s);
+ 503  sk(hh) = 1.e-5 * sk(hh);
+ 504  dl(s) = 1.e-5 * dl(s);
+ 505  sl(hh) = 1.e-5 * sl(hh);
+ 506  pit(hh) = 1.e-5 * pit(hh);
+ 507  trn(hh) = 1.e-5 * trn(hh);
+ 508  tc(g) = 1.e-5 * tc(g);
+ 509  gd(s) = 1.e-5 * gd(s);
+ 510  vm(s) = 1.e-5 * vm(s);
+ 511  vx(s) = 1.e-5 * vx(s);
+ 512  y(s) = 1.e-5 * y(s);
+ 513   
+ 514  rcs(g,hh) = 1.e-5 * rcs(g,hh);
+ 515  ras(s,ss) = 1.e-5 * ras(s,ss);
+ 516   
+ 517  parameter
+ 518   
+ 519          taubmk(*)       benchmark marginal tax,
+ 520          tauave(*)       average tax,
+ 521          cc(h)           current consumption value (market + leisure),
+ 522          leisure(h)      leisure demand in benchmark,
+ 523          gc              government consumption,
+ 524          cp(h)           value of private consumption,
+ 525          eg(h)           elasticity of substitution - private vs public
+ 526          govsav          exogenous (government) savings
+ 527          cg(h)           consumption plus public goods valuation
+ 528          vpg(h)          benchmark valuation of public goods;
+ 529   
+ 530  set             hfix(dh)        households omitted from the aggregation;
+ 531  alias (hp,h);
+ 532   
+ 533  *       identify households from the disaggregated data set
+ 534  *       which are not assigned:
+ 535   
+ 536  hfix(dh) = yes$(sum(h$hmap(dh,h), 1) eq 0);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 12
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 537   
+ 538  parameter       txo(s)          production output taxes (total value),
+ 539                  tk(s)           capital taxes (total value),
+ 540                  tl(s)           labor taxes (total value),
+ 541                  plref(s)        labor reference price,
+ 542                  pkref(s)        capital reference price
+ 543                  incadj(hh)      income adjustment transfer;
+ 544  *
+ 545          incadj(hh) = 0;
+ 546   
+ 547          txo(s) = 0.01 * taxrate(s,"txo") * y(s);
+ 548          tk(s) =  0.01 * taxrate(s,"tk") * dk(s);
+ 549          tl(s) =  0.01 * taxrate(s,"tl") * dl(s);
+ 550          plref(s) = 1 + 0.01 * taxrate(s,"tl");
+ 551          pkref(s) = 1 + 0.01 * taxrate(s,"tk");
+ 552   
+ 553  parameter  gce(g)       gross consumption expenditure by good. (table 6.6);
+ 554   
+ 555  set excs / y, inter, netexp, findem, check/;
+ 556  set hcol /expend, inc_tax, labor, capital, transf, check/;
+ 557  set prft /y, va, tax, inter, check/;
+ 558  set gcol /endowment, l_tax, k_tax, prod_tax, con_tax, inc_tax, revenue,
+ 559            transf, expend, outlay, deficit/;
+ 560  set vcol /labor, capital, inter, total/;
+ 561  set tcol / output, labor, capital, total/;
+ 562  set govt(s)  government sectors  /govt/;
+ 563  set ccg(g)  current consumption goods;
+ 564   
+ 565  ccg(g) = yes;
+ 566  ccg("savng") = no;
+ 567   
+ 568   
+ 569  *       check consistency of the disaggregated data.
+ 570   
+ 571  parameter
+ 572          cd(s)           consumer demand,
+ 573          fd(s)           final demand,
+ 574          va(s)           value-added,
+ 575          labmkt          labor market clearance,
+ 576          capmkt          capital market clearance,
+ 577          pmchk(s,*)      profit and market clearance check,
+ 578          budget(hh,*)    budget balance,
+ 579          gbdgt(*)        government budget balance,
+ 580          zchk            check of consumer goods transformation matrix,
+ 581          zsum(g)         transformation check sum;
+ 582   
+ 583  parameter
+ 584   
+ 585          expend(hh)      benchmark consumption expenditure,
+ 586          saving(hh)      benchmark savings,
+ 587          profit(s,*)     benchmark profit check,
+ 588          excess(*,*)     excess demand check,
+ 589          bdgtbal(hh,*)   budget balance calculation,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 13
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 590   
+ 591          pctprofit(s,*)          benchmark profit check (percent),
+ 592          pctva(*,*)              value-added allocation
+ 593          pctexcess(s,*)          excess demand check (percent),
+ 594          pctbudget(hh,*)         budget balance calculation (percent),
+ 595   
+ 596          pctrcs(g,hh)    consumption as percentage of expenditure,
+ 597          pctras(ss,s)    intermediate input as percentage of output value,
+ 598   
+ 599          government(*,*)         government budget summary (percent),
+ 600          valueadded(s,*)         value-added summary,
+ 601          taxpayment(s,*)         tax payment summary;
+ 602   
+ 603  *       perform some quick data checks:
+ 604   
+ 605          zsum(g) = sum(s, z(s,g));
+ 606          zchk = sum(g, abs(zsum(g)) - 1);
+ 607          abort$(abs(zchk) gt 1.e-5) " z matrix error: ", zsum;
+ 608   
+ 609          gce(g) = sum(dh, rcs(g,dh));
+ 610   
+ 611          cd(s) = sum(g, z(s,g) * (gce(g) - tc(g)));
+ 612   
+ 613          fd(s) = gd(s) + cd(s) + vx(s) - gse(s) - vm(s);
+ 614   
+ 615          va(s) = dl(s) + dk(s) + tl(s) + tk(s);
+ 616   
+ 617          labmkt = sum(s, dl(s)) + gdl - sum(dh, sl(dh));
+ 618          capmkt = sum(s, dk(s)) + gdk - sum(dh, sk(dh)) - gsk;
+ 619   
+ 620          pmchk(s,"profit") = y(s) - sum(ss,ras(ss,s)) -
+ 621                  (dl(s) + dk(s) + tl(s) + tk(s) + txo(s));
+ 622   
+ 623          pmchk(s,"profit%") = 100 * pmchk(s,"profit") / y(s);
+ 624   
+ 625          pmchk(s,"excess") = fd(s) + sum(ss,ras(s,ss)) - y(s);
+ 626          pmchk(s,"excess%") = 100 * (fd(s) + sum(ss,ras(s,ss)) - y(s))/y(s);
+ 627   
+ 628  *       include some other statistics for a complete report:
+ 629   
+ 630  set     gexpend / trnsfr, adj, gc, sav/
+ 631          grevenu / gse, gsk, pit, tl, tk, txo, tc, hfix/;
+ 632   
+ 633          gbdgt("trnsfr") = sum(dh, trn(dh));
+ 634          gbdgt("adj") = sum(dh, incadj(dh));
+ 635          gbdgt("gc")  = sum(s, gd(s)) + gdk + gdl + gtl;
+ 636   
+ 637          gbdgt("gse") = sum(s,gse(s));
+ 638          gbdgt("gsk") = gsk;
+ 639          gbdgt("pit") = sum(dh, pit(dh));
+ 640          gbdgt("tl")  = sum(s, tl(s)) + gtl;
+ 641          gbdgt("tk")  = sum(s, tk(s));
+ 642          gbdgt("txo") = sum(s, txo(s));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 14
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 643          gbdgt("tc")  = sum(g, tc(g));
+ 644   
+ 645          gbdgt("revenue")  = sum(grevenu, gbdgt(grevenu));
+ 646          gbdgt("outlay")   = sum(gexpend, gbdgt(gexpend));
+ 647          gbdgt("deficit") = gbdgt("outlay") - gbdgt("revenue");
+ 648   
+ 649   
+ 650          expend(dh) = sum(ccg, rcs(ccg,dh));
+ 651          saving(dh) = rcs("savng",dh);
+ 652   
+ 653          bdgtbal(dh,"expend")  = expend(dh);
+ 654          bdgtbal(dh,"saving")  = saving(dh);
+ 655          bdgtbal(dh,"inc_tax") = pit(dh);
+ 656          bdgtbal(dh,"labor")   = sl(dh);
+ 657          bdgtbal(dh,"capital") = sk(dh);
+ 658          bdgtbal(dh,"transf")  = trn(dh);
+ 659          bdgtbal(dh,"check") =
+ 660            expend(dh)+saving(dh)-(sl(dh)+sk(dh)+trn(dh)-pit(dh));
+ 661   
+ 662          pctbudget(dh,"expend")  = 100;
+ 663          pctbudget(dh,"saving") = 100*
+ 664                          bdgtbal(dh,"saving") / expend(dh);
+ 665          pctbudget(dh,"inc_tax") = 100*
+ 666                          bdgtbal(dh,"inc_tax") / expend(dh);
+ 667          pctbudget(dh,"labor")   = 100*
+ 668                          bdgtbal(dh,"labor")  / expend(dh);
+ 669          pctbudget(dh,"capital") = 100*
+ 670                          bdgtbal(dh,"capital") / expend(dh);
+ 671          pctbudget(dh,"transf")  = 100*
+ 672                          bdgtbal(dh,"transf") / expend(dh);
+ 673          pctbudget(dh,"check") = 100*
+ 674                          bdgtbal(dh,"check") / expend(dh);
+ 675   
+ 676          display zchk, labmkt, capmkt, pmchk, gbdgt;
+ 677          display pctbudget, bdgtbal;
+ 678   
+ 679   
+ 680  *       =================================================================
+ 681  *       make adjustments to balance budgets:
+ 682   
+ 683  *       first, remove any negative income taxes:
+ 684   
+ 685          pit(dh) = max(0, pit(dh));
+ 686   
+ 687          incadj(dh) = sum(g, rcs(g,dh)) - (sl(dh)+sk(dh)+trn(dh)-pit(dh));
+ 688   
+ 689  *       make adjustments to balance profits:
+ 690   
+ 691          y(s) = y(s) - pmchk(s,"profit");
+ 692   
+ 693  *       adjustments to balance sectoral markets:
+ 694   
+ 695          gse(s) = gse(s) + fd(s) + sum(ss,ras(s,ss)) - y(s);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 15
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 696  *       =================================================================
+ 697  *       recheck the central variables:
+ 698   
+ 699          fd(s) = gd(s) + cd(s) + vx(s) - gse(s) - vm(s);
+ 700   
+ 701          pmchk(s,"profit") = y(s) - sum(ss,ras(ss,s)) -
+ 702                  (dl(s) + dk(s) + tl(s) + tk(s) + txo(s));
+ 703          pmchk(s,"profit%") = 100 * pmchk(s,"profit") / y(s);
+ 704   
+ 705          budget(dh,"value") =
+ 706                  sum(g, rcs(g,dh)) - (sl(dh)+sk(dh)+trn(dh)-pit(dh));
+ 707          budget(dh,"percent") = 100 * budget(dh,"value")/sum(g, rcs(g,dh));
+ 708   
+ 709          pmchk(s,"excess") = fd(s) + sum(ss,ras(s,ss)) - y(s);
+ 710          pmchk(s,"excess%") = 100 * (fd(s) + sum(ss,ras(s,ss)) - y(s))/y(s);
+ 711   
+ 712  *       recalculate the government budget statistics:
+ 713   
+ 714          gbdgt("trnsfr") = sum(dh, trn(dh));
+ 715          gbdgt("adj") = sum(dh, incadj(dh));
+ 716          gbdgt("gc")  = sum(s, gd(s)) + gdk + gdl + gtl;
+ 717   
+ 718          gbdgt("gse") = sum(s,gse(s));
+ 719          gbdgt("gsk") = gsk;
+ 720          gbdgt("pit") = sum(dh, pit(dh));
+ 721          gbdgt("tl")  = sum(s, tl(s)) + gtl;
+ 722          gbdgt("tk")  = sum(s, tk(s));
+ 723          gbdgt("txo") = sum(s, txo(s));
+ 724          gbdgt("tc")  = sum(g, tc(g));
+ 725   
+ 726          gbdgt("revenue")  = sum(grevenu, gbdgt(grevenu));
+ 727          gbdgt("outlay")   = sum(gexpend, gbdgt(gexpend));
+ 728          gbdgt("deficit") = gbdgt("outlay") - gbdgt("revenue");
+ 729   
+ 730          display pmchk, gbdgt;
+ 731   
+ 732          expend(dh) = sum(ccg, rcs(ccg,dh));
+ 733          saving(dh) = rcs("savng",dh);
+ 734   
+ 735          profit(s,"y") = y(s);
+ 736          profit(s,"va") = dl(s) + dk(s);
+ 737          profit(s,"tax")  = tl(s) + tk(s) + txo(s);
+ 738          profit(s,"inter") = sum(ss,ras(ss,s));
+ 739          profit(s,"check") = y(s) - sum(ss,ras(ss,s)) -
+ 740                  (dl(s) + dk(s) + tl(s) + tk(s) + txo(s));
+ 741   
+ 742          pctprofit(s,"y")     = 100;
+ 743          pctprofit(s,"va")    = 100*profit(s,"va") / profit(s,"y");
+ 744          pctprofit(s,"tax")   = 100*profit(s,"tax")  / profit(s,"y");
+ 745          pctprofit(s,"inter") = 100*profit(s,"inter") / profit(s,"y");
+ 746          pctprofit(s,"check") = 100*profit(s,"check") / profit(s,"y");
+ 747   
+ 748          pctva(s,"k")   = 100 * dk(s) / va(s);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 16
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 749          pctva(s,"l")   = 100 * dl(s) / va(s);
+ 750          pctva(s,"tl")  = 100 * tl(s) / va(s);
+ 751          pctva(s,"tk")  = 100 * tk(s) / va(s);
+ 752   
+ 753          pctva("total","k")   = 100 * sum(s, dk(s)) / sum(s, va(s));
+ 754          pctva("total","l")   = 100 * sum(s, dl(s)) / sum(s,va(s));
+ 755          pctva("total","tl")  = 100 * sum(s, tl(s)) / sum(s,va(s));
+ 756          pctva("total","tk")  = 100 * sum(s, tk(s)) / sum(s,va(s));
+ 757   
+ 758          excess(s,"y")     = y(s);
+ 759          excess(s,"inter") = sum(ss,ras(s,ss));
+ 760          excess(s,"netexp") = vx(s) - vm(s);
+ 761          excess("total","netexp") = sum(s, vx(s) - vm(s));
+ 762          excess(s,"findem") = gd(s) + cd(s) - gse(s);
+ 763          excess(s,"check") = fd(s) + sum(ss,ras(s,ss)) - y(s);
+ 764   
+ 765          pctexcess(s,"y")     = 100;
+ 766          pctexcess(s,"inter") = 100*excess(s,"inter") /excess(s,"y");
+ 767          pctexcess(s,"netexp") = 100*excess(s,"netexp") /excess(s,"y");
+ 768          pctexcess(s,"findem") = 100*excess(s,"findem") /excess(s,"y");
+ 769          pctexcess(s,"check") = 100*excess(s,"check") /excess(s,"y");
+ 770   
+ 771          bdgtbal(dh,"expend")  = expend(dh);
+ 772          bdgtbal(dh,"saving")  = saving(dh);
+ 773          bdgtbal(dh,"inc_tax") = pit(dh);
+ 774          bdgtbal(dh,"labor")   = sl(dh);
+ 775          bdgtbal(dh,"capital") = sk(dh);
+ 776          bdgtbal(dh,"transf")  = trn(dh);
+ 777          bdgtbal(dh,"check") =
+ 778            expend(dh)+saving(dh)-(sl(dh)+sk(dh)+trn(dh)-pit(dh));
+ 779   
+ 780          pctbudget(dh,"expend")  = 100;
+ 781          pctbudget(dh,"saving") = 100*
+ 782                          bdgtbal(dh,"saving")/bdgtbal(dh,"expend");
+ 783          pctbudget(dh,"inc_tax") = 100*
+ 784                          bdgtbal(dh,"inc_tax")/bdgtbal(dh,"expend");
+ 785          pctbudget(dh,"labor")   = 100*
+ 786                          bdgtbal(dh,"labor")  /bdgtbal(dh,"expend");
+ 787          pctbudget(dh,"capital") = 100*
+ 788                          bdgtbal(dh,"capital")/bdgtbal(dh,"expend");
+ 789          pctbudget(dh,"transf")  = 100*
+ 790                          bdgtbal(dh,"transf") /bdgtbal(dh,"expend");
+ 791          pctbudget(dh,"check") = 100*
+ 792                          bdgtbal(dh,"check") /bdgtbal(dh,"expend");
+ 793   
+ 794          government("endowment","level") = gsk + sum(s, gse(s));
+ 795          government("l_tax","level") = sum(s, tl(s));
+ 796          government("k_tax","level") = sum(s, tk(s));
+ 797          government("prod_tax","level") = sum(s, txo(s));
+ 798          government("con_tax","level")  = sum(g, tc(g));
+ 799          government("inc_tax","level") = sum(dh, pit(dh));
+ 800          government("revenue","level")  = gsk + sum(s, gse(s)) +
+ 801                                   sum(s, tl(s) + tk(s) + txo(s)) +
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 17
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 802                                   sum(g, tc(g)) + sum(dh, pit(dh));
+ 803          government("transf","level")  =  sum(dh, trn(dh));
+ 804          government("incadj","level")  =  sum(dh, incadj(dh));
+ 805          government("expend","level") = sum(s, gd(s)) + gdl + gdk + gtl;
+ 806          government("outlay","level") =  sum(dh, trn(dh)) +
+ 807                                  sum(s, gd(s)) + gdl + gdk + gtl;
+ 808   
+ 809          government("deficit","level") = government("outlay","level")-
+ 810                                  government("revenue","level");
+ 811   
+ 812          government("endowment","percent") =
+ 813            100 * government("endowment","level") /
+ 814                  government("revenue","level");
+ 815   
+ 816          government("l_tax","percent") =
+ 817            100 * government("l_tax","level") /
+ 818                  government("revenue","level");
+ 819   
+ 820          government("k_tax","percent") =
+ 821            100 * government("k_tax","level") /
+ 822                  government("revenue","level");
+ 823   
+ 824          government("prod_tax","percent") =
+ 825            100 * government("prod_tax","level") /
+ 826                  government("revenue","level");
+ 827   
+ 828          government("con_tax","percent")  =
+ 829            100 * government("con_tax","level") /
+ 830                  government("revenue","level");
+ 831          government("inc_tax","percent") =
+ 832            100 * government("inc_tax","level") /
+ 833                  government("revenue","level");
+ 834          government("revenue","percent")  =  100;
+ 835          government("transf","percent")  =
+ 836            100 * government("transf","level") /
+ 837                  government("revenue","level");
+ 838          government("incadj","percent")  =
+ 839            100 * government("incadj","level") /
+ 840                  government("revenue","level");
+ 841          government("expend","percent") =
+ 842            100 * government("expend","level") /
+ 843                  government("revenue","level");
+ 844          government("outlay","percent") =
+ 845            100 * government("outlay","level") /
+ 846                  government("revenue","level");
+ 847          government("deficit","percent") =
+ 848            100 * government("deficit","level") /
+ 849                  government("revenue","level");
+ 850   
+ 851          pctrcs(g,dh) = 100 * rcs(g,dh) / expend(dh);
+ 852          pctras(ss,s) = 100 * ras(ss,s) / y(s);
+ 853   
+ 854          valueadded(s,"labor")   = dl(s);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 18
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 855          valueadded(s,"capital") = dk(s);
+ 856          valueadded(s,"inter")  = sum(ss, ras(ss,s));
+ 857          valueadded(s,"total")  = dl(s) + dk(s) + sum(ss, ras(ss,s));
+ 858   
+ 859          taxpayment(s,"output")  = txo(s);
+ 860          taxpayment(s,"labor")   = tl(s);
+ 861          taxpayment(s,"capital") = tk(s);
+ 862          taxpayment(s,"total") = txo(s) + tl(s) + tk(s);
+ 863   
+ 864  display profit, excess, bdgtbal;
+ 865  display pctprofit, pctva, pctexcess, pctbudget;
+ 866  display government, taxpayment;
+ 867  option pctrcs:1;
+ 868  option pctras:1;
+ 869  *.display valueadded, pctrcs, pctras;
+ 870   
+ 871  *== display tax rates before aggregation:
+ 872   
+ 873  tauave(dh) = pit(dh) / (sl(dh) + sk(dh));
+ 874  display tau, tauave;
+ 875  tauave(dh) = 0;
+ 876   
+ 877  *======= check the aggregation.
+ 878   
+ 879  abort$(smax(dh, sum(h$hmap(dh,h), 1)-1) gt 0) "invalid mapping.";
+ 880   
+ 881  *======= perform the aggregation ===========
+ 882   
+ 883  parameter popshr(h)  share of population;
+ 884   
+ 885          count(h) = sum(dh$hmap(dh,h), count(dh));
+ 886          popshr(h) = count(h) / sum(hp, count(hp));
+ 887          sk(h) = sum(dh$hmap(dh,h), sk(dh));
+ 888          sl(h) = sum(dh$hmap(dh,h), sl(dh));
+ 889          pit(h) = sum(dh$hmap(dh,h), pit(dh));
+ 890          incadj(h) = sum(dh$hmap(dh,h), incadj(dh));
+ 891          trn(h) = sum(dh$hmap(dh,h), trn(dh));
+ 892          tau(h)$pit(h) = sum(dh$hmap(dh,h), pit(dh) * tau(dh)) / pit(h);
+ 893          rcs(g,h) = sum(dh$hmap(dh,h), rcs(g,dh));
+ 894   
+ 895          zta(h) = sum(dh$hmap(dh,h), sl(dh) * zta(dh)) /
+ 896                   sum(dh$hmap(dh,h), sl(dh));
+ 897   
+ 898  *       fix elasticities:
+ 899   
+ 900          el(h)  = sum(dh$hmap(dh,h), el(dh)*sl(dh))/
+ 901                   sum(dh$hmap(dh,h), sl(dh));
+ 902          ec(h)  = 1.5;
+ 903   
+ 904          taubmk(h) = tau(h);
+ 905          tauave(h) = pit(h) / (sl(h) + sk(h));
+ 906          leisure(h) = sl(h)*(zta(h)-1);
+ 907          cc(h) = sum(g$ccg(g), rcs(g,h)) + leisure(h);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 19
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 908          gc = sum(s, gd(s)) + gdk + gdl + gtl;
+ 909   
+ 910  *       set savings levels to zero for households with negative savings
+ 911  *       and make according income adjustment:
+ 912   
+ 913          saving(h) = sum(g$(not ccg(g)), rcs(g,h));
+ 914          expend(h) = sum(ccg, rcs(ccg,h));
+ 915   
+ 916          govsav = sum(h$(saving(h) lt 0), saving(h));
+ 917          incadj(h)$(saving(h) lt 0) = incadj(h) - saving(h);
+ 918          loop(g$(not ccg(g)), rcs(g,h)$(saving(h) lt 0) = 0;);
+ 919   
+ 920          saving(h) = sum(g$(not ccg(g)), rcs(g,h));
+ 921          display govsav, saving;
+ 922   
+ 923       bdgtbal(dh,"expend")  = 0;
+ 924       bdgtbal(dh,"saving")  = 0;
+ 925       bdgtbal(dh,"inc_tax") = 0;
+ 926       bdgtbal(dh,"labor")   = 0;
+ 927       bdgtbal(dh,"capital") = 0;
+ 928       bdgtbal(dh,"transf")  = 0;
+ 929       bdgtbal(dh,"check") = 0;
+ 930       pctbudget(dh,"expend")  = 0;
+ 931       pctbudget(dh,"saving")  = 0;
+ 932       pctbudget(dh,"inc_tax") = 0;
+ 933       pctbudget(dh,"labor")   = 0;
+ 934       pctbudget(dh,"capital") = 0;
+ 935       pctbudget(dh,"transf")  = 0;
+ 936       pctbudget(dh,"check") = 0;
+ 937   
+ 938  bdgtbal(h,"expend")  = expend(h);
+ 939  bdgtbal(h,"saving")  = saving(h);
+ 940  bdgtbal(h,"inc_tax") = pit(h);
+ 941  bdgtbal(h,"labor")   = sl(h);
+ 942  bdgtbal(h,"capital") = sk(h);
+ 943  bdgtbal(h,"incadj")  = incadj(h);
+ 944  bdgtbal(h,"transf")  = trn(h);
+ 945  bdgtbal(h,"check")   = expend(h)+saving(h) -
+ 946                          (sl(h)+sk(h)+trn(h)+incadj(h)-pit(h));
+ 947   
+ 948  pctbudget(h,"expend")  = 100;
+ 949  pctbudget(h,"saving") =  100* bdgtbal(h,"saving")/bdgtbal(h,"expend");
+ 950  pctbudget(h,"inc_tax") = 100* bdgtbal(h,"inc_tax")/bdgtbal(h,"expend");
+ 951  pctbudget(h,"labor")   = 100* bdgtbal(h,"labor")  /bdgtbal(h,"expend");
+ 952  pctbudget(h,"capital") = 100* bdgtbal(h,"capital")/bdgtbal(h,"expend");
+ 953  pctbudget(h,"transf")  = 100* bdgtbal(h,"transf") /bdgtbal(h,"expend");
+ 954  pctbudget(h,"incadj")  = 100* bdgtbal(h,"incadj") /bdgtbal(h,"expend");
+ 955  pctbudget(h,"check")   = 100 * bdgtbal(h,"check") /bdgtbal(h,"expend");
+ 956   
+ 957  display popshr, bdgtbal, pctbudget;
+ 958   
+ 959  parameter share(h,*);
+ 960   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 20
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+ 961       share(h,"l/k") = sl(h) / sk(h);
+ 962       share(h,"saving") = 100 * saving(h) / sum(hp, saving(hp));
+ 963       share(h,"sl") = 100 * sl(h) / sum(hp, sl(hp));
+ 964       share(h,"sk") = 100 * sk(h) / sum(hp, sk(hp));
+ 965       share(h,"tr") = 100 * trn(h) / sum(hp, trn(hp));
+ 966       share(h,"pit") = 100 * pit(h) / sum(hp, pit(hp));
+ 967       share(h,"expend") = 100 * expend(h) / sum(hp, expend(hp));
+ 968  display share;
+ 969   
+ 970          government("endowment","level") = gsk + sum(s, gse(s));
+ 971          government("l_tax","level") = sum(s, tl(s)) + gtl;
+ 972          government("k_tax","level") = sum(s, tk(s));
+ 973          government("prod_tax","level") = sum(s, txo(s));
+ 974          government("con_tax","level")  = sum(g, tc(g));
+ 975          government("inc_tax","level") = sum(h, pit(h));
+ 976          government("trd_bal","level")  = sum(s, vm(s) - vx(s));
+ 977          government("revenue","level")  = gsk + sum(s, gse(s)) +
+ 978                                   sum(s, tl(s) + tk(s) + txo(s)) + gtl +
+ 979                                   sum(s, vm(s) - vx(s)) +
+ 980                                   sum(g, tc(g)) + sum(h, pit(h));
+ 981   
+ 982          government("transf","level")  =  sum(h, trn(h));
+ 983          government("incadj","level")  =  sum(h, incadj(h));
+ 984          government("hfix","level")  =  sum(hfix, sum(g, rcs(g,hfix))
+ 985                                                    - sl(hfix) - sk(hfix));
+ 986          government("expend","level") = sum(s, gd(s)) + gdl + gdk + gtl;
+ 987          government("outlay","level") =  sum(h, trn(h) + incadj(h)) +
+ 988                                  government("hfix","level") +
+ 989                                  sum(s, gd(s)) + gdl + gdk + gtl;
+ 990   
+ 991          government("deficit","level") = government("outlay", "level")-
+ 992                                          government("revenue","level");
+ 993   
+ 994          government("endowment","percent") =
+ 995            100 * government("endowment","level") /
+ 996                  government("revenue","level");
+ 997   
+ 998          government("l_tax","percent") =
+ 999            100 * government("l_tax","level") /
+1000                  government("revenue","level");
+1001   
+1002          government("k_tax","percent") =
+1003            100 * government("k_tax","level") /
+1004                  government("revenue","level");
+1005   
+1006          government("prod_tax","percent") =
+1007            100 * government("prod_tax","level") /
+1008                  government("revenue","level");
+1009   
+1010          government("con_tax","percent")  =
+1011            100 * government("con_tax","level") /
+1012                  government("revenue","level");
+1013          government("inc_tax","percent") =
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 21
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1014            100 * government("inc_tax","level") /
+1015                  government("revenue","level");
+1016          government("revenue","percent")  =  100;
+1017          government("transf","percent")  =
+1018            100 * government("transf","level") /
+1019                  government("revenue","level");
+1020          government("incadj","percent")  =
+1021            100 * government("incadj","level") /
+1022                  government("revenue","level");
+1023          government("hfix","percent")  =
+1024            100 * government("hfix","level") /
+1025                  government("revenue","level");
+1026          government("expend","percent") =
+1027            100 * government("expend","level") /
+1028                  government("revenue","level");
+1029          government("outlay","percent") =
+1030            100 * government("outlay","level") /
+1031                  government("revenue","level");
+1032          government("deficit","percent") =
+1033            100 * government("deficit","level") /
+1034                  government("revenue","level");
+1035   
+1036  display government;
+1037   
+1038  *       recalculate the government budget statistics:
+1039   
+1040          gbdgt("trnsfr") = sum(h, trn(h));
+1041          gbdgt("adj") = sum(h, incadj(h));
+1042          gbdgt("gc")  = sum(s, gd(s)) + gdk + gdl + gtl;
+1043          gbdgt("sav") = govsav;
+1044   
+1045          gbdgt("hfix") = sum(hfix, sl(hfix)+sk(hfix) - sum(g, rcs(g,hfix)));
+1046          gbdgt("gse") = sum(s,gse(s));
+1047          gbdgt("gsk") = gsk;
+1048          gbdgt("pit") = sum(h, pit(h));
+1049          gbdgt("tl")  = sum(s, tl(s)) + gtl;
+1050          gbdgt("tk")  = sum(s, tk(s));
+1051          gbdgt("txo") = sum(s, txo(s));
+1052          gbdgt("tc")  = sum(g, tc(g));
+1053   
+1054          gbdgt("revenue")  = sum(grevenu, gbdgt(grevenu));
+1055          gbdgt("outlay")   = sum(gexpend, gbdgt(gexpend));
+1056          gbdgt("deficit") = gbdgt("outlay") - gbdgt("revenue");
+1057   
+1058          display gbdgt;
+1059   
+1060  parameter       tikave  average capital-income tax rate,
+1061                  tiave   average income tax rate,
+1062                  tlave   average labor tax rate,
+1063                  tkave   average capital tax rate,
+1064                  gbench  benchmark provision;
+1065   
+1066          tlave = sum(s, tl(s)) / sum(s, dl(s) + tl(s));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 22
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1067   
+1068          tiave = sum(h, pit(h)) / sum(h, sl(h) + sk(h));
+1069   
+1070          tkave = sum(s, tk(s)) / sum(s, dk(s)+tk(s));
+1071   
+1072          tikave = (sum(h, pit(h))        + sum(s, tk(s))) /
+1073                  (sum(h, pit(h) + sl(h) + sk(h)) + sum(s, dk(s)+tk(s)));
+1074   
+1075          gbench = (gdl + gtl + gdk + sum(s, gd(s))) /
+1076   
+1077                  sum((g,h), rcs(g,h));
+1078   
+1079  display tiave, tlave, tikave, tkave, gbench, tauave, taubmk;
+1080   
+1081   
+1082  scalar  static  switch for fixed capital stock /1/
+1083          redist  switch for endogenous income redistribution /1/;
+1084   
+1085  scalar  efks    elasticity of foreign capital supply /0.25/,
+1086          vscale  scale factor on valuation of public good /1/;
+1087   
+1088  alias (hp,h);
+1089   
+1090  option limrow=0;
+1091  option limcol=0;
+1093   
+1094   
+1095  parameter
+1096          qref_ls(h)      reference level of labor supply - net of tax
+1097          qref_z(s,g)     reference level of consumer goods formation net tax
+1098          qref_va(s)      refreence level of value-added
+1099          qref_i(h)       reference level of household income-expenditure
+1100          qref_gc         reference level of government consumption
+1101          qref_trn        reference level of transfers
+1102          qref_adj        reference level of income adjustments
+1103          qref_ginc       reference level of government income
+1104   
+1105          pref_ls(h)      reference price of leisure
+1106          pref_l(s)       reference price of labor
+1107          pref_k(s)       reference price of capital services
+1108   
+1109          t_l(s)          labor tax
+1110          t_k(s)          capital tax
+1111          t_y(s)          output tax
+1112          t_i(h)          income tax (marginal rate)
+1113          t_iave(h)       income tax (average rate)
+1114          t_c(g)          tax rates on consumption
+1115          t_gdl           tax rate on government labor demand
+1116          theta(h)        weights applied in synthetic objective ;
+1117   
+1118          qref_ls(h) = sl(h)*(1-taubmk(h));
+1119   
+1120          pref_ls(h) = 1 + taubmk(h)/(1-taubmk(h));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 23
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1121   
+1122          t_i(h) = taubmk(h)/(1-taubmk(h));
+1123   
+1124          t_iave(h) = pit(h) / (sl(h) + sk(h));
+1125   
+1126          qref_z(s,g) = z(s,g)*(gce(g)-tc(g));
+1127   
+1128          t_c(g) = tc(g) / gce(g);
+1129   
+1130          qref_va(s) = dl(s) + tl(s) + dk(s) + tk(s);
+1131   
+1132          pref_l(s) = 1 + tl(s)/dl(s);
+1133          t_l(s) = tl(s) / dl(s);
+1134   
+1135          pref_k(s) = 1 + tk(s)/dk(s);
+1136          t_k(s) = tk(s)/dk(s);
+1137   
+1138          t_y(s) = txo(s) / y(s);
+1139   
+1140          qref_gc = gdl + gtl + gdk + sum(s, gd(s));
+1141   
+1142          vpg(h) = vscale *
+1143                   qref_gc * sum(ccg, rcs(ccg,h)) / sum((ccg,hp), rcs(ccg,hp));
+1144   
+1145          cp(h) = sum(g$ccg(g), rcs(g,h));
+1146   
+1147          cg(h) = cp(h) + vpg(h);
+1148   
+1149          qref_i(h) = cg(h) + leisure(h);
+1150   
+1151          t_gdl = gtl/gdl;
+1152   
+1153          qref_trn = sum(h, trn(h));
+1154   
+1155          qref_adj = sum(h, incadj(h));
+1156   
+1157          qref_ginc = qref_trn + qref_adj + qref_gc;
+1158   
+1159  *       calibrate the top level elasticity of leisure vs. consumption:
+1160   
+1161          el(h) = (leisure(h)/(qref_i(h)-leisure(h)) + 0.15 /(zta(h)-1)) /
+1162                  (1 - qref_ls(h)/(qref_i(h)-leisure(h)));
+1163          el(dh) = 0;
+1164   
+1165          eg(h) = 0.5;
+1166          vpg(h) = qref_gc * popshr(h);
+1167          cg(h) = sum(ccg, rcs(ccg,h)) + vpg(h);
+1168          qref_i(h) = cg(h) + leisure(h);
+1169          el(h) =  ( els/(zta(h)-1) + qref_ls(h) / qref_i(h) ) /
+1170                  (1 - leisure(h) / qref_i(h));
+1171          display el;
+1172   
+1173  alias (hp,h);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 24
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1174   
+1175  option solprint=off;
+1176  option limrow=0;
+1177  option limcol=0;
+1179   
+1180  *       gemtap model in mcp format.
+1181   
+1182   
+1183  variables
+1184          p_l             wage index
+1185          p_k             capital return index
+1186          p_ls(h)         leisure price
+1187          p_c(g)          consumption goods price
+1188          p_cc(h)         current consumption price
+1189          p_w(h)          welfare price index
+1190          p_gc            government consumption price
+1191          p_cp(h)         private consumption price
+1192          p_g(h)          household valuation of public good
+1193          p_y(s)          sectoral goods price
+1194          p_va(s)         value-added price index
+1195          p_trn           transfer price index
+1196          p_fx            the real exchange rate
+1197   
+1198          a_gc            government consumption
+1199          a_invest        investment-capital stock
+1200          a_y(s)          production index
+1201          a_va(s)         value added index
+1202          a_w(h)          welfare index
+1203          a_cc(h)         current consumption
+1204          a_cp(h)         private consumption aggregate
+1205          a_c(g)          aggregate consumption index
+1206          a_ls(h)         labor supply
+1207   
+1208          i_gov           governemtn income
+1209          i_h(h)          household income (total)
+1210          i_e(h)          endowment income
+1211   
+1212          tau_l           labor tax instrument
+1213          tau_k           capital and income tax instrument
+1214   
+1215          tau_pl          instrument for compute labour supply elasticity;
+1216   
+1217  variable
+1218          a_km            net capital inflow;
+1219   
+1220   
+1221  equations
+1222   
+1223          mkt_l           labor market - endogenous taxes
+1224          mkt_k           capital market - endogenous taxes
+1225          mkt_ls(h)       leisure - labor market
+1226          mkt_c(g)        consumption good market
+1227          mkt_cc(h)       current consumption market
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 25
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1228          mkt_w(h)        supply-demand for welfare
+1229          mkt_gc          government consumption
+1230          mkt_cp(h)       private consumption aggregate
+1231          mkt_g(h)        household valuation of public good
+1232          mkt_va(s)       value-added supply-demand
+1233          mkt_y(s)        sectoral output markets
+1234          mkt_trn         transfer balance
+1235          mkt_fx          foreign exchange market
+1236   
+1237          prf_gc          government consumption (leontief)
+1238          prf_invest      zero profit for investment
+1239          prf_y(s)        sectoral cost function (leontief)
+1240          prf_va(s)       value-added cost function (ces) - endogenous taxes
+1241          prf_w(h)        welfare index (ces)
+1242          prf_cc(h)       current consumption (ces)
+1243          prf_cp(h)       zero profit condition for private consumption
+1244          prf_c(g)        consumption good formation (leontief)
+1245          prf_ls(h)       labor supply (leontief)
+1246   
+1247          kmdef           capital import definition
+1248   
+1249          totinc(h)       household income definition - total
+1250          income(h)       household endowment income
+1251          govinc          government income;
+1252   
+1253   
+1254  *       labor supply condition:
+1255   
+1256  prf_ls(h)..     p_ls(h) * (1 + t_i(h)) / pref_ls(h)
+1257   
+1258                          =e= p_l + tau_pl * p_trn;
+1259   
+1260   
+1261  prf_c(g)..      sum(s$z(s,g), p_y(s) * qref_z(s,g)) =e=
+1262   
+1263                  p_c(g) * gce(g) * (1 - t_c(g));
+1264   
+1265   
+1266  prf_cp(h)..
+1267                  ( sum(g$ccg(g),
+1268   
+1269                      rcs(g,h) * p_c(g)**(1-ec(h)) ) -
+1270   
+1271                      cp(h) * p_cp(h)**(1-ec(h)) )$(ec(h) ne 1) +
+1272   
+1273                  ( sum(g$ccg(g), rcs(g,h) * log(p_c(g))) -
+1274   
+1275                      cp(h) * log(p_cp(h)) )$(ec(h) eq 1) =e= 0;
+1276   
+1277   
+1278  prf_cc(h)..   ( (vpg(h) * p_g(h)**(1-eg(h)))$vpg(h) +
+1279   
+1280                   cp(h) *  p_cp(h)**(1-eg(h)) -
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 26
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1281   
+1282                   cg(h) * p_cc(h)**(1-eg(h)) )$(eg(h) ne 1) +
+1283   
+1284                ( (vpg(h) * log(p_g(h)))$vpg(h) +
+1285   
+1286                  cp(h) * log(p_cp(h)) -
+1287   
+1288                  cg(h) * log(p_cc(h)) )$(eg(h) eq 1) =e= 0;
+1289   
+1290   
+1291  prf_w(h)..    ( cg(h) * p_cc(h)**(1-el(h))  +
+1292   
+1293                  leisure(h) * p_ls(h)**(1-el(h))  -
+1294   
+1295                  qref_i(h) * p_w(h)**(1-el(h)) )$(el(h) ne 1) +
+1296   
+1297   
+1298                ( cg(h) * log(p_cc(h)) +
+1299   
+1300                  leisure(h) * log(p_ls(h)) -
+1301   
+1302                  qref_i(h) * log(p_w(h)) )$(el(h) eq 1) =e= 0;
+1303   
+1304   
+1305  prf_gc..        p_l * (1 + t_gdl) * gdl + p_k * gdk
+1306   
+1307                  + sum(s$gd(s), p_y(s) * gd(s)) =e= p_gc * qref_gc;
+1308   
+1309   
+1310  prf_va(s)..
+1311   
+1312          ((p_l * (1+tau_l*t_l(s))/pref_l(s))**(1-ekl(s))
+1313                  * dl(s) * pref_l(s) +
+1314   
+1315           (p_k * (1+ tau_k * t_k(s))/pref_k(s))**(1-ekl(s))
+1316                  * dk(s) * pref_k(s)
+1317   
+1318                  - p_va(s)**(1-ekl(s)) * qref_va(s) )$(ekl(s) ne 1) +
+1319   
+1320  (dl(s) * pref_l(s) * log(p_l * (1+tau_l*t_l(s))/ pref_l(s)) +
+1321   
+1322   dk(s) * pref_k(s) * log(p_k * (1+ tau_k *t_k(s))/pref_k(s)) -
+1323   
+1324          qref_va(s) * log(p_va(s)) )$(ekl(s) eq 1) =e=  0;
+1325   
+1326   
+1327  prf_y(s)..      p_va(s) * qref_va(s) +
+1328   
+1329                  sum(ss$ras(ss,s), ras(ss,s) * p_y(ss)) =e=
+1330   
+1331                  p_y(s) * y(s) * (1-t_y(s));
+1332   
+1333   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 27
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1334  prf_invest..
+1335   
+1336                  sum(g$(not ccg(g)), p_c(g)) =e= p_k;
+1337   
+1338   
+1339  kmdef.. a_km =e= 1 - (p_fx/p_k)**efks;
+1340   
+1341  mkt_k..         a_invest * (sum(h, sk(h)) + gsk) + sum(hfix, sk(hfix))
+1342   
+1343  *       foreign capital flows:
+1344   
+1345                  + (sum(h, sk(h)) * a_km)$efks =e=
+1346   
+1347                  sum(s, a_va(s) * dk(s)*
+1348   
+1349                  ( pref_k(s)/(1+tau_k *t_k(s)) )**ekl(s) *
+1350   
+1351                  ( p_va(s)/p_k )**ekl(s) )
+1352   
+1353                  + a_gc * gdk;
+1354   
+1355   
+1356  mkt_l..         sum(h, a_ls(h)*sl(h)) + sum(hfix, sl(hfix)) =e=
+1357   
+1358                  sum(s, a_va(s) * dl(s) *
+1359   
+1360                    ( pref_l(s) / (1+tau_l*t_l(s)) )**ekl(s) *
+1361   
+1362                    ( p_va(s)/p_l)**ekl(s) )
+1363   
+1364                  + a_gc * gdl;
+1365   
+1366   
+1367  mkt_ls(h)..     leisure(h) + qref_ls(h) =e=
+1368   
+1369                  leisure(h) * a_w(h) * (p_w(h)/p_ls(h))**el(h) +
+1370   
+1371                  qref_ls(h) * a_ls(h);
+1372   
+1373   
+1374  mkt_c(g)..      gce(g) * a_c(g) =e=
+1375   
+1376  *       exogenous household demand and saving:
+1377   
+1378                  sum(hfix, rcs(g,hfix))  +  govsav$(not ccg(g))
+1379   
+1380  *       current consumption goods:
+1381   
+1382                  + sum(h, (a_cp(h) * rcs(g,h) *
+1383   
+1384                          (p_cp(h)/p_c(g))**eg(h))$ccg(g)
+1385   
+1386  *       investment demand:
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 28
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1387   
+1388                  + (a_invest * rcs(g,h))$(not ccg(g)) );
+1389   
+1390   
+1391  mkt_cc(h)..     a_cc(h) =e= a_w(h) * (p_w(h)/p_cc(h))**el(h);
+1392   
+1393   
+1394  mkt_cp(h)..     a_cp(h) =e= a_cc(h) * (p_cc(h)/p_cp(h))**eg(h);
+1395   
+1396   
+1397  mkt_g(h)..
+1398   
+1399                  a_gc =e= a_cc(h) * (p_cc(h) / p_g(h))**eg(h);
+1400   
+1401   
+1402  mkt_w(h)..      a_w(h) =e= i_h(h) / p_w(h);
+1403   
+1404   
+1405  mkt_gc..        p_trn * (qref_trn + qref_adj) +
+1406   
+1407                  p_gc * a_gc * qref_gc =e= i_gov * qref_ginc;
+1408   
+1409   
+1410  mkt_va(s)..     a_va(s) =e= a_y(s);
+1411   
+1412   
+1413  *       trade elasticity parameters (0.465 and 10) taken from p139 of bfsw:
+1414   
+1415  mkt_y(s)..      a_y(s) * y(s) + vm(s)*(p_y(s)/p_fx)**0.465 + gse(s)  =e=
+1416   
+1417                  sum(ss, a_y(ss) * ras(s,ss))
+1418   
+1419                  + sum(g, a_c(g) * qref_z(s,g)) + gd(s) * a_gc
+1420   
+1421                  + vx(s)*(p_fx/p_y(s))**10;
+1422   
+1423  mkt_fx..        sum(s,  vm(s)*(p_y(s)/p_fx)**0.465 -
+1424   
+1425                          vx(s)*(p_fx/p_y(s))**10 )
+1426   
+1427  *       capital flows:
+1428   
+1429                  + (sum(h, sk(h)) * a_km)$efks =e= 0;
+1430   
+1431   
+1432  *       hold real value of transfers constant:
+1433   
+1434  mkt_trn..       p_trn =e= sum((h,ccg), rcs(ccg,h) * p_c(ccg)) /
+1435                            sum((h,ccg), rcs(ccg,h));
+1436   
+1437   
+1438  *       total income includes private valuation of public good:
+1439   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 29
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1440  totinc(h)..     i_h(h) * qref_i(h) =e= i_e(h) * (qref_i(h)-vpg(h))
+1441   
+1442                  + (p_g(h) * vpg(h) * a_gc)$vpg(h);
+1443   
+1444   
+1445  income(h)..     i_e(h) * (qref_i(h)-vpg(h)) =e=
+1446   
+1447  *       capital income:
+1448   
+1449                  a_invest * (  p_k * sk(h)
+1450                                - sum(g$(not ccg(g)), p_c(g) * saving(h)) )
+1451   
+1452  *       labor income:
+1453   
+1454                  + p_ls(h) * (qref_ls(h) + leisure(h))
+1455   
+1456  *       income taxes (average with marginal adjustment):
+1457   
+1458                  - t_iave(h) * (sl(h) + sk(h)) * p_trn * tau_k
+1459                  - t_i(h) * sk(h) * (p_k - p_trn)
+1460                  + t_i(h) * qref_ls(h) * p_trn
+1461   
+1462  *       transfers:
+1463   
+1464                  + p_trn * (trn(h) + incadj(h));
+1465   
+1466   
+1467  govinc..
+1468   
+1469          i_gov * qref_ginc =e=
+1470   
+1471  *       income of exogenous households:
+1472   
+1473                  sum(hfix, sl(hfix) * p_l + sk(hfix) * p_k
+1474   
+1475                          - sum(g, rcs(g,hfix) * p_c(g)) )
+1476   
+1477  *       savings (exogenous)
+1478   
+1479                  - sum(g$(not ccg(g)), p_c(g) * govsav)
+1480   
+1481  *       capital revenue:
+1482   
+1483                  + a_invest * p_k * gsk
+1484   
+1485  *       government expenditures:
+1486   
+1487                  + sum(s, p_y(s) * gse(s))
+1488   
+1489  *       tax receipts:
+1490   
+1491                  + sum(h,
+1492                          t_iave(h) * (sl(h) + sk(h))  * p_trn * tau_k
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 30
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1493                          + t_i(h) *
+1494                          ( qref_ls(h) * (a_ls(h) * p_ls(h) - p_trn)  +
+1495                            sk(h) * (p_k-p_trn) )
+1496                    )
+1497   
+1498                  + sum(s, a_va(s) * p_l * dl(s) * tau_l * t_l(s)
+1499                          * (pref_l(s)/(1+tau_l*t_l(s)))**ekl(s)
+1500                          * (p_va(s)/p_l)**ekl(s) )
+1501   
+1502                  + sum(s, a_va(s) * p_k * dk(s) * tau_k * t_k(s)
+1503                          * (pref_k(s)/(1+tau_k *t_k(s)))**ekl(s)
+1504                          * (p_va(s)/p_k)**ekl(s))
+1505   
+1506                  + sum(s, a_y(s) * p_y(s) * y(s) * t_y(s))
+1507   
+1508                  + a_gc * p_l * gdl * t_gdl
+1509   
+1510          + sum(g, a_c(g) * p_c(g) * gce(g) * t_c(g));
+1511   
+1512  model  gemtap /
+1513          mkt_l.p_l,
+1514          mkt_k.p_k,
+1515          mkt_ls.p_ls,
+1516          mkt_c.p_c,
+1517          mkt_cc.p_cc,
+1518          mkt_w.p_w,
+1519          mkt_gc.p_gc,
+1520          mkt_cp.p_cp,
+1521          mkt_g.p_g,
+1522          mkt_va.p_va,
+1523          mkt_y.p_y,
+1524          mkt_trn.p_trn,
+1525          mkt_fx.p_fx,
+1526          prf_gc.a_gc,
+1527          prf_invest.a_invest,
+1528          prf_y.a_y,
+1529          prf_va.a_va,
+1530          prf_w.a_w,
+1531          prf_cc.a_cc
+1532          prf_cp.a_cp,
+1533          prf_c.a_c,
+1534          prf_ls.a_ls,
+1535          kmdef.a_km,
+1536          totinc.i_h,
+1537          income.i_e,
+1538          govinc.i_gov /;
+1539   
+1540  *       default calibration: uniform attribubtion with -0.5 elasticity:
+1541   
+1542  eg(h) = 0.5;
+1543  vpg(h) = qref_gc * popshr(h);
+1544  cg(h) = sum(ccg, rcs(ccg,h)) + vpg(h);
+1545  qref_i(h) = cg(h) + leisure(h);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 31
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1546   
+      scalar peps / 1.e-5 / ;
+      p_k.lo     = peps;
+      p_l.lo     = peps;
+      p_va.lo(s) = peps;
+      p_ls.lo(h) = peps;
+      p_c.lo(g)  = peps;
+      p_cc.lo(h) = peps;
+      p_cp.lo(h) = peps;
+      p_g.lo(h)  = peps;
+      p_w.lo(h)  = peps;
+      p_fx.lo    = peps;
+      p_y.lo(s)  = peps;
+1561   
+1562  *       install benchmark:
+1563   
+1564          a_cp.l(h) = 1;
+1565          p_cp.l(h) = 1;
+1566          a_gc.l = 1;
+1567          a_invest.l = 1;
+1568          a_y.l(s) = 1;
+1569          a_va.l(s) = 1;
+1570          a_w.l(h) = 1;
+1571          a_cc.l(h) = 1;
+1572          a_c.l(g) = 1;
+1573          a_ls.l(h) = 1;
+1574          p_l.l = 1;
+1575          p_k.l = 1;
+1576          p_gc.l = 1;
+1577          p_g.l(h) = 1;
+1578          p_trn.l = 1;
+1579          p_fx.l = 1;
+1580          p_ls.l(h) = 1;
+1581          p_w.l(h) = 1;
+1582          p_y.l(s) = 1;
+1583          p_va.l(s) = 1;
+1584          p_c.l(g) = 1;
+1585          p_cc.l(h) = 1;
+1586          i_gov.l = 1;
+1587          i_e.l(h) = 1;
+1588          i_h.l(h) = 1;
+1589   
+1590          a_km.l = 0;
+1591          tau_l.l = 1;
+1592          tau_k.l = 1;
+1593   
+1594  *       fix indicator variables:
+1595   
+1596          tau_pl.fx = 0;
+1597          tau_l.fx  = 1;
+1598          tau_k.fx  = 1;
+1599   
+1600  *       fix variables according to switches and benchmark values.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 32
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1601  *       n.b. this causes associated equations to drop.
+1602   
+1603          a_invest.fx$static = 1;
+1604          a_km.fx$(efks eq 0)   = 1;
+1605          p_g.fx(h)$(vpg(h) eq 0) = 0;
+1606          i_e.fx(h)$(not redist)  = 1;
+1607          i_gov.fx$redist = 1;
+1608   
+1609   
+1610          solve gemtap using mcp;
+1611   
+1612   
+1613  set     sc  scenarios  /bench   benchmark replication,
+1614                          itcut   uniform (flat rate) income tax,
+1615                          ktcut   uniform capital tax,
+1616                          ltcut   uniform labor tax/;
+1617   
+1618  parameter       summary(*,*,sc)         solution summary;
+1619   
+1620  table  uniftax(sc,*)    indicators for uniform
+1621                   k       l        i
+1622  bench            0       0        0
+1623  itcut            0       0        1
+1624  ktcut            1       0        0
+1625  ltcut            0       1        0;
+1626   
+1627  loop(sc,
+1628   
+1629  *       flat rate capital tax:
+1630   
+1631          if (uniftax(sc,"k"),
+1632                  t_k(s) = sum(ss, tk(ss)) / sum(ss, dk(ss));
+1633          else
+1634                  t_k(s) = tk(s)/dk(s);
+1635          );
+1636   
+1637  *       flat rate labor tax:
+1638   
+1639          if (uniftax(sc,"l"),
+1640                  t_l(s) = sum(ss, tl(ss)) / sum(ss, dl(ss));
+1641          else
+1642                  t_l(s) = tl(s) / dl(s);
+1643          );
+1644   
+1645  *       move to a flat rate income tax:
+1646   
+1647          if (uniftax(sc,"i"),
+1648                  t_i(h) = tiave;
+1649                  t_iave(h) = tiave;
+1650          else
+1651                  t_i(h) = taubmk(h)/(1-taubmk(h));
+1652                  t_iave(h) = pit(h) / (sl(h) + sk(h));
+1653          );
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 33
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+C o m p i l a t i o n
+
+
+1654   
+1655   
+1656          solve gemtap using mcp;
+1657   
+1658  *       report solution statistics:
+1659   
+1660          summary("status","_", sc) = gemtap.modelstat;
+1661          summary("iters", "_", sc) = gemtap.iterusd;
+1662          summary("cpu",   "_", sc) = gemtap.resusd;
+1663   
+1664  *       public goods provision:
+1665   
+1666          summary("g","_",sc) = 100 * (a_gc.l - 1);
+1667   
+1668          summary("pk","_",sc) = 100 * (p_k.l/p_trn.l - 1);
+1669   
+1670          summary("pl","_",sc) = 100 * (p_l.l/p_trn.l - 1);
+1671   
+1672          summary("kmx","_",sc) = 100 * a_km.l;
+1673   
+1674  *       report welare changes indices:
+1675   
+1676          summary("ev",h,sc) = 100 * (a_w.l(h) - 1);
+1677   
+1678  *       report current consumption:
+1679   
+1680          summary("cc",h,sc) = 100 * (a_cc.l(h) - 1);
+1681   
+1682  *       report private consumption:
+1683   
+1684          summary("cp",h,sc) = 100 * (a_cp.l(h) - 1);
+1685   
+1686  );
+1687   
+1688  display summary;
+
+
+COMPILATION TIME     =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 34
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+----    676 PARAMETER zchk                 =  4.185000E-7  check of consumer goods transformation matrix
+            PARAMETER labmkt               =  -7.60000E-7  labor market clearance
+            PARAMETER capmkt               =  4.550000E-6  capital market clearance
+
+----    676 PARAMETER pmchk  profit and market clearance check
+
+           profit     profit%      excess     excess%
+
+agri        0.002       0.123      -0.010      -0.568
+mines 1.685085E-4       0.038      -0.016      -3.627
+crude 2.099744E-4       0.025      -0.002      -0.228
+const 9.895658E-4       0.033      -0.109      -3.585
+food  3.117497E-4       0.011      -0.012      -0.429
+textl 5.823774E-5       0.005      -0.005      -0.393
+paper 2.559639E-4       0.015      -0.007      -0.424
+refin 1.218800E-4       0.006      -0.029      -1.483
+chem  2.027975E-4       0.009      -0.006      -0.268
+lumbr 6.177040E-4       0.055      -0.001      -0.134
+metls 6.415820E-4       0.009      -0.013      -0.180
+equip 2.364143E-5       0.003      -0.002      -0.261
+vehcl 7.682588E-5       0.007      -0.002      -0.171
+trnsp       0.009       0.157      -0.098      -1.814
+trade       0.006       0.099      -0.021      -0.324
+fnanc 4.730829E-4       0.020      -0.003      -0.107
+realt 4.562896E-4       0.009      -0.005      -0.113
+srvcs       0.003       0.036      -0.019      -0.238
+govt        0.363      37.686      -0.018      -1.909
+
+
+----    676 PARAMETER gbdgt  government budget balance
+
+txo      1.882,    tl       2.679,    tk       2.872,    revenue  9.903,    outlay  10.986,    deficit  1.082,    trnsfr   2.946,    gc       8.040,    gsk      1.134,    pit      1.320,    tc       0.016
+
+
+----    677 PARAMETER pctbudget  budget balance calculation (percent)
+
+          check      expend     inc_tax       labor     capital      transf      saving
+
+h1       -5.667     100.000      16.236      -1.404     -40.008       1.597    -161.718
+h2       -3.941     100.000      -1.063      21.597       2.938      15.924     -62.419
+h3       -3.857     100.000      -1.719      17.574       5.004      35.532     -44.028
+h4       -4.268     100.000      -1.629      30.174       6.864      33.325     -32.276
+h5       -4.623     100.000      -0.500      50.218       9.127      24.500     -20.278
+h6       -4.791     100.000       1.060      65.337      11.104      20.675      -8.735
+h7       -4.953     100.000       2.765      76.896      12.254      17.815      -0.752
+h8       -5.092     100.000       4.759      87.722      13.059      14.235       5.165
+h9       -5.324     100.000       6.272      97.927      14.080      12.314      12.725
+h10      -5.511     100.000       8.756     110.930      15.596      10.198      22.456
+h11      -5.640     100.000      10.338     120.879      21.252       9.489      35.641
+h12      -5.676     100.000      11.260     123.641      34.523       8.228      49.456
+h13      -5.632     100.000      14.757     117.777      51.513       4.921      53.823
+h14      -5.288     100.000      18.611      79.103      89.304       1.189      45.698
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 35
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+----    677 PARAMETER bdgtbal  budget balance calculation
+
+          check      expend     inc_tax       labor     capital      transf      saving
+
+h1       -0.016       0.290       0.047      -0.004      -0.116       0.005      -0.469
+h2       -0.002       0.045 -4.78527E-4       0.010       0.001       0.007      -0.028
+h3       -0.011       0.281      -0.005       0.049       0.014       0.100      -0.124
+h4       -0.036       0.848      -0.014       0.256       0.058       0.283      -0.274
+h5       -0.077       1.659      -0.008       0.833       0.151       0.406      -0.336
+h6       -0.094       1.957       0.021       1.279       0.217       0.405      -0.171
+h7       -0.099       1.994       0.055       1.533       0.244       0.355      -0.015
+h8       -0.100       1.969       0.094       1.727       0.257       0.280       0.102
+h9       -0.177       3.330       0.209       3.261       0.469       0.410       0.424
+h10      -0.142       2.580       0.226       2.862       0.402       0.263       0.579
+h11      -0.179       3.174       0.328       3.836       0.674       0.301       1.131
+h12      -0.055       0.966       0.109       1.194       0.333       0.079       0.478
+h13      -0.049       0.869       0.128       1.024       0.448       0.043       0.468
+h14      -0.037       0.704       0.131       0.557       0.629       0.008       0.322
+
+
+----    730 PARAMETER pmchk  profit and market clearance check
+
+           profit     profit%      excess     excess%
+
+agri  -5.5511E-17 -3.1932E-15
+const 2.22045E-16 7.32990E-15
+food  -2.2204E-16 -7.9008E-15
+textl -5.5511E-17 -4.3824E-15 -2.2204E-16 -1.7530E-14
+paper -1.1102E-16 -6.6988E-15
+refin 1.11022E-16 5.66927E-15
+chem  -1.1102E-16 -4.7194E-15 -4.4409E-16 -1.8878E-14
+lumbr -5.5511E-17 -4.9816E-15 2.22045E-16 1.99264E-14
+metls 4.44089E-16 6.03948E-15
+trnsp                         8.88178E-16 1.64337E-14
+trade                         -8.8818E-16 -1.3581E-14
+fnanc 2.22045E-16 9.28425E-15
+
+
+----    730 PARAMETER gbdgt  government budget balance
+
+txo           1.882,    tl            2.679,    tk            2.872,    revenue       9.939,    outlay        9.939,    deficit -4.30793E-6,    trnsfr        2.946,    adj          -1.047,    gc            8.040,    gse           0.008
+gsk           1.134,    pit           1.348,    tc            0.016
+
+
+----    864 PARAMETER profit  benchmark profit check
+
+                y       inter       check          va         tax
+
+agri        1.738       1.262 -5.5511E-17       0.343       0.134
+mines       0.443       0.269                   0.128       0.046
+crude       0.836       0.378                   0.223       0.235
+const       3.029       1.643 2.22045E-16       1.171       0.215
+food        2.810       2.146 -2.2204E-16       0.425       0.240
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 36
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+        864 PARAMETER profit  benchmark profit check
+
+                y       inter       check          va         tax
+
+textl       1.267       0.879 -5.5511E-17       0.310       0.079
+paper       1.657       1.054 -1.1102E-16       0.483       0.120
+refin       1.958       1.564 1.11022E-16       0.203       0.191
+chem        2.352       1.691 -1.1102E-16       0.507       0.155
+lumbr       1.114       0.675 -5.5511E-17       0.285       0.154
+metls       7.353       5.113 4.44089E-16       1.848       0.392
+equip       0.772       0.396                   0.327       0.049
+vehcl       1.115       0.801                   0.254       0.061
+trnsp       5.405       2.872                   1.791       0.741
+trade       6.540       1.575                   3.411       1.553
+fnanc       2.392       0.902 2.22045E-16       1.052       0.437
+realt       4.827       1.779                   1.747       1.301
+srvcs       7.823       3.081                   4.023       0.718
+govt        0.599                               0.431       0.168
+
+
+----    864 PARAMETER excess  excess demand check
+
+                y       inter      netexp      findem       check
+
+agri        1.738       1.437       0.176       0.125
+mines       0.443       0.401       0.016       0.026
+crude       0.836       1.475      -0.647       0.007
+const       3.029       1.445 3.716800E-4       1.584
+food        2.810       0.870      -0.012       1.952
+textl       1.267       0.696      -0.112       0.683 -2.2204E-16
+paper       1.657       1.343      -0.016       0.330
+refin       1.958       1.520      -0.166       0.604
+chem        2.352       1.828       0.049       0.476 -4.4409E-16
+lumbr       1.114       0.941      -0.032       0.205 2.22045E-16
+metls       7.353       3.858       0.453       3.042
+equip       0.772       0.255       0.096       0.421
+vehcl       1.115       0.442      -0.183       0.856
+trnsp       5.405       3.144       0.099       2.161 8.88178E-16
+trade       6.540       2.670       0.151       3.719 -8.8818E-16
+fnanc       2.392       1.031       0.001       1.359
+realt       4.827       1.128       0.053       3.646
+srvcs       7.823       2.748       0.073       5.002
+govt        0.599       0.848 6.617720E-4      -0.249
+total                         4.802000E-6
+
+
+----    864 PARAMETER bdgtbal  budget balance calculation
+
+          check      expend     inc_tax       labor     capital      transf      saving
+
+h1       -0.016       0.290       0.047      -0.004      -0.116       0.005      -0.469
+h2       -0.001       0.045                   0.010       0.001       0.007      -0.028
+h3       -0.006       0.281                   0.049       0.014       0.100      -0.124
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 37
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+        864 PARAMETER bdgtbal  budget balance calculation
+
+          check      expend     inc_tax       labor     capital      transf      saving
+
+h4       -0.022       0.848                   0.256       0.058       0.283      -0.274
+h5       -0.068       1.659                   0.833       0.151       0.406      -0.336
+h6       -0.094       1.957       0.021       1.279       0.217       0.405      -0.171
+h7       -0.099       1.994       0.055       1.533       0.244       0.355      -0.015
+h8       -0.100       1.969       0.094       1.727       0.257       0.280       0.102
+h9       -0.177       3.330       0.209       3.261       0.469       0.410       0.424
+h10      -0.142       2.580       0.226       2.862       0.402       0.263       0.579
+h11      -0.179       3.174       0.328       3.836       0.674       0.301       1.131
+h12      -0.055       0.966       0.109       1.194       0.333       0.079       0.478
+h13      -0.049       0.869       0.128       1.024       0.448       0.043       0.468
+h14      -0.037       0.704       0.131       0.557       0.629       0.008       0.322
+
+
+----    865 PARAMETER pctprofit  benchmark profit check (percent)
+
+                y       inter       check          va         tax
+
+agri      100.000      72.579 -3.1932E-15      19.715       7.706
+mines     100.000      60.770                  28.811      10.419
+crude     100.000      45.236                  26.644      28.121
+const     100.000      54.243 7.32990E-15      38.651       7.105
+food      100.000      76.343 -7.9008E-15      15.117       8.540
+textl     100.000      69.358 -4.3824E-15      24.444       6.198
+paper     100.000      63.601 -6.6988E-15      29.135       7.264
+refin     100.000      79.873 5.66927E-15      10.355       9.772
+chem      100.000      71.885 -4.7194E-15      21.534       6.581
+lumbr     100.000      60.591 -4.9816E-15      25.557      13.852
+metls     100.000      69.530 6.03948E-15      25.137       5.333
+equip     100.000      51.291                  42.339       6.370
+vehcl     100.000      71.800                  22.771       5.428
+trnsp     100.000      53.138                  33.143      13.719
+trade     100.000      24.089                  52.161      23.750
+fnanc     100.000      37.735 9.28425E-15      43.978      18.287
+realt     100.000      36.852                  36.193      26.955
+srvcs     100.000      39.388                  51.428       9.184
+govt      100.000                              71.891      28.109
+
+
+----    865 PARAMETER pctva  value-added allocation
+
+               tl          tk           k           l
+
+agri        5.674      21.603      31.970      40.753
+mines       8.244       8.726       5.958      77.072
+crude       7.379      17.491      10.118      65.012
+const      10.691       3.381       3.663      82.264
+food        9.482      13.547      12.170      64.801
+textl      12.110       7.769       7.708      72.413
+paper      10.026       8.921       7.241      73.813
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 38
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+        865 PARAMETER pctva  value-added allocation
+
+               tl          tk           k           l
+
+refin       2.542      30.345      46.047      21.066
+chem       10.615      11.071       7.394      70.920
+lumbr      27.312       7.126       5.925      59.637
+metls      11.352       5.228       1.257      82.163
+equip       8.835       2.976       3.866      84.324
+vehcl      12.821       4.428       0.813      81.939
+trnsp       8.026      15.069      14.214      62.691
+trade      10.541       6.541       6.742      76.176
+fnanc       9.205      15.848       2.079      72.868
+realt       0.878      38.291      54.952       5.879
+srvcs       9.517       4.096       6.234      80.153
+govt       22.510       5.599      20.554      51.337
+total       9.296      11.933      13.571      65.200
+
+
+----    865 PARAMETER pctexcess  excess demand check (percent)
+
+                y       inter      netexp      findem       check
+
+agri      100.000      82.668      10.146       7.186
+mines     100.000      90.522       3.618       5.860
+crude     100.000     176.511     -77.376       0.865
+const     100.000      47.705       0.012      52.283
+food      100.000      30.962      -0.429      69.467
+textl     100.000      54.910      -8.810      53.900 -1.7530E-14
+paper     100.000      81.046      -0.959      19.913
+refin     100.000      77.636      -8.488      30.852
+chem      100.000      77.689       2.068      20.243 -1.8878E-14
+lumbr     100.000      84.474      -2.887      18.413 1.99264E-14
+metls     100.000      52.467       6.156      41.376
+equip     100.000      33.052      12.450      54.498
+vehcl     100.000      39.649     -16.454      76.805
+trnsp     100.000      58.174       1.833      39.992 1.64337E-14
+trade     100.000      40.820       2.311      56.869 -1.3581E-14
+fnanc     100.000      43.120       0.044      56.836
+realt     100.000      23.359       1.102      75.539
+srvcs     100.000      35.124       0.929      63.947
+govt      100.000     141.476       0.110     -41.587
+
+
+----    865 PARAMETER pctbudget  budget balance calculation (percent)
+
+          check      expend     inc_tax       labor     capital      transf      saving
+
+h1       -5.667     100.000      16.236      -1.404     -40.008       1.597    -161.718
+h2       -2.878     100.000                  21.597       2.938      15.924     -62.419
+h3       -2.138     100.000                  17.574       5.004      35.532     -44.028
+h4       -2.640     100.000                  30.174       6.864      33.325     -32.276
+h5       -4.123     100.000                  50.218       9.127      24.500     -20.278
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 39
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+        865 PARAMETER pctbudget  budget balance calculation (percent)
+
+          check      expend     inc_tax       labor     capital      transf      saving
+
+h6       -4.791     100.000       1.060      65.337      11.104      20.675      -8.735
+h7       -4.953     100.000       2.765      76.896      12.254      17.815      -0.752
+h8       -5.092     100.000       4.759      87.722      13.059      14.235       5.165
+h9       -5.324     100.000       6.272      97.927      14.080      12.314      12.725
+h10      -5.511     100.000       8.756     110.930      15.596      10.198      22.456
+h11      -5.640     100.000      10.338     120.879      21.252       9.489      35.641
+h12      -5.676     100.000      11.260     123.641      34.523       8.228      49.456
+h13      -5.632     100.000      14.757     117.777      51.513       4.921      53.823
+h14      -5.288     100.000      18.611      79.103      89.304       1.189      45.698
+
+
+----    866 PARAMETER government  government budget summary (percent)
+
+              percent       level
+
+expend         84.648       8.040
+inc_tax        14.188       1.348
+transf         31.017       2.946
+endowment      12.026       1.142
+l_tax          23.559       2.238
+k_tax          30.241       2.872
+prod_tax       19.814       1.882
+con_tax         0.173       0.016
+revenue       100.000       9.498
+outlay        115.665      10.986
+deficit        15.665       1.488
+incadj        -11.021      -1.047
+
+
+----    866 PARAMETER taxpayment  tax payment summary
+
+            labor     capital       total      output
+
+agri        0.027       0.102       0.134       0.005
+mines       0.013       0.013       0.046       0.020
+crude       0.022       0.052       0.235       0.161
+const       0.146       0.046       0.215       0.023
+food        0.052       0.075       0.240       0.113
+textl       0.047       0.030       0.079       0.002
+paper       0.060       0.053       0.120       0.008
+refin       0.008       0.092       0.191       0.092
+chem        0.069       0.072       0.155       0.015
+lumbr       0.119       0.031       0.154       0.005
+metls       0.252       0.116       0.392       0.025
+equip       0.033       0.011       0.049       0.005
+vehcl       0.039       0.014       0.061       0.008
+trnsp       0.187       0.351       0.741       0.204
+trade       0.434       0.269       1.553       0.850
+fnanc       0.129       0.222       0.437       0.086
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 40
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+        866 PARAMETER taxpayment  tax payment summary
+
+            labor     capital       total      output
+
+realt       0.025       1.100       1.301       0.176
+srvcs       0.443       0.191       0.718       0.085
+govt        0.135       0.034       0.168
+
+
+----    874 PARAMETER tau  marginal tax rates by household.  (table 5.8)
+
+h1  0.073,    h2  0.001,    h3  0.020,    h4  0.061,    h5  0.111,    h6  0.139,    h7  0.165,    h8  0.195,    h9  0.219,    h10 0.256,    h11 0.293,    h12 0.343,    h13 0.396,    h14 0.401
+
+
+----    874 PARAMETER tauave  average tax
+
+h1  -0.392,    h6   0.014,    h7   0.031,    h8   0.047,    h9   0.056,    h10  0.069,    h11  0.073,    h12  0.071,    h13  0.087,    h14  0.111
+
+
+----    921 PARAMETER govsav               =       -0.948  exogenous (government) savings
+
+----    921 PARAMETER saving  benchmark savings
+
+h1   -0.469,    h2   -0.028,    h3   -0.124,    h4   -0.274,    h5   -0.336,    h6   -0.171,    h7   -0.015,    h8    0.102,    h9    0.424,    h10   0.579,    h11   1.131,    h12   0.478,    h13   0.468,    h14   0.322,    hh8   0.102,    hh9   0.424
+hh10  0.579,    hh11  1.131,    hh12  0.478,    hh13  0.468,    hh14  0.322
+
+
+----    957 PARAMETER popshr  share of population
+
+hh2  0.010,    hh3  0.031,    hh4  0.070,    hh5  0.110,    hh6  0.115,    hh7  0.106,    hh8  0.095,    hh9  0.153,    hh10 0.110,    hh11 0.136,    hh12 0.037,    hh13 0.022,    hh14 0.005
+
+
+----    957 PARAMETER bdgtbal  budget balance calculation
+
+           check      expend     inc_tax       labor     capital      transf      saving      incadj
+
+hh2                    0.045                   0.010       0.001       0.007                   0.027
+hh3                    0.281                   0.049       0.014       0.100                   0.118
+hh4  1.11022E-16       0.848                   0.256       0.058       0.283                   0.251
+hh5                    1.659                   0.833       0.151       0.406                   0.268
+hh6  2.22045E-16       1.957       0.021       1.279       0.217       0.405                   0.077
+hh7  2.22045E-16       1.994       0.055       1.533       0.244       0.355                  -0.084
+hh8                    1.969       0.094       1.727       0.257       0.280       0.102      -0.100
+hh9                    3.330       0.209       3.261       0.469       0.410       0.424      -0.177
+hh10                   2.580       0.226       2.862       0.402       0.263       0.579      -0.142
+hh11                   3.174       0.328       3.836       0.674       0.301       1.131      -0.179
+hh12                   0.966       0.109       1.194       0.333       0.079       0.478      -0.055
+hh13                   0.869       0.128       1.024       0.448       0.043       0.468      -0.049
+hh14                   0.704       0.131       0.557       0.629       0.008       0.322      -0.037
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 41
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+----    957 PARAMETER pctbudget  budget balance calculation (percent)
+
+           check      expend     inc_tax       labor     capital      transf      saving      incadj
+
+hh2                  100.000                  21.597       2.938      15.924                  59.541
+hh3                  100.000                  17.574       5.004      35.532                  41.890
+hh4  1.30866E-14     100.000                  30.174       6.864      33.325                  29.637
+hh5                  100.000                  50.218       9.127      24.500                  16.155
+hh6  1.13441E-14     100.000       1.060      65.337      11.104      20.675                   3.945
+hh7  1.11352E-14     100.000       2.765      76.896      12.254      17.815                  -4.201
+hh8                  100.000       4.759      87.722      13.059      14.235       5.165      -5.092
+hh9                  100.000       6.272      97.927      14.080      12.314      12.725      -5.324
+hh10                 100.000       8.756     110.930      15.596      10.198      22.456      -5.511
+hh11                 100.000      10.338     120.879      21.252       9.489      35.641      -5.640
+hh12                 100.000      11.260     123.641      34.523       8.228      49.456      -5.676
+hh13                 100.000      14.757     117.777      51.513       4.921      53.823      -5.632
+hh14                 100.000      18.611      79.103      89.304       1.189      45.698      -5.288
+
+
+----    968 PARAMETER share  
+
+          expend         pit      saving         l/k          sl          sk          tr
+
+hh2        0.221                               7.350       0.053       0.034       0.244
+hh3        1.380                               3.512       0.268       0.361       3.398
+hh4        4.164                               4.396       1.390       1.494       9.612
+hh5        8.140                               5.502       4.522       3.883      13.816
+hh6        9.606       1.595                   5.884       6.942       5.574      13.758
+hh7        9.786       4.240                   6.275       8.324       6.267      12.078
+hh8        9.662       7.205       2.903       6.717       9.375       6.593       9.528
+hh9       16.343      16.060      12.097       6.955      17.703      12.024      13.942
+hh10      12.662      17.372      16.539       7.113      15.536      10.319       8.945
+hh11      15.576      25.230      32.291       5.688      20.826      17.298      10.239
+hh12       4.739       8.360      13.631       3.581       6.480       8.548       2.701
+hh13       4.267       9.866      13.358       2.286       5.559      11.486       1.455
+hh14       3.454      10.072       9.181       0.886       3.022      16.119       0.285
+
+
+----   1036 PARAMETER government  government budget summary (percent)
+
+              percent       level
+
+expend         81.277       8.040
+inc_tax        13.147       1.300
+transf         29.734       2.941
+endowment      11.547       1.142
+l_tax          27.079       2.679
+k_tax          29.037       2.872
+prod_tax       19.025       1.882
+con_tax         0.166       0.016
+revenue       100.000       9.892
+outlay        109.585      10.840
+deficit         9.585       0.948
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 42
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+       1036 PARAMETER government  government budget summary (percent)
+
+              percent       level
+
+hfix           -0.595      -0.059
+incadj         -0.831      -0.082
+trd_bal               -4.80200E-6
+
+
+----   1058 PARAMETER gbdgt  government budget balance
+
+txo           1.882,    tl            2.679,    tk            2.872,    revenue       9.951,    outlay        9.951,    deficit -4.30793E-6,    trnsfr        2.941,    adj          -0.082,    gc            8.040,    sav          -0.948
+gse           0.008,    gsk           1.134,    pit           1.300,    tc            0.016,    hfix          0.059
+
+
+----   1079 PARAMETER tiave                =        0.058  average income tax rate
+            PARAMETER tlave                =        0.125  average labor tax rate
+            PARAMETER tikave               =        0.140  average capital-income tax rate
+            PARAMETER tkave                =        0.468  average capital tax rate
+            PARAMETER gbench               =        0.337  benchmark provision
+
+----   1079 PARAMETER tauave  average tax
+
+hh6  0.014,    hh7  0.031,    hh8  0.047,    hh9  0.056,    hh10 0.069,    hh11 0.073,    hh12 0.071,    hh13 0.087,    hh14 0.111
+
+
+----   1079 PARAMETER taubmk  benchmark marginal tax
+
+hh6  0.139,    hh7  0.165,    hh8  0.195,    hh9  0.219,    hh10 0.256,    hh11 0.293,    hh12 0.343,    hh13 0.396,    hh14 0.401
+
+
+----   1171 PARAMETER el  elasticity between leisure and consumption. (table 6.8)
+
+hh2  0.291,    hh3  0.307,    hh4  0.409,    hh5  0.577,    hh6  0.648,    hh7  0.731,    hh8  0.804,    hh9  0.866,    hh10 0.938,    hh11 0.970,    hh12 0.962,    hh13 0.935,    hh14 0.762
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 43
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Model Statistics    SOLVE gemtap Using MCP From line 1610
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS          264
+BLOCKS OF VARIABLES          29     SINGLE VARIABLES          267
+NON ZERO ELEMENTS         2,667     NON LINEAR N-Z          1,420
+DERIVATIVE POOL              20     CONSTANT POOL             731
+CODE LENGTH               7,020
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 44
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Solution Report     SOLVE gemtap Using MCP From line 1610
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gemtap              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  1610
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+>>  ampl gemmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+Ampl      : gemmcp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 45
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Model Statistics    SOLVE gemtap Using MCP From line 1656
+
+
+LOOPS                                   sc   bench
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS          264
+BLOCKS OF VARIABLES          29     SINGLE VARIABLES          267
+NON ZERO ELEMENTS         2,667     NON LINEAR N-Z          1,420
+DERIVATIVE POOL              20     CONSTANT POOL             731
+CODE LENGTH               7,020
+
+
+GENERATION TIME      =        0.007 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 sc bench
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 46
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Solution Report     SOLVE gemtap Using MCP From line 1656
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gemtap              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  1656
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+>>  ampl gemmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+Ampl      : gemmcp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 47
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Model Statistics    SOLVE gemtap Using MCP From line 1656
+
+
+LOOPS                                   sc   itcut
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS          264
+BLOCKS OF VARIABLES          29     SINGLE VARIABLES          267
+NON ZERO ELEMENTS         2,679     NON LINEAR N-Z          1,436
+DERIVATIVE POOL              20     CONSTANT POOL             751
+CODE LENGTH               7,108
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 sc itcut
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 48
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Solution Report     SOLVE gemtap Using MCP From line 1656
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gemtap              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  1656
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+>>  ampl gemmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+Ampl      : gemmcp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 49
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Model Statistics    SOLVE gemtap Using MCP From line 1656
+
+
+LOOPS                                   sc   ktcut
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS          264
+BLOCKS OF VARIABLES          29     SINGLE VARIABLES          267
+NON ZERO ELEMENTS         2,667     NON LINEAR N-Z          1,420
+DERIVATIVE POOL              20     CONSTANT POOL             713
+CODE LENGTH               7,020
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 sc ktcut
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 50
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Solution Report     SOLVE gemtap Using MCP From line 1656
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gemtap              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  1656
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+>>  ampl gemmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+Ampl      : gemmcp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 51
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Model Statistics    SOLVE gemtap Using MCP From line 1656
+
+
+LOOPS                                   sc   ltcut
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS          264
+BLOCKS OF VARIABLES          29     SINGLE VARIABLES          267
+NON ZERO ELEMENTS         2,667     NON LINEAR N-Z          1,420
+DERIVATIVE POOL              20     CONSTANT POOL             713
+CODE LENGTH               7,020
+
+
+GENERATION TIME      =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 sc ltcut
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 52
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+Solution Report     SOLVE gemtap Using MCP From line 1656
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gemtap              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  1656
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+>>  ampl gemmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/convert.opt"
+Ampl      : gemmcp-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 53
+The 1983 GEMTAB Model as MCP (GEMMCP,SEQ=137)
+E x e c u t i o n
+
+
+----   1688 PARAMETER summary  solution summary
+
+               bench       itcut       ktcut       ltcut
+
+status._      14.000      14.000      14.000      14.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/gemmcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/gemmcp/gemmcp-scalar.mod.lst

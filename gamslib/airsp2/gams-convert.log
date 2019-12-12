@@ -1,0 +1,168 @@
+--- Job airsp2.gms Start 12/13/18 10:32:19 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- airsp2.gms(311) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- airsp2.gms(2) 4 Mb
+--- Generating LP model fixed
+--- airsp2.gms(92) 4 Mb
+---   10 rows  26 columns  65 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+>>  gams airsp2-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+--- Writing Gams      : airsp2-scalar.gms
+
+--- Restarting execution
+--- airsp2.gms(92) 2 Mb
+--- Reading solution for model fixed
+--- airsp2.gms(136) 3 Mb
+--- Generating LP model expval
+--- airsp2.gms(144) 3 Mb
+---   10 rows  26 columns  65 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.021
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+>>  gams airsp2-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+--- Writing Gams      : airsp2-scalar.gms
+
+--- Restarting execution
+--- airsp2.gms(144) 2 Mb
+--- Reading solution for model expval
+--- airsp2.gms(192) 3 Mb
+--- Generating LP model deteq
+--- airsp2.gms(212) 4 Mb
+---   3,760 rows  3,776 columns  11,310 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.068
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+>>  gams airsp2-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+--- Writing Gams      : airsp2-scalar.gms
+
+--- Restarting execution
+--- airsp2.gms(212) 2 Mb
+--- Reading solution for model deteq
+--- airsp2.gms(271) 3 Mb
+--- Generating LP model fixed
+--- airsp2.gms(272) 3 Mb
+---   10 rows  26 columns  65 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.094
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- airsp2.gms(272) 2 Mb
+--- Reading solution for model fixed
+--- airsp2.gms(287) 3 Mb
+--- Generating LP model fixed
+--- airsp2.gms(288) 3 Mb
+---   10 rows  26 columns  65 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.147
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- airsp2.gms(288) 2 Mb
+--- Reading solution for model fixed
+--- airsp2.gms(301) 3 Mb
+--- Generating LP model fixed
+--- airsp2.gms(302) 3 Mb
+---   10 rows  26 columns  65 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.386
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- airsp2.gms(302) 2 Mb
+--- Reading solution for model fixed
+--- airsp2.gms(311) 3 Mb
+--- Putfile stg /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/MODEL.STG
+--- Putfile mopt /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/MINOS.SPC
+--- Putfile decopt /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/decism.opt
+*** Status: Normal completion
+--- Job airsp2.gms Stop 12/13/18 10:32:19 elapsed 0:00:00.437

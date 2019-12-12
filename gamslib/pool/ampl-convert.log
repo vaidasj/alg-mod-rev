@@ -1,0 +1,294 @@
+--- Job pool.gms Start 12/13/18 11:22:58 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- pool.gms(56) 2 Mb
+--- .poolmod.inc(104) 2 Mb
+--- pool.gms(864) 3 Mb
+--- Starting execution: elapsed 0:00:00.004
+--- pool.gms(896) 4 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 6 Mb
+--- LOOPS case = haverly1
+---   20 rows  7 columns  61 non-zeroes
+---   121 nl-code  40 nl-non-zeroes
+--- pool.gms(947) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.007
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = haverly2
+---   20 rows  7 columns  61 non-zeroes
+---   121 nl-code  40 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.021
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = haverly3
+---   20 rows  7 columns  61 non-zeroes
+---   121 nl-code  40 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.038
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = foulds2
+---   43 rows  21 columns  219 non-zeroes
+---   455 nl-code  144 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.056
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 6 Mb
+--- LOOPS case = foulds3
+---   297 rows  161 columns  4,001 non-zeroes
+---   13,219 nl-code  3,712 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.080
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 6 Mb
+--- LOOPS case = foulds4
+---   255 rows  161 columns  4,001 non-zeroes
+---   13,177 nl-code  3,712 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.106
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 6 Mb
+--- LOOPS case = foulds5
+---   255 rows  161 columns  4,001 non-zeroes
+---   13,145 nl-code  3,712 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.137
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = bental4
+---   23 rows  8 columns  78 non-zeroes
+---   170 nl-code  56 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.158
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = bental5
+---   87 rows  33 columns  702 non-zeroes
+---   2,063 nl-code  618 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.171
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = rt2
+---   51 rows  17 columns  341 non-zeroes
+---   927 nl-code  276 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.188
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = adhya1
+---   66 rows  14 columns  362 non-zeroes
+---   1,084 nl-code  340 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.208
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = adhya2
+---   82 rows  14 columns  474 non-zeroes
+---   1,452 nl-code  452 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.223
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = adhya3
+---   96 rows  21 columns  745 non-zeroes
+---   2,283 nl-code  712 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.239
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(896) 3 Mb
+--- Generating NLP model poolprob
+--- pool.gms(947) 5 Mb
+--- LOOPS case = adhya4
+---   87 rows  19 columns  641 non-zeroes
+---   2,113 nl-code  612 nl-non-zeroes
+--- pool.gms(947) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.259
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+>>  ampl pool-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pool/convert.opt"
+--- Writing Ampl      : pool-scalar.mod
+
+--- Restarting execution
+--- pool.gms(947) 2 Mb
+--- Reading solution for model poolprob
+--- pool.gms(968) 3 Mb
+*** Status: Normal completion
+--- Job pool.gms Stop 12/13/18 11:22:58 elapsed 0:00:00.273

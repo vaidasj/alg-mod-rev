@@ -1,0 +1,1129 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+   3  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 2
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+C o m p i l a t i o n
+
+
+   6   
+       
+      This mini version of ORANI, a multisector price endogenous model of
+      Australia, demonstrates the percentage change formulation first
+      applied by Johansen.
+       
+       
+      Kendrick, D, Style in Multisector Modeling. In Hughes-Hallet, J, Ed,
+      Applied Decision Analysis and Economic Behavior. Kluwer and Nijhoff,
+      Boston and The Hague, 1984.
+       
+  19   
+  20   Sets  c     commodities               / food, clothing /
+  21         ca(c) agricultural commodities  / food /
+  22         cm(c) manufacturing commodities / clothing /
+  23         f     factors                   / labor, capital /
+  24         h     households                / families /
+  25         i     industries                / agric  agriculture, manuf  manufacturing /
+  26         s     sources                   / domestic, imported /
+  27         ce(c,c) diagonal
+  28   
+  29   Alias (c,cp), (s,sp), (i,ip) ;
+  30   ce(c,c) = yes ;
+  31   Display ce;
+  32   
+  33   
+  34   Table amc(c,s,*)  accounting matrix for commodities
+  35   
+  36  *                    industries        households   exports   import
+  37                       agric manuf        families     exp      duty
+  38    food.domestic      10      8           17           19
+  39    clothing.domestic  15      1           34            1
+  40    food.imported       1      8            1                     -1
+  41    clothing.imported   5      2           10                     -5
+  42   
+  43   
+  44   Table amf(f,i)  accounting matrix for factors
+  45   
+  46                    agric   manuf
+  47      labor           20      20
+  48      capital         10       5
+  49   
+  50   
+  51   Table amq(c,i)  accounting matrix for outputs
+  52   
+  53                    agric   manuf
+  54      food            45       9
+  55      clothing        16      35
+  56   
+  57   
+  58   Table epsilon(c,s)  income elasticities
+  59   
+  60                         domestic   imported
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 3
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+C o m p i l a t i o n
+
+
+  61        food                1.         1.
+  62        clothing            1.         1.
+  63   
+  64   
+  65   Parameter  amt(i)   accounting matrix for column totals
+  66              gamma(c) export demand parameters     / food .5, clothing .05 /
+  67              wl(i)    share of total employment    / agric .5, manuf .5 /
+  68              theta    wage rate adjustment parameter ;
+  69   
+  70      amt(i) = sum((c,s), amc(c,s,i)) + sum(f, amf(f,i)) ;
+  71      amc(c,s,"total") = sum(i, amc(c,s,i)) + amc(c,s,"families") + amc(c,s,"exp") + amc(c,s,"duty") ;
+  72   
+  73      theta = 1 ;
+  74   
+  75   Display amt, amc;
+  76   
+  77   Parameters  alpha(c,s,i)       share of expenditure by industry
+  78               alphak(i)          share of expenditure on capital
+  79               alphal(i)          share of expenditure on labor
+  80               alphae(c,s)        share of good cs in expenditure on commodity c
+  81               etabar(c,s,cp,sp)  compensated price elasticities
+  82               sb(c,s)            share of good cs in household budget
+  83               eta(c,s,cp,sp)     uncompensated price elasticities
+  84               elevel             base period export level - not a rate
+  85               m(c,i)             industry market share
+  86               mlevel             base period import level - not a rate ;
+  87   
+  88   alpha(c,s,i) = amc(c,s,i)/sum(sp, amc(c,sp,i)) ;
+  89   alphak(i)    = amf("capital",i)/sum(f, amf(f,i)) ;
+  90   alphal(i)    = amf("labor",i)/sum(f, amf(f,i)) ;
+  91   alphae(c,s)  = amc(c,s,"families")/sum(sp, amc(c,sp,"families"));
+  92   
+  93   etabar(c,s,cp,sp) = alphae(cp,sp) ;
+  94   etabar(c,s,c,s) = -1. + alphae(c,s) ;
+  95   etabar(c,s,cp,sp)$( not ce(c,cp)) = 0. ;
+  96   sb(c,s)  =  amc(c,s,"families")/ sum((cp,sp), amc(cp,sp,"families")) ;
+  97   
+  98   eta(c,s,cp,sp) = - epsilon(c,s)*sb(cp,sp) + etabar(c,s,cp,sp) ;
+  99   
+ 100   elevel = sum((c,s), amc(c,s,"exp")) ;
+ 101   m(c,i) = amq(c,i)/sum(ip, amq(c,ip)) ;
+ 102   mlevel = sum(c, amc(c,"imported","total")) ;
+ 103   
+ 104   
+ 105   Parameters  mu(c,s)         weights for cpi
+ 106               nm(c)           share in total imports
+ 107               nx(c)           share in total exports
+ 108               r(c,i)          revenue share
+ 109               sc(c,s,i)       cost share
+ 110               sk(i)           cost share for capital
+ 111               sl(i)           cost share for labor
+ 112               wc(c,s)         share of consumption in demand
+ 113               we(c)           share of exports in demand
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 4
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+C o m p i l a t i o n
+
+
+ 114               wi(c,s,i)       share of intermediates in demand ;
+ 115   
+ 116   mu(c,s) = sb(c,s) ;
+ 117   
+ 118   nm(c) = amc(c,"imported","total")/sum(cp, amc(cp,"imported","total")) ;
+ 119   nx(c) = amc(c,"domestic","exp")/sum(cp, amc(cp,"domestic","exp")) ;
+ 120   
+ 121   r(c,i) = amq(c,i)/sum(cp, amq(cp,i)) ;
+ 122   
+ 123   sc(c,s,i) = amc(c,s,i)/amt(i) ;
+ 124   sk(i) = amf("capital",i)/amt(i) ;
+ 125   sl(i) = amf("labor",i)/amt(i) ;
+ 126   
+ 127   wc(c,s)   = amc(c,s,"families")/(amc(c,s,"total") - amc(c,s,"duty")) ;
+ 128   we(c)     = amc(c,"domestic","exp")/amc(c,"domestic","total") ;
+ 129   wi(c,s,i) = amc(c,s,i)/(amc(c,s,"total") - amc(c,s,"duty")) ;
+ 130   
+ 131   Display alpha, alphak, alphal, alphae, etabar, sb, eta, elevel, m, mlevel, mu, nm, nx, r, sc, sk, sl, wc, we, wi;
+ 132   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 5
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+variable and equation declaration
+
+
+ 134   
+ 135  /*   all variables are rates of change unless otherwise noted    */
+ 136   
+ 137   Variables  b          balance of trade
+ 138              cn(c,s)    consumption - nominal
+ 139              cr         consumption - real
+ 140              df(c)      foreign demand shift
+ 141              e(c)       exports of agricultural commodities
+ 142              et         total exports
+ 143              k(i)       capital demand
+ 144              kappa(i)   sectoral capital stocks
+ 145              l          total employment
+ 146              li(i)      labor demand by industry
+ 147              mt         total imports
+ 148              p(c,s)     prices for commodities in domestic currency
+ 149              pc         prices:  consumer price index
+ 150              phi        exchange rate
+ 151              pk(i)      price of capital
+ 152              px(c)      export price in foreign currency
+ 153              pm(c)      import price in foreign currency
+ 154              q(c,i)     output
+ 155              t(c)       import duty
+ 156              v(c)       export subsidy for the manufactures
+ 157              w          wage rate
+ 158              ws         wage shift
+ 159              x(c,s,i)   intermediate commodity demands
+ 160              ye         household expenditure
+ 161              z(i)       industry activity level
+ 162   
+ 163   
+ 164   Equations  con(c,s)    consumption
+ 165              expd(c)     export demands
+ 166              supply(c,i) supply relations
+ 167              indc(c,s,i) input demand for commodities
+ 168              indcap(i)   input demand for capital
+ 169              indlab(i)   input demand for labor
+ 170              pric(i)     price equations for commodities
+ 171              priexp(c)   price equations for exports
+ 172              priimp(c)   price equations for imports
+ 173              bald(c)     balance equation for domestic commodities
+ 174              ballab      balance equation for labor
+ 175              balcap(i)   balance equation for capital
+ 176              imports     imports
+ 177              exports     exports
+ 178              baltrade    balance of trade
+ 179              cpi         consumer price index
+ 180              wage        wage rate
+ 181              realc       real consumption
+ 182              dummy       nonbinding constraint to get nonzero rhs ;
+ 183   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 6
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+equation definitions
+
+
+ 185   
+ 186   con(c,s)..    cn(c,s) =e=  epsilon(c,s)*ye + sum((cp,sp), eta(c,s,cp,sp)*p(cp,sp)) ;
+ 187   
+ 188   expd(c)..     px(c) =e= - gamma(c)*e(c) + df(c) ;
+ 189   
+ 190   supply(c,i).. q(c,i) =e=  z(i) + ( p(c,"domestic") - sum(cp, r(cp,i)*p(cp,"domestic")) ) ;
+ 191   
+ 192   indc(c,s,i).. x(c,s,i) =e=  z(i) -  ( p(c,s) - sum(sp, alpha(c,sp,i)*p(c,sp)) ) ;
+ 193   
+ 194   indcap(i)..   k(i) =e=  z(i) - ( pk(i) - alphal(i)*w - alphak(i)*pk(i) ) ;
+ 195   
+ 196   indlab(i)..   li(i) =e=  z(i) - ( w - alphal(i)*w - alphak(i)*pk(i) ) ;
+ 197   
+ 198   pric(i)..     sum(c, r(c,i)*p(c,"domestic")) =e= sum((c,sp), sc(c,sp,i)*p(c,sp)) + sk(i)*pk(i) + sl(i)*w ;
+ 199   
+ 200   priexp(c)..   p(c,"domestic") =e= px(c) + v(c) + phi ;
+ 201   
+ 202   priimp(c)..   p(c,"imported") =e= pm(c) + t(c) + phi ;
+ 203   
+ 204   bald(c)..     sum(i, m(c,i)*q(c,i)) =e= sum(i, wi(c,"domestic",i)*x(c,"domestic",i))
+ 205                                         + wc(c,"domestic")*cn(c,"domestic") + we(c)*e(c) ;
+ 206   
+ 207   ballab..   sum(i, wl(i)*li(i)) =e= l ;
+ 208   
+ 209   balcap(i).. k(i) =e= kappa(i) ;
+ 210   
+ 211   imports..   mt =e= sum(c, nm(c)*( pm(c) + sum(i, wi(c,"imported",i)*x(c,"imported",i))
+ 212                   + wc(c,"imported")*cn(c,"imported"))) ;
+ 213   
+ 214   exports..   et =e= sum(c, nx(c)*px(c) + nx(c)*e(c)) ;
+ 215   
+ 216   baltrade..  b =e= ( elevel*et - mlevel*mt )/100 ;
+ 217   
+ 218   cpi..       pc =e= sum((c,s), mu(c,s)*p(c,s)) ;
+ 219   
+ 220   wage..      w =e= theta*pc + ws ;
+ 221   
+ 222   realc..     cr =e= ye - pc  ;
+ 223   
+ 224   dummy.. pc =l= 100000;
+ 225   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 7
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+exogenous variables and solution reports
+
+
+ 227   
+ 228   df.fx(c)=1; e.fx(cm)=1; kappa.fx(i)=3; phi.fx=0; pm.fx(c)=-2; t.fx(c)=0; v.fx(ca)=0; ws.fx=0; ye.fx=2;
+ 229   
+ 230   Model orani /all/ ;
+ 231   Solve orani using lp minimizing pc;
+ 232   
+ 233   Parameters  varcomm(c,*)    commodity reports
+ 234               varindus(i,*)   industry reports ;
+ 235   
+ 236        varcomm(c,"t")  = t.l(c);
+ 237        varcomm(c,"v")  = v.l(c);
+ 238        varcomm(c,"df") = df.l(c);
+ 239        varcomm(c,"e")  = e.l(c);
+ 240        varcomm(c,"px") = px.l(c);
+ 241        varcomm(c,"pm") = pm.l(c);
+ 242   
+ 243        varindus(i,"k")  = k.l(i);
+ 244        varindus(i,"li") = li.l(i);
+ 245        varindus(i,"pk") = pk.l(i);
+ 246        varindus(i,"z")  = z.l(i);
+ 247        varindus(i,"kappa") = kappa.l(i);
+ 248   
+ 249   Display b.l, cr.l, et.l, l.l, mt.l, pc.l, w.l, phi.l, ws.l, ye.l ,q.l, x.l, cn.l, varcomm, varindus;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 8
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+E x e c u t i o n
+
+
+----     31 SET ce  diagonal
+
+                food    clothing
+
+food             YES
+clothing                     YES
+
+
+----     75 PARAMETER amt  accounting matrix for column totals
+
+agric 61.000,    manuf 44.000
+
+
+----     75 PARAMETER amc  accounting matrix for commodities
+
+                     families       agric       manuf         exp        duty       total
+
+food    .domestic      17.000      10.000       8.000      19.000                  54.000
+food    .imported       1.000       1.000       8.000                  -1.000       9.000
+clothing.domestic      34.000      15.000       1.000       1.000                  51.000
+clothing.imported      10.000       5.000       2.000                  -5.000      12.000
+
+
+----    131 PARAMETER alpha  share of expenditure by industry
+
+                        agric       manuf
+
+food    .domestic       0.909       0.500
+food    .imported       0.091       0.500
+clothing.domestic       0.750       0.333
+clothing.imported       0.250       0.667
+
+
+----    131 PARAMETER alphak  share of expenditure on capital
+
+agric 0.333,    manuf 0.200
+
+
+----    131 PARAMETER alphal  share of expenditure on labor
+
+agric 0.667,    manuf 0.800
+
+
+----    131 PARAMETER alphae  share of good cs in expenditure on commodity c
+
+            domestic    imported
+
+food           0.944       0.056
+clothing       0.773       0.227
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:36 Page 9
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+E x e c u t i o n
+
+
+----    131 PARAMETER etabar  compensated price elasticities
+
+INDEX 1 = food
+
+                 domestic    imported
+
+domestic.food      -0.056       0.056
+imported.food       0.944      -0.944
+
+INDEX 1 = clothing
+
+                     domestic    imported
+
+domestic.clothing      -0.227       0.227
+imported.clothing       0.773      -0.773
+
+
+----    131 PARAMETER sb  share of good cs in household budget
+
+            domestic    imported
+
+food           0.274       0.016
+clothing       0.548       0.161
+
+
+----    131 PARAMETER eta  uncompensated price elasticities
+
+INDEX 1 = food
+
+                     domestic    imported
+
+domestic.food          -0.330       0.039
+domestic.clothing      -0.548      -0.161
+imported.food           0.670      -0.961
+imported.clothing      -0.548      -0.161
+
+INDEX 1 = clothing
+
+                     domestic    imported
+
+domestic.food          -0.274      -0.016
+domestic.clothing      -0.776       0.066
+imported.food          -0.274      -0.016
+imported.clothing       0.224      -0.934
+
+
+----    131 PARAMETER elevel               =       20.000  base period export level - not a rate
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 10
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+E x e c u t i o n
+
+
+----    131 PARAMETER m  industry market share
+
+               agric       manuf
+
+food           0.833       0.167
+clothing       0.314       0.686
+
+
+----    131 PARAMETER mlevel               =       21.000  base period import level - not a rate
+
+----    131 PARAMETER mu  weights for cpi
+
+            domestic    imported
+
+food           0.274       0.016
+clothing       0.548       0.161
+
+
+----    131 PARAMETER nm  share in total imports
+
+food     0.429,    clothing 0.571
+
+
+----    131 PARAMETER nx  share in total exports
+
+food     0.950,    clothing 0.050
+
+
+----    131 PARAMETER r  revenue share
+
+               agric       manuf
+
+food           0.738       0.205
+clothing       0.262       0.795
+
+
+----    131 PARAMETER sc  cost share
+
+                        agric       manuf
+
+food    .domestic       0.164       0.182
+food    .imported       0.016       0.182
+clothing.domestic       0.246       0.023
+clothing.imported       0.082       0.045
+
+
+----    131 PARAMETER sk  cost share for capital
+
+agric 0.164,    manuf 0.114
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 11
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+E x e c u t i o n
+
+
+----    131 PARAMETER sl  cost share for labor
+
+agric 0.328,    manuf 0.455
+
+
+----    131 PARAMETER wc  share of consumption in demand
+
+            domestic    imported
+
+food           0.315       0.100
+clothing       0.667       0.588
+
+
+----    131 PARAMETER we  share of exports in demand
+
+food     0.352,    clothing 0.020
+
+
+----    131 PARAMETER wi  share of intermediates in demand
+
+                        agric       manuf
+
+food    .domestic       0.185       0.148
+food    .imported       0.100       0.800
+clothing.domestic       0.294       0.020
+clothing.imported       0.294       0.118
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 12
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Equation Listing    SOLVE orani Using LP From line 231
+
+
+---- con  =E=  consumption
+
+con(food,domestic)..  cn(food,domestic) + 0.329749103942652*p(food,domestic) - 0.039426523297491*p(food,imported) + 0.548387096774194*p(clothing,domestic) + 0.161290322580645*p(clothing,imported) - ye =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+con(food,imported)..  cn(food,imported) - 0.670250896057348*p(food,domestic) + 0.960573476702509*p(food,imported) + 0.548387096774194*p(clothing,domestic) + 0.161290322580645*p(clothing,imported) - ye =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+con(clothing,domestic)..  cn(clothing,domestic) + 0.274193548387097*p(food,domestic) + 0.0161290322580645*p(food,imported) + 0.775659824046921*p(clothing,domestic) - 0.0659824046920821*p(clothing,imported) - ye =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- expd  =E=  export demands
+
+expd(food)..  - df(food) + 0.5*e(food) + px(food) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+expd(clothing)..  - df(clothing) + 0.05*e(clothing) + px(clothing) =E= 0 ; (LHS = -0.95, INFES = 0.95 ****)
+     
+
+---- supply  =E=  supply relations
+
+supply(food,agric)..  - 0.262295081967213*p(food,domestic) + 0.262295081967213*p(clothing,domestic) + q(food,agric) - z(agric) =E= 0 ; (LHS = 0)
+     
+supply(food,manuf)..  - 0.795454545454545*p(food,domestic) + 0.795454545454545*p(clothing,domestic) + q(food,manuf) - z(manuf) =E= 0 ; (LHS = 0)
+     
+supply(clothing,agric)..  0.737704918032787*p(food,domestic) - 0.737704918032787*p(clothing,domestic) + q(clothing,agric) - z(agric) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- indc  =E=  input demand for commodities
+
+indc(food,domestic,agric)..  0.0909090909090909*p(food,domestic) - 0.0909090909090909*p(food,imported) + x(food,domestic,agric) - z(agric) =E= 0 ; (LHS = 0)
+     
+indc(food,domestic,manuf)..  0.5*p(food,domestic) - 0.5*p(food,imported) + x(food,domestic,manuf) - z(manuf) =E= 0 ; (LHS = 0)
+     
+indc(food,imported,agric)..  - 0.909090909090909*p(food,domestic) + 0.909090909090909*p(food,imported) + x(food,imported,agric) - z(agric) =E= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- indcap  =E=  input demand for capital
+
+indcap(agric)..  k(agric) + 0.666666666666667*pk(agric) - 0.666666666666667*w - z(agric) =E= 0 ; (LHS = 0)
+     
+indcap(manuf)..  k(manuf) + 0.8*pk(manuf) - 0.8*w - z(manuf) =E= 0 ; (LHS = 0)
+     
+
+---- indlab  =E=  input demand for labor
+
+indlab(agric)..  li(agric) - 0.333333333333333*pk(agric) + 0.333333333333333*w - z(agric) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 13
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Equation Listing    SOLVE orani Using LP From line 231
+
+
+     indlab  =E=  input demand for labor
+
+indlab(manuf)..  li(manuf) - 0.2*pk(manuf) + 0.2*w - z(manuf) =E= 0 ; (LHS = 0)
+     
+
+---- pric  =E=  price equations for commodities
+
+pric(agric)..  0.573770491803279*p(food,domestic) - 0.0163934426229508*p(food,imported) + 0.0163934426229508*p(clothing,domestic) - 0.0819672131147541*p(clothing,imported) - 0.163934426229508*pk(agric) - 0.327868852459016*w =E= 0 ; (LHS = 0)
+     
+pric(manuf)..  0.0227272727272727*p(food,domestic) - 0.181818181818182*p(food,imported) + 0.772727272727273*p(clothing,domestic) - 0.0454545454545455*p(clothing,imported) - 0.113636363636364*pk(manuf) - 0.454545454545455*w =E= 0 ; (LHS = 0)
+     
+
+---- priexp  =E=  price equations for exports
+
+priexp(food)..  p(food,domestic) - phi - px(food) - v(food) =E= 0 ; (LHS = 0)
+     
+priexp(clothing)..  p(clothing,domestic) - phi - px(clothing) - v(clothing) =E= 0 ; (LHS = 0)
+     
+
+---- priimp  =E=  price equations for imports
+
+priimp(food)..  p(food,imported) - phi - pm(food) - t(food) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+priimp(clothing)..  p(clothing,imported) - phi - pm(clothing) - t(clothing) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+
+---- bald  =E=  balance equation for domestic commodities
+
+bald(food)..  - 0.314814814814815*cn(food,domestic) - 0.351851851851852*e(food) + 0.833333333333333*q(food,agric) + 0.166666666666667*q(food,manuf) - 0.185185185185185*x(food,domestic,agric) - 0.148148148148148*x(food,domestic,manuf) =E= 0 ; (LHS = 0)
+     
+bald(clothing)..  - 0.666666666666667*cn(clothing,domestic) - 0.0196078431372549*e(clothing) + 0.313725490196078*q(clothing,agric) + 0.686274509803922*q(clothing,manuf) - 0.294117647058824*x(clothing,domestic,agric)
+     
+      - 0.0196078431372549*x(clothing,domestic,manuf) =E= 0 ; (LHS = -0.0196078431372549, INFES = 0.0196078431372549 ****)
+     
+
+---- ballab  =E=  balance equation for labor
+
+ballab..  - l + 0.5*li(agric) + 0.5*li(manuf) =E= 0 ; (LHS = 0)
+     
+
+---- balcap  =E=  balance equation for capital
+
+balcap(agric)..  k(agric) - kappa(agric) =E= 0 ; (LHS = -3, INFES = 3 ****)
+     
+balcap(manuf)..  k(manuf) - kappa(manuf) =E= 0 ; (LHS = -3, INFES = 3 ****)
+     
+
+---- imports  =E=  imports
+
+imports..  - 0.0428571428571429*cn(food,imported) - 0.336134453781513*cn(clothing,imported) + mt - 0.428571428571429*pm(food) - 0.571428571428571*pm(clothing) - 0.0428571428571429*x(food,imported,agric) - 0.342857142857143*x(food,imported,manuf)
+     
+      - 0.168067226890756*x(clothing,imported,agric) - 0.0672268907563025*x(clothing,imported,manuf) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 14
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Equation Listing    SOLVE orani Using LP From line 231
+
+
+---- exports  =E=  exports
+
+exports..  - 0.95*e(food) - 0.05*e(clothing) + et - 0.95*px(food) - 0.05*px(clothing) =E= 0 ; (LHS = -0.05, INFES = 0.05 ****)
+     
+
+---- baltrade  =E=  balance of trade
+
+baltrade..  b - 0.2*et + 0.21*mt =E= 0 ; (LHS = 0)
+     
+
+---- cpi  =E=  consumer price index
+
+cpi..  - 0.274193548387097*p(food,domestic) - 0.0161290322580645*p(food,imported) - 0.548387096774194*p(clothing,domestic) - 0.161290322580645*p(clothing,imported) + pc =E= 0 ; (LHS = 0)
+     
+
+---- wage  =E=  wage rate
+
+wage..  - pc + w - ws =E= 0 ; (LHS = 0)
+     
+
+---- realc  =E=  real consumption
+
+realc..  cr + pc - ye =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+
+---- dummy  =L=  nonbinding constraint to get nonzero rhs
+
+dummy..  pc =L= 100000 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 15
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+---- b  balance of trade
+
+b
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       baltrade
+
+
+---- cn  consumption - nominal
+
+cn(food,domestic)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       con(food,domestic)
+       -0.3148  bald(food)
+
+cn(food,imported)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       con(food,imported)
+       -0.0429  imports
+
+cn(clothing,domestic)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       con(clothing,domestic)
+       -0.6667  bald(clothing)
+
+REMAINING ENTRY SKIPPED
+
+---- cr  consumption - real
+
+cr
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       realc
+
+
+---- df  foreign demand shift
+
+df(food)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       -1       expd(food)
+
+df(clothing)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       -1       expd(clothing)
+
+
+---- e  exports of agricultural commodities
+
+e(food)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.5     expd(food)
+       -0.3519  bald(food)
+       -0.95    exports
+
+e(clothing)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 16
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+     e  exports of agricultural commodities
+
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+        0.05    expd(clothing)
+       -0.0196  bald(clothing)
+       -0.05    exports
+
+
+---- et  total exports
+
+et
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       exports
+       -0.2     baltrade
+
+
+---- k  capital demand
+
+k(agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indcap(agric)
+        1       balcap(agric)
+
+k(manuf)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indcap(manuf)
+        1       balcap(manuf)
+
+
+---- kappa  sectoral capital stocks
+
+kappa(agric)
+                (.LO, .L, .UP, .M = 3, 3, 3, 0)
+       -1       balcap(agric)
+
+kappa(manuf)
+                (.LO, .L, .UP, .M = 3, 3, 3, 0)
+       -1       balcap(manuf)
+
+
+---- l  total employment
+
+l
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       ballab
+
+
+---- li  labor demand by industry
+
+li(agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indlab(agric)
+        0.5     ballab
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 17
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+     li  labor demand by industry
+
+
+li(manuf)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indlab(manuf)
+        0.5     ballab
+
+
+---- mt  total imports
+
+mt
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       imports
+        0.21    baltrade
+
+
+---- p  prices for commodities in domestic currency
+
+p(food,domestic)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.3297  con(food,domestic)
+       -0.6703  con(food,imported)
+        0.2742  con(clothing,domestic)
+        0.2742  con(clothing,imported)
+       -0.2623  supply(food,agric)
+       -0.7955  supply(food,manuf)
+        0.7377  supply(clothing,agric)
+        0.2045  supply(clothing,manuf)
+        0.0909  indc(food,domestic,agric)
+        0.5     indc(food,domestic,manuf)
+       -0.9091  indc(food,imported,agric)
+       -0.5     indc(food,imported,manuf)
+        0.5738  pric(agric)
+        0.0227  pric(manuf)
+        1       priexp(food)
+       -0.2742  cpi
+
+p(food,imported)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.0394  con(food,domestic)
+        0.9606  con(food,imported)
+        0.0161  con(clothing,domestic)
+        0.0161  con(clothing,imported)
+       -0.0909  indc(food,domestic,agric)
+       -0.5     indc(food,domestic,manuf)
+        0.9091  indc(food,imported,agric)
+        0.5     indc(food,imported,manuf)
+       -0.0164  pric(agric)
+       -0.1818  pric(manuf)
+        1       priimp(food)
+       -0.0161  cpi
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 18
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+     p  prices for commodities in domestic currency
+
+p(clothing,domestic)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.5484  con(food,domestic)
+        0.5484  con(food,imported)
+        0.7757  con(clothing,domestic)
+       -0.2243  con(clothing,imported)
+        0.2623  supply(food,agric)
+        0.7955  supply(food,manuf)
+       -0.7377  supply(clothing,agric)
+       -0.2045  supply(clothing,manuf)
+        0.25    indc(clothing,domestic,agric)
+        0.6667  indc(clothing,domestic,manuf)
+       -0.75    indc(clothing,imported,agric)
+       -0.3333  indc(clothing,imported,manuf)
+        0.0164  pric(agric)
+        0.7727  pric(manuf)
+        1       priexp(clothing)
+       -0.5484  cpi
+
+REMAINING ENTRY SKIPPED
+
+---- pc  prices:  consumer price index
+
+pc
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cpi
+       -1       wage
+        1       realc
+        1       dummy
+
+
+---- phi  exchange rate
+
+phi
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       priexp(food)
+       -1       priexp(clothing)
+       -1       priimp(food)
+       -1       priimp(clothing)
+
+
+---- pk  price of capital
+
+pk(agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.6667  indcap(agric)
+       -0.3333  indlab(agric)
+       -0.1639  pric(agric)
+
+pk(manuf)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 19
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+     pk  price of capital
+
+        0.8     indcap(manuf)
+       -0.2     indlab(manuf)
+       -0.1136  pric(manuf)
+
+
+---- px  export price in foreign currency
+
+px(food)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       expd(food)
+       -1       priexp(food)
+       -0.95    exports
+
+px(clothing)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       expd(clothing)
+       -1       priexp(clothing)
+       -0.05    exports
+
+
+---- pm  import price in foreign currency
+
+pm(food)
+                (.LO, .L, .UP, .M = -2, -2, -2, 0)
+       -1       priimp(food)
+       -0.4286  imports
+
+pm(clothing)
+                (.LO, .L, .UP, .M = -2, -2, -2, 0)
+       -1       priimp(clothing)
+       -0.5714  imports
+
+
+---- q  output
+
+q(food,agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       supply(food,agric)
+        0.8333  bald(food)
+
+q(food,manuf)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       supply(food,manuf)
+        0.1667  bald(food)
+
+q(clothing,agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       supply(clothing,agric)
+        0.3137  bald(clothing)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 20
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+---- t  import duty
+
+t(food)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       priimp(food)
+
+t(clothing)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       priimp(clothing)
+
+
+---- v  export subsidy for the manufactures
+
+v(food)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       priexp(food)
+
+v(clothing)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       priexp(clothing)
+
+
+---- w  wage rate
+
+w
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.6667  indcap(agric)
+       -0.8     indcap(manuf)
+        0.3333  indlab(agric)
+        0.2     indlab(manuf)
+       -0.3279  pric(agric)
+       -0.4545  pric(manuf)
+        1       wage
+
+
+---- ws  wage shift
+
+ws
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       -1       wage
+
+
+---- x  intermediate commodity demands
+
+x(food,domestic,agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indc(food,domestic,agric)
+       -0.1852  bald(food)
+
+x(food,domestic,manuf)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indc(food,domestic,manuf)
+       -0.1481  bald(food)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 21
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Column Listing      SOLVE orani Using LP From line 231
+
+
+     x  intermediate commodity demands
+
+
+x(food,imported,agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       indc(food,imported,agric)
+       -0.0429  imports
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- ye  household expenditure
+
+ye
+                (.LO, .L, .UP, .M = 2, 2, 2, 0)
+       -1       con(food,domestic)
+       -1       con(food,imported)
+       -1       con(clothing,domestic)
+       -1       con(clothing,imported)
+       -1       realc
+
+
+---- z  industry activity level
+
+z(agric)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       supply(food,agric)
+       -1       supply(clothing,agric)
+       -1       indc(food,domestic,agric)
+       -1       indc(food,imported,agric)
+       -1       indc(clothing,domestic,agric)
+       -1       indc(clothing,imported,agric)
+       -1       indcap(agric)
+       -1       indlab(agric)
+
+z(manuf)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       supply(food,manuf)
+       -1       supply(clothing,manuf)
+       -1       indc(food,domestic,manuf)
+       -1       indc(food,imported,manuf)
+       -1       indc(clothing,domestic,manuf)
+       -1       indc(clothing,imported,manuf)
+       -1       indcap(manuf)
+       -1       indlab(manuf)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 22
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Model Statistics    SOLVE orani Using LP From line 231
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          19     SINGLE EQUATIONS           40
+BLOCKS OF VARIABLES          25     SINGLE VARIABLES           52
+NON ZERO ELEMENTS           170
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 23
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+Solution Report     SOLVE orani Using LP From line 231
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   orani               OBJECTIVE  pc
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  231
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/orani/convert.opt"
+>>  pyomo orani-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/orani/convert.opt"
+Pyomo     : orani-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 24
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+E x e c u t i o n
+
+
+----    249 VARIABLE b.L                   =        0.000  balance of trade
+            VARIABLE cr.L                  =        0.000  consumption - real
+            VARIABLE et.L                  =        0.000  total exports
+            VARIABLE l.L                   =        0.000  total employment
+            VARIABLE mt.L                  =        0.000  total imports
+            VARIABLE pc.L                  =        0.000  prices:  consumer price index
+            VARIABLE w.L                   =        0.000  wage rate
+            VARIABLE phi.L                 =        0.000  exchange rate
+            VARIABLE ws.L                  =        0.000  wage shift
+            VARIABLE ye.L                  =        2.000  household expenditure
+
+----    249 VARIABLE q.L  output
+
+                      ( ALL       0.000 )
+
+
+----    249 VARIABLE x.L  intermediate commodity demands
+
+                      ( ALL       0.000 )
+
+
+----    249 VARIABLE cn.L  consumption - nominal
+
+                      ( ALL       0.000 )
+
+
+----    249 PARAMETER varcomm  commodity reports
+
+                  df           e          pm
+
+food           1.000                  -2.000
+clothing       1.000       1.000      -2.000
+
+
+----    249 PARAMETER varindus  industry reports
+
+            kappa
+
+agric       3.000
+manuf       3.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:36 Page 25
+A Miniature version of Orani 78  (ORANI,SEQ=40)
+E x e c u t i o n
+
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/orani/orani.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/orani/orani-scalar.py.lst

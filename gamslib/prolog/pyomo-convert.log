@@ -1,0 +1,69 @@
+--- Job prolog.gms Start 12/13/18 10:24:36 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- prolog.gms(188) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- prolog.gms(167) 4 Mb
+--- Generating NLP model nortonl
+--- prolog.gms(169) 6 Mb
+---   23 rows  21 columns  129 non-zeroes
+---   29 nl-code  14 nl-non-zeroes
+--- prolog.gms(169) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.007
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+>>  pyomo prolog-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+--- Writing Pyomo     : prolog-scalar.py
+
+--- Restarting execution
+--- prolog.gms(169) 2 Mb
+--- Reading solution for model nortonl
+--- prolog.gms(174) 3 Mb
+--- Generating NLP model nortone
+--- prolog.gms(176) 5 Mb
+---   23 rows  21 columns  129 non-zeroes
+---   73 nl-code  26 nl-non-zeroes
+--- prolog.gms(176) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.018
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+>>  pyomo prolog-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+--- Writing Pyomo     : prolog-scalar.py
+
+--- Restarting execution
+--- prolog.gms(176) 2 Mb
+--- Reading solution for model nortone
+--- prolog.gms(181) 3 Mb
+--- Generating NLP model nortonn
+--- prolog.gms(183) 5 Mb
+---   23 rows  21 columns  129 non-zeroes
+---   89 nl-code  26 nl-non-zeroes
+--- prolog.gms(183) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.037
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+>>  pyomo prolog-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prolog/convert.opt"
+--- Writing Pyomo     : prolog-scalar.py
+
+--- Restarting execution
+--- prolog.gms(183) 2 Mb
+--- Reading solution for model nortonn
+--- prolog.gms(188) 3 Mb
+*** Status: Normal completion
+--- Job prolog.gms Stop 12/13/18 10:24:36 elapsed 0:00:00.050

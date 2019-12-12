@@ -1,0 +1,1152 @@
+--- Job absmip.gms Start 12/13/18 10:32:26 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- absmip.gms(127) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- absmip.gms(78) 4 Mb
+--- Generating MIP model absM
+--- absmip.gms(81) 4 Mb
+--- LOOPS runs = 1
+---   4 rows  5 columns  10 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.002
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(81) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(82) 3 Mb
+--- LOOPS runs = 1
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.011
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(82) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(83) 3 Mb
+--- LOOPS runs = 1
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(83) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(84) 3 Mb
+--- LOOPS runs = 1
+---   7 rows  6 columns  16 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.037
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(84) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(85) 3 Mb
+--- LOOPS runs = 1
+---   4 rows  5 columns  10 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.052
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(85) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(86) 3 Mb
+--- LOOPS runs = 1
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.070
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(86) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(87) 3 Mb
+--- LOOPS runs = 1
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.081
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(87) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(88) 3 Mb
+--- LOOPS runs = 1
+---   7 rows  6 columns  16 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.092
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(88) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(81) 3 Mb
+--- LOOPS runs = 2
+---   4 rows  5 columns  10 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.109
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(81) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(82) 3 Mb
+--- LOOPS runs = 2
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.124
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(82) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(83) 3 Mb
+--- LOOPS runs = 2
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.140
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(83) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(84) 3 Mb
+--- LOOPS runs = 2
+---   7 rows  6 columns  16 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.154
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(84) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(85) 3 Mb
+--- LOOPS runs = 2
+---   4 rows  5 columns  10 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.172
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(85) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(86) 3 Mb
+--- LOOPS runs = 2
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.189
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(86) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(87) 3 Mb
+--- LOOPS runs = 2
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.200
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(87) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(88) 3 Mb
+--- LOOPS runs = 2
+---   7 rows  6 columns  16 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.213
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(88) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(81) 3 Mb
+--- LOOPS runs = 3
+---   4 rows  5 columns  10 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.226
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(81) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(82) 3 Mb
+--- LOOPS runs = 3
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.241
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(82) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(83) 3 Mb
+--- LOOPS runs = 3
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.252
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(83) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(84) 3 Mb
+--- LOOPS runs = 3
+---   7 rows  6 columns  16 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.262
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(84) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(85) 3 Mb
+--- LOOPS runs = 3
+---   4 rows  5 columns  10 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.278
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(85) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(86) 3 Mb
+--- LOOPS runs = 3
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.292
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(86) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(87) 3 Mb
+--- LOOPS runs = 3
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.307
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(87) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(88) 3 Mb
+--- LOOPS runs = 3
+---   7 rows  6 columns  16 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.321
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(88) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(81) 3 Mb
+--- LOOPS runs = 4
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.336
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(81) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(82) 3 Mb
+--- LOOPS runs = 4
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.350
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(82) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(83) 3 Mb
+--- LOOPS runs = 4
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.365
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(83) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(84) 3 Mb
+--- LOOPS runs = 4
+---   7 rows  6 columns  15 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.382
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(84) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(85) 3 Mb
+--- LOOPS runs = 4
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.393
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(85) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(86) 3 Mb
+--- LOOPS runs = 4
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.409
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(86) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(87) 3 Mb
+--- LOOPS runs = 4
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.425
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(87) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(88) 3 Mb
+--- LOOPS runs = 4
+---   7 rows  6 columns  15 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.437
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(88) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(81) 3 Mb
+--- LOOPS runs = 5
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.451
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(81) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(82) 3 Mb
+--- LOOPS runs = 5
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.466
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(82) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(83) 3 Mb
+--- LOOPS runs = 5
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.478
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(83) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(84) 3 Mb
+--- LOOPS runs = 5
+---   7 rows  6 columns  15 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.491
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(84) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model absM
+--- absmip.gms(85) 3 Mb
+--- LOOPS runs = 5
+---   4 rows  5 columns  9 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.506
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(85) 2 Mb
+--- Reading solution for model absM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zmaxM
+--- absmip.gms(86) 3 Mb
+--- LOOPS runs = 5
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.520
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(86) 2 Mb
+--- Reading solution for model zmaxM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model zminM
+--- absmip.gms(87) 3 Mb
+--- LOOPS runs = 5
+---   4 rows  5 columns  8 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.534
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(87) 2 Mb
+--- Reading solution for model zminM
+--- absmip.gms(78) 3 Mb
+--- Generating MIP model signM
+--- absmip.gms(88) 3 Mb
+--- LOOPS runs = 5
+---   7 rows  6 columns  15 non-zeroes
+---   2 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.546
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(88) 2 Mb
+--- Reading solution for model signM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(121) 3 Mb
+--- LOOPS runs = 1
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.560
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(121) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(122) 3 Mb
+--- LOOPS runs = 1
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.572
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(122) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(123) 3 Mb
+--- LOOPS runs = 1
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.583
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(123) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(124) 3 Mb
+--- LOOPS runs = 1
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.597
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(124) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(121) 3 Mb
+--- LOOPS runs = 2
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.614
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(121) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(122) 3 Mb
+--- LOOPS runs = 2
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.634
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(122) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(123) 3 Mb
+--- LOOPS runs = 2
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.652
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(123) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(124) 3 Mb
+--- LOOPS runs = 2
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.667
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(124) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(121) 3 Mb
+--- LOOPS runs = 3
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.699
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(121) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(122) 3 Mb
+--- LOOPS runs = 3
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.718
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(122) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(123) 3 Mb
+--- LOOPS runs = 3
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.729
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(123) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(124) 3 Mb
+--- LOOPS runs = 3
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.758
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(124) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(121) 3 Mb
+--- LOOPS runs = 4
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.773
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(121) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(122) 3 Mb
+--- LOOPS runs = 4
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.786
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(122) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(123) 3 Mb
+--- LOOPS runs = 4
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.805
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(123) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(124) 3 Mb
+--- LOOPS runs = 4
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.819
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(124) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(121) 3 Mb
+--- LOOPS runs = 5
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.838
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(121) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(122) 3 Mb
+--- LOOPS runs = 5
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.862
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(122) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model maxM
+--- absmip.gms(123) 3 Mb
+--- LOOPS runs = 5
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.873
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(123) 2 Mb
+--- Reading solution for model maxM
+--- absmip.gms(115) 3 Mb
+--- Generating MIP model minM
+--- absmip.gms(124) 3 Mb
+--- LOOPS runs = 5
+---   6 rows  8 columns  15 non-zeroes
+---   1 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.886
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+>>  pyomo absmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/absmip/convert.opt"
+--- Writing Pyomo     : absmip-scalar.py
+
+--- Restarting execution
+--- absmip.gms(124) 2 Mb
+--- Reading solution for model minM
+--- absmip.gms(127) 3 Mb
+*** Status: Normal completion
+--- Job absmip.gms Stop 12/13/18 10:32:27 elapsed 0:00:00.901

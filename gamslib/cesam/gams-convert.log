@@ -1,0 +1,128 @@
+--- Job cesam.gms Start 12/13/18 10:49:10 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- cesam.gms(855) 3 Mb
+--- Starting execution: elapsed 0:00:00.006
+--- cesam.gms(477) 4 Mb
+--- Generating NLP model SAMENTROP
+--- cesam.gms(483) 6 Mb
+---   78 rows  130 columns  368 non-zeroes
+---   683 nl-code  136 nl-non-zeroes
+--- cesam.gms(483) 4 Mb
+--- Executing BARON: elapsed 0:00:00.011
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/cesam/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Doing local search
+ Preprocessing found feasible solution with value 0.958557823260E-002
+ Solving bounding LP
+ Starting multi-start local search
+ Done with local search
+===========================================================================
+  Iteration    Open nodes         Time (s)    Lower bound      Upper bound
+          1             1             0.11    -182.105          0.958558E-02
+       3636          2472            30.93    -159.594          0.958558E-02
+       6978          4758            60.93    -156.715          0.958558E-02
+      10742          7358            90.93    -154.848          0.958558E-02
+      14990         10322           120.85    -153.457          0.958558E-02
+      19255         13305           150.84    -152.277          0.958558E-02
+      23528         16279           180.82    -151.403          0.958558E-02
+      27861         19312           210.82    -150.658          0.958558E-02
+      32200         22347           240.82    -149.996          0.958558E-02
+      36432         25314           270.79    -149.435          0.958558E-02
+      40730         28332           300.74    -148.931          0.958558E-02
+      45067         31405           330.74    -148.460          0.958558E-02
+      49266         34348           360.75    -148.036          0.958558E-02
+      53213         37122           390.75    -147.695          0.958558E-02
+      57441         40109           420.73    -147.351          0.958558E-02
+      61641         43094           450.74    -147.034          0.958558E-02
+      65818         46051           480.74    -146.749          0.958558E-02
+      69991         48993           510.74    -146.476          0.958558E-02
+      74210         51995           540.71    -146.222          0.958558E-02
+      78340         54920           570.71    -145.982          0.958558E-02
+      82463         57810           600.69    -145.738          0.958558E-02
+      86651         60778           630.69    -145.496          0.958558E-02
+      90846         63738           660.69    -145.273          0.958558E-02
+      95076         66709           690.70    -145.061          0.958558E-02
+      99288         69689           720.70    -144.873          0.958558E-02
+     103548         72695           750.70    -144.695          0.958558E-02
+     107749         75671           780.70    -144.513          0.958558E-02
+     112050         78736           810.71    -144.340          0.958558E-02
+     116396         81814           840.61    -144.167          0.958558E-02
+     120612         84796           870.60    -144.004          0.958558E-02
+     124850         87812           900.60    -143.856          0.958558E-02
+     129169         90887           930.60    -143.707          0.958558E-02
+     133521         93945           960.60    -143.556          0.958558E-02
+     137859         97042           990.61    -143.415          0.958558E-02
+     139189         97968          1000.00    -143.368          0.958558E-02
+
+                    *** Max. allowable time exceeded ***      
+
+ Wall clock time:                  1000.44
+ Total CPU time used:              1000.00
+
+ Total no. of BaR iterations:  139189
+ Best solution found at node:  136262
+ Max. no. of nodes in memory:   97968
+ 
+ All done
+===========================================================================
+
+Solution      = 0.00958557821289189  found at node 136262
+Best possible = -143.367739096
+Absolute gap  = 143.377324674213  optca = 1E-9
+Relative gap  = NA  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- cesam.gms(483) 2 Mb
+--- Reading solution for model SAMENTROP
+***
+*** Solver did not provide marginals for model SAMENTROP
+***
+--- cesam.gms(684) 3 Mb
+--- Generating MCP model m_SAMENTROP
+--- cesam.gms(688) 5 Mb
+---   271 rows  271 columns  1,056 non-zeroes
+---   1,479 nl-code  352 nl-non-zeroes
+--- cesam.gms(688) 3 Mb
+--- Executing CONVERT: elapsed 0:16:40.542
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cesam/convert.opt"
+>>  gams cesam-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cesam/convert.opt"
+--- Writing Gams      : cesam-scalar.gms
+
+--- Restarting execution
+--- cesam.gms(688) 2 Mb
+--- Reading solution for model m_SAMENTROP
+--- cesam.gms(815) 3 Mb
+*** Status: Normal completion
+--- Job cesam.gms Stop 12/13/18 11:05:51 elapsed 0:16:40.558

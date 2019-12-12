@@ -1,0 +1,2798 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option CNS=convert;
+   2  option CNS=convert;
+   3  option CNS=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 2
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+C o m p i l a t i o n
+
+
+   5   
+       
+         A general equilibrium model is used to study the impact of changes
+         in oil prices and evaluate policies dealing with external shocks.
+       
+         The original version, (GANGESX,SEQ=107), was formulated as an
+         optimization model. However, the model consist of a set of
+         nonlinear equations and it has only one solution. This version
+         is formulated directly as a system of nonlinear equations using
+         the CNS = Constrained Nonlinear System model type.
+       
+       
+      Mitra, P, Adjustments in Oil Importing Developing Countries:
+      A Comparative Economic Analysis. Cambridge University Press,
+      New York, NY, 1993.
+       
+       
+       
+      OUTLINE:
+       
+      1. Set definitions
+      1.a Sectors
+      1.b Income types
+      1.c Sets for controlling input data
+       
+      2. Base year data
+       
+      3. Historical time series
+       
+      4. Parameter declarations
+      4.a For core model formulation
+      4.b For reports and tracking
+       
+      5. Variable declarations
+      5.a For core model formulation
+      5.b For the tracking model
+       
+      6. Parameter calibration
+       
+      7. Setting parameters for tracking versions
+       
+      8. Equation declarations
+       
+      9. Core model equations
+      9.a Production technology
+      9.b Income generation
+      9.c Expenditure system
+      9.d Investment and stock changes
+      9.e Domestic budget constraints
+      9.f Other final demands and market clearing requirements.
+      9.g The savings-investment balance equation
+      9.h The static model utility function
+      9.i Equations determining tracking indicators
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 3
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+C o m p i l a t i o n
+
+
+       
+      10. Variable initialization
+       
+      11. Core model versions
+       
+      12. Core model closure
+       
+      13. Tracking model version
+       
+  69   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 4
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Set Definitions
+
+
+  71   
+       
+      1. Set definitions
+      1.a Sectors
+      In this section, the sets of the model are declared. The model contains 6
+      sectors, each of which also belongs to either the rural or urban area. Some
+      sectors are singled out as subsets because they are treated in a special manner
+      in various parts of the model. Note that the importing and exporting sectors
+      are not specified here. They are later determined from the data tables.
+       
+  83   
+  84  Set i   6 sectors of the economy /
+  85              agricult   agriculture sector
+  86              cons-good  consumer goods sector
+  87              cap-good   capital goods sector
+  88              int-good   intermediate goods sector
+  89              pub-infr   public infrastructure sector
+  90              service    services sector             /
+  91   
+  92      sa(i)       agriculture sector           / agricult /
+  93      sc(i)       capital goods sector         / cap-good /
+  94      si(i)       public infrastructure sector / pub-infr /
+  95      ss(i)       services sector              / service  /
+  96      im(i)       importing sectors
+  97      ie(i)       exporting sectors
+  98      manufact(i) manufacturing sectors / cons-good , cap-good , int-good /
+  99   
+ 100      r regios /
+ 101         urban    urban region
+ 102         rural    rural region /
+ 103   
+ 104      ri(r,i) mapping between regions and sectors /
+ 105         rural.agricult
+ 106         urban.(cons-good,cap-good,int-good,pub-infr,service) / ;
+ 107   
+ 108  Alias (i,j) ;
+ 109  Alias (manufact,manuf) ;
+ 110   
+       
+      1.b income types
+       
+      in addition to the sectoral description, we will need an income classification
+      scheme. ty covers the types of income considered.
+       
+ 119   
+ 120  Set ty  income categories /
+ 121              yself      self-employment income
+ 122              ywage      wage income
+ 123              ycap       land and capital income
+ 124              yinfr      income from government subsidies via infrastructure
+ 125              ynonp      non-production income    /
+ 126   
+ 127      li(ty)    production income categories ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 5
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Set Definitions
+
+
+ 128   
+ 129  *
+ 130  * li contains all types except non-production income
+ 131  *
+ 132   
+ 133  li(ty) = yes ;
+ 134  li("ynonp") = no ;
+ 135   
+ 136  Alias (ty,tz) ;
+ 137   
+       
+      1.c sets for controlling input data
+       
+      it is convenient to define sets for controlling data types. the ones used in
+      this model are shown below
+       
+ 146   
+ 147  Set datvar  input variables /
+ 148         return-cap income from capital investments                  (mm rupees)
+ 149         return-inf income from infrastructure                       (mm rupees)
+ 150         self-empl  income from self-employment                      (mm rupees)
+ 151         wage-labor income from wage labor                           (mm rupees)
+ 152         dom-inter  domestically produced intermediate goods value   (mm rupees)
+ 153         imp-inter  imported intermediate goods value                (mm rupees)
+ 154         pub-cons   public consumption (domestic and imported)       (mm rupees)
+ 155         fix-inv    fixed capital investment (domestic and imported) (mm rupees)
+ 156         change-sto change in stocks                                 (mm rupees)
+ 157         cons-imp   household consumption - imported                 (mm rupees)
+ 158         xvoli      constant term used in calculating export volume  (mm rupees)
+ 159      /
+ 160   
+ 161      taxvar  tax variables /
+ 162         dom-inter  indirect taxes on domestic intermediate inputs   (mm rupees)
+ 163         imp-inter  indirect taxes on imported intermediate inputs   (mm rupees)
+ 164         dom-cons   total taxes on final domestic consumption        (mm rupees)
+ 165         imp-cons   total taxes on final imported consumption        (mm rupees)
+ 166         profits    total taxes on profits                           (mm rupees)
+ 167         self-emp   total taxes on self-employment income            (mm rupees)
+ 168         tax-wage   total taxes on wage income                       (mm rupees)
+ 169      /
+ 170   
+ 171      stockvar  stock variables /
+ 172         capital    total capital stock        (mm rupees)
+ 173         infrast    total infrastructure stock (mm rupees)
+ 174         wage-labor total labor force          (mm persons)
+ 175         self-empl  total self-employment      (mm persons) /
+ 176   
+ 177      sigma     elasticity of substitution parameters /
+ 178         sigmax      between final demands for domestic and imported cap goods
+ 179         sigmaz      between value added and intermediate inputs
+ 180         sigman      between domestic and imported intermediate inputs
+ 181         sigmav      between capital and self-employment and wage labor
+ 182         sigmas      between land and agriculture labor
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 6
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Set Definitions
+
+
+ 183         eta         export elasticity   /
+ 184   
+ 185      acv gdp expenditure categories /
+ 186           ndp        net domestic product                 (mm rupees)
+ 187           gdp        gross domestic product               (mm rupees)
+ 188           privc      private consumption                  (mm rupees)
+ 189           gdpmp      gdp at market prices                 (mm rupees)
+ 190           govc       government consumption               (mm rupees)
+ 191           gfi        gross fixed investment               (mm rupees)
+ 192           chan-sto   change in stocks                     (mm rupees)
+ 193           invest     total of gfi and change in stocks    (mm rupees)
+ 194           exports    exports                              (mm rupees)
+ 195           imports    imports                              (mm rupees)
+ 196       /
+ 197   
+ 198       indicat   target indicators at constant prices /
+ 199           gdpmp     gdp at market prices                  (mm rupees)
+ 200           privc     private consumption                   (mm rupees)
+ 201           gfi       fixed investment                      (mm rupees)
+ 202           invest    investment and change in stocks       (mm rupees)
+ 203           exports   total exports                         (mm rupees)
+ 204           imports   total imports                         (mm rupees)
+ 205           gdpgrt    growth rate of gdp at market prices
+ 206           cnsgrt    growth rate of private consumption
+ 207           gfigrt    growth rate of fixed investment
+ 208           invgrt    growth rate of total investment
+ 209           expgrt    growth rate of exports
+ 210           impgrt    growth rate of imports
+ 211           cnsshr    ratio of consumption to gdp at market prices
+ 212           gfishr    ratio of gfi to gdpmp
+ 213           expshr    ratio of exports to gdpmp
+ 214           impshr    ratio of imports to gdpmp /
+ 215   
+ 216       years   time horizons for tracking history /
+ 217           7374       1973-74  --  base  year
+ 218           7475       1974-75
+ 219           7576       1975-76
+ 220           7677       1976-77
+ 221           7778       1977-78
+ 222           7879       1978-79
+ 223           7980       1979-80
+ 224           8081       1980-81
+ 225           8182       1981-82
+ 226           8283       1982-83
+ 227           8384       1983-84   --  last year of tracking /
+ 228   
+ 229      t(years)    current year ;
+ 230   
+ 231  *
+ 232  * t is used to control tracking. we set it first to 73-74
+ 233  *
+ 234   
+ 235  t(years) = no ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 7
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Set Definitions
+
+
+ 236  t("7374") = yes ;
+ 237   
+ 238   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 8
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+input data tables
+
+
+ 240   
+ 241   
+       
+      2. base year data
+       
+       
+      in this section follows data for the base year, used to calibrate the
+      coefficients of the model
+       
+ 251   
+ 252  Table dat(datvar,i)  factor remunerations           (current mm rupees)
+ 253   
+ 254                agricult  cons-good cap-good  int-good  pub-infr  service
+ 255   
+ 256  return-cap     64493.3     6406.5   5434.4    8567.9    4401.9  27677.2
+ 257  self-empl     148431.0     4937.3  13714.3    6488.8            38411.1
+ 258  wage-labor     48364.6    12560.5  16267.7   17072.2    9941.2  73786.0
+ 259  dom-inter      77681.1    68904.0  54658.1   47254.0    6872.7  48988.9
+ 260  imp-inter       2356.0     3201.3   2307.3    9801.7       1.3    572.0
+ 261  pub-cons         816.9      544.0   4730.1    4423.9    2986.2  36832.5
+ 262  fix-inv          623.9      139.5  76198.8    2970.4     252.1   5076.3
+ 263  change-sto      7092.5     5944.2   1756.4    6073.7     272.2
+ 264  cons-imp        3159.9      504.3   5235.6              4170.9
+ 265  xvoli           2977.8    10046.2    990.9    5984.0                        ;
+ 266   
+ 267  *
+ 268  * here we select the exporting and importing sectors
+ 269  *
+ 270   
+ 271  im(i) = yes$dat("cons-imp",i) ;
+ 272  ie(i) = yes$dat("xvoli",i) ;
+ 273   
+ 274  Table rate(*,i) various depreciation and tax and margin rates  (unitless)
+ 275   
+ 276                    agricult  cons-good  cap-good  int-good  pub-infr  service
+ 277   
+ 278  dep-prof            0.0729     0.2369    0.4319    0.1921    0.7191   0.3166
+ 279  dep-lab             0.0106     0.0832    0.0094    0.0958             0.0761
+ 280  taxrat-dom          0.0212     0.0865    0.0972    0.1212    0.1268   0.1056
+ 281  taxrat-imp          0.3134     0.1629    0.4247    0.2790    0.8461   0.6715
+ 282  taxrfd-dom         -0.0013     0.32      0.40      0.40
+ 283  taxrfd-imp          0.0731     0.6728    0.3781    0.7236
+ 284  tradm-fd            0.14480    0.01368                       0.03103
+ 285  tradm-exp           0.16257    0.50      0.33460   0.13017
+ 286  tradm-imp                                0.50      0.07130
+ 287   
+ 288   
+ 289  Table tax(taxvar,i) tax revenue data    (current mm rupees)
+ 290   
+ 291               agricult cons-good  cap-good int-good pub-infr  service
+ 292   
+ 293  dom-inter     1649.8     5964.3    5314.1    5727.0    871.5  5171.3
+ 294  imp-inter      738.5      521.6     989.2    2734.6      1.1   384.1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 9
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+input data tables
+
+
+ 295  dom-cons     -5570.9    16739.9    2303.2    4032.0     47.1   318.8
+ 296  imp-cons       231.0      339.7    1979.6    1079.0
+ 297  profits                   704.7     597.8     942.5    484.2  3044.5
+ 298  self-emp                  222.2     617.1     292.0           1728.5
+ 299  tax-wage                  565.2     732.0     768.2    447.4  3320.4
+ 300   
+ 301   
+ 302  Table stock(stockvar,i) stock data       (current mm rupees)
+ 303   
+ 304               agricult  cons-good  cap-good  int-good  pub-infr    service
+ 305   
+ 306  capital     515946.4   29570.0    43475.2   68543.2   168695.0   417500.0
+ 307  infrast       1881.2    1403.9     2145.8    9995.2     4621.0     2694.2
+ 308  wage-labor      43.325     1.697      2.198     2.307      1.343      9.971
+ 309  self-empl      132.735     3.545      9.847     4.659                27.578
+ 310   
+ 311   
+ 312  Table elast(sigma,i)  elasticity parameters            (unitless)
+ 313   
+ 314                agricult cons-good cap-good int-good pub-infr service
+ 315   
+ 316  sigmax            0.5       0.5       0.5      0.5       0.5     0.5
+ 317  sigmaz            0.9       1.1       1.1      1.1       1.1     1.1
+ 318  sigman            1.5       1.5       1.5      1.5       1.5     1.5
+ 319  sigmav            0.9       0.7       0.7      0.7       0.7     0.7
+ 320  sigmas            0.5       0.7       0.7      0.7       0.7     0.7
+ 321  eta               1.5       1.5       1.0      1.5               1.0
+ 322   
+ 323   
+ 324  Table a(i,j) domestic input-output coefficients matrix     (unitless)
+ 325   
+ 326                  agricult  cons-good cap-good  int-good  pub-infr  service
+ 327   
+ 328  agricult        0.760190  0.549245  0.129944  0.112517  0.000146  0.206418
+ 329  cons-good       0.075543  0.196520  0.005262  0.036037  0.010709  0.026161
+ 330  cap-good        0.029948  0.012795  0.117179  0.039635  0.555240  0.112295
+ 331  int-good        0.062838  0.086158  0.522219  0.524852  0.100921  0.305633
+ 332  service         0.071481  0.155282  0.225396  0.286959  0.332984  0.349493
+ 333   
+ 334   
+ 335  Table am(i,j) imports input-output coefficients matrix     (unitless)
+ 336   
+ 337                  agricult  cons-good cap-good  int-good  pub-infr  service
+ 338   
+ 339  agricult        0.0011    0.843906            0.027276
+ 340  cons-good       0.002833  0.127355  0.000087  0.045681
+ 341  cap-good                  0.000387  0.081846  0.006631  0.048316  0.00056
+ 342  int-good        0.996067  0.028352  0.918067  0.920412  0.951684  0.99944
+ 343   
+ 344  Table ayi(i,r) shares for allocation of sectoral income to regions (unitless)
+ 345   
+ 346                 rural
+ 347  agricult        1.0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 10
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+input data tables
+
+
+ 348  cons-good        .4635
+ 349  service          .4635 ;
+ 350   
+ 351  *
+ 352  * we generate urban shares as the residual
+ 353  *
+ 354   
+ 355  ayi(i,"urban") = 1 - ayi(i,"rural") ;
+ 356   
+ 357  Parameter ayt(r) shares for allocation of transfers to regions (unitless) /
+ 358        rural .8 / ;
+ 359   
+ 360  ayt("urban") = 1 - ayt("rural") ;
+ 361   
+ 362  Table ac(i,r)  expenditure shares         (unitless)
+ 363   
+ 364                      urban     rural
+ 365   
+ 366  agricult          0.32629     0.482105
+ 367  cons-good         0.257648    0.26756
+ 368  cap-good          0.028424    0.02644
+ 369  int-good          0.039263    0.015185
+ 370  pub-infr          0.011206    0.00897
+ 371  service           0.337169    0.19974
+ 372   
+ 373   
+ 374  Table gamma(i,r)   per capita committed consumption
+ 375   
+ 376                  urban     rural
+ 377   
+ 378  agricult     2.228551    2.037878
+ 379  cons-good    0.300443    0.332562
+ 380  cap-good     -.02261     0.002407
+ 381  int-good     0.096637    0.128932
+ 382  pub-infr     0.07928     0.092737
+ 383  service      -.59266     0.064369
+ 384   
+ 385  *
+ 386  * conpar gives parameters needed for the expenditure system
+ 387  *
+ 388   
+ 389  Table conpar(*,r) various consumer parameters
+ 390   
+ 391             urban      rural
+ 392   
+ 393  alpha      0.376842   0.309118
+ 394  beta       0.76777    0.77814
+ 395  pop        122.       458.
+ 396   
+ 397  *
+ 398  * in baseprice, pv00 is value added price, v00 is value added,
+ 399  * pk00 is returns to capital, pg00 infrastructure prices, pc00 consumer
+ 400  * prices, and pq00 composite output prices.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 11
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+input data tables
+
+
+ 401  *
+ 402   
+ 403  Table baseprice(i,*) base year prices and values
+ 404   
+ 405                 pv00         v00    pk00    pg00   pc00   pq00
+ 406   
+ 407  agricult     1.0050   2616.0656  0.1258  1.0076 1.1483 1.0042
+ 408  cons-good    1.0155    249.8925  0.2320  1.1071 1.3423 1.0064
+ 409  cap-good     0.9617    303.6711  0.1001  0.7277 1.3668 0.9763
+ 410  int-good     0.9820    310.7917  0.1180  0.9207 1.3761 0.9829
+ 411  pub-infr     1.0500    157.2187  0.0306  1.2566 1.0977 1.0647
+ 412  service      1.0045   1443.4865  0.0691  1.0624 1.0023 1.0023
+ 413   
+ 414   
+ 415  Scalar nct         net current transfers      (mm rupees)   /  19.20 /
+ 416         nfi         net factor income          (mm rupees)   / -32.50 /
+ 417         gtra        interest on national debt  (mm rupees)   /  46.7  /
+ 418         gtrb        domestic current transfers (mm rupees)   /  90.9  / ;
+ 419   
+ 420   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 12
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+time series of exogenous data
+
+
+ 422   
+ 423   
+       
+      3. historical time series
+       
+      in this next section, the time series of various exogenous data are given.
+      these are used for historical and tracking runs.
+       
+      a brief explanation is
+       
+      cg         government consumption
+      xsa        agricultural total factor productivity
+      er         exchange rate to usd
+      usdefl     us gdp deflator
+      indefl     indian gdp deflator
+      savf       foreign savings
+      gtra       interest on national debt
+      gtrb       domestic current transfers
+      nfi        net factor income
+      nct        net current transfers
+      idshr      share of gross fixed investment in total investment
+      totlab     total labor in urban sectors
+      pkv..      b-matrix coefficients
+      pim.       international import prices
+      pie.       international export prices
+      totpu      total urban population
+      totpr      total rural population
+      gdpmp      gdp at market prices
+      privc      private consumption
+      gfi        gross fixed investment
+      invest     total investment
+      exports    export volume
+      imports    import volume
+      cns-curr   consumption at current market prices
+      gfi-curr   gross fixed investment at current market prices
+      inv-curr   total investment at current market prices
+      gdpmp-curr gdp at current market prices
+      exp-curr   exports at current market prices
+      imp-curr   imports at current market prices
+      cns-defl   consumption deflator
+      ax.        total factor productivity by sector
+      exscale    export volume scale factor
+      beta.      expenditure parameter by area
+      thetai     infrastructural savings rate
+       
+ 469   
+ 470  Table series(*,years)   exogenous data series
+ 471   
+ 472                7374      7475      7576      7677      7778      7879      7980      8081      8182     8283    8384
+ 473   
+ 474  cg          503.336   511.10    645.46    697.87    702.24    750.71    754.74    809.06    856.64   971.38 1008.49
+ 475  xsa           1.000    .9366    1.1158     .9504    1.1097    1.0306     .8981    1.1041    1.0356   0.9796  1.1364
+ 476   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 13
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+time series of exogenous data
+
+
+ 477  er            7.791    7.796     8.653     8.939     8.563     8.206     8.076     7.893     8.929    9.628  10.312
+ 478  usdefl       1.0000   1.0878    1.1862    1.2539    1.3274    1.4259    1.5469    1.6845    1.8422   1.9595  2.0354
+ 479  indefl       1.0000   1.1665    1.1181    1.1948    1.2395    1.2648    1.4572    1.6157    1.7789   1.9119  2.1381
+ 480  savf           47.9     96.1      57.9    -103.1     -90.3     -57.5     -29.9     199.6     241.2    237.0   265.0
+ 481   
+ 482  gtra          47.70    34.00     49.10     60.10     69.70     93.40    100.80    149.00    184.20   270.40  270.40
+ 483  gtrb          90.90   115.00    135.00    154.70    176.20    200.50    239.20    283.50    331.10   400.50  400.50
+ 484  nfi          -32.50   -29.10    -25.50    -23.30    -23.30    -15.60     15.30     29.80      -.70   -68.10  -68.10
+ 485  nct           19.20    27.40     52.80     73.90    102.20    104.20    162.40    225.70    222.10   252.70  252.70
+ 486   
+ 487  idshr        0.7954   0.7604    0.8201    0.8746    0.9281    0.8280    0.8111    0.8253    0.8346   0.8575  0.8583
+ 488   
+ 489  const       133.125   134.88    136.67    138.47    140.31    142.17    144.05    145.96    147.91  149.885  152.64
+ 490  totlab        65.09    67.88     70.75     73.75     76.84     80.06     83.39     86.84     90.43    95.14   97.10
+ 491   
+ 492  pkvsa        0.1807   0.1537    0.1511    0.2071    0.2071    0.2080    0.1845    0.1861    0.1696   0.1585  0.1605
+ 493  pkvni        0.2909   0.3703    0.2967    0.2322    0.2752    0.2912    0.3356    0.2924    0.3038   0.2777  0.2725
+ 494  pkvsi        0.1167   0.1350    0.1827    0.1761    0.1830    0.1504    0.1770    0.1825    0.1952   0.2549  0.2457
+ 495  pkvss        0.4117   0.3411    0.3695    0.3846    0.3346    0.3505    0.3029    0.3390    0.3314   0.3092  0.3213
+ 496   
+ 497  pim1         1.0000   1.2582    1.5165    1.4615    1.4451    1.5495    1.8956    1.7261    1.5030   1.3932  1.3841
+ 498  pim2         1.0000   1.9203    1.5072    1.6667    1.4783    1.4710    1.8261    1.1915    1.3386   1.1637  1.2940
+ 499  pim3         1.0000   1.3826    1.8261    2.0174    1.7913    2.2957    2.7826    1.9146    1.6529   1.6123  1.5498
+ 500  pim4         1.0000   1.6423    1.9238    1.6655    1.6548    1.6830    1.9890    1.9275    2.0165   2.0239  2.0025
+ 501  pim5         1.0000   2.2036    2.4820    2.7695    2.8593    2.8533    4.5350    6.8905    8.1604   7.7164  6.9373
+ 502  pim6         1.0000   1.0000    1.0000    1.0000    1.0000    1.0000    1.0000    1.0000    1.0000   1.0000  1.0000
+ 503   
+ 504  pie1         1.0000   1.3202    1.3051    1.3065    1.9159    1.3546    0.8066    1.3053    1.5555   1.2789  1.2691
+ 505  pie2         1.0000   1.2412    1.3048    1.5450    1.8197    1.8975    1.9845    2.0995    2.2128   2.1709  2.0801
+ 506  pie3         1.0000   0.8929    1.2857    1.2929    1.3857    1.3286    1.5500    1.3552    1.6076   1.5771  1.5111
+ 507  pie4         1.0000   1.3776    1.4375    1.4746    1.4763    1.4986    1.6509    1.7620    2.0759   2.0366  1.9914
+ 508   
+ 509  totpu        122.00   124.89    129.90    134.85    140.05    145.70    151.39    157.26    163.23   169.38  175.89
+ 510  totpr        458.00   468.11    477.10    485.15    493.95    503.30    512.61    521.74    530.77   539.62  549.11
+ 511   
+ 512  gdpmp        5944.2                                                                                  8611.2  9261.9
+ 513  privc        4340.3   4157.8    4311.7    4206.7    4847.8    4981.0    4479.0    4961.4    5280.9   5460.3  5940.0
+ 514  gfi           902.9    917.9    1182.3    1314.2    1394.7    1481.2    1456.4    1610.0    1715.0   1785.1  1895.1
+ 515  invest       1135.2   1207.2    1441.6    1502.6    1502.8    1788.9    1795.5    1950.9    2054.8   2081.8  2207.9
+ 516  exports       283.0    306.0     356.6     426.8     410.5     444.0     518.5     517.0     516.2    532.9   559.1
+ 517  imports       317.6    275.9     279.2     278.7     363.1     394.1     377.9     554.4     598.6    599.9   624.6
+ 518  cns-curr     4340.3
+ 519  gfi-curr      902.9   1093.0    1324.8    1526.7    1714.6    1882.5    2090.2    2521.7    2971.6   2971.6  2971.6
+ 520  inv-curr     1135.2   1450.9    1641.8    1766.9    1854.8    2293.3    2622.8    3144.3    3668.0   3668.0  3668.0
+ 521  gdpmp-curr   5944.2   6968.1    7202.3    7586.7    8716.1    9610.3   10120.4   11989.6   14161.5  14161.5 14161.5
+ 522  exp-curr      283.0    383.5     481.2     613.9     663.6     711.5     838.1     902.9    1025.3   1025.3  1025.3
+ 523  imp-curr      317.6    477.9     566.4     561.4     652.2     742.6     985.9    1357.9    1487.9   1487.9  1487.9
+ 524  cns-defl     1.0000   1.2019    1.1389    1.1759    1.2342    1.2820    1.4608    1.6117    1.7851   1.7851  1.7851
+ 525  gdpc         5377.2   5423.5    5936.0    5981.1    6508.0    6882.3    6518.0    7030.2    7406.3   7534.4  7958.1
+ 526   
+ 527  ax1               1    .9677    1.0504     .9931    1.0141    1.0149     .9884    1.0823    1.0238    .9726  1.0623
+ 528  ax2               1   1.2461    1.2442    1.2179    1.3060    1.5719    1.7899    1.7452    1.6679   1.8441  1.8293
+ 529  ax3               1   1.1884    1.3716    1.6430    1.6913    1.6744    1.9078    1.4786    1.5309   2.0376  1.8724
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 14
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+time series of exogenous data
+
+
+ 530  ax4               1    .7520     .5640     .7232     .8045     .8531     .6947     .5982     .6997    .7295   .7110
+ 531  ax5               1    .7509     .5631     .6157     .6351     .5144     .3781     .4568     .5778    .5619   .7504
+ 532  ax6               1    .9837     .7377     .8285     .9107     .8105     .7230     .7224     .7740    .7775   .7132
+ 533   
+ 534  exscale           1    .9000    1.0890    1.1165    1.0487    1.0540    1.0337     .8801    1.1469   1.2994  1.2439
+ 535  betar             1        1    1.0372    1.0554    1.1103    1.0940     .9958     .9817     .9359    .9576  1.0020
+ 536  betau             1        1     .9000     .8100     .8930     .8930     .8037     .8941    1.1175   1.1052  1.1100
+ 537  thetai                .12098    .53921    .16502    .14852    .16845    .19778    .16345    .12949   .17234  .18768
+ 538        ;
+ 539   
+ 540  *
+ 541  * here, these series are recalculated to yield other useful quantities
+ 542  *
+ 543   
+ 544  series("cns-curr",years) = series("privc",years) * series("cns-defl",years) ;
+ 545   
+ 546  series("pim1",years) = series("pim1",years) / series("usdefl",years) ;
+ 547  series("pim2",years) = series("pim2",years) / series("usdefl",years) ;
+ 548  series("pim3",years) = series("pim3",years) / series("usdefl",years) ;
+ 549  series("pim4",years) = series("pim4",years) / series("usdefl",years) ;
+ 550  series("pim5",years) = series("pim5",years) / series("usdefl",years) ;
+ 551  series("pim6",years) = series("pim6",years) / series("usdefl",years) ;
+ 552   
+ 553  series("pie1",years) = series("pie1",years) / series("usdefl",years) ;
+ 554  series("pie2",years) = series("pie2",years) / series("usdefl",years) ;
+ 555  series("pie3",years) = series("pie3",years) / series("usdefl",years) ;
+ 556  series("pie4",years) = series("pie4",years) / series("usdefl",years) ;
+ 557   
+ 558   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 15
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+parameter declarations
+
+
+ 560   
+ 561   
+       
+      4. parameter declarations
+      4.a for core model formulation
+       
+      we now declare those parameters that are actually used in the model formulation
+      the cryptic references to x, q, etc. are to variables defined later
+       
+ 571   
+ 572  Parameter pie(i)      international prices                                (rp per unit)
+ 573            pim(i)      import prices by commodity                          (rp per unit)
+ 574            dw(r)       initial wage rates                                  (rp per unit)
+ 575            dcpi(r)     initial cpi                                         (rp per unit)
+ 576   
+ 577            k(i)        capital and land stock                                    (units)
+ 578            dg(i)       initial infrastructure input by sector                    (units)
+ 579            totlab      total employment in urban sectors                         (units)
+ 580            dsa(i)      stock available from last year                            (units)
+ 581   
+ 582            aq(sc)      scaling for q-production function                      (unitless)
+ 583            az(i)       scaling for z-production function                      (unitless)
+ 584            an(i)       scaling for n-production function                      (unitless)
+ 585            as(i)       scaling for s-production function                      (unitless)
+ 586            av(i)       scaling for v-production function                      (unitless)
+ 587            aex(i)      scale of export demands                                   (units)
+ 588   
+ 589            depp(i)     depreciation rate for land or capital income           (unitless)
+ 590            depl(i)     depreciation rate for self-employment income           (unitless)
+ 591   
+ 592            trmd(i)     trade margin rate on domestic demand                   (unitless)
+ 593            trmx(i)     trade margin rate on exports                           (unitless)
+ 594            trmm(i)     trade margin rate on imports                           (unitless)
+ 595   
+ 596            thetak(i)   enterprise savings rates                               (unitless)
+ 597            ratinf      share of infrastructure in output of pub_infr          (unitless)
+ 598   
+ 599            idshr       share of gross fixed investment in total investment    (unitless)
+ 600            dstshr      share of change in stock in total investment           (unitless)
+ 601            aid(i)      sector i share of gross fixed investment               (unitless)
+ 602            adst(i)     sector i share of change in stocks                     (unitless)
+ 603            cg(i)       government demand                                         (units)
+ 604   
+ 605            deltaq(sc)  share parameter for  q                                 (unitless)
+ 606            deltax(i)   share parameter for  x                                 (unitless)
+ 607            deltaz(i)   share parameter for  z                                 (unitless)
+ 608            deltan(i)   share parameter for  n                                 (unitless)
+ 609            deltas(i)   share parameter for  s                                 (unitless)
+ 610            deltav(i)   share parameter for  v                                 (unitless)
+ 611   
+ 612            sigmaq(sc)  elasticity of substitution between  x and  m           (unitless)
+ 613            sigmax(i)   elasticity of substitution between  z and  g           (unitless)
+ 614            sigmaz(i)   elasticity of substitution between  v and  n           (unitless)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 16
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+parameter declarations
+
+
+ 615            sigman(i)   elasticity of substitution between nd and nm           (unitless)
+ 616            sigmav(i)   elasticity of substitution between  s and lw           (unitless)
+ 617            sigmas(i)   elasticity of substitution between  h and ls           (unitless)
+ 618   
+ 619            rhoq(sc)    ces function exponent for q                            (unitless)
+ 620            rhox(i)     ces function exponent for x                            (unitless)
+ 621            rhoz(i)     ces function exponent for z                            (unitless)
+ 622            rhon(i)     ces function exponent for n                            (unitless)
+ 623            rhov(i)     ces function exponent for v                            (unitless)
+ 624            rhos(i)     ces function exponent for s                            (unitless)
+ 625   
+ 626            alpha(r)    intercept of household expenditure function            (unitless)
+ 627            pop(r)      population by region                                      (units)
+ 628   
+ 629            eta(i)      export elasticity                                      (unitless)
+ 630            mu          social weight on equity                                (unitless)
+ 631            psi         weight for private utility in objective function       (unitless)
+ 632            ksi         weight for investment in objective function            (unitless)
+ 633   
+ 634            er          exchange rate                                          (rp per $)
+ 635            usdefl      gdp deflator for usd                                   (unitless)
+ 636            indefl      gdp deflator for indian rupee                          (unitless) ;
+ 637   
+       
+      4.b for reports and tracking
+       
+       
+      the next parameters are primarily used for reporting, for tracking
+      exercises and for historical runs
+       
+ 647   
+ 648  Parameter rcons(*,acv) gdp expenditure by sector (constant prices)
+ 649            rcurr(*,acv) gdp expenditure by sector (current prices)
+ 650   
+ 651            er0          foreign exchange rate in previous period              (rp per $)
+ 652            pim0(i)      import prices in previous period                   (rp per unit)
+ 653            pnm0(i)      price of intermediate imports in previous period   (rp per unit)
+ 654            pc0(i)       consumer prices in previous period                 (rp per unit)
+ 655            v0(i)        value added in previous period                           (units)
+ 656            pv0(i)       prices of value added in previous period           (rp per unit)
+ 657            pls0(r)      wage of self-employment in previous period         (rp per unit)
+ 658            pk0(i)       return on land or capital in previous period       (rp per unit)
+ 659            pq0(i)       price of output in previous year                   (rp per unit)
+ 660            ax0(i)       previous period ax                                    (unitless)
+ 661            beta0(r)     previous period beta                                  (unitless)
+ 662            exscale0     previous period exscale                               (unitless)
+ 663   
+ 664            gdptg        gdpmp - target
+ 665            cnstg        private consumption - target
+ 666            gfitg        fixed investments - target
+ 667            invtg        total investments - target
+ 668            exptg        exports - target
+ 669            imptg        imports - target
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 17
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+parameter declarations
+
+
+ 670   
+ 671            gdppr        gdp at market prices in previous period
+ 672            cnspr        private consumption in previous period
+ 673            gfipr        fixed investments in previous period
+ 674            invpr        total investments in previous period
+ 675            exppr        exports in previous period
+ 676            imppr        imports in previous period
+ 677   
+ 678            pim00(i)     import prices - base year                          (rp per unit)
+ 679            pnm00(i)     price of intermediate imports in base period       (rp per unit)
+ 680            k00(i)       land and capital in base period                          (units)
+ 681            er00         exchange rate in base period (1973-74)             (rp per $)
+ 682            mc00(r)      mean per capita consumption in base period            (current )
+ 683            v00(i)       value added in base period                               (units)
+ 684            pv00(i)      price of v in base period                          (rp per unit)
+ 685            pc00(i)      consumer prices in base period                     (rp per unit)
+ 686            pg00(i)      price of infrastructure in base period             (rp per unit)
+ 687            pls00(r)     wage of self-employment in base period             (rp per unit)
+ 688            w00(r)       wage rates of organized labor in base period       (rp per unit)
+ 689            pk00(i)      return to land or capital in base period           (rp per unit)
+ 690            pq00(i)      output prices in base period                       (rp per unit)
+ 691   
+ 692            gdp00        gdpmp in base period
+ 693            cns00        private consumption in base period
+ 694            gfi00        fixed investments in base period
+ 695            inv00        investments in base period
+ 696            exp00        exports in base period
+ 697            imp00        imports in base period
+ 698            c00(r)       base year consumption by region
+ 699            cg0(i)       base year public consumption
+ 700   
+ 701            ytotal(*,*,*)  income totals for urban-rural-total
+ 702   
+ 703            conex(*,r)     per capita consumption
+ 704            pcinc(*,r)     per capita income
+ 705            savrat(*,r)    savings ratio
+ 706            totco(*,*)     total consumption by sector (quantity and value at constant prices)
+ 707            shrco(i,r)     shares of consumption by sector and class (constant prices)
+ 708            elsup(*)       elasticities of supply
+ 709            elcon(*,*,*)   elasticities of consumption
+ 710   
+ 711            ut1(r)         utility at current period
+ 712            ut0(r)         utility at base period
+ 713   
+ 714            cli(*)         cost of living index   (with respect to base period)
+ 715   
+ 716            taxdir         tax revenue -- direct
+ 717            taxind         tax revenue -- indirect
+ 718            taximp         tax revenue -- net import duty
+ 719            infras         income from infrastructure
+ 720            govr           net tax revenue + infrastructure income
+ 721            govsav         government savings
+ 722            tgovr          savg + infrastructure income
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 18
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+parameter declarations
+
+
+ 723            govtrn         government transfer
+ 724            govcon         government consumption
+ 725            govex          government expenditure
+ 726            gap            defined as (govr - govex - tgovr)
+ 727            dsapq(*)       dsa*pq
+ 728            totdepr        total depreciation (capital and self-employment income)
+ 729            deprec0(i)     depreciation evaluated at previous years prices
+ 730            gva(*)         gross value added
+ 731            gdp(*)         gross domestic product
+ 732   
+ 733            grthr(acv)     growth ratios of constant price components of gdp
+ 734            deflnac        deflators comparable to nac deflators (based on previous year)
+ 735            dflnacb(i)     price deflators relative to base period
+ 736            relnacb0(i)    relative price deflators in base period
+ 737            relnacb(i)     relative price deflators in current period
+ 738            chgnacb(i)     change in relative price deflators
+ 739   
+ 740            exppi          export price index
+ 741            imppi          import price index
+ 742            tradeterm      terms of trade
+ 743   
+ 744            xparm(*,*)     parameters for static experiments
+ 745            match(*,*)     actual and target values
+ 746            parm(*,*)      current values of parameters
+ 747            pkv(i)         b matrix coefficients
+ 748            chgv(i)        change in v ;
+ 749   
+ 750   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 19
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+variable declarations
+
+
+ 752   
+ 753   
+       
+      5. variable declarations
+      5.a for core model formulation
+      we now define the variables that are used in the static (single period) model
+      laid out below. to understand the relationships among x, g, q, etc., remember
+      the nested ces tree production structure:
+       
+                                   q        composite output
+                                  / \
+                                 x   m      domestic production and final imports
+                                / \
+                               z   g        gross domestic prod. and infrastructure
+                              / \
+                             /   \
+                            v      n        value added and intermediates
+                           / \    / \
+                          s   lw nd  nm     value added aggregate/wage labor and
+                         / \                domestic/imported intermediates
+                        k   ls              capital and self-employed labor
+       
+ 776   
+ 777  Variable x(i)       gross output                                                (units)
+ 778           g(i)       flow of infrastructure                                      (units)
+ 779           q(i)       aggregate supply                                            (units)
+ 780           pq(i)      price of final output                                 (rp per unit)
+ 781           m(i)       final import demands                                        (units)
+ 782           pm(i)      post-tax and trade margin import prices               (rp per unit)
+ 783           z(i)       z output                                                    (units)
+ 784           v(i)       value added                                                 (units)
+ 785           n(i)       intermediate net of infrastructure                          (units)
+ 786           px(i)      price of output                                       (rp per unit)
+ 787           pz(i)      price of z                                            (rp per unit)
+ 788           s(i)       value added subaggregate                                    (units)
+ 789           lw(i)      employment of wage labor                                    (units)
+ 790           pv(i)      price of value added                                  (rp per unit)
+ 791           ls(i)      self employment labor                                       (units)
+ 792           ps(i)      price of s output                                     (rp per unit)
+ 793           pnd(i)     price of domestic intermediate                        (rp per unit)
+ 794           w(r)       wage rates of organized labor                         (rp per unit)
+ 795           cpi(r)     consumer price index                                  (rp per unit)
+ 796           pls(r)     wage rate of self employment labor                    (rp per unit)
+ 797           pnm(i)     price of intermediate imports                         (rp per unit)
+ 798           pn(i)      price of intermediate goods                           (rp per unit)
+ 799           pk(i)      return to capital                                     (rp per unit)
+ 800           pc(i)      price of consumer goods                               (rp per unit)
+ 801           fd(i)      domestic final demand                                       (units)
+ 802           nd(i)      domestic intermediate goods                                 (units)
+ 803           nm(i)      import intermediate goods                                   (units)
+ 804           marg       trade margin service demand                                 (units)
+ 805           pg(i)      rent for infrastructure                               (rp per unit)
+ 806           y(ty,i)    factor income for sectors of economy                     (current )
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 20
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+variable declarations
+
+
+ 807           fy(ty,i)   fixed price factor income                            (base year rp)
+ 808           wtr(ty)    world transfers                                          (current )
+ 809           gtr(ty)    government transfers                                     (current )
+ 810           fwtr(ty)   fixed price world transfers                          (base year rp)
+ 811           fgtr(ty)   fixed price government transfers                     (base year rp)
+ 812           yh(ty,r)   income by region and income type                         (current )
+ 813           fyh(ty,r)  fixed price income by region and income type         (base year rp)
+ 814           ym(r)      mean per capita real income by region                      (units )
+ 815           mc(r)      mean per capita real consumption                           (units )
+ 816           ch(i,r)    private consumption                                         (units)
+ 817           savh(r)    household savings                                        (current )
+ 818           savf       foreign savings                                        (current $ )
+ 819           savg       government savings                                       (current )
+ 820           ex(i)      total exports                                               (units)
+ 821           invtot     total gross investments                                     (units)
+ 822           id(i)      investment demand by sector                                 (units)
+ 823           dst(i)     changes in stock by sector                                  (units)
+ 824           ax(i)      efficiency variable                                      (unitless)
+ 825           exscale    scaling of export demand                                 (unitless)
+ 826           tnd(i)     tax rate on domestic intermediate                        (unitless)
+ 827           tnm(i)     tax rate on imported intermediate                        (unitless)
+ 828           tfd(i)     tax rate on final demand                                 (unitless)
+ 829           tfm(i)     import tax rate                                          (unitless)
+ 830           tk(i)      tax rate on capital (profits)                            (unitless)
+ 831           tw(i)      tax rate on wages (income tax)                           (unitless)
+ 832           thetai     infrastructural savings rate                             (unitless)
+ 833           taum(i)    implicit tax on imports due to price differences         (unitless)
+ 834           lambda(r)  rate of wage adjustment parameter                        (unitless)
+ 835           beta(r)    slope of household expenditure function                  (unitless)
+ 836           util(r)    regional per capita utility                                 (utils)
+ 837           utility    objective value                                             (utils) ;
+ 838   
+ 839  Positive Variable pk ;
+ 840   
+       
+      5.b for the tracking model
+       
+      the next variables are used for tracking exercises
+       
+ 848   
+ 849  Variable dumtg            sum of square deviations (absolute)
+ 850           dumgrt           sum of square deviations in tracking
+ 851           dumshr           sum of square deviations (on shares)
+ 852           ogdpmp           model generated gdp at market prices
+ 853           ogdp             model generated gdp at factor prices
+ 854           ocns             model generated private consumption
+ 855           ogfi             model generated gross fixed investment
+ 856           ochs             model generated stock changes
+ 857           oinv             model generated total investment
+ 858           oexp             model generated exports
+ 859           oimp             model generated imports
+ 860           deprec00(i)      depreciation evaluated at base prices          (base year rp)
+ 861           deprec  (i)      depreciation evaluated at current prices            (current) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 21
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+variable declarations
+
+
+ 862   
+ 863   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 22
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+ 865   
+ 866   
+       
+      6. parameter calibration
+       
+      this section states various calibration and initialization maneuvres. they
+      basically amount to turning the model below on its head and determine
+      coefficients using required endogenous values. crucial in this respect is the
+      selection of various prices and coefficients which when kept fixed make the
+      model triangular. these assumptions are stated first. in particular, we choose
+      as many prices as possible to be set to 1 for convenience.
+       
+      although the calibration looks messy, it is really quite straightforward
+       
+      we switch to a notation where variables are capitalized and parameters are
+      lower case.
+       
+ 884   
+ 885  mu  = 1 ;
+ 886  psi = 1 ;
+ 887  ksi = 7 ;
+ 888   
+ 889  pie(i)   = 1 ;
+ 890  pim(i)   = 1 ;
+ 891  pim00(i) = pim(i) ;
+ 892  pg.l(i)  = 1 ;
+ 893  pg00(i) = baseprice(i,"pg00") ;
+ 894  px.l(i)  = 1 ;
+ 895  ps.l(i)  = 1 ;
+ 896  pv.l(i)  = 1 ;
+ 897  pn.l(i)  = 1 ;
+ 898  pz.l(i)  = 1 ;
+ 899  pq.l(i)  = 1 ;
+ 900   
+ 901  *
+ 902  * scaling
+ 903  *
+ 904   
+ 905  dat(datvar,i)     = dat(datvar,i)/100 ;
+ 906  tax(taxvar,i)     = tax(taxvar,i)/100 ;
+ 907  stock(stockvar,i) = stock(stockvar,i)/100 ;
+ 908   
+ 909  *
+ 910  * these statements massage historical data
+ 911  *
+ 912   
+ 913  sigmax(i) = elast("sigmax",i)*1.20  ;
+ 914  sigmaq(sc) = 0.90  ;
+ 915  sigmaz(i) = elast("sigmaz",i)*1.20  ;
+ 916  sigman(i) = elast("sigman",i)*1.20  ;
+ 917  sigmav(i) = elast("sigmav",i)*1.20  ;
+ 918  sigmas(i) = elast("sigmas",i)*1.20  ;
+ 919   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 23
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+ 920  eta(i) = elast("eta",i) * 1.20  ;
+ 921   
+ 922  *
+ 923  * calculate rho from sigma using definition
+ 924  *
+ 925   
+ 926  rhox(i)  = 1/sigmax(i)  - 1 ;
+ 927  rhoq(sc) = 1/sigmaq(sc) - 1 ;
+ 928  rhoz(i)  = 1/sigmaz(i)  - 1 ;
+ 929  rhon(i)  = 1/sigman(i)  - 1 ;
+ 930  rhov(i)  = 1/sigmav(i)  - 1 ;
+ 931  rhos(i)  = 1/sigmas(i)  - 1 ;
+ 932   
+ 933  *
+ 934  * copy from data base
+ 935  *
+ 936   
+ 937  k(i)    = stock("capital",i) ;
+ 938  pk.l(i) = dat("return-cap",i)/k(i) ;
+ 939  pk00(i) = baseprice(i,"pk00") ;
+ 940  pls.l("rural") = 11.182506 ;
+ 941  pls.l("urban") = 13.928    ;
+ 942  pls00("rural") = 11.2507  ;
+ 943  pls00("urban") = 13.7343  ;
+ 944  ls.l(i) = stock("self-empl",i)*100 ;
+ 945   
+ 946  * display k,pk.l,pls.l,ls.l ;
+ 947   
+ 948  *
+ 949  * calibrate deltas using equation firsts, s using equation values,
+ 950  * and as using equation prods
+ 951  *
+ 952   
+ 953  deltas(i)$ls.l(i) = (k(i)/ls.l(i))**(1/sigmas(i))*pk.l(i)/
+ 954                      sum(r$ri(r,i), pls.l(r)) ;
+ 955  deltas(i)$ls.l(i) = deltas(i)/(1+deltas(i)) ;
+ 956  deltas(i)$(not ls.l(i)) = 1 ;
+ 957  s.l(i) = dat("return-cap",i) + dat("self-empl",i) ;
+ 958  as(i) = s.l(i)*(deltas(i)*k(i)**(-rhos(i)) +
+ 959                  ((1-deltas(i))*ls.l(i)**(-rhos(i)))$(not si(i)))**
+ 960          (1/rhos(i)) ;
+ 961   
+ 962  * display deltas,s.l,ps.l,as ;
+ 963   
+ 964  *
+ 965  * more data points
+ 966  *
+ 967   
+ 968  dw("rural") = 11.163208 ;
+ 969  dw("urban") = 74.00     ;
+ 970  w.l(r) = dw(r) ;
+ 971  w00(r) = dw(r) ;
+ 972  lw.l(i) = stock("wage-labor",i)*100 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 24
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+ 973   
+ 974  * display w.l,lw.l ;
+ 975   
+ 976  *
+ 977  * calibrate deltav using equation firstv, v using equation valuev,
+ 978  * and av using equation prodv
+ 979  *
+ 980   
+ 981  deltav(i) = (s.l(i)/lw.l(i))**(1/sigmav(i))*ps.l(i)/sum(r$ri(r,i), w.l(r)) ;
+ 982  deltav(i) = deltav(i)/(1+deltav(i)) ;
+ 983  v.l(i)   = s.l(i) + dat("wage-labor",i) ;
+ 984  av(i)    = v.l(i)*(deltav(i)*s.l(i)**(-rhov(i)) +
+ 985                     (1-deltav(i))*lw.l(i)**(-rhov(i)))**
+ 986             (1/rhov(i)) ;
+ 987  v00(i) = baseprice(i,"v00") ;
+ 988  pv00(i) = baseprice(i,"pv00") ;
+ 989   
+ 990  * display deltav,v.l,pv.l,av ;
+ 991   
+ 992  *
+ 993  * calibrate pnm using equation pnmdet
+ 994  *
+ 995   
+ 996  trmm(i)  = rate("tradm-imp",i) ;
+ 997  tnm.l(i) = rate("taxrat-imp",i) ;
+ 998  pnm.l(i) = sum(j, am(j,i)*pim(j)*(1 + trmm(j) + tnm.l(j)) ) ;
+ 999  pnm0(i)  = pnm.l(i) ;
+1000  pnm00(i) = pnm.l(i) ;
+1001  nm.l(i)  = (dat("imp-inter",i)*(1+trmm(i)) + tax("imp-inter",i))/pnm.l(i) ;
+1002   
+1003  * display trmm,tnm.l,pnm.l,nm.l ;
+1004   
+1005  *
+1006  * calibrate pnd using equation pnddet
+1007  *
+1008   
+1009  tnd.l(i) = rate("taxrat-dom",i) ;
+1010  pnd.l(i) = sum(j, a(j,i)*pq.l(j)*(1 + tnd.l(j))  ) ;
+1011  nd.l(i)  = (dat("dom-inter",i)+tax("dom-inter",i))/pnd.l(i) ;
+1012   
+1013  * display tnd.l,pnd.l,nd.l ;
+1014   
+1015  *
+1016  * calibrate deltan using equation firstn, n using equation valuen,
+1017  * and an using equation prodn
+1018  *
+1019   
+1020  deltan(i) = (nd.l(i)/nm.l(i))**(1/sigman(i))*pnd.l(i)/pnm.l(i) ;
+1021  deltan(i) = deltan(i)/(1+deltan(i)) ;
+1022  n.l(i) = nd.l(i)*pnd.l(i) + nm.l(i)*pnm.l(i) ;
+1023  an(i) = n.l(i)*(deltan(i)*nd.l(i)**(-rhon(i)) +
+1024                  (1-deltan(i))*nm.l(i)**(-rhon(i)))
+1025          **(1/rhon(i)) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 25
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+1026   
+1027  * display deltan,n.l,pn.l,an ;
+1028   
+1029  *
+1030  * calibrate deltaz using equation firstz, z using equation valuez,
+1031  * and az using equation prodz
+1032  *
+1033   
+1034  deltaz(i) = (v.l(i)/n.l(i))**(1/sigmaz(i))*pv.l(i)/pn.l(i) ;
+1035  deltaz(i) = deltaz(i)/(1+deltaz(i)) ;
+1036  z.l(i)   = n.l(i) + v.l(i) ;
+1037  az(i)    = z.l(i)*(deltaz(i)*v.l(i)**(-rhoz(i)) +
+1038                     (1-deltaz(i))*n.l(i)**(-rhoz(i)))**
+1039             (1/rhoz(i)) ;
+1040   
+1041  * display deltaz,z.l,pz.l,az ;
+1042   
+1043  *
+1044  * calibrate deltax using equation firstx, x using equation valuex,
+1045  * and ax using equation prodx
+1046  *
+1047   
+1048  g.l(i)    = stock("infrast",i) ;
+1049  dg(i)     = g.l(i) ;
+1050  deltax(i) = (z.l(i)/g.l(i))**(1/sigmax(i))*pz.l(i)/pg.l(i) ;
+1051  deltax(i) = deltax(i)/(1+deltax(i)) ;
+1052  x.l(i)    = z.l(i) + g.l(i) ;
+1053  ax.l(i)   = x.l(i)*(deltax(i)*z.l(i)**(-rhox(i)) +
+1054                      (1-deltax(i))*g.l(i)**(-rhox(i)))**(1/rhox(i)) ;
+1055   
+1056  * display g.l,deltax,x.l,ax.l ;
+1057   
+1058  *
+1059  * calibrate taum using equation pmdef and taumdet
+1060  *
+1061   
+1062  pm.l(im)  = px.l(im) ;
+1063  tfm.l(i)  = rate("taxrfd-imp",i) ;
+1064   
+1065  taum.l(im) = px.l(im)/pim(im) - (1 + trmm(im) + tfm.l(im)) ;
+1066  taum.l(i)$(not im(i)) = 0 ;
+1067  taum.l(sc) = 0 ;
+1068   
+1069  pm.l(im)  = pim(im)*(1 + trmm(im) + tfm.l(im) + taum.l(im)) ;
+1070  m.l(im)   = dat("cons-imp",im) ;
+1071   
+1072  * display pm.l,taum.l,m.l ;
+1073   
+1074  *
+1075  * calibrate q using equation valueq, deltaq using equation firstq,
+1076  * and aq using prodq
+1077  *
+1078   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 26
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+1079  q.l(i) = x.l(i) + m.l(i) ;
+1080  q.l(sc) = x.l(sc) + (1 + trmm(sc) + tfm.l(sc))*m.l(sc) ;
+1081  deltaq(sc) = (x.l(sc)/m.l(sc))**(1/sigmaq(sc))*px.l(sc)/pm.l(sc) ;
+1082  deltaq(sc) = deltaq(sc)/(1+deltaq(sc)) ;
+1083  aq(sc) = q.l(sc)*(deltaq(sc)*x.l(sc)**(-rhoq(sc)) +
+1084                   (1-deltaq(sc))*m.l(sc)**(-rhoq(sc)))**
+1085           (1/rhoq(sc)) ;
+1086  pq0(i)  = pq.l(i) ;
+1087  pq00(i) = baseprice(i,"pq00") ;
+1088   
+1089  * display q.l,deltaq,pq.l ;
+1090   
+1091  *
+1092  * stock changes available and total labor
+1093  *
+1094   
+1095  dsa(i) = 0 ;
+1096  totlab = sum(i$(not sa(i)), ls.l(i) + lw.l(i)) ;
+1097   
+1098  *
+1099  * calibrate pc using equation pcdet
+1100  *
+1101   
+1102  trmd(i) = rate("tradm-fd",i) ;
+1103  tfd.l(i) = rate("taxrfd-dom",i) ;
+1104  pc.l(i) = pq.l(i)*(1 + tfd.l(i) + trmd(i) ) ;
+1105  pc00(i) = baseprice(i,"pc00") ;
+1106   
+1107  *
+1108  * parameters for linear expenditure share estimation
+1109  *
+1110   
+1111  alpha(r)  = conpar("alpha",r) ;
+1112  beta.l(r) = conpar("beta",r) ;
+1113  pop(r)    = conpar("pop",r) ;
+1114   
+1115  *
+1116  * other parameters
+1117  *
+1118   
+1119  tw.l(sa) = 0 ;
+1120  tw.l(i)$(not sa(i)) = 0.045      ;
+1121  tk.l(sa) =  0 ;
+1122  tk.l(i)$(not sa(i)) = 0.11 ;
+1123  thetak(si)  =  1.0 ;
+1124  thetai.l = 0 ;
+1125   
+1126  usdefl = 1.0   ;
+1127  indefl = 1.0   ;
+1128  er00 = sum(t, series("er",t)) ;
+1129  er   = er00 ;
+1130   
+1131  *
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 27
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+1132  * calibrate y, gtr and wtr using income determination equations
+1133  *
+1134   
+1135  y.l("yself",i) = sum(r$ri(r,i), pls.l(r) )*ls.l(i)*(1 - tw.l(i)) ;
+1136  y.l("ywage",i) = sum(r$ri(r,i), w.l(r))*lw.l(i)*(1 - tw.l(i)) ;
+1137  y.l("ycap",i)  = pk.l(i)*k(i)*(1 - thetak(i))*(1 - tk.l(i)) ;
+1138  y.l("yinfr",i) = pg.l(i)*g.l(i)*(1 - thetai.l) ;
+1139  gtr.l("ynonp") = (gtra + gtrb)/indefl ;
+1140  wtr.l("ynonp") = (nct + nfi)*(er00/er)/usdefl ;
+1141   
+1142  *
+1143  * calibrate private consumption using equations yhdef, mean, meanc, and les
+1144  *
+1145   
+1146  yh.l(ty,r) = sum(i, ayi(i,r)*y.l(ty,i)) + ayt(r)*(gtr.l(ty) + wtr.l(ty)) ;
+1147  ym.l("urban") = 14.52382 ;
+1148  ym.l("rural") = 7.36096 ;
+1149  mc.l(r)    = exp(alpha(r) + beta.l(r)*log(ym.l(r))) ;
+1150  ch.l(i,r)  = (pop(r)*(pc.l(i)*gamma(i,r) +
+1151                ac(i,r)*(mc.l(r) - sum(j, pc.l(j)*gamma(j,r) ) ) ))/pc.l(i) ;
+1152  ch.lo(i,r) = pop(r)*gamma(i,r) + 0.1;
+1153   
+1154  cpi.l(r) = (sum(i, pc.l(i)*ch.l(i,r)))/sum(i, ch.l(i,r)) ;
+1155  dcpi(r) = cpi.l(r) ;
+1156   
+1157  *
+1158  * calibrate investment using equations iddet and dstdet
+1159  *
+1160   
+1161  id.l(i)  = dat("fix-inv",i) ;
+1162  id.l(ss) = 0 ;
+1163  dst.l(i) = dat("change-sto",i)/pq.l(i) ;
+1164  invtot.l = sum(i, id.l(i) + dst.l(i)) ;
+1165  idshr    = sum(i, id.l(i))/invtot.l ;
+1166  dstshr   = sum(i, dst.l(i))/invtot.l ;
+1167  aid(i)   = id.l(i)/sum(j, id.l(j)) ;
+1168  adst(i)  = dst.l(i)/sum(j, dst.l(j)) ;
+1169   
+1170  *
+1171  * calibrate export demand using equation export
+1172  *
+1173   
+1174  trmx(i) = rate("tradm-exp",i) ;
+1175  ex.l(i)  = dat("xvoli",i)/pq.l(i) ;
+1176  aex(i) = ex.l(i)/(er00*pie(i)/(pq.l(i)*(1 + trmx(i))))**eta(i) ;
+1177   
+1178  *
+1179  * public consumption in real terms
+1180  *
+1181   
+1182  cg(i)    = dat("pub-cons",i)/pc.l(i) ;
+1183   
+1184  *
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 28
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+compute parameters and coefficients
+
+
+1185  * calibrate fd using equation fddef, marg using margdet
+1186  *
+1187   
+1188  fd.l(i) = sum(r, ch.l(i,r)) + id.l(i) + cg(i) ;
+1189   
+1190  marg.l = (sum(i, trmd(i)*pq.l(i)*fd.l(i) + trmx(i)*pq.l(i)*ex.l(i)
+1191         + (pim(i)*trmm(i)*m.l(i))$im(i)
+1192         + sum(j, am(j,i)*pim(j)*trmm(j) )*nm.l(i) ))/sum(ss, pq.l(ss)) ;
+1193   
+1194  *
+1195  * calibrate savings using budget constraints
+1196  *
+1197   
+1198  savh.l(r) = sum(ty, yh.l(ty,r)) - sum(i, pc.l(i)*ch.l(i,r));
+1199   
+1200  savg.l = sum(i, sum(j, am(j,i)*tnm.l(j)*pim(j))*nm.l(i) +
+1201                  sum(j, a(j,i)*pq.l(j)*tnd.l(j)) +
+1202                  ((tfm.l(i)+taum.l(i))*pim(i)*m.l(i))$im(i) +
+1203                  tw.l(i)*sum(r$ri(r,i), w.l(r))*lw.l(i) +
+1204                  sum(r$ri(r,i), pls.l(r))*ls.l(i)*tw.l(i) +
+1205                  tk.l(i)*pk.l(i)*k(i)*(1-thetak(i)) +
+1206                  tfd.l(i)*pq.l(i)*sum(r, ch.l(i,r)) ) -
+1207           sum(i, pq.l(i)*cg(i)) - sum(ty, gtr.l(ty)) ;
+1208   
+1209  lambda.l(r) = 1.0 ;
+1210  ratinf = 0.758039594 ;
+1211   
+1212  depp(i) = rate("dep-prof",i) ;
+1213  depl(i) = rate("dep-lab",i) ;
+1214   
+1215   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 29
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+parameters for objective function
+
+
+1217   
+1218   
+       
+      7. setting parameters for tracking versions
+       
+      these parameters are used for tracking exercises
+       
+1226   
+1227  Parameter wtot        weights sum
+1228            wgdp        weight for gdp tracking
+1229            wcns        weight for private consumption tracking
+1230            winv        weight for investment tracking
+1231            wexp        weight fot export tracking
+1232            wimp        weight for import tracking
+1233            gdpgrt      growth rate of gdp at market prices
+1234            cnsgrt      growth rate of private consumption
+1235            gfigrt      growth rate of fixed investment
+1236            invgrt      growth rate of total investment
+1237            expgrt      growth rate of exports
+1238            impgrt      growth rate of imports
+1239            cnsshr      ratio of consumption to gdp at market prices
+1240            gfishr      ratio of gfi to gdp at market prices
+1241            expshr      ratio of exports to gdp at market prices
+1242            impshr      ratio of imports to gdp at market prices ;
+1243   
+1244  gdptg  = sum(t, series("gdpmp",t)) ;
+1245  cnstg  = sum(t, series("privc",t)) ;
+1246  gfitg  = sum(t, series("gfi",t)) ;
+1247  invtg  = sum(t, series("invest",t)) ;
+1248  exptg  = sum(t, series("exports",t)) ;
+1249  imptg  = sum(t, series("imports",t)) ;
+1250  gdpgrt = sum(t, series("gdpc",t)/series("gdpc",t)) ;
+1251  cnsgrt = sum(t, series("privc",t)/series("privc",t)) ;
+1252  gfigrt = sum(t, series("gfi",t)/series("gfi",t)) ;
+1253  invgrt = sum(t, series("invest",t)/series("invest",t)) ;
+1254  expgrt = sum(t, series("exports",t)/series("exports",t)) ;
+1255  impgrt = sum(t, series("imports",t)/series("imports",t)) ;
+1256  cnsshr = sum(t, series("privc",t))/gdptg ;
+1257  gfishr = sum(t, series("gfi",t))/gdptg ;
+1258  expshr = sum(t, series("exports",t))/gdptg ;
+1259  impshr = sum(t, series("imports",t))/gdptg ;
+1260   
+1261  wgdp = 1.0 ;
+1262  wcns = 1.0 ;
+1263  winv = 1.0 ;
+1264  wexp = 1.0 ;
+1265  wimp = 1.0 ;
+1266  wtot = wgdp + wcns + winv + wexp + wimp ;
+1267  wgdp = wgdp/wtot ;
+1268  wcns = wcns/wtot ;
+1269  winv = winv/wtot ;
+1270  wexp = wexp/wtot ;
+1271  wimp = wimp/wtot ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 30
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+parameters for objective function
+
+
+1272   
+1273  gdp00 = gdptg ;
+1274  cns00 = cnstg ;
+1275  gfi00 = gfitg ;
+1276  inv00 = invtg ;
+1277  exp00 = exptg ;
+1278  imp00 = imptg ;
+1279   
+1280  gdppr = gdptg ;
+1281  cnspr = cnstg ;
+1282  gfipr = invtg ;
+1283  invpr = invtg ;
+1284  exppr = exptg ;
+1285  imppr = imptg ;
+1286   
+1287   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 31
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equation declarations
+
+
+1289   
+1290   
+       
+      8. equation declarations
+       
+      here, we declare the model equations. they are subsequently defined
+       
+1298   
+1299  Equation obj           objective function                                              (utils)
+1300           objgrt        objective function for growth rate tracking
+1301           qgdpmp        determination of gdp at market prices
+1302           qgdp          determination of gdp at factor prices
+1303           qcns          determination of private consumption
+1304           qgfi          determination of gross fixed investment
+1305           qchs          determination of stock changes
+1306           qinv          determination of total investment
+1307           qexp          determination of exports
+1308           qimp          determination of imports
+1309           qdep00(i)     determination of depreciation at base year prices
+1310           qdep(i)       determination of depreciation
+1311           valueq(i)     value of final output of capital goods                    (current )
+1312           prodq(sc)     ces production function for final output of capital goods    (units)
+1313           firstq(sc)    first order condition for cost min of q                      (units)
+1314           pmdef(i)      definition of post-tax import prices                   (rp per unit)
+1315           supply(i)     total non-capital goods supply                               (units)
+1316           taumdet(i)    determination of taum                                  (rp per unit)
+1317           infalloc(i)   allocation of infrastructure                                 (units)
+1318           valuex(i)     value of gross output                                     (current )
+1319           prodx(i)      ces production function for gross output                     (units)
+1320           firstx(i)     first order condition for profit max of gross output         (units)
+1321           valuez(i)     value of ces z subaggregate                               (current )
+1322           prodz(i)      ces production function for ces z subaggregate               (units)
+1323           firstz(i)     first order condition for cost min of ces subaggregate       (units)
+1324           valuen(i)     value of intermediate production                          (current )
+1325           prodn(i)      ces production function for intermediates                    (units)
+1326           firstn(i)     first order condition for cost min of intermediates          (units)
+1327           pnddet(i)     determination of domestic intermediates price          (rp per unit)
+1328           pnmdet(i)     determination of imported intermediates price          (rp per unit)
+1329           values(i)     value of value added subaggregate                         (current )
+1330           prods(i)      ces production function for value added subaggregate         (units)
+1331           firsts(i)     first order condition for cost min of value added subagg     (units)
+1332           valuev(i)     value added exemption                                     (current )
+1333           prodv(i)      ces production function for value added                      (units)
+1334           firstv(i)     first order condition for value added maximization           (units)
+1335           wdet(r)       determination of wage of organized labor               (rp per unit)
+1336           lmclear       non-agricultural labor market clearing                       (units)
+1337           pcdet(i)      determination of consumer prices                       (rp per unit)
+1338           cpidet(r)     determination of cpi                                   (rp per unit)
+1339           yself(i)      determination of self employed income                     (current )
+1340           fyself(i)     determination of self employed real income            (base year rp)
+1341           ywage(i)      determination of labor income                             (current )
+1342           fywage(i)     determination of labor real income                    (base year rp)
+1343           ycap(i)       determination of capital and land income                  (current )
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 32
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equation declarations
+
+
+1344           fycap(i)      determination of capital and land real income         (base year rp)
+1345           yinfr(i)      determination of infrastructure income                    (current )
+1346           fyinfr(i)     determination of infrastructure real income           (base year rp)
+1347           wtrdet        determination of transfers from abroad                    (current )
+1348           gtrdet        determination of government transfers                     (current )
+1349           fwtrdet       determination of real transfers from abroad           (base year rp)
+1350           fgtrdet       determination of government real transfers            (base year rp)
+1351           yhdef(ty,r)   definition of regional income                             (current )
+1352           fyhdef(ty,r)  definition of regional real income                    (base year rp)
+1353           mean(r)       mean per capita income determination                  (base year rp)
+1354           meanc(r)      determination of mean per capita consumption          (base year rp)
+1355           les(i,r)      linear expenditure system                                 (current )
+1356           iddet(i)      allocation of gross fixed investment                         (units)
+1357           dstdet(i)     allocation of stock changes                                  (units)
+1358           hbudget(r)    household budget constraint                               (current )
+1359           gbudget       government budget constraint                              (current )
+1360           fddef(i)      definition of domestic final demands                         (units)
+1361           export(i)     downward sloping export demand curves                        (units)
+1362           equil(i)      market clearing conditions                                   (units)
+1363           margdet       determination of total trade margins                      (current )
+1364           fbudget       rest of the world budget constraint                       (current )
+1365           invsav        investment savings equality                               (current )
+1366           utildef(r)    definition of regional utility                               (utils) ;
+1367   
+1368   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 33
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equations of the model
+
+
+1370   
+1371   
+       
+      9. core model equations
+      9.a production technology
+       
+      here comes the production technology description. for explanation, see the
+      above nested ces tree. the equations generally fall in groups of three in this
+      section:
+       
+      valuex states the material balance in current prices for the output
+             of x (product exhaustion - which is consistent with the assumption of
+             constant returns to scale)
+       
+      prodx  states the ces production function for x
+       
+      firstx states the first order condition for profit maximization of cost
+             minimization under this technology.
+       
+      in addition to such equations, we also have a number of price equations, which
+      should be straight forward (margings and taxes are all accounted for).
+       
+      since the production equations also implicitly account for the factor markets,
+      we also include the labor market clearing equation here.
+       
+1397   
+1398  valueq(i)..   q(i)*pq(i) =e= x(i)*px(i) + (m(i)*pm(i))$im(i)  ;
+1399   
+1400  prodq(sc)..   q(sc) =e=
+1401                aq(sc)*(deltaq(sc)*x(sc)**(-rhoq(sc)) +
+1402                        (1-deltaq(sc))*m(sc)**(-rhoq(sc)))**
+1403                       (-1/rhoq(sc)) ;
+1404   
+1405  firstq(sc)..  x(sc) =e=
+1406                m(sc)*(pm(sc)*deltaq(sc)/(px(sc)*(1-deltaq(sc))))**sigmaq(sc) ;
+1407   
+1408  pmdef(im)..   pm(im) =e= pim(im)*(1 + trmm(im) + tfm(im) + taum(im)) ;
+1409   
+1410  supply(i)$(not sc(i))..
+1411                q(i) =e= x(i) + m(i)$im(i) ;
+1412   
+1413  taumdet(im)$(not sc(im))..
+1414                pm(im) =e= px(im) ;
+1415   
+1416  valuex(i)..   x(i)*px(i) =e= g(i)*pg(i) + z(i)*pz(i) ;
+1417   
+1418  prodx(i)..    x(i) =e=
+1419                ax(i)*(deltax(i)*z(i)**(-rhox(i)) +
+1420                       (1-deltax(i))*g(i)**(-rhox(i)))**(-1/rhox(i)) ;
+1421   
+1422  firstx(i)..   z(i) =e= g(i)*(pg(i)*deltax(i)/(pz(i)*(1-deltax(i))))**sigmax(i) ;
+1423   
+1424  valuez(i)..   z(i)*pz(i) =e= v(i)*pv(i) + n(i)*pn(i) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 34
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equations of the model
+
+
+1425   
+1426  prodz(i)..    z(i) =e=
+1427                az(i)*(deltaz(i)*v(i)**(-rhoz(i)) +
+1428                       (1-deltaz(i))*n(i)**(-rhoz(i)))**
+1429                      (-1/rhoz(i)) ;
+1430   
+1431  firstz(i)..   v(i) =e= n(i)*(pn(i)*deltaz(i)/(pv(i)*(1-deltaz(i))))**sigmaz(i) ;
+1432   
+1433  valuen(i)..   n(i)*pn(i) =e= nd(i)*pnd(i) + nm(i)*pnm(i) ;
+1434   
+1435  prodn(i)..    n(i) =e=
+1436                an(i)*(deltan(i)*nd(i)**(-rhon(i)) +
+1437                       (1-deltan(i))*nm(i)**(-rhon(i)))**
+1438                      (-1/rhon(i)) ;
+1439   
+1440  firstn(i)..   nd(i) =e=
+1441                nm(i)*(deltan(i)*pnm(i)/((1-deltan(i))*pnd(i)))**sigman(i) ;
+1442   
+1443  pnddet(i)..   pnd(i) =e= sum(j, a(j,i)*pq(j)*(1 + tnd(j))  ) ;
+1444   
+1445  pnmdet(i)..   pnm(i) =e= sum(j, am(j,i)*pim(j)*(1 + trmm(j) + tnm(j)) ) ;
+1446   
+1447  values(i)..   s(i)*ps(i) =e= k(i)*pk(i) + ls(i)*sum(r$ri(r,i), pls(r)) ;
+1448   
+1449  prods(i)..    s(i) =e=
+1450                as(i)*(deltas(i)*k(i)**(-rhos(i)) +
+1451                       ((1-deltas(i))*ls(i)**(-rhos(i)))$(not si(i)))**
+1452                      (-1/rhos(i)) ;
+1453   
+1454  firsts(i)$(not si(i))..
+1455               k(i) =e=
+1456               ls(i)*(sum(r$ri(r,i), pls(r))*deltas(i)/
+1457                      (pk(i)*(1-deltas(i))))**sigmas(i) ;
+1458   
+1459  valuev(i)..   v(i)*pv(i) =e= lw(i)*sum(r$ri(r,i), w(r)) + ps(i)*s(i) ;
+1460   
+1461  prodv(i)..    v(i) =e=
+1462                av(i)*(deltav(i)*s(i)**(-rhov(i)) +
+1463                       (1 - deltav(i))*lw(i)**(-rhov(i)))**
+1464                      (-1/rhov(i)) ;
+1465   
+1466  firstv(i)..   s(i) =e=
+1467                lw(i)*(sum(r$ri(r,i), w(r))*deltav(i)/
+1468                       (ps(i)*(1-deltav(i))))**sigmav(i) ;
+1469   
+1470  lmclear..     totlab =e= sum(i$(not sa(i)), lw(i) + ls(i) ) ;
+1471   
+1472  pcdet(i)..    pc(i) =e= pq(i)*(1 + tfd(i) + trmd(i) ) ;
+1473   
+1474  cpidet(r)..   cpi(r)*sum(i, ch(i,r)) =e= sum(i, pc(i)*ch(i,r)) ;
+1475   
+       
+      9.b income generation
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 35
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equations of the model
+
+
+       
+      income generation is defined next. we both state income at current and at
+      base year prices. these equations are just definitions, accouting for taxes
+      and transfers. in some cases, since parameters may be fixed in the current year
+      prices, they are first deflated and next reinflated using the relevant model
+      generated price index. this ensures that we do not have an implicit numeraire
+      problem.
+       
+1488   
+1489  yself(i)..    y("yself",i) =e= sum(r$ri(r,i), pls(r) )*ls(i)*(1 - tw(i)) ;
+1490   
+1491  ywage(i)..    y("ywage",i) =e= sum(r$ri(r,i), w(r))*lw(i)*(1 - tw(i)) ;
+1492   
+1493  ycap(i)..     y("ycap",i) =e= pk(i)*k(i)*(1 - thetak(i))*(1 - tk(i)) ;
+1494   
+1495  yinfr(i)..    y("yinfr",i) =e= pg(i)*g(i)*(1 - thetai) ;
+1496   
+1497  gtrdet..      gtr("ynonp") =e=
+1498                (gtra + gtrb)/indefl*sum(i, pv(i)*v(i))/sum(i, pv00(i)*v00(i)) ;
+1499   
+1500  wtrdet..      wtr("ynonp") =e=
+1501                (nct + nfi)*(er00/er)/usdefl*sum(i, pv(i)*v(i))/sum(i, pv00(i)*v00(i)) ;
+1502   
+1503  fgtrdet..     fgtr("ynonp") =e= (gtra + gtrb)/indefl ;
+1504   
+1505  fwtrdet..     fwtr("ynonp") =e= (nct + nfi)*(er00/er)/usdefl ;
+1506   
+1507  fyself(i)..   fy("yself",i) =e= sum(r$ri(r,i), pls00(r) )*ls(i)*(1 - tw(i))             ;
+1508   
+1509  fywage(i)..   fy("ywage",i) =e= sum(r$ri(r,i), w00(r))*lw(i)*(1 - tw(i)) ;
+1510   
+1511  fycap(i)..    fy("ycap",i) =e= pk00(i)*k(i)*(1 - thetak(i))*(1 - tk(i)) ;
+1512   
+1513  fyinfr(i)..   fy("yinfr",i) =e= pg00(i)*g(i)*(1 - thetai) ;
+1514   
+1515  yhdef(ty,r).. yh(ty,r) =e=
+1516                sum(i, ayi(i,r)*y(ty,i)) + ayt(r)*(gtr(ty) + wtr(ty)) ;
+1517   
+1518  fyhdef(ty,r).. fyh(ty,r) =e=
+1519                 sum(i, ayi(i,r)*fy(ty,i)) + ayt(r)*(fgtr(ty) + fwtr(ty)) ;
+1520   
+       
+      9.c expenditure system
+       
+      these equations state the expenditure system. they represent behavioral
+      assumptions
+       
+1529   
+1530  mean(r)..     ym(r)*pop(r) =e= sum(ty, fyh(ty,r) ) ;
+1531   
+1532  meanc(r)..    log(mc(r)) =e= alpha(r) + beta(r)*log(ym(r)) ;
+1533   
+1534  les(i,r)..    pc(i)*ch(i,r) =e=
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 36
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equations of the model
+
+
+1535                pop(r)*(pc(i)*gamma(i,r) +
+1536                        ac(i,r)*(mc(r) - sum(j, pc00(j)*gamma(j,r) ) )*
+1537                        prod(j, (pc(j)/pc00(j))**ac(j,r) ) ) ;
+1538   
+       
+      9.d investment and stock changes
+       
+      investment and stock changes are proportional to total investment, which in
+      investment driven versions is exogenous, and in savings driven versions is
+      endogenous.
+       
+1548   
+1549  iddet(i)..    id(i) =e= aid(i)*idshr*invtot ;
+1550   
+1551  dstdet(i)..   dst(i) =e= adst(i)*dstshr*invtot ;
+1552   
+       
+      9.e domestic budget constraints
+       
+      domestic budget constraints, representing accounting identities, with proper
+      accouting for taxes and transfers.
+       
+1561   
+1562  hbudget(r)..  savh(r) + sum(i, pc(i)*ch(i,r)) =e= sum(ty, yh(ty,r)) ;
+1563   
+1564  gbudget..     sum(i, pq(i)*cg(i)) + sum(ty, gtr(ty)) + savg =e=
+1565                sum(i, sum(j, am(j,i)*tnm(j)*pim(j))*nm(i) +
+1566                       sum(j, a(j,i)*pq(j)*tnd(j))*nd(i) +
+1567                       ((tfm(i)+taum(i))*pim(i)*m(i))$im(i) +
+1568                       tw(i)*sum(r$ri(r,i), w(r))*lw(i) +
+1569                       sum(r$ri(r,i), pls(r))*ls(i)*tw(i) +
+1570                       tk(i)*pk(i)*k(i)*(1-thetak(i)) +
+1571                       tfd(i)*pq(i)*sum(r, ch(i,r)) +
+1572                       tfd(i)*pq(i)*id(i) ) ;
+1573   
+       
+      9.f other final demands and market clearing requirements.
+       
+      other final demands and market clearing requirements.
+      export demands are downward sloping.
+       
+1582   
+1583  fddef(i)..   fd(i) =e= sum(r, ch(i,r)) + id(i) + cg(i) ;
+1584   
+1585  export(ie).. ex(ie) =e=
+1586               exscale*aex(ie)*(er00*pie(ie)/(pq(ie)*(1 + trmx(ie))))**eta(ie) ;
+1587   
+1588  margdet..    marg*sum(ss, pq(ss)) =e=
+1589                 sum(i, trmd(i)*pq(i)*fd(i)) + sum(ie, trmx(ie)*pq(ie)*ex(ie))
+1590               + sum(i, (pim(i)*trmm(i)*m(i))$im(i)
+1591               + sum(j, am(j,i)*pim(j)*trmm(j) )*nm(i) ) ;
+1592   
+1593  equil(i)..   q(i) + dsa(i) =e=
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 37
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equations of the model
+
+
+1594               fd(i) + sum(j, a(i,j)*nd(j)) + ex(i)$ie(i)
+1595             + dst(i) + marg$ss(i) + sum(j, g(j))$si(i) ;
+1596   
+1597  fbudget..   (savf/usdefl)*(er00/er)*sum(i, pc(i)*aid(i) )/sum(i, pc00(i)*aid(i) ) +
+1598               sum(ie, pq(ie)*(1 + trmx(ie))*ex(ie) ) + sum(ty, wtr(ty)) =e=
+1599               sum(im, pim(im)*m(im)) + sum(i, sum(j, am(j,i)*pim(j) )*nm(i) ) ;
+1600   
+       
+      9.g the savings-investment balance equation
+       
+      the savings-investment balance equation - which is redundant by walras' law
+       
+1608   
+1609  invsav..   sum(r, savh(r))
+1610            + (savf/usdefl)*(er00/er)*sum(i, pc(i)*aid(i))/sum(i, pc00(i)*aid(i))
+1611            + savg + thetai*sum(i, pg(i)*g(i)) + sum(i, thetak(i)*pk(i)*k(i) )
+1612            =e=
+1613             sum(i, dst(i)*pq(i) + id(i)*pc(i)) + sum(si, pq(si))*sum(i, g(i)) ;
+1614   
+       
+      9.h the static model utility function
+       
+      the static model utility function - with a concern for inequality. this may be
+      used for two purposes: straight optimization runs, or simply for assigning
+      meaningful shadow prices to various policy instruments. note the presence of
+      ksi*invtot - this is a proxy for intertemporal concerns about investment.
+       
+1625   
+1626  utildef(r)..
+1627              util(r)*pop(r) =e= prod(i, (ch(i,r)-gamma(i,r)*pop(r))**ac(i,r)) ;
+1628   
+1629  obj..       utility =e= psi*((sum(r, pop(r)*util(r)))$(mu = 1) +
+1630                               (1/mu*sum(r, pop(r)*util(r)**mu))$(mu <> 0 and mu <> 1) +
+1631                               (sum(r, pop(r)*log(util(r))))$(not mu)) +
+1632                          ksi*invtot ;
+1633   
+1634   
+       
+      9.i equations determining tracking indicators
+       
+      this set of equations relate to the tracking models - they define
+      indicators used in the objective function of that model version. they are
+      really just a glue on if used in conjunction with the base model.
+       
+1644   
+1645  qdep00(i)..   deprec00(i) =e=
+1646                pk00(i)*k(i)*depp(i) + sum(r$ri(r,i), pls00(r)*ls(i)*depl(i)) ;
+1647   
+1648  qdep(i)..     deprec(i) =e=
+1649                pk(i)*k(i)*depp(i) + sum(r$ri(r,i), pls(r)*ls(i)*depl(i)) ;
+1650   
+1651  qgdp..        ogdp =e= sum(i, pv00(i)*v(i)+deprec00(i) ) ;
+1652   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 38
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+equations of the model
+
+
+1653  qcns..        ocns =e= sum((i,r), pc00(i)*ch(i,r) ) ;
+1654   
+1655  qgfi..        ogfi =e=
+1656                sum(i, pc00(i)*id(i) +
+1657                       deprec(i)*idshr*sum(j, pc00(j)*aid(j) )/
+1658                       sum(j, pc(j)*aid(j) ) ) ;
+1659   
+1660  qchs..        ochs =e=
+1661                sum(i, pq00(i)*dst(i) +
+1662                       deprec(i)*dstshr*sum(j, pc00(j)*aid(j) )/
+1663                       sum(j, pc(j)*aid(j) ) ) ;
+1664   
+1665  qinv..        oinv =e= ogfi + ochs ;
+1666   
+1667  qexp..        oexp =e= sum(ie, ex(ie)*pq00(ie)*(1 + trmx(ie)) ) ;
+1668   
+1669  qimp..        oimp =e=
+1670                sum(i, (m(i)*pim00(i)*(1 + trmm(i)))$im(i) + nm(i)*pnm00(i) ) ;
+1671   
+1672  qgdpmp..      ogdpmp =e= ocns + sum(i, pc00(i)*cg(i) ) + oinv + oexp - oimp ;
+1673   
+1674   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 39
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+variable initialization
+
+
+1676   
+1677   
+       
+      10. variable initialization
+       
+      we need to bound certain variables to avoid numerical difficulties,
+      and to fix some. also, some should be initialized to meaningful values.
+      that is the purpose of the next section.
+       
+1687   
+1688  y.fx("ynonp",i) = 0 ;
+1689  wtr.fx(li)      = 0 ;
+1690  gtr.fx(li)      = 0 ;
+1691  fy.fx("ynonp",i)= 0 ;
+1692  fwtr.fx(li)     = 0 ;
+1693  fgtr.fx(li)     = 0 ;
+1694  thetai.fx       = thetai.l ;
+1695  ls.lo(i)  = .001 ;
+1696  ls.fx(i)$(not ls.l(i)) = 0 ;
+1697   
+1698  * initial values for variables
+1699   
+1700  util.l(r) = 10 ;
+1701  utility.l = 10 ;
+1702   
+1703  Option decimals = 5 ;
+1704  * display pc.l, pop, gamma, ac, mc.l ;
+1705   
+1706  x.lo(i)  = .001 ;
+1707  g.lo(i)  = .001 ;
+1708  z.lo(i)  = .001 ;
+1709  v.lo(i)  = .001 ;
+1710  n.lo(i)  = .001 ;
+1711  fd.lo(i) = .001 ;
+1712  lw.lo(i) = .001 ;
+1713  nd.lo(i) = .001 ;
+1714  nm.lo(i) = .001 ;
+1715  m.lo(sc) = .001 ;
+1716  s.lo(i)  = .001 ;
+1717   
+1718  px.lo(i)  = .001 ;
+1719  pg.lo(i)  = .001 ;
+1720  pz.lo(i)  = .001 ;
+1721  pv.lo(i)  = .001 ;
+1722  pn.lo(i)  = .001 ;
+1723  pc.lo(i)  = .001 ;
+1724  pq.lo(i)  = .001 ;
+1725  w.lo(r)   = .001 ;
+1726  pnd.lo(i) = .001 ;
+1727  pnm.lo(i) = .001 ;
+1728  pm.lo(i)  = .001 ;
+1729  ps.lo(i)  = .001 ;
+1730  pk.lo(i)  = .001 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 40
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+variable initialization
+
+
+1731   
+1732  pls.lo(r) = .001 ;
+1733  mc.lo(r)  = .001 ;
+1734  ym.lo(r)  = .001 ;
+1735   
+1736   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 41
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+model definitions
+
+
+1738   
+1739   
+       
+      11. core model versions
+       
+      we now state the two versions of the model: ganges is the comparative static
+      version, and ganges0 is the base year version which includes tracking
+      indicators.
+       
+1749   
+1750  Model ganges basic version of the india cge /
+1751   
+1752     infalloc, wdet,    valueq,  prodq,   firstq,  supply,  pmdef,   taumdet
+1753     valuex,   prodx,   firstx,  valuez,  prodz,   firstz,  valuen,  prodn
+1754     firstn,   pnddet,  pnmdet,  values,  prods,   firsts,  valuev,  prodv
+1755     firstv,   lmclear, pcdet,   cpidet,  yself,   ywage,   ycap,    yinfr
+1756     gtrdet,   wtrdet,  fyself,  fywage,  fycap,   fyinfr,  fgtrdet, fwtrdet
+1757     yhdef,    fyhdef,  mean,    meanc,   les,     iddet,   dstdet,  hbudget
+1758     fddef,    export,  equil,   margdet, fbudget, invsav,  utildef, obj   / ;
+1759   
+1760  Model ganges0  base year version with tracking indicators /
+1761   
+1762     utildef,  obj,     valueq,  prodq,   firstq,  pmdef,   supply,  taumdet
+1763     valuex,   prodx,   firstx,  valuez,  prodz,   firstz,  valuen,  prodn
+1764     firstn,   pnddet,  pnmdet,  values,  prods,   firsts,  valuev,  prodv
+1765     firstv,   lmclear, pcdet,   cpidet,  yself,   ywage,   ycap,    yinfr
+1766     gtrdet,   wtrdet,  fyself,  fywage,  fycap,   fyinfr,  fgtrdet, fwtrdet
+1767     yhdef,    fyhdef,  mean,    meanc,   les,     iddet,   dstdet,  hbudget
+1768     fddef,    export,  equil,   margdet, fbudget, invsav,  qdep00,  qdep
+1769     qgdp,     qcns,    qgfi,    qchs,    qinv,    qexp,    qimp,    qgdpmp / ;
+1770   
+1771  Option limcol = 0 ;
+1772   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 42
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+base model closure
+
+
+1774   
+       
+      12. core model closure
+       
+      this section determines model closure - in this case the model is closed to
+      be neoclassical or savings driven
+       
+1783   
+1784  g.fx(i)      = g.l(i) ;
+1785  w.fx(r)      = dw(r) ;
+1786  ls.fx(sa)    = ls.l(sa) ;
+1787  savf.fx      = 47.9   ;
+1788  ax.fx(i)     = ax.l(i) ;
+1789  exscale.fx   = 1 ;
+1790  tnd.fx(i)    = tnd.l(i) ;
+1791  tnm.fx(i)    = tnm.l(i) ;
+1792  tfd.fx(i)    = tfd.l(i) ;
+1793  tfm.fx(i)    = tfm.l(i) ;
+1794  tk.fx(i)     = tk.l(i) ;
+1795  tw.fx(i)     = tw.l(i) ;
+1796  taum.fx(sc)  = 0 ;
+1797  taum.fx(i)$(not im(i)) = 0 ;
+1798  beta.fx(r)   = beta.l(r) ;
+1799  lambda.fx(r) = lambda.l(r) ;
+1800  m.fx(i)$(not sc(i)) = m.l(i) ;
+1801   
+       
+      this statement solves the core model and also provides a report of tracking
+      indicators as generated from the model.
+       
+      although we have been careful in calibrating the model above, the base year
+      data are not 100 percent accurately balanced. therefore you should not expect
+      all those prices that we assumed to be 1 in the calibration procedure to come
+      out as exactly 1 in the solution. instead, for example px comes out as
+       
+      ---- var px          price of output                                       (rp
+                           per unit)
+       
+                   lower     level     upper    marginal
+       
+      agricult      0.001     1.004      +inf      .
+      cons-good     0.001     1.006      +inf      .
+      cap-good      0.001     0.974      +inf      .
+      int-good      0.001     0.983      +inf      .
+      pub-infr      0.001     1.065      +inf      .
+      service       0.001     1.002      +inf      .
+       
+      these  prices represent the general equilibrium solution to the model.
+       
+1827   
+1828  *Solve ganges0 using nlp maximizing utility ;
+1829  Solve ganges0 using cns;
+1830   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 43
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+base model closure
+
+
+1831  * set a few parameters
+1832   
+1833  ax0(i)   = ax.l(i) ;
+1834  exscale0 = exscale.l ;
+1835  beta0(r) = beta.l(r) ;
+1836   
+       
+      13. tracking model version
+       
+      here are the additional equations required to make the base model into a
+      tracking model: an appropriate objective function (minimize ssq), a method
+      for allocating infrastructure, and a wage indexation scheme.
+       
+1846   
+1847  objgrt..      dumgrt =e= wgdp*sqr(ogdpmp/gdppr - gdpgrt) +
+1848                           wcns*sqr(ocns/cnspr - cnsgrt) +
+1849                           winv*sqr(oinv/invpr - invgrt) +
+1850                           wexp*sqr(oexp/exppr - expgrt) +
+1851                           wimp*sqr(oimp/imppr - impgrt) ;
+1852   
+1853  infalloc(i).. g(i) =e= ratinf*dg(i)/sum(j, dg(j))*sum(si, x(si)) ;
+1854   
+1855  wdet(r)..     w(r)*dcpi(r) =e= lambda(r)*cpi(r)*dw(r) ;
+1856   
+       
+      in the definition of the track model, note the presence of both objective
+      functions. you can either maximize utility or minimize dumgrt. if you do the
+      first, the model simply states the weighted tracking error. otherwise, if you
+      minimize dumgrt, the model reports the associated utility level.
+       
+1865   
+1866  Model track ganges with tracking option /
+1867     infalloc,   wdet,    valueq,    prodq,    firstq,    supply,    pmdef
+1868     taumdet,    valuex,  prodx,     firstx,   valuez,    prodz,     firstz
+1869     valuen,     prodn,   firstn,    pnddet,   pnmdet,    values,    prods
+1870     firsts,     valuev,  prodv,     firstv,   lmclear,   pcdet,     cpidet
+1871     yself,      ywage,   ycap,      yinfr,    gtrdet,    wtrdet,    fyself
+1872     fywage,     fycap,   fyinfr,    fgtrdet,  fwtrdet,   yhdef,     fyhdef
+1873     mean,       meanc,   les,       iddet,    dstdet,    hbudget,   fddef
+1874     export,     equil,   margdet,   fbudget,  invsav,    objgrt,    qdep00
+1875     qdep,       qgdp,    qcns,      qgfi,     qchs,      qinv,      qexp
+1876     qimp,       qgdpmp,  utildef,   obj / ;
+1877   
+1878   
+
+
+COMPILATION TIME     =        0.010 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 44
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- utildef  =E=  definition of regional utility                               (utils)
+
+utildef(urban)..  - (0.254865717896448)*ch(agricult,urban) - (0.297253441752632)*ch(cons-good,urban) - (0.31203498474423)*ch(cap-good,urban) - (0.312034984744231)*ch(int-good,urban) - (0.229798164514889)*ch(pub-infr,urban)
+     
+      - (0.222882131960165)*ch(service,urban) + 122*util(urban) =E= 0 ; (LHS = 979.867015741984, INFES = 979.867015741984 ****)
+     
+utildef(rural)..  - (0.286498534782235)*ch(agricult,rural) - (0.334147237313836)*ch(cons-good,rural) - (0.350763400695347)*ch(cap-good,rural) - (0.350763400695347)*ch(int-good,rural) - (0.258319706442088)*ch(pub-infr,rural)
+     
+      - (0.250545286210962)*ch(service,rural) + 458*util(rural) =E= 0 ; (LHS = 4198.83746207853, INFES = 4198.83746207853 ****)
+     
+
+---- obj  =E=  objective function                                              (utils)
+
+obj..  - 7*invtot - 122*util(urban) - 458*util(rural) + utility =E= 0 ; (LHS = -12882.659, INFES = 12882.659 ****)
+     
+
+---- valueq  =E=  value of final output of capital goods                    (current )
+
+valueq(agricult)..  - (1)*x(agricult) + (1)*q(agricult) + (3487.554)*pq(agricult) - (1)*m(agricult) - (31.599)*pm(agricult) - (3455.955)*px(agricult) =E= 0 ; (LHS = 0)
+     
+valueq(cons-good)..  - (1)*x(cons-good) + (1)*q(cons-good) + (1044.037)*pq(cons-good) - (1)*m(cons-good) - (5.043)*pm(cons-good) - (1038.994)*px(cons-good) =E= 0 ; (LHS = 0)
+     
+valueq(cap-good)..  - (1)*x(cap-good) + (1)*q(cap-good) + (1118.1753036)*pq(cap-good) - (1.8781)*m(cap-good) - (52.356)*pm(cap-good) - (1019.8455)*px(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- prodq  =E=  ces production function for final output of capital goods    (units)
+
+prodq(cap-good)..  - (1)*x(cap-good) + q(cap-good) - (1.8781)*m(cap-good) =E= 0 ; (LHS = 0)
+     
+
+---- firstq  =E=  first order condition for cost min of q                      (units)
+
+firstq(cap-good)..  x(cap-good) - (19.4790568416227)*m(cap-good) - (488.717826526809)*pm(cap-good) + (917.86095)*px(cap-good) =E= 0 ; (LHS = -1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+
+---- pmdef  =E=  definition of post-tax import prices                   (rp per unit)
+
+pmdef(agricult)..  pm(agricult) - tfm(agricult) - taum(agricult) =E= 1 ; (LHS = 1)
+     
+pmdef(cons-good)..  pm(cons-good) - tfm(cons-good) - taum(cons-good) =E= 1 ; (LHS = 1)
+     
+pmdef(cap-good)..  pm(cap-good) - tfm(cap-good) - taum(cap-good) =E= 1.5 ; (LHS = 1.5)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- supply  =E=  total non-capital goods supply                               (units)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 45
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+     supply  =E=  total non-capital goods supply                               (units)
+
+supply(agricult)..  - x(agricult) + q(agricult) - m(agricult) =E= 0 ; (LHS = 0)
+     
+supply(cons-good)..  - x(cons-good) + q(cons-good) - m(cons-good) =E= 0 ; (LHS = 0)
+     
+supply(int-good)..  - x(int-good) + q(int-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- taumdet  =E=  determination of taum                                  (rp per unit)
+
+taumdet(agricult)..  pm(agricult) - px(agricult) =E= 0 ; (LHS = 0)
+     
+taumdet(cons-good)..  pm(cons-good) - px(cons-good) =E= 0 ; (LHS = 0)
+     
+taumdet(pub-infr)..  pm(pub-infr) - px(pub-infr) =E= 0 ; (LHS = 0)
+     
+
+---- valuex  =E=  value of gross output                                     (current )
+
+valuex(agricult)..  (1)*x(agricult) - (1)*g(agricult) - (1)*z(agricult) + (3455.955)*px(agricult) - (3437.143)*pz(agricult) - (18.812)*pg(agricult) =E= 0 ; (LHS = 0)
+     
+valuex(cons-good)..  (1)*x(cons-good) - (1)*g(cons-good) - (1)*z(cons-good) + (1038.994)*px(cons-good) - (1024.955)*pz(cons-good) - (14.039)*pg(cons-good) =E= 0 ; (LHS = 0)
+     
+valuex(cap-good)..  (1)*x(cap-good) - (1)*g(cap-good) - (1)*z(cap-good) + (1019.8455)*px(cap-good) - (998.3875)*pz(cap-good) - (21.458)*pg(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- prodx  =E=  ces production function for gross output                     (units)
+
+prodx(agricult)..  x(agricult) - (0.999999999999823)*g(agricult) - (1)*z(agricult) - (3409.98608156564)*ax(agricult) =E= 0 ; (LHS = 0)
+     
+prodx(cons-good)..  x(cons-good) - (0.999999999999987)*g(cons-good) - (1)*z(cons-good) - (1005.43279889495)*ax(cons-good) =E= 0 ; (LHS = 0)
+     
+prodx(cap-good)..  x(cap-good) - (1.00000000000001)*g(cap-good) - (1)*z(cap-good) - (969.455082318132)*ax(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- firstx  =E=  first order condition for profit max of gross output         (units)
+
+firstx(agricult)..  - (182.710131830766)*g(agricult) + z(agricult) + (2062.28580000022)*pz(agricult) - (2062.28580000022)*pg(agricult) =E= 0 ; (LHS = -3.66071617463604E-10, INFES = 3.66071617463604E-10 ****)
+     
+firstx(cons-good)..  - (73.0076928556171)*g(cons-good) + z(cons-good) + (614.973000000005)*pz(cons-good) - (614.973000000005)*pg(cons-good) =E= 0 ; (LHS = -8.41282599139959E-12, INFES = 8.41282599139959E-12 ****)
+     
+firstx(cap-good)..  - (46.5275188740793)*g(cap-good) + z(cap-good) + (599.032499999996)*pz(cap-good) - (599.032499999996)*pg(cap-good) =E= 0 ; (LHS = 7.27595761418343E-12, INFES = 7.27595761418343E-12 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 46
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- valuez  =E=  value of ces z subaggregate                               (current )
+
+valuez(agricult)..  (1)*z(agricult) - (1)*v(agricult) - (1)*n(agricult) + (3437.143)*pz(agricult) - (2612.889)*pv(agricult) - (824.254)*pn(agricult) =E= 0 ; (LHS = 0)
+     
+valuez(cons-good)..  (1)*z(cons-good) - (1)*v(cons-good) - (1)*n(cons-good) + (1024.955)*pz(cons-good) - (239.043)*pv(cons-good) - (785.912)*pn(cons-good) =E= 0 ; (LHS = 0)
+     
+valuez(cap-good)..  (1)*z(cap-good) - (1)*v(cap-good) - (1)*n(cap-good) + (998.3875)*pz(cap-good) - (354.164)*pv(cap-good) - (644.2235)*pn(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- prodz  =E=  ces production function for ces z subaggregate               (units)
+
+prodz(agricult)..  z(agricult) - (1)*v(agricult) - (1)*n(agricult) =E= 0 ; (LHS = 0)
+     
+prodz(cons-good)..  z(cons-good) - (1)*v(cons-good) - (1)*n(cons-good) =E= 0 ; (LHS = 0)
+     
+prodz(cap-good)..  z(cap-good) - (1)*v(cap-good) - (1)*n(cap-good) =E= 0 ; (LHS = 1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- firstz  =E=  first order condition for cost min of ces subaggregate       (units)
+
+firstz(agricult)..  v(agricult) - (3.17000463449373)*n(agricult) + (2821.92012)*pv(agricult) - (2821.92012)*pn(agricult) =E= 0 ; (LHS = 9.09494701772928E-13, INFES = 9.09494701772928E-13 ****)
+     
+firstz(cons-good)..  v(cons-good) - (0.304160007736235)*n(cons-good) + (315.53676)*pv(cons-good) - (315.53676)*pn(cons-good) =E= 0 ; (LHS = 0)
+     
+firstz(cap-good)..  v(cap-good) - (0.549753307664188)*n(cap-good) + (467.49648)*pv(cap-good) - (467.49648)*pn(cap-good) =E= 0 ; (LHS = 1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- valuen  =E=  value of intermediate production                          (current )
+
+valuen(agricult)..  (1)*n(agricult) - (762.265140584379)*pnd(agricult) - (22.9268329645735)*pnm(agricult) + (824.254)*pn(agricult) - (1.0407258023)*nd(agricult) - (1.3497285058)*nm(agricult) =E= 0 ; (LHS = 0)
+     
+valuen(cons-good)..  (1)*n(cons-good) - (708.492503868574)*pnd(cons-good) - (28.7368158778562)*pnm(cons-good) + (785.912)*pn(cons-good) - (1.0567267768)*nd(cons-good) - (1.2955158344)*nm(cons-good) =E= 0 ; (LHS = 0)
+     
+valuen(cap-good)..  (1)*n(cap-good) - (544.36323404291)*pnd(cap-good) - (31.8482975480183)*pnm(cap-good) + (644.2235)*pn(cap-good) - (1.101694535)*nd(cap-good) - (1.3972960386)*nm(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- prodn  =E=  ces production function for intermediates                    (units)
+
+prodn(agricult)..  n(agricult) - (1.0407258023)*nd(agricult) - (1.3497285058)*nm(agricult) =E= 0 ; (LHS = 1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+prodn(cons-good)..  n(cons-good) - (1.0567267768)*nd(cons-good) - (1.2955158344)*nm(cons-good) =E= 0 ; (LHS = -1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 47
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+     prodn  =E=  ces production function for intermediates                    (units)
+
+prodn(cap-good)..  n(cap-good) - (1.101694535)*nd(cap-good) - (1.3972960386)*nm(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- firstn  =E=  first order condition for cost min of intermediates          (units)
+
+firstn(agricult)..  (1318.38496750979)*pnd(agricult) - (1016.55795751208)*pnm(agricult) + nd(agricult) - (33.2477294950519)*nm(agricult) =E= 0 ; (LHS = 4.54747350886464E-13, INFES = 4.54747350886464E-13 ****)
+     
+firstn(cons-good)..  (1206.82709567111)*pnd(cons-good) - (984.385117572927)*pnm(cons-good) + nd(cons-good) - (24.6545235519472)*nm(cons-good) =E= 0 ; (LHS = 3.41060513164848E-13, INFES = 3.41060513164848E-13 ****)
+     
+firstn(cap-good)..  (889.406083218193)*pnd(cap-good) - (701.249981542199)*pnm(cap-good) + nd(cap-good) - (17.0923809419378)*nm(cap-good) =E= 0 ; (LHS = -1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- pnddet  =E=  determination of domestic intermediates price          (rp per unit)
+
+pnddet(agricult)..  - (0.776306028)*pq(agricult) - (0.0820774695)*pq(cons-good) - (0.0328589456)*pq(cap-good) - (0.0704539656)*pq(int-good) - (0.0790293936)*pq(service) + pnd(agricult) - (0.76019)*tnd(agricult) - (0.075543)*tnd(cons-good)
+     
+      - (0.029948)*tnd(cap-good) - (0.062838)*tnd(int-good) - (0.071481)*tnd(service) =E= 0 ; (LHS = 0)
+     
+pnddet(cons-good)..  - (0.560888994)*pq(agricult) - (0.21351898)*pq(cons-good) - (0.014038674)*pq(cap-good) - (0.0966003496)*pq(int-good) - (0.1716797792)*pq(service) + pnd(cons-good) - (0.549245)*tnd(agricult) - (0.19652)*tnd(cons-good)
+     
+      - (0.012795)*tnd(cap-good) - (0.086158)*tnd(int-good) - (0.155282)*tnd(service) =E= 0 ; (LHS = 0)
+     
+pnddet(cap-good)..  - (0.1326988128)*pq(agricult) - (0.005717163)*pq(cons-good) - (0.1285687988)*pq(cap-good) - (0.5855119428)*pq(int-good) - (0.2491978176)*pq(service) + pnd(cap-good) - (0.129944)*tnd(agricult) - (0.005262)*tnd(cons-good)
+     
+      - (0.117179)*tnd(cap-good) - (0.522219)*tnd(int-good) - (0.225396)*tnd(service) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- pnmdet  =E=  determination of imported intermediates price          (rp per unit)
+
+pnmdet(agricult)..  pnm(agricult) - 0.0011*tnm(agricult) - 0.002833*tnm(cons-good) - 0.996067*tnm(int-good) =E= 1.0710195771 ; (LHS = 1.0710195771)
+     
+pnmdet(cons-good)..  pnm(cons-good) - 0.843906*tnm(agricult) - 0.127355*tnm(cons-good) - 0.000387*tnm(cap-good) - 0.028352*tnm(int-good) =E= 1.0022149976 ; (LHS = 1.0022149976)
+     
+pnmdet(cap-good)..  pnm(cap-good) - 8.7E-5*tnm(cons-good) - 0.081846*tnm(cap-good) - 0.918067*tnm(int-good) =E= 1.1063811771 ; (LHS = 1.1063811771)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- values  =E=  value of value added subaggregate                         (current )
+
+values(agricult)..  (1)*s(agricult) - (11.182506)*ls(agricult) + (2129.243)*ps(agricult) - (132.735)*pls(rural) - 5159.464*pk(agricult) =E= 0 ; (LHS = 6.60900000184483E-5, INFES = 6.60900000184483E-5 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 48
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+     values  =E=  value of value added subaggregate                         (current )
+
+values(cons-good)..  (1)*s(cons-good) - (13.928)*ls(cons-good) + (113.438)*ps(cons-good) - (3.545)*pls(urban) - 295.7*pk(cons-good) =E= 0 ; (LHS = -0.00176000000000442, INFES = 0.00176000000000442 ****)
+     
+values(cap-good)..  (1)*s(cap-good) - (13.928)*ls(cap-good) + (191.487)*ps(cap-good) - (9.847)*pls(urban) - 434.752*pk(cap-good) =E= 0 ; (LHS = -0.00601599999998825, INFES = 0.00601599999998825 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- prods  =E=  ces production function for value added subaggregate         (units)
+
+prods(agricult)..  s(agricult) - (11.1825063470961)*ls(agricult) =E= 0 ; (LHS = 0)
+     
+prods(cons-good)..  s(cons-good) - (13.9277839092748)*ls(cons-good) =E= 0 ; (LHS = 0)
+     
+prods(cap-good)..  s(cap-good) - (13.9275624339219)*ls(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- firsts  =E=  first order condition for cost min of value added subagg     (units)
+
+firsts(agricult)..  - (38.8704109692244)*ls(agricult) - (276.832259244931)*pls(rural) + (24765.4272)*pk(agricult) =E= -5159.464 ; (LHS = -5159.464)
+     
+firsts(cons-good)..  - (83.4132581100141)*ls(cons-good) - (17.8337162550258)*pls(urban) + (1146.46580191993)*pk(cons-good) =E= -295.7 ; (LHS = -295.7)
+     
+firsts(cap-good)..  - (44.1507057987204)*ls(cap-good) - (26.2199655370477)*pls(urban) + (2921.53344)*pk(cap-good) =E= -434.752 ; (LHS = -434.752)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- valuev  =E=  value added exemption                                     (current )
+
+valuev(agricult)..  (1)*v(agricult) - (1)*s(agricult) - (11.163208)*lw(agricult) + (2612.889)*pv(agricult) - (2129.243)*ps(agricult) - (43.325)*w(rural) =E= 0 ; (LHS = 1.34000001708046E-5, INFES = 1.34000001708046E-5 ****)
+     
+valuev(cons-good)..  (1)*v(cons-good) - (1)*s(cons-good) - (74)*lw(cons-good) + (239.043)*pv(cons-good) - (113.438)*ps(cons-good) - (1.697)*w(urban) =E= 0 ; (LHS = 0.0269999999999868, INFES = 0.0269999999999868 ****)
+     
+valuev(cap-good)..  (1)*v(cap-good) - (1)*s(cap-good) - (74)*lw(cap-good) + (354.164)*pv(cap-good) - (191.487)*ps(cap-good) - (2.198)*w(urban) =E= 0 ; (LHS = 0.0249999999999773, INFES = 0.0249999999999773 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- prodv  =E=  ces production function for value added                      (units)
+
+prodv(agricult)..  v(agricult) - (1.00000000512842)*s(agricult) - (11.1632080572497)*lw(agricult) =E= 0 ; (LHS = 0)
+     
+prodv(cons-good)..  v(cons-good) - (1.00011296314891)*s(cons-good) - (74.0083592730194)*lw(cons-good) =E= 0 ; (LHS = 0)
+     
+prodv(cap-good)..  v(cap-good) - (1.00007059374991)*s(cap-good) - (74.0052239374935)*lw(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 49
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- firstv  =E=  first order condition for value added maximization           (units)
+
+firstv(agricult)..  s(agricult) - (49.1458280438546)*lw(agricult) + (2299.58244)*ps(agricult) - (205.996559411954)*w(rural) =E= 0 ; (LHS = 9.09494701772928E-13, INFES = 9.09494701772928E-13 ****)
+     
+firstv(cons-good)..  s(cons-good) - (66.8461991750147)*lw(cons-good) + (95.28792)*ps(cons-good) - (1.2876745945946)*w(urban) =E= 0 ; (LHS = 0)
+     
+firstv(cap-good)..  s(cap-good) - (87.1187443130118)*lw(cap-good) + (160.84908)*ps(cap-good) - (2.17363621621622)*w(urban) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- lmclear  =E=  non-agricultural labor market clearing                       (units)
+
+lmclear..  - lw(cons-good) - lw(cap-good) - lw(int-good) - lw(pub-infr) - lw(service) - ls(cons-good) - ls(cap-good) - ls(int-good) - ls(pub-infr) - ls(service) =E= -63.145 ; (LHS = -63.145)
+     
+
+---- pcdet  =E=  determination of consumer prices                       (rp per unit)
+
+pcdet(agricult)..  - (1.1435)*pq(agricult) + pc(agricult) - (1)*tfd(agricult) =E= 0 ; (LHS = 0)
+     
+pcdet(cons-good)..  - (1.33368)*pq(cons-good) + pc(cons-good) - (1)*tfd(cons-good) =E= 0 ; (LHS = 0)
+     
+pcdet(cap-good)..  - (1.4)*pq(cap-good) + pc(cap-good) - (1)*tfd(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- cpidet  =E=  determination of cpi                                   (rp per unit)
+
+cpidet(urban)..  (1197.56832735387)*cpi(urban) - (579.311745852639)*pc(agricult) - (244.792201653707)*pc(cons-good) - (19.1158578158181)*pc(cap-good) - (42.0053687242635)*pc(int-good) - (21.3821326504603)*pc(pub-infr) - (290.961020656987)*pc(service)
+     
+      + (0.015092600715731)*ch(agricult,urban) - (0.175087399284269)*ch(cons-good,urban) - (0.241407399284269)*ch(cap-good,urban) - (0.241407399284269)*ch(int-good,urban) + (0.127562600715731)*ch(pub-infr,urban) + (0.158592600715731)*ch(service,urban)
+      =E= 0 ; (LHS = 0)
+     
+cpidet(rural)..  (2526.71530373142)*cpi(rural) - (1574.74884000822)*pc(agricult) - (457.519716022587)*pc(cons-good) - (29.8338457188119)*pc(cap-good) - (75.5518738566625)*pc(int-good) - (55.7091911323319)*pc(pub-infr) - (333.351836992801)*pc(service)
+     
+      + (0.0237228686748541)*ch(agricult,rural) - (0.166457131325146)*ch(cons-good,rural) - (0.232777131325146)*ch(cap-good,rural) - (0.232777131325146)*ch(int-good,rural) + (0.136192868674854)*ch(pub-infr,rural) + (0.167222868674854)*ch(service,rural)
+      =E= 0 ; (LHS = 0)
+     
+
+---- yself  =E=  determination of self employed income                     (current )
+
+yself(agricult)..  - (11.182506)*ls(agricult) - (132.735)*pls(rural) + y(yself,agricult) + (1484.30993391)*tw(agricult) =E= 0 ; (LHS = 0)
+     
+yself(cons-good)..  - (13.30124)*ls(cons-good) - (3.385475)*pls(urban) + y(yself,cons-good) + (49.37476)*tw(cons-good) =E= 0 ; (LHS = 0)
+     
+yself(cap-good)..  - (13.30124)*ls(cap-good) - (9.403885)*pls(urban) + y(yself,cap-good) + (137.149016)*tw(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 50
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- ywage  =E=  determination of labor income                             (current )
+
+ywage(agricult)..  - (11.163208)*lw(agricult) - (43.325)*w(rural) + y(ywage,agricult) + (483.6459866)*tw(agricult) =E= 0 ; (LHS = 0)
+     
+ywage(cons-good)..  - (70.67)*lw(cons-good) - (1.620635)*w(urban) + y(ywage,cons-good) + (125.578)*tw(cons-good) =E= 0 ; (LHS = 0)
+     
+ywage(cap-good)..  - (70.67)*lw(cap-good) - (2.09909)*w(urban) + y(ywage,cap-good) + (162.652)*tw(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- ycap  =E=  determination of capital and land income                  (current )
+
+ycap(agricult)..  - (5159.464)*pk(agricult) + y(ycap,agricult) + (644.933)*tk(agricult) =E= 0 ; (LHS = 0)
+     
+ycap(cons-good)..  - (263.173)*pk(cons-good) + y(ycap,cons-good) + (64.065)*tk(cons-good) =E= 0 ; (LHS = 0)
+     
+ycap(cap-good)..  - (386.92928)*pk(cap-good) + y(ycap,cap-good) + (54.344)*tk(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- yinfr  =E=  determination of infrastructure income                    (current )
+
+yinfr(agricult)..  - (1)*g(agricult) - (18.812)*pg(agricult) + y(yinfr,agricult) + (18.812)*thetai =E= 0 ; (LHS = 0)
+     
+yinfr(cons-good)..  - (1)*g(cons-good) - (14.039)*pg(cons-good) + y(yinfr,cons-good) + (14.039)*thetai =E= 0 ; (LHS = 0)
+     
+yinfr(cap-good)..  - (1)*g(cap-good) - (21.458)*pg(cap-good) + y(yinfr,cap-good) + (21.458)*thetai =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- gtrdet  =E=  determination of government transfers                     (current )
+
+gtrdet..  - (0.0270057482655086)*v(agricult) - (0.0270057482655086)*v(cons-good) - (0.0270057482655086)*v(cap-good) - (0.0270057482655086)*v(int-good) - (0.0270057482655086)*v(pub-infr) - (0.0270057482655086)*v(service) - (70.5630225797165)*pv(agricult)
+     
+      - (6.45553508263198)*pv(cons-good) - (9.56446382870559)*pv(cap-good) - (8.676649854477)*pv(int-good) - (3.87346147947017)*pv(pub-infr) - (37.7741013461423)*pv(service) + gtr(ynonp) =E= 0 ; (LHS = 0.692765828856437, INFES = 0.692765828856437 ****)
+     
+
+---- wtrdet  =E=  determination of transfers from abroad                    (current )
+
+wtrdet..  (0.00261029398205861)*v(agricult) + (0.00261029398205861)*v(cons-good) + (0.00261029398205861)*v(cap-good) + (0.00261029398205861)*v(int-good) + (0.00261029398205861)*v(pub-infr) + (0.00261029398205861)*v(service)
+     
+      + (6.82040843248714)*pv(agricult) + (0.623972504353236)*pv(cons-good) + (0.924472157861805)*pv(cap-good) + (0.838658743201628)*pv(int-good) + (0.374397076140648)*pv(pub-infr) + (3.6511304353466)*pv(service) + wtr(ynonp) =E= 0 ;
+     
+      (LHS = -0.0669606506089426, INFES = 0.0669606506089426 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 51
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- fyself  =E=  determination of self employed real income            (base year rp)
+
+fyself(agricult)..  - (11.2507)*ls(agricult) + fy(yself,agricult) + (1493.3616645)*tw(agricult) =E= 0 ; (LHS = -1493.3616645, INFES = 1493.3616645 ****)
+     
+fyself(cons-good)..  - (13.1162565)*ls(cons-good) + fy(yself,cons-good) + (48.6880935)*tw(cons-good) =E= 0 ; (LHS = -46.4971292925, INFES = 46.4971292925 ****)
+     
+fyself(cap-good)..  - (13.1162565)*ls(cap-good) + fy(yself,cap-good) + (135.2416521)*tw(cap-good) =E= 0 ; (LHS = -129.1557777555, INFES = 129.1557777555 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- fywage  =E=  determination of labor real income                    (base year rp)
+
+fywage(agricult)..  - (11.163208)*lw(agricult) + fy(ywage,agricult) + (483.6459866)*tw(agricult) =E= 0 ; (LHS = -483.6459866, INFES = 483.6459866 ****)
+     
+fywage(cons-good)..  - (70.67)*lw(cons-good) + fy(ywage,cons-good) + (125.578)*tw(cons-good) =E= 0 ; (LHS = -119.92699, INFES = 119.92699 ****)
+     
+fywage(cap-good)..  - (70.67)*lw(cap-good) + fy(ywage,cap-good) + (162.652)*tw(cap-good) =E= 0 ; (LHS = -155.33266, INFES = 155.33266 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- fycap  =E=  determination of capital and land real income         (base year rp)
+
+fycap(agricult)..  fy(ycap,agricult) + 649.0605712*tk(agricult) =E= 649.0605712 ; (LHS = 0, INFES = 649.0605712 ****)
+     
+fycap(cons-good)..  fy(ycap,cons-good) + 68.6024*tk(cons-good) =E= 68.6024 ; (LHS = 7.546264, INFES = 61.056136 ****)
+     
+fycap(cap-good)..  fy(ycap,cap-good) + 43.5186752*tk(cap-good) =E= 43.5186752 ; (LHS = 4.787054272, INFES = 38.731620928 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- fyinfr  =E=  determination of infrastructure real income           (base year rp)
+
+fyinfr(agricult)..  - (1.0076)*g(agricult) + fy(yinfr,agricult) + (18.9549712)*thetai =E= 0 ; (LHS = -18.9549712, INFES = 18.9549712 ****)
+     
+fyinfr(cons-good)..  - (1.1071)*g(cons-good) + fy(yinfr,cons-good) + (15.5425769)*thetai =E= 0 ; (LHS = -15.5425769, INFES = 15.5425769 ****)
+     
+fyinfr(cap-good)..  - (0.7277)*g(cap-good) + fy(yinfr,cap-good) + (15.6149866)*thetai =E= 0 ; (LHS = -15.6149866, INFES = 15.6149866 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- fgtrdet  =E=  determination of government real transfers            (base year rp)
+
+fgtrdet..  fgtr(ynonp) =E= 137.6 ; (LHS = 0, INFES = 137.6 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 52
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- fwtrdet  =E=  determination of real transfers from abroad           (base year rp)
+
+fwtrdet..  fwtr(ynonp) =E= -13.3 ; (LHS = 0, INFES = 13.3 ****)
+     
+
+---- yhdef  =E=  definition of regional income                             (current )
+
+yhdef(yself,urban)..  - 0.5365*y(yself,cons-good) - y(yself,cap-good) - y(yself,int-good) - y(yself,pub-infr) - 0.5365*y(yself,service) - 0.2*wtr(yself) - 0.2*gtr(yself) + yh(yself,urban) =E= 0 ; (LHS = 0)
+     
+yhdef(yself,rural)..  - y(yself,agricult) - 0.4635*y(yself,cons-good) - 0.4635*y(yself,service) - 0.8*wtr(yself) - 0.8*gtr(yself) + yh(yself,rural) =E= 0 ; (LHS = 0)
+     
+yhdef(ywage,urban)..  - 0.5365*y(ywage,cons-good) - y(ywage,cap-good) - y(ywage,int-good) - y(ywage,pub-infr) - 0.5365*y(ywage,service) - 0.2*wtr(ywage) - 0.2*gtr(ywage) + yh(ywage,urban) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- fyhdef  =E=  definition of regional real income                    (base year rp)
+
+fyhdef(yself,urban)..  - 0.5365*fy(yself,cons-good) - fy(yself,cap-good) - fy(yself,int-good) - fy(yself,pub-infr) - 0.5365*fy(yself,service) - 0.2*fwtr(yself) - 0.2*fgtr(yself) + fyh(yself,urban) =E= 0 ; (LHS = 0)
+     
+fyhdef(yself,rural)..  - fy(yself,agricult) - 0.4635*fy(yself,cons-good) - 0.4635*fy(yself,service) - 0.8*fwtr(yself) - 0.8*fgtr(yself) + fyh(yself,rural) =E= 0 ; (LHS = 0)
+     
+fyhdef(ywage,urban)..  - 0.5365*fy(ywage,cons-good) - fy(ywage,cap-good) - fy(ywage,int-good) - fy(ywage,pub-infr) - 0.5365*fy(ywage,service) - 0.2*fwtr(ywage) - 0.2*fgtr(ywage) + fyh(ywage,urban) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- mean  =E=  mean per capita income determination                  (base year rp)
+
+mean(urban)..  - fyh(yself,urban) - fyh(ywage,urban) - fyh(ycap,urban) - fyh(yinfr,urban) - fyh(ynonp,urban) + 122*ym(urban) =E= 0 ; (LHS = 1771.90604, INFES = 1771.90604 ****)
+     
+mean(rural)..  - fyh(yself,rural) - fyh(ywage,rural) - fyh(ycap,rural) - fyh(yinfr,rural) - fyh(ynonp,rural) + 458*ym(rural) =E= 0 ; (LHS = 3371.31968, INFES = 3371.31968 ****)
+     
+
+---- meanc  =E=  determination of mean per capita consumption          (base year rp)
+
+meanc(urban)..  - (0.0528628143284618)*ym(urban) + (0.0879283206475753)*mc(urban) - (2.6757900601952)*beta(urban) =E= 0.376842 ; (LHS = 0.376842)
+     
+meanc(rural)..  - (0.10571175498848)*ym(rural) + (0.155294251344807)*mc(rural) - (1.99619035901752)*beta(rural) =E= 0.309118 ; (LHS = 0.309118)
+     
+
+---- les  =E=  linear expenditure system                                 (current )
+
+les(agricult,urban)..  (207.609883316643)*pc(agricult) - (67.5801564560784)*pc(cons-good) - (7.10233600616796)*pc(cap-good) - (9.8106888055929)*pc(int-good) - (3.80209856923663)*pc(pub-infr) - (117.94830215343)*pc(service) - (39.6823746045805)*mc(urban)
+     
+      + (1.1435)*ch(agricult,urban) =E= 0 ; (LHS = 1.72498393250294, INFES = 1.72498393250294 ****)
+     
+les(agricult,rural)..  (334.838863625022)*pc(agricult) - (145.875444928542)*pc(cons-good) - (13.7323878224706)*pc(cap-good) - (7.88677417111258)*pc(int-good) - (6.32606697807672)*pc(pub-infr) - (145.237140738442)*pc(service) - (219.951642088048)*mc(rural)
+     
+      + (1.1435)*ch(agricult,rural) =E= 0 ; (LHS = 6.31074479705035, INFES = 6.31074479705035 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 53
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+     les  =E=  linear expenditure system                                 (current )
+
+les(cons-good,urban)..  - (78.8196791100505)*pc(agricult) + (154.774913903743)*pc(cons-good) - (5.60820946801055)*pc(cap-good) - (7.74680299544393)*pc(int-good) - (3.00224675033461)*pc(pub-infr) - (93.135383104683)*pc(service)
+     
+      - (31.3343481324005)*mc(urban) + (1.33368)*ch(cons-good,urban) =E= 0 ; (LHS = 1.36209709228433, INFES = 1.36209709228433 ****)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- iddet  =E=  allocation of gross fixed investment                         (units)
+
+iddet(agricult)..  - 0.00615749326169494*invtot + id(agricult) =E= 0 ; (LHS = 0)
+     
+iddet(cons-good)..  - 0.00137677562110345*invtot + id(cons-good) =E= 0 ; (LHS = 0)
+     
+iddet(cap-good)..  - 0.752033334747941*invtot + id(cap-good) =E= 0 ; (LHS = 1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- dstdet  =E=  allocation of stock changes                                  (units)
+
+dstdet(agricult)..  - 0.0699984307718727*invtot + dst(agricult) =E= 0 ; (LHS = 0)
+     
+dstdet(cons-good)..  - 0.0586654454979437*invtot + dst(cons-good) =E= 0 ; (LHS = 0)
+     
+dstdet(cap-good)..  - 0.0173345426588251*invtot + dst(cap-good) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- hbudget  =E=  household budget constraint                               (current )
+
+hbudget(urban)..  (579.311745852639)*pc(agricult) + (244.792201653707)*pc(cons-good) + (19.1158578158181)*pc(cap-good) + (42.0053687242635)*pc(int-good) + (21.3821326504603)*pc(pub-infr) + (290.961020656987)*pc(service) - yh(yself,urban) - yh(ywage,urban)
+     
+      - yh(ycap,urban) - yh(yinfr,urban) - yh(ynonp,urban) + (1.1435)*ch(agricult,urban) + (1.33368)*ch(cons-good,urban) + (1.4)*ch(cap-good,urban) + (1.4)*ch(int-good,urban) + (1.03103)*ch(pub-infr,urban) + (1)*ch(service,urban) + savh(urban) =E= 0 ;
+     
+      (LHS = 0)
+     
+hbudget(rural)..  (1574.74884000822)*pc(agricult) + (457.519716022587)*pc(cons-good) + (29.8338457188119)*pc(cap-good) + (75.5518738566625)*pc(int-good) + (55.7091911323319)*pc(pub-infr) + (333.351836992801)*pc(service) - yh(yself,rural) - yh(ywage,rural)
+     
+      - yh(ycap,rural) - yh(yinfr,rural) - yh(ynonp,rural) + (1.1435)*ch(agricult,rural) + (1.33368)*ch(cons-good,rural) + (1.4)*ch(cap-good,rural) + (1.4)*ch(int-good,rural) + (1.03103)*ch(pub-infr,rural) + (1)*ch(service,rural) + savh(rural) =E= 0 ;
+     
+      (LHS = 0)
+     
+
+---- fddef  =E=  definition of domestic final demands                         (units)
+
+fddef(agricult)..  fd(agricult) - ch(agricult,urban) - ch(agricult,rural) - id(agricult) =E= 7.14385658067337 ; (LHS = 7.14385658067337)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 54
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+     fddef  =E=  definition of domestic final demands                         (units)
+
+fddef(cons-good)..  fd(cons-good) - ch(cons-good,urban) - ch(cons-good,rural) - id(cons-good) =E= 4.07893947573631 ; (LHS = 4.07893947573631)
+     
+fddef(cap-good)..  fd(cap-good) - ch(cap-good,urban) - ch(cap-good,rural) - id(cap-good) =E= 33.7864285714286 ; (LHS = 33.7864285714286)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- export  =E=  downward sloping export demand curves                        (units)
+
+export(agricult)..  (53.6004)*pq(agricult) + ex(agricult) - (29.778)*exscale =E= 0 ; (LHS = 0)
+     
+export(cons-good)..  (180.8316)*pq(cons-good) + ex(cons-good) - (100.462)*exscale =E= 0 ; (LHS = 0)
+     
+export(cap-good)..  (11.8908)*pq(cap-good) + ex(cap-good) - (9.909)*exscale =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- equil  =E=  market clearing conditions                                   (units)
+
+equil(agricult)..  q(agricult) - fd(agricult) - 0.76019*nd(agricult) - 0.549245*nd(cons-good) - 0.129944*nd(cap-good) - 0.112517*nd(int-good) - 0.000146*nd(pub-infr) - 0.206418*nd(service) - ex(agricult) - dst(agricult) =E= 0 ;
+     
+      (LHS = 23.6013346637997, INFES = 23.6013346637997 ****)
+     
+equil(cons-good)..  q(cons-good) - fd(cons-good) - 0.075543*nd(agricult) - 0.19652*nd(cons-good) - 0.005262*nd(cap-good) - 0.036037*nd(int-good) - 0.010709*nd(pub-infr) - 0.026161*nd(service) - ex(cons-good) - dst(cons-good) =E= 0 ;
+     
+      (LHS = -54.3730578451637, INFES = 54.3730578451637 ****)
+     
+equil(cap-good)..  q(cap-good) - fd(cap-good) - 0.029948*nd(agricult) - 0.012795*nd(cons-good) - 0.117179*nd(cap-good) - 0.039635*nd(int-good) - 0.55524*nd(pub-infr) - 0.112295*nd(service) - ex(cap-good) - dst(cap-good) =E= 0 ;
+     
+      (LHS = 36.5341622600033, INFES = 36.5341622600033 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- margdet  =E=  determination of total trade margins                      (current )
+
+margdet..  - (318.686819925535)*pq(agricult) - (59.9135105258398)*pq(cons-good) - (3.3155514)*pq(cap-good) - (7.7893728)*pq(int-good) - (3.36910066701127)*pq(pub-infr) + (431.626632099995)*pq(service) - 0.5*m(cap-good) - (0.1448)*fd(agricult)
+     
+      - (0.01368)*fd(cons-good) - (0.03103)*fd(pub-infr) - 0.0710195771*nm(agricult) - 0.0022149976*nm(cons-good) - 0.1063811771*nm(cap-good) - 0.0689408756*nm(int-good) - 0.0920130692*nm(pub-infr) - 0.071540072*nm(service) + (1)*marg
+     
+      - (0.16257)*ex(agricult) - (0.5)*ex(cons-good) - (0.3346)*ex(cap-good) - (0.13017)*ex(int-good) =E= 0 ; (LHS = 0)
+     
+
+---- fbudget  =E=  rest of the world budget constraint                       (current )
+
+fbudget..  (34.61900946)*pq(agricult) + (150.693)*pq(cons-good) + (13.2245514)*pq(cap-good) + (67.6293728)*pq(int-good) - m(agricult) - m(cons-good) - m(cap-good) - m(pub-infr) + (0.273128933954523)*pc(agricult) + (0.0610698610140343)*pc(cons-good)
+     
+      + (33.3580654153132)*pc(cap-good) + (1.30037215165654)*pc(int-good) + (0.110363526606724)*pc(pub-infr) - nm(agricult) - nm(cons-good) - nm(cap-good) - nm(int-good) - nm(pub-infr) - nm(service) + wtr(yself) + wtr(ywage) + wtr(ycap) + wtr(yinfr)
+     
+      + wtr(ynonp) + (1.02357768870165)*savf + (1.16257)*ex(agricult) + (1.5)*ex(cons-good) + (1.3346)*ex(cap-good) + (1.13017)*ex(int-good) =E= 0 ; (LHS = -17.8562437002668, INFES = 17.8562437002668 ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 55
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+---- invsav  =E=  investment savings equality                               (current )
+
+invsav..  - (1)*g(agricult) - (1)*g(cons-good) - (1)*g(cap-good) - (1)*g(int-good) - (1)*g(pub-infr) - (1)*g(service) - (70.925)*pq(agricult) - (59.442)*pq(cons-good) - (17.564)*pq(cap-good) - (60.737)*pq(int-good) - (230.135)*pq(pub-infr)
+     
+      + (0)*pq(service) + 1686.95*pk(pub-infr) - (5.96587106604548)*pc(agricult) - (1.33393013898597)*pc(cons-good) - (728.629934584687)*pc(cap-good) - (28.4036278483435)*pc(int-good) - (2.41063647339328)*pc(pub-infr) + (0)*pc(service) + (0)*pg(agricult)
+     
+      + (0)*pg(cons-good) + (0)*pg(cap-good) + (0)*pg(int-good) + (0)*pg(pub-infr) + (0)*pg(service) + savh(urban) + savh(rural) + (1.02357768870165)*savf + savg - (1.1435)*id(agricult) - (1.33368)*id(cons-good) - (1.4)*id(cap-good) - (1.4)*id(int-good)
+     
+      - (1.03103)*id(pub-infr) - (1)*id(service) - (1)*dst(agricult) - (1)*dst(cons-good) - (1)*dst(cap-good) - (1)*dst(int-good) - (1)*dst(pub-infr) - (1)*dst(service) + (227.413)*thetai =E= 0 ; (LHS = -674.753653613107, INFES = 674.753653613107 ****)
+     
+
+---- qdep00  =E=  determination of depreciation at base year prices
+
+qdep00(agricult)..  - 0.11925742*ls(agricult) + deprec00(agricult) =E= 47.31651564048 ; (LHS = -15.8296336437, INFES = 63.14614928418 ****)
+     
+qdep00(cons-good)..  - 1.14269376*ls(cons-good) + deprec00(cons-good) =E= 16.25190856 ; (LHS = -4.0508493792, INFES = 20.3027579392 ****)
+     
+qdep00(cap-good)..  - 0.12910242*ls(cap-good) + deprec00(cap-good) =E= 18.79571581888 ; (LHS = -1.27127152974, INFES = 20.06698734862 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- qdep  =E=  determination of depreciation
+
+qdep(agricult)..  - (0.1185345636)*ls(agricult) - (1.406991)*pls(rural) - 376.1249256*pk(agricult) + deprec(agricult) =E= 0 ; (LHS = -62.749300999446, INFES = 62.749300999446 ****)
+     
+qdep(cons-good)..  - (1.1588096)*ls(cons-good) - (0.294944)*pls(urban) - 70.05133*pk(cons-good) + deprec(cons-good) =E= 0 ; (LHS = -19.284978532, INFES = 19.284978532 ****)
+     
+qdep(cap-good)..  - (0.1309232)*ls(cap-good) - (0.0925618)*pls(urban) - 187.7693888*pk(cap-good) + deprec(cap-good) =E= 0 ; (LHS = -24.7603743504, INFES = 24.7603743504 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- qgdp  =E=  determination of gdp at factor prices
+
+qgdp..  - 1.005*v(agricult) - 1.0155*v(cons-good) - 0.9617*v(cap-good) - 0.982*v(int-good) - 1.05*v(pub-infr) - 1.0045*v(service) + ogdp - deprec00(agricult) - deprec00(cons-good) - deprec00(cap-good) - deprec00(int-good) - deprec00(pub-infr)
+     
+      - deprec00(service) =E= 0 ; (LHS = -5080.4468218, INFES = 5080.4468218 ****)
+     
+
+---- qcns  =E=  determination of private consumption
+
+qcns..  - 1.1483*ch(agricult,urban) - 1.1483*ch(agricult,rural) - 1.3423*ch(cons-good,urban) - 1.3423*ch(cons-good,rural) - 1.3668*ch(cap-good,urban) - 1.3668*ch(cap-good,rural) - 1.3761*ch(int-good,urban) - 1.3761*ch(int-good,rural)
+     
+      - 1.0977*ch(pub-infr,urban) - 1.0977*ch(pub-infr,rural) - 1.0023*ch(service,urban) - 1.0023*ch(service,rural) + ocns =E= 0 ; (LHS = -4355.26795748642, INFES = 4355.26795748642 ****)
+     
+
+---- qgfi  =E=  determination of gross fixed investment
+
+qgfi..  (0)*pc(agricult) + (0)*pc(cons-good) + (0)*pc(cap-good) + (0)*pc(int-good) + (0)*pc(pub-infr) - 1.1483*id(agricult) - 1.3423*id(cons-good) - 1.3668*id(cap-good) - 1.3761*id(int-good) - 1.0977*id(pub-infr) - 1.0023*id(service) + ogfi
+     
+      - (0.773142696134771)*deprec(agricult) - (0.773142696134771)*deprec(cons-good) - (0.773142696134771)*deprec(cap-good) - (0.773142696134771)*deprec(int-good) - (0.773142696134771)*deprec(pub-infr) - (0.773142696134771)*deprec(service) =E= 0 ;
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 56
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Equation Listing    SOLVE ganges0 Using CNS From line 1829
+
+
+     qgfi  =E=  determination of gross fixed investment     
+     
+      (LHS = -1094.1649267, INFES = 1094.1649267 ****)
+     
+
+---- qchs  =E=  determination of stock changes
+
+qchs..  (0)*pc(agricult) + (0)*pc(cons-good) + (0)*pc(cap-good) + (0)*pc(int-good) + (0)*pc(pub-infr) - 1.0042*dst(agricult) - 1.0064*dst(cons-good) - 0.9763*dst(cap-good) - 0.9829*dst(int-good) - 1.0647*dst(pub-infr) - 1.0023*dst(service) + ochs
+     
+      - (0.203822717470951)*deprec(agricult) - (0.203822717470951)*deprec(cons-good) - (0.203822717470951)*deprec(cap-good) - (0.203822717470951)*deprec(int-good) - (0.203822717470951)*deprec(pub-infr) - (0.203822717470951)*deprec(service) =E= 0 ;
+     
+      (LHS = -210.7895577, INFES = 210.7895577 ****)
+     
+
+---- qinv  =E=  determination of total investment
+
+qinv..  - ogfi - ochs + oinv =E= 0 ; (LHS = 0)
+     
+
+---- qexp  =E=  determination of exports
+
+qexp..  - 1.167452794*ex(agricult) - 1.5096*ex(cons-good) - 1.30296998*ex(cap-good) - 1.110844093*ex(int-good) + oexp =E= 0 ; (LHS = -265.805884556672, INFES = 265.805884556672 ****)
+     
+
+---- qimp  =E=  determination of imports
+
+qimp..  - m(agricult) - m(cons-good) - 1.5*m(cap-good) - m(pub-infr) - 1.3497285058*nm(agricult) - 1.2955158344*nm(cons-good) - 1.3972960386*nm(cap-good) - 1.3445417426*nm(int-good) - 1.3780527104*nm(pub-infr) - 1.350621664*nm(service) + oimp =E= 0 ;
+     
+      (LHS = -411.4971121, INFES = 411.4971121 ****)
+     
+
+---- qgdpmp  =E=  determination of gdp at market prices
+
+qgdpmp..  ogdpmp - ocns - oinv - oexp + oimp =E= 504.306647306289 ; (LHS = 0, INFES = 504.306647306289 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 57
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Model Statistics    SOLVE ganges0 Using CNS From line 1829
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          64     SINGLE EQUATIONS          274
+BLOCKS OF VARIABLES          70     SINGLE VARIABLES          357
+NON ZERO ELEMENTS         1,405     NON LINEAR N-Z            817
+DERIVATIVE POOL              20     CONSTANT POOL             259
+CODE LENGTH               2,735
+FIXED EQUATIONS             274     FREE VARIABLES            274
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 58
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+Solution Report     SOLVE ganges0 Using CNS From line 1829
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   ganges0             
+     TYPE    CNS                 
+     SOLVER  CONVERT             FROM LINE  1829
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gancnsx/convert.opt"
+>>  pyomo gancnsx-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gancnsx/convert.opt"
+Pyomo     : gancnsx-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 59
+Macro-Economic Framework for India   (GANCNSX,SEQ=211)
+E x e c u t i o n
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/gancnsx/gancnsx.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/gancnsx/gancnsx-scalar.py.lst

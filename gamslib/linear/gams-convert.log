@@ -1,0 +1,431 @@
+--- Job linear.gms Start 12/13/18 10:24:32 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- linear.gms(112) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- linear.gms(98) 4 Mb
+--- Generating DNLP model mod1
+--- linear.gms(100) 6 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   63 nl-code  20 nl-non-zeroes
+--- linear.gms(100) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  gams linear-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+--- Writing Gams      : linear-scalar.gms
+
+--- Restarting execution
+--- linear.gms(100) 2 Mb
+--- Reading solution for model mod1
+--- linear.gms(100) 3 Mb
+--- Generating LP model mod1a
+--- linear.gms(101) 3 Mb
+---   21 rows  45 columns  161 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.022
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 20 rows, 44 columns, and 120 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+Initializing dual steep norms . . .
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1               0.000000                   b(d)         ddeva(8) artif
+     2               0.000000                   b(b)        ddeva(20) artif
+     3               0.000000                   b(c)        ddeva(19) artif
+     4              24.912351                devn(1)         ddeva(6) artif
+     5              28.127907               devp(19)        ddeva(15) artif
+     6              32.382961                devp(6)        ddeva(17) artif
+     7              34.430894               devn(20)         ddeva(4) artif
+     8              52.660526                devp(4)         ddeva(2) artif
+     9              53.591260               devn(15)         ddeva(7) artif
+    10              66.405405                devp(8)        ddeva(11) artif
+    11              69.449047               devn(11)         ddeva(9) artif
+    12              70.886391                devp(7)        ddeva(10) artif
+    13              80.727811               devn(10)         ddeva(3) artif
+    14              82.578895                devp(3)        ddeva(12) artif
+    15              85.178571                devn(2)        ddeva(14) artif
+    16              87.329832               devn(16)        ddeva(16) artif
+    17              88.066873               devp(17)        ddeva(18) artif
+    18              88.744464               devp(13)        ddeva(13) artif
+    19              88.929141                devn(5)         ddeva(5) artif
+    20              89.000000               devn(18)               devn(10)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.10 ticks)
+
+Optimal solution found.
+Objective :          89.000000
+
+--- Restarting execution
+--- linear.gms(101) 2 Mb
+--- Reading solution for model mod1a
+--- linear.gms(101) 3 Mb
+--- Generating NLP model mod2
+--- linear.gms(102) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   63 nl-code  20 nl-non-zeroes
+--- linear.gms(102) 3 Mb
+--- Executing BARON: elapsed 0:00:00.051
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Doing local search
+ Preprocessing found feasible solution with value  693.989672585     
+ Problem solved during preprocessing
+ Lower bound is  630.899702350     
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.01
+ Total CPU time used:                 0.01
+
+ Total no. of BaR iterations:      -1
+ Best solution found at node:      -1
+ Max. no. of nodes in memory:       0
+ 
+ All done
+===========================================================================
+
+Solution      = 693.989672584803  best solution found during preprocessing
+Best possible = 630.89970235
+Absolute gap  = 63.0899702348034  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- linear.gms(102) 2 Mb
+--- Reading solution for model mod2
+--- linear.gms(102) 3 Mb
+--- Generating DNLP model mod3
+--- linear.gms(103) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   103 nl-code  20 nl-non-zeroes
+--- linear.gms(103) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.094
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  gams linear-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+--- Writing Gams      : linear-scalar.gms
+
+--- Restarting execution
+--- linear.gms(103) 2 Mb
+--- Reading solution for model mod3
+--- linear.gms(103) 3 Mb
+--- Generating NLP model mod4
+--- linear.gms(104) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   83 nl-code  20 nl-non-zeroes
+--- linear.gms(104) 3 Mb
+--- Executing BARON: elapsed 0:00:00.105
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Starting solution is feasible with a value of     45624.9796357     
+ Doing local search
+ Preprocessing found feasible solution with value  40260.7605306     
+ Problem solved during preprocessing
+ Lower bound is  36600.6913915     
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.01
+ Total CPU time used:                 0.01
+
+ Total no. of BaR iterations:      -1
+ Best solution found at node:      -1
+ Max. no. of nodes in memory:       0
+ 
+ All done
+===========================================================================
+
+Solution      = 40260.7605306331  best solution found during preprocessing
+Best possible = 36600.6913915
+Absolute gap  = 3660.06913913313  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- linear.gms(104) 2 Mb
+--- Reading solution for model mod4
+***
+*** Solver did not provide marginals for model mod4
+***
+--- linear.gms(104) 3 Mb
+--- Generating DNLP model mod5
+--- linear.gms(105) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   83 nl-code  20 nl-non-zeroes
+--- linear.gms(105) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.143
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  gams linear-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+--- Writing Gams      : linear-scalar.gms
+
+--- Restarting execution
+--- linear.gms(105) 2 Mb
+--- Reading solution for model mod5
+--- linear.gms(105) 3 Mb
+--- Generating LP model mod5a
+--- linear.gms(106) 3 Mb
+---   21 rows  45 columns  161 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.156
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 20 rows, 44 columns, and 120 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1 sI            0.909264                   b(c)        ddeva(14) artif
+     2 sI            0.483353                            3 sI            0.272203                   b(d)         ddeva(9) artif
+     4 sI            0.028964                   b(b)        ddeva(18) artif
+     5 sI            0.000000                   b(a)         ddeva(7) artif
+     6               0.795551                devp(9)         ddeva(1) artif
+     7               0.795551               devp(19)        ddeva(19) artif
+     8               0.795551               devn(15)        ddeva(15) artif
+     9               0.795551               devn(11)        ddeva(11) artif
+    10               0.795551               devn(10)        ddeva(10) artif
+    11               0.795551                devn(5)         ddeva(5) artif
+    12               0.840878                devp(7)        ddeva(12) artif
+    13               0.840878                devp(6)         ddeva(6) artif
+    14               0.840878                devp(4)         ddeva(4) artif
+    15               0.840878                devp(3)         ddeva(3) artif
+    16               0.840878                devn(2)         ddeva(2) artif
+    17               0.840878               devn(20)        ddeva(20) artif
+    18               0.840878               devp(13)        ddeva(13) artif
+    19               0.840878               devn(16)        ddeva(16) artif
+    20               0.840878               devp(17)        ddeva(17) artif
+    21               0.900133                devn(1)         ddeva(8) artif
+    22               0.922678                devp(8)                devp(9)
+    23               0.924085               devn(18)               devn(10)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.13 ticks)
+
+Optimal solution found.
+Objective :           0.924085
+
+--- Restarting execution
+--- linear.gms(106) 2 Mb
+--- Reading solution for model mod5a
+--- linear.gms(106) 3 Mb
+--- Generating NLP model mod6
+--- linear.gms(107) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   83 nl-code  20 nl-non-zeroes
+--- linear.gms(107) 3 Mb
+--- Executing BARON: elapsed 0:00:00.177
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Doing local search
+ Preprocessing found feasible solution with value 0.749439620653E-001
+ Problem solved during preprocessing
+ Lower bound is 0.681308746048E-001
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.01
+ Total CPU time used:                 0.01
+
+ Total no. of BaR iterations:      -1
+ Best solution found at node:      -1
+ Max. no. of nodes in memory:       0
+ 
+ All done
+===========================================================================
+
+Solution      = 0.074943962065297  best solution found during preprocessing
+Best possible = 0.0681308746048
+Absolute gap  = 0.00681308746049704  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- linear.gms(107) 2 Mb
+--- Reading solution for model mod6
+--- linear.gms(107) 3 Mb
+--- Generating DNLP model mod7
+--- linear.gms(108) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   123 nl-code  20 nl-non-zeroes
+--- linear.gms(108) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.214
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+>>  gams linear-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/linear/convert.opt"
+--- Writing Gams      : linear-scalar.gms
+
+--- Restarting execution
+--- linear.gms(108) 2 Mb
+--- Reading solution for model mod7
+--- linear.gms(108) 3 Mb
+--- Generating NLP model mod8
+--- linear.gms(109) 5 Mb
+---   21 rows  25 columns  121 non-zeroes
+---   103 nl-code  20 nl-non-zeroes
+--- linear.gms(109) 3 Mb
+--- Executing BARON: elapsed 0:00:00.227
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/linear/baron.opt"
+*** Error Error code = 2; No such file or directory
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+ Starting solution is feasible with a value of    0.567621296304E-003
+ Doing local search
+ Preprocessing found feasible solution with value 0.505227574584E-003
+ Problem solved during preprocessing
+ Lower bound is 0.459297795076E-003
+
+ Cleaning up
+
+                         *** Normal completion ***            
+
+ Wall clock time:                     0.01
+ Total CPU time used:                 0.01
+
+ Total no. of BaR iterations:      -1
+ Best solution found at node:      -1
+ Max. no. of nodes in memory:       0
+ 
+ All done
+===========================================================================
+
+Solution      = 0.000505227574583916  best solution found during preprocessing
+Best possible = 0.000459297795076
+Absolute gap  = 4.5929779507916E-5  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+--- Restarting execution
+--- linear.gms(109) 2 Mb
+--- Reading solution for model mod8
+***
+*** Solver did not provide marginals for model mod8
+***
+--- linear.gms(111) 3 Mb
+*** Status: Normal completion
+--- Job linear.gms Stop 12/13/18 10:24:33 elapsed 0:00:00.260

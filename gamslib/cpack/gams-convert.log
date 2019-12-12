@@ -1,0 +1,31 @@
+--- Job cpack.gms Start 12/13/18 11:43:35 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- cpack.gms(48) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- cpack.gms(44) 4 Mb
+--- Generating QCP model m
+--- cpack.gms(47) 6 Mb
+---   15 rows  11 columns  65 non-zeroes
+---   186 nl-code  65 nl-non-zeroes
+--- cpack.gms(47) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cpack/convert.opt"
+>>  gams cpack-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cpack/convert.opt"
+--- Writing Gams      : cpack-scalar.gms
+
+--- Restarting execution
+--- cpack.gms(47) 2 Mb
+--- Reading solution for model m
+--- cpack.gms(48) 3 Mb
+*** Status: Normal completion
+--- Job cpack.gms Stop 12/13/18 11:43:35 elapsed 0:00:00.022

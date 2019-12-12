@@ -1,0 +1,402 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 2
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+C o m p i l a t i o n
+
+
+   4   
+       
+      Finds the polygon of maximal area, among polygons with nv sides and
+      diameter d <= 1.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of sides can be specified using the command line parameter
+      --nv. COPS performance tests have been reported for nv = 25, 50, 75,
+      100
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Graham, R L, The Largest Small Hexagon. J. Combin. Th. 18 (1975),
+      165-170.
+       
+      Gay, D, AMPL Models.
+       
+  28   
+  29   
+  32   
+  33  set i sides / i1*i25 /;
+  34   
+  35  alias (i,j);
+  36   
+  37  scalar pi a famous constant;
+  38   
+  39   
+  40  positive variables
+  41     r(i)      polar radius (distance to fixed vertex)
+  42     theta(i)  polar angle (measured from fixed direction)
+  43  variable  polygon_area
+  44   
+  45  equations
+  46     obj
+  47     distance(i,j)
+  48     ordered(i) ;
+  49   
+  50  obj.. polygon_area =e= 0.5*sum(j(i+1), r(i+1)*r(i)*sin(theta(i+1)-theta(i)));
+  51   
+  52  ordered(i+1).. theta(i) =l= theta(i+1);
+  53   
+  54  distance(i,j)$(ord(j) > ord(i))..
+  55     sqr(r(i)) + sqr(r(j)) - 2*r(i)*r(j)*cos(theta(j)-theta(i)) =l= 1;
+  56   
+  57   
+  58  pi = 2*arctan(inf);
+  59   
+  60  r.up(i)     = 1;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 3
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+C o m p i l a t i o n
+
+
+  61  theta.up(i) = pi;
+  62   
+  63  r.fx('i25')    =  0;
+  64  theta.fx('i25') = pi;
+  65   
+  66  r.l(i)     = 4*ord(i)*(card(i)+ 1- ord(i))/sqr(card(i)+1);
+  67  theta.l(i) = pi*ord(i)/card(i);
+  68   
+  69  model polygon /all/;
+  70   
+  72   
+  73  solve polygon using nlp maximizing polygon_area;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 4
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Equation Listing    SOLVE polygon Using NLP From line 73
+
+
+---- obj  =E=  
+
+obj..  - (0.0177988023996645)*r(i1) - (0.0348559880326763)*r(i2) - (0.0504299401323828)*r(i3) - (0.0645206586987838)*r(i4) - (0.0771281437318796)*r(i5) - (0.0882523952316699)*r(i6) - (0.0978934131981548)*r(i7) - (0.106051197631334)*r(i8)
+     
+      - (0.112725748531209)*r(i9) - (0.117917065897777)*r(i10) - (0.121625149731041)*r(i11) - (0.123850000030999)*r(i12) - (0.124591616797652)*r(i13) - (0.123850000030999)*r(i14) - (0.121625149731041)*r(i15) - (0.117917065897778)*r(i16)
+     
+      - (0.112725748531209)*r(i17) - (0.106051197631334)*r(i18) - (0.0978934131981548)*r(i19) - (0.0882523952316698)*r(i20) - (0.0771281437318797)*r(i21) - (0.0645206586987839)*r(i22) - (0.0504299401323828)*r(i23) - (0.0255857784495178)*r(i24)
+     
+      - (0.0177988023996645)*r(i25) + (0.0208420160634672)*theta(i1) + (0.0366819482717023)*theta(i2) + (0.0479366369459746)*theta(i3) + (0.0550229224075534)*theta(i4) + (0.0583576449777081)*theta(i5) + (0.0583576449777083)*theta(i6)
+     
+      + (0.0554397627288227)*theta(i7) + (0.0500208385523213)*theta(i8) + (0.0425177127694731)*theta(i9) + (0.0333472257015475)*theta(i10) + (0.022926217669814)*theta(i11) + (0.0116715289955417)*theta(i12) + (0)*theta(i13)
+     
+      - (0.0116715289955416)*theta(i14) - (0.022926217669814)*theta(i15) - (0.0333472257015475)*theta(i16) - (0.042517712769473)*theta(i17) - (0.0500208385523213)*theta(i18) - (0.0554397627288227)*theta(i19) - (0.0583576449777083)*theta(i20)
+     
+      - (0.0583576449777081)*theta(i21) - (0.0550229224075534)*theta(i22) - (0.0479366369459745)*theta(i23) - (0.0575239643351695)*theta(i24) + (0)*theta(i25) + polygon_area =E= 0 ; (LHS = -0.859924388125803, INFES = 0.859924388125803 ****)
+     
+
+---- distance  =L=  
+
+distance(i1,i2)..  - (0.267710126190473)*r(i1) + (0.27452227771761)*r(i2) - (0.0105318357394465)*theta(i1) + (0.0105318357394465)*theta(i2) =L= 1 ; (LHS = 0.0191843673836789)
+     
+distance(i1,i3)..  - (0.495056072400894)*r(i1) + (0.530004981914606)*r(i3) - (0.0300402685731854)*theta(i1) + (0.0300402685731854)*theta(i3) =L= 1 ; (LHS = 0.0715797098878268)
+     
+distance(i1,i4)..  - (0.672429949800782)*r(i1) + (0.766338317784541)*r(i4) - (0.0567118809499872)*theta(i1) + (0.0567118809499872)*theta(i4) =L= 1 ; (LHS = 0.149784092366923)
+     
+REMAINING 297 ENTRIES SKIPPED
+
+
+---- ordered  =L=  
+
+ordered(i2)..  theta(i1) - theta(i2) =L= 0 ; (LHS = -0.125663706143592)
+     
+ordered(i3)..  theta(i2) - theta(i3) =L= 0 ; (LHS = -0.125663706143592)
+     
+ordered(i4)..  theta(i3) - theta(i4) =L= 0 ; (LHS = -0.125663706143592)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 5
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Column Listing      SOLVE polygon Using NLP From line 73
+
+
+---- r  polar radius (distance to fixed vertex)
+
+r(i1)
+                (.LO, .L, .UP, .M = 0, 0.14792899408284, 1, 0)
+      (-0.0178) obj
+      (-0.2677) distance(i1,i2)
+      (-0.4951) distance(i1,i3)
+      (-0.6724) distance(i1,i4)
+      (-0.793)  distance(i1,i5)
+      (-0.853)  distance(i1,i6)
+      (-0.8515) distance(i1,i7)
+      (-0.7904) distance(i1,i8)
+      (-0.6743) distance(i1,i9)
+      (-0.5104) distance(i1,i10)
+      (-0.3075) distance(i1,i11)
+      (-0.0767) distance(i1,i12)
+       (0.1703) distance(i1,i13)
+       (0.4207) distance(i1,i14)
+       (0.6618) distance(i1,i15)
+       (0.881)  distance(i1,i16)
+       (1.0668) distance(i1,i17)
+       (1.209)  distance(i1,i18)
+       (1.2991) distance(i1,i19)
+       (1.3311) distance(i1,i20)
+       (1.3011) distance(i1,i21)
+       (1.2085) distance(i1,i22)
+       (1.0551) distance(i1,i23)
+       (0.8461) distance(i1,i24)
+       (0.2959) distance(i1,i25)
+
+r(i2)
+                (.LO, .L, .UP, .M = 0, 0.284023668639053, 1, 0)
+      (-0.0349) obj
+       (0.2745) distance(i1,i2)
+      (-0.2421) distance(i2,i3)
+      (-0.4407) distance(i2,i4)
+      (-0.5873) distance(i2,i5)
+      (-0.6764) distance(i2,i6)
+      (-0.7053) distance(i2,i7)
+      (-0.6742) distance(i2,i8)
+      (-0.5861) distance(i2,i9)
+      (-0.4465) distance(i2,i10)
+      (-0.2634) distance(i2,i11)
+      (-0.0463) distance(i2,i12)
+       (0.1933) distance(i2,i13)
+       (0.4432) distance(i2,i14)
+       (0.6907) distance(i2,i15)
+       (0.9229) distance(i2,i16)
+       (1.1276) distance(i2,i17)
+       (1.2936) distance(i2,i18)
+       (1.4114) distance(i2,i19)
+       (1.4733) distance(i2,i20)
+       (1.4739) distance(i2,i21)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 6
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Column Listing      SOLVE polygon Using NLP From line 73
+
+
+     r  polar radius (distance to fixed vertex)
+
+       (1.4106) distance(i2,i22)
+       (1.2836) distance(i2,i23)
+       (1.0962) distance(i2,i24)
+       (0.568)  distance(i2,i25)
+
+r(i3)
+                (.LO, .L, .UP, .M = 0, 0.408284023668639, 1, 0)
+      (-0.0504) obj
+       (0.53)   distance(i1,i3)
+       (0.253)  distance(i2,i3)
+      (-0.2166) distance(i3,i4)
+      (-0.387)  distance(i3,i5)
+      (-0.5038) distance(i3,i6)
+      (-0.5627) distance(i3,i7)
+      (-0.5621) distance(i3,i8)
+      (-0.5033) distance(i3,i9)
+      (-0.3904) distance(i3,i10)
+      (-0.2297) distance(i3,i11)
+      (-0.03)   distance(i3,i12)
+       (0.1985) distance(i3,i13)
+       (0.444)  distance(i3,i14)
+       (0.694)  distance(i3,i15)
+       (0.9355) distance(i3,i16)
+       (1.1559) distance(i3,i17)
+       (1.3432) distance(i3,i18)
+       (1.4867) distance(i3,i19)
+       (1.5775) distance(i3,i20)
+       (1.6086) distance(i3,i21)
+       (1.5757) distance(i3,i22)
+       (1.4772) distance(i3,i23)
+       (1.3144) distance(i3,i24)
+       (0.8166) distance(i3,i25)
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- theta  polar angle (measured from fixed direction)
+
+theta(i1)
+                (.LO, .L, .UP, .M = 0, 0.125663706143592, 3.14159265358979, 0)
+       (0.0208) obj
+      (-0.0105) distance(i1,i2)
+      (-0.03)   distance(i1,i3)
+      (-0.0567) distance(i1,i4)
+      (-0.0886) distance(i1,i5)
+      (-0.1235) distance(i1,i6)
+      (-0.1594) distance(i1,i7)
+      (-0.1942) distance(i1,i8)
+      (-0.2262) distance(i1,i9)
+      (-0.2534) distance(i1,i10)
+      (-0.2747) distance(i1,i11)
+      (-0.2889) distance(i1,i12)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 7
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Column Listing      SOLVE polygon Using NLP From line 73
+
+
+     theta  polar angle (measured from fixed direction)
+
+      (-0.2953) distance(i1,i13)
+      (-0.2935) distance(i1,i14)
+      (-0.2837) distance(i1,i15)
+      (-0.2664) distance(i1,i16)
+      (-0.2424) distance(i1,i17)
+      (-0.2128) distance(i1,i18)
+      (-0.1794) distance(i1,i19)
+      (-0.1438) distance(i1,i20)
+      (-0.108)  distance(i1,i21)
+      (-0.0742) distance(i1,i22)
+      (-0.0445) distance(i1,i23)
+      (-0.0209) distance(i1,i24)
+       (0)      distance(i1,i25)
+        1       ordered(i2)
+
+theta(i2)
+                (.LO, .L, .UP, .M = 0, 0.251327412287184, 3.14159265358979, 0)
+       (0.0367) obj
+       (0.0105) distance(i1,i2)
+      (-0.0291) distance(i2,i3)
+      (-0.0736) distance(i2,i4)
+      (-0.1299) distance(i2,i5)
+      (-0.1943) distance(i2,i6)
+      (-0.2628) distance(i2,i7)
+      (-0.3313) distance(i2,i8)
+      (-0.3963) distance(i2,i9)
+      (-0.4541) distance(i2,i10)
+      (-0.5018) distance(i2,i11)
+      (-0.537)  distance(i2,i12)
+      (-0.558)  distance(i2,i13)
+      (-0.5636) distance(i2,i14)
+      (-0.5535) distance(i2,i15)
+      (-0.5283) distance(i2,i16)
+      (-0.4891) distance(i2,i17)
+      (-0.438)  distance(i2,i18)
+      (-0.3775) distance(i2,i19)
+      (-0.3108) distance(i2,i20)
+      (-0.2416) distance(i2,i21)
+      (-0.1739) distance(i2,i22)
+      (-0.1117) distance(i2,i23)
+      (-0.0594) distance(i2,i24)
+       (0)      distance(i2,i25)
+       -1       ordered(i2)
+        1       ordered(i3)
+
+theta(i3)
+                (.LO, .L, .UP, .M = 0, 0.376991118430775, 3.14159265358979, 0)
+       (0.0479) obj
+       (0.03)   distance(i1,i3)
+       (0.0291) distance(i2,i3)
+      (-0.0533) distance(i3,i4)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 8
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Column Listing      SOLVE polygon Using NLP From line 73
+
+
+     theta  polar angle (measured from fixed direction)
+
+      (-0.1262) distance(i3,i5)
+      (-0.2134) distance(i3,i6)
+      (-0.3096) distance(i3,i7)
+      (-0.409)  distance(i3,i8)
+      (-0.5061) distance(i3,i9)
+      (-0.5957) distance(i3,i10)
+      (-0.6731) distance(i3,i11)
+      (-0.7345) distance(i3,i12)
+      (-0.7766) distance(i3,i13)
+      (-0.7974) distance(i3,i14)
+      (-0.7957) distance(i3,i15)
+      (-0.7716) distance(i3,i16)
+      (-0.7262) distance(i3,i17)
+      (-0.6617) distance(i3,i18)
+      (-0.5815) distance(i3,i19)
+      (-0.4896) distance(i3,i20)
+      (-0.3909) distance(i3,i21)
+      (-0.2911) distance(i3,i22)
+      (-0.196)  distance(i3,i23)
+      (-0.1117) distance(i3,i24)
+       (0)      distance(i3,i25)
+       -1       ordered(i3)
+        1       ordered(i4)
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- polygon_area  
+
+polygon_area
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 9
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Model Statistics    SOLVE polygon Using NLP From line 73
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          325
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           51  1 projected
+NON ZERO ELEMENTS         1,299     NON LINEAR N-Z          1,250
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH               4,671
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:32 Page 10
+Largest small polygon COPS 2.0 #1 (POLYGON,SEQ=229)
+Solution Report     SOLVE polygon Using NLP From line 73
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   polygon             OBJECTIVE  polygon_area
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  73
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/polygon/convert.opt"
+>>  gams polygon-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/polygon/convert.opt"
+Gams      : polygon-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/polygon/polygon.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/polygon/polygon-scalar.gms.lst

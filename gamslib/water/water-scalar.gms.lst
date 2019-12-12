@@ -1,0 +1,404 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option DNLP=convert;
+   2  option DNLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 2
+Design of a Water Distribution Network  (WATER,SEQ=68)
+C o m p i l a t i o n
+
+
+   4   
+   5   
+       
+         This example illustrates the use of nonlinear programming in the design of
+         water distribution systems. The model captures the main features of an
+         actual application for a city in Indonesia.
+       
+       
+      Brooke, A, Drud, A S, and Meeraus, A, Modeling Systems and Nonlinear
+      Programming in a Research Environment. In Ragavan, R, and Rohde, S M,
+      Eds, Computers in Engineering, Vol. III. ACME, 1985.
+       
+      Drud, A S, and Rosenborg, A, Dimensioning Water Distribution Networks.
+      Masters thesis, Institute of Mathematical Statistics and Operations
+      Research, Technical University of Denmark, 1973. (in Danish)
+       
+  22   
+  23   Set   n       nodes /  nw   north west reservoir
+  24                          e    east reservoir
+  25                          cc   central city
+  26                          w    west
+  27                          sw   south west
+  28                          s    south
+  29                          se   south east
+  30                          n    north       /
+  31         a(n,n)  arcs (arbitrarily directed)  / nw.(w,cc,n), e.(n,cc,s,se), cc.(w,sw,s,n), s.se, s.sw, sw.w /
+  32         rn(n)   reservoirs /  nw, e  /
+  33         dn(n)   demand nodes; dn(n) = yes; dn(rn) = no; Display dn;
+  34   
+  35   Alias   (n,np);
+  36   
+  37   Table      node(n,*)  node data
+  38   
+  39                            demand      height       x          y       supply     wcost      pcost
+  40  *                        m**3/sec  m over base     m          m      m**3/sec   rp/m**3    rp/m**4
+  41              nw                        6.50       1200       3600       2.500      0.20       1.02
+  42              e                         3.25       4000       2200       6.000      0.17       1.02
+  43              cc             1.212      3.02       2000       2300
+  44              w              0.452      5.16        750       2400
+  45              sw             0.245      4.20        900       1200
+  46              s              0.652      1.50       2000       1000
+  47              se             0.252      0.00       4000        900
+  48              n              0.456      6.30       3700       3500
+  49   
+  50   Parameter  dist(n,n)  distance between nodes (m);
+  51              dist(a(n,np)) = sqrt( sqr( node(n,"x")-node(np,"x") ) + sqr( node(n,"y")-node(np,"y") ) );
+  52              display dist;
+  53   
+  54   Scalar     dpow       power on diameter in pressure loss equation     / 5.33   /
+  55              qpow       power on flow in pressure loss equation         / 2.00   /
+  56              dmin       minimum diameter of pipe                        / 0.15   /
+  57              dmax       maximum diameter of pipe                        / 2.00   /
+  58              hloss      constant in the pressure loss equation          / 1.03e-3/
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 3
+Design of a Water Distribution Network  (WATER,SEQ=68)
+C o m p i l a t i o n
+
+
+  59              dprc       scale factor in the investment cost equation    / 6.90e-2/
+  60              cpow       power on diameter in the cost equation          / 1.29   /
+  61              r          interest rate                                   / 0.10   /
+  62              davg       average diameter (geometric mean)
+  63              rr         ratio of demand to supply;
+  64   
+  65              davg = sqrt(dmin*dmax);
+  66              rr   = sum(dn, node(dn,"demand")) / sum(rn, node(rn,"supply"));
+  67   
+  68   Variables  q(n,n)     flow on each arc - signed       (m**3 per sec)
+  69              d(n,n)     pipe diameter for each arc      (m)
+  70              h(n)       pressure at each node           (m)
+  71              s(n)       supply at reservoir nodes       (m**3 per sec)
+  72              pcost      annual recurrent pump costs     (mill rp)
+  73              dcost      investment costs for pipes      (mill rp)
+  74              wcost      annual recurrent water costs    (mill rp)
+  75              cost       total discounted costs          (mill rp)
+  76   
+  77   Equations  cont(n)    flow conservation equation at each node
+  78              loss(n,n)  pressure loss on each arc
+  79              peq        pump cost equation
+  80              deq        investment cost equation
+  81              weq        water cost equation
+  82              obj        objective function;
+  83   
+  84   cont(n)..  sum(a(np,n), q(a)) - sum(a(n,np), q(a)) + s(n)$rn(n) =e= node(n,"demand");
+  85   
+  86   loss(a(n,np)).. h(n) - h(np) =e= (hloss*dist(a)*abs(q(a))**(qpow-1)*q(a)/d(a)**dpow) $(qpow <> 2) +
+  87                                    (hloss*dist(a)*abs(q(a))          *q(a)/d(a)**dpow) $(qpow = 2);
+  88   
+  89   peq..  pcost =e= sum(rn, s(rn)*node(rn,"pcost")*(h(rn)-node(rn,"height")));
+  90   
+  91   deq..  dcost =e= dprc*sum(a, dist(a)*d(a)**cpow);
+  92   
+  93   weq..  wcost =e= sum(rn, s(rn)*node(rn,"wcost"));
+  94   
+  95   obj..  cost  =e= (pcost + wcost)/r + dcost;
+  96   
+  97  *
+  98  *  bounds
+  99  *
+ 100   
+ 101   d.lo(a)  = dmin;              d.up(a)  = dmax;
+ 102   h.lo(rn) = node(rn,"height"); h.lo(dn) = node(dn,"height") + 7.5 + 5.0*node(dn,"demand");
+ 103   s.lo(rn) = 0;                 s.up(rn) = node(rn,"supply");
+ 104   
+ 105  *
+ 106  *  initial values
+ 107  *
+ 108   
+ 109   d.l(a)  = davg;
+ 110   h.l(n)  = h.lo(n) + 1.0;
+ 111   s.l(rn) = node(rn,"supply")*rr;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 4
+Design of a Water Distribution Network  (WATER,SEQ=68)
+C o m p i l a t i o n
+
+
+ 112   
+ 113   Model network /all/;
+ 114   Solve network using dnlp minimizing cost;
+ 115   Display q.l;
+ 116   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 5
+Design of a Water Distribution Network  (WATER,SEQ=68)
+E x e c u t i o n
+
+
+----     33 SET dn  demand nodes
+
+cc,    w ,    sw,    s ,    se,    n 
+
+
+----     52 PARAMETER dist  distance between nodes (m)
+
+            cc           w          sw           s          se           n
+
+nw    1526.434    1281.601                                        2501.999
+e     2002.498                            2332.381    1300.000    1334.166
+cc                1253.994    1555.635    1300.000                2080.865
+sw                1209.339
+s                             1118.034                2002.498
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 6
+Design of a Water Distribution Network  (WATER,SEQ=68)
+Equation Listing    SOLVE network Using DNLP From line 114
+
+
+---- cont  =E=  flow conservation equation at each node
+
+cont(nw)..  - q(nw,cc) - q(nw,w) - q(nw,n) + s(nw) =E= 0 ; (LHS = 0.961470588235294, INFES = 0.961470588235294 ****)
+     
+cont(e)..  - q(e,cc) - q(e,s) - q(e,se) - q(e,n) + s(e) =E= 0 ; (LHS = 2.30752941176471, INFES = 2.30752941176471 ****)
+     
+cont(cc)..  q(nw,cc) + q(e,cc) - q(cc,w) - q(cc,sw) - q(cc,s) - q(cc,n) =E= 1.212 ; (LHS = 0, INFES = 1.212 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- loss  =E=  pressure loss on each arc
+
+loss(nw,cc)..  (0)*q(nw,cc) + (0)*d(nw,cc) + h(nw) - h(cc) =E= 0 ; (LHS = -10.08, INFES = 10.08 ****)
+     
+loss(nw,w)..  (0)*q(nw,w) + (0)*d(nw,w) + h(nw) - h(w) =E= 0 ; (LHS = -8.42, INFES = 8.42 ****)
+     
+loss(nw,n)..  (0)*q(nw,n) + (0)*d(nw,n) + h(nw) - h(n) =E= 0 ; (LHS = -9.58, INFES = 9.58 ****)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- peq  =E=  pump cost equation
+
+peq..  - (0.9807)*h(nw) - (2.35368)*h(e) - (1.02)*s(nw) - (1.02)*s(e) + pcost =E= 0 ; (LHS = -3.33438, INFES = 3.33438 ****)
+     
+
+---- deq  =E=  investment cost equation
+
+deq..  - (114.103599143227)*d(nw,cc) - (95.8018889124984)*d(nw,w) - (187.028826784067)*d(nw,n) - (149.69026915419)*d(e,cc) - (174.349550814975)*d(e,s) - (97.1772791762506)*d(e,se) - (99.7312779565658)*d(e,n) - (93.7382216420746)*d(cc,w)
+     
+      - (116.286437524713)*d(cc,sw) - (97.1772791762506)*d(cc,s) - (155.548322247858)*d(cc,n) - (90.4001852304575)*d(sw,w) - (83.5750008102197)*d(s,sw) - (149.69026915419)*d(s,se) + dcost =E= 0 ; (LHS = -723.629986536828, INFES = 723.629986536828 ****)
+     
+
+---- weq  =E=  water cost equation
+
+weq..  - 0.2*s(nw) - 0.17*s(e) + wcost =E= 0 ; (LHS = -0.584574117647059, INFES = 0.584574117647059 ****)
+     
+
+---- obj  =E=  objective function
+
+obj..  - 10*pcost - dcost - 10*wcost + cost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 7
+Design of a Water Distribution Network  (WATER,SEQ=68)
+Column Listing      SOLVE network Using DNLP From line 114
+
+
+---- q  flow on each arc - signed       (m**3 per sec)
+
+q(nw,cc)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       cont(nw)
+        1       cont(cc)
+       (0)      loss(nw,cc)
+
+q(nw,w)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       cont(nw)
+        1       cont(w)
+       (0)      loss(nw,w)
+
+q(nw,n)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       cont(nw)
+        1       cont(n)
+       (0)      loss(nw,n)
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- d  pipe diameter for each arc      (m)
+
+d(nw,cc)
+                (.LO, .L, .UP, .M = 0.15, 0.547722557505166, 2, 0)
+       (0)      loss(nw,cc)
+    (-114.1036) deq
+
+d(nw,w)
+                (.LO, .L, .UP, .M = 0.15, 0.547722557505166, 2, 0)
+       (0)      loss(nw,w)
+     (-95.8019) deq
+
+d(nw,n)
+                (.LO, .L, .UP, .M = 0.15, 0.547722557505166, 2, 0)
+       (0)      loss(nw,n)
+    (-187.0288) deq
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- h  pressure at each node           (m)
+
+h(nw)
+                (.LO, .L, .UP, .M = 6.5, 7.5, +INF, 0)
+        1       loss(nw,cc)
+        1       loss(nw,w)
+        1       loss(nw,n)
+      (-0.9807) peq
+
+h(e)
+                (.LO, .L, .UP, .M = 3.25, 4.25, +INF, 0)
+        1       loss(e,cc)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 8
+Design of a Water Distribution Network  (WATER,SEQ=68)
+Column Listing      SOLVE network Using DNLP From line 114
+
+
+     h  pressure at each node           (m)
+
+        1       loss(e,s)
+        1       loss(e,se)
+        1       loss(e,n)
+      (-2.3537) peq
+
+h(cc)
+                (.LO, .L, .UP, .M = 16.58, 17.58, +INF, 0)
+       -1       loss(nw,cc)
+       -1       loss(e,cc)
+        1       loss(cc,w)
+        1       loss(cc,sw)
+        1       loss(cc,s)
+        1       loss(cc,n)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- s  supply at reservoir nodes       (m**3 per sec)
+
+s(nw)
+                (.LO, .L, .UP, .M = 0, 0.961470588235294, 2.5, 0)
+        1       cont(nw)
+      (-1.02)   peq
+       -0.2     weq
+
+s(e)
+                (.LO, .L, .UP, .M = 0, 2.30752941176471, 6, 0)
+        1       cont(e)
+      (-1.02)   peq
+       -0.17    weq
+
+
+---- pcost  annual recurrent pump costs     (mill rp)
+
+pcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       peq
+      -10       obj
+
+
+---- dcost  investment costs for pipes      (mill rp)
+
+dcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       deq
+       -1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 9
+Design of a Water Distribution Network  (WATER,SEQ=68)
+Column Listing      SOLVE network Using DNLP From line 114
+
+
+---- wcost  annual recurrent water costs    (mill rp)
+
+wcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       weq
+      -10       obj
+
+
+---- cost  total discounted costs          (mill rp)
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:42 Page 10
+Design of a Water Distribution Network  (WATER,SEQ=68)
+Model Statistics    SOLVE network Using DNLP From line 114
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           26
+BLOCKS OF VARIABLES           8     SINGLE VARIABLES           42
+NON ZERO ELEMENTS           113     NON LINEAR N-Z             46
+DERIVATIVE POOL              20     CONSTANT POOL              46
+CODE LENGTH                 228
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:42 Page 11
+Design of a Water Distribution Network  (WATER,SEQ=68)
+Solution Report     SOLVE network Using DNLP From line 114
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   network             OBJECTIVE  cost
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  114
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/water/convert.opt"
+>>  gams water-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/water/convert.opt"
+Gams      : water-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:42 Page 12
+Design of a Water Distribution Network  (WATER,SEQ=68)
+E x e c u t i o n
+
+
+----    115 VARIABLE q.L  flow on each arc - signed       (m**3 per sec)
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/water/water.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/water/water-scalar.gms.lst

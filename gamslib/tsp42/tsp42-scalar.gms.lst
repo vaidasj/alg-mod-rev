@@ -1,0 +1,544 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 2
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+       
+       
+       This model solves a Symmetric TSP using a simple algorithm
+       that adds cuts to exclude subtours found in the previous
+       solution. The data set is dantzig42 from TSPLIB.
+       
+       
+      Dantzig, G B, Fulkerson, and Johnson, Solution of a Large-Scale
+      Traveling-Salesman Problem. Operations Research 2 (1954), 393-410.
+       
+       optimal solution: 699
+       
+  19   
+  20  option optcr=0;
+  21  option limrow=0;
+  22  option limcol=0;
+  23  option solprint=off;
+  24   
+  25  set i cities /
+  26   
+  27    c1  'Manchester, N.H.'
+  28    c2  'Montpelier, Vt.'
+  29    c3  'Detroit, Mich.'
+  30    c4  'Cleveland, Ohio'
+  31    c5  'Charleston, W.Va.'
+  32    c6  'Louisville, Ky.'
+  33    c7  'Indianapolis, Ind.'
+  34    c8  'Chicago, Ill.'
+  35    c9  'Milwaukee, Wis.'
+  36    c10 'Minneapolis, Minn.'
+  37    c11 'Pierre, S.D.'
+  38    c12 'Bismarck, N.D.'
+  39    c13 'Helena, Mont.'
+  40    c14 'Seattle, Wash.'
+  41    c15 'Portland, Ore.'
+  42    c16 'Boise, Idaho'
+  43    c17 'Salt Lake City, Utah'
+  44    c18 'Carson City, Nevada'
+  45    c19 'Los Angeles, Calif.'
+  46    c20 'Phoenix, Ariz.'
+  47    c21 'Santa Fe, N.M.'
+  48    c22 'Denver, Colo.'
+  49    c23 'Cheyenne, Wyo.'
+  50    c24 'Omaha, Neb.'
+  51    c25 'Des Moines, Iowa'
+  52    c26 'Kansas City, Mo.'
+  53    c27 'Topeka, Kans.'
+  54    c28 'Oklahoma City, Okla.'
+  55    c29 'Dallas, Tex.'
+  56    c30 'Little Rock, Ark.'
+  57    c31 'Memphis, Tenn.'
+  58    c32 'Jackson, Miss.'
+  59    c33 'New Orleans, La.'
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 3
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+  60    c34 'Birmingham, Ala.'
+  61    c35 'Atlanta, Ga.'
+  62    c36 'Jacksonville, Fla.'
+  63    c37 'Columbia, S.C.'
+  64    c38 'Raleigh, N.C.'
+  65    c39 'Richmond, Va.'
+  66    c40 'Washington, D.C.'
+  67    c41 'Boston, Mass.'
+  68    c42 'Portland, Me.'
+  69   
+  70  /;
+  71   
+  72  alias (i,j,k);
+  73   
+  74  table d(i,j)
+  75   
+  76   
+  77       c1  c2  c3  c4  c5  c6  c7  c8  c9 c10 c11 c12 c13 c14 c15 c16 c17 c18 c19 c20 c21
+  78  c2    8
+  79  c3   39  45
+  80  c4   37  47   9
+  81  c5   50  49  21  15
+  82  c6   61  62  21  20  17
+  83  c7   58  60  16  17  18   6
+  84  c8   59  60  15  20  26  17  10
+  85  c9   62  66  20  25  31  22  15   5
+  86  c10  81  81  40  44  50  41  35  24  20
+  87  c11 103 107  62  67  72  63  57  46  41  23
+  88  c12 108 117  66  71  77  68  61  51  46  26  11
+  89  c13 145 149 104 108 114 106  99  88  84  63  49  40
+  90  c14 181 185 140 144 150 142 135 124 120  99  85  76  35
+  91  c15 187 191 146 150 156 142 137 130 125 105  90  81  41  10
+  92  c16 161 170 120 124 130 115 110 104 105  90  72  62  34  31  27
+  93  c17 142 146 101 104 111  97  91  85  86  75  51  59  29  53  48  21
+  94  c18 174 178 133 138 143 129 123 117 118 107  83  84  54  46  35  26  31
+  95  c19 185 186 142 143 140 130 126 124 128 118  93 101  72  69  58  58  43  26
+  96  c20 164 165 120 123 124 106 106 105 110 104  86  97  71  93  82  62  42  45  22
+  97  c21 137 139  94  96  94  80  78  77  84  77  56  64  65  90  87  58  36  68  50  30
+  98  c22 117 122  77  80  83  68  62  60  61  50  34  42  49  82  77  60  30  62  70  49  21
+  99  c23 114 118  73  78  84  69  63  57  59  48  28  36  43  77  72  45  27  59  69  55  27
+ 100  c24  85  89  44  48  53  41  34  28  29  22  23  35  69 105 102  74  56  88  99  81  54
+ 101  c25  77  80  36  40  46  34  27  19  21  14  29  40  77 114 111  84  64  96 107  87  60
+ 102  c26  87  89  44  46  46  30  28  29  32  27  36  47  78 116 112  84  66  98  95  75  47
+ 103  c27  91  93  48  50  48  34  32  33  36  30  34  45  77 115 110  83  63  97  91  72  44
+ 104  c28 105 106  62  63  64  47  46  49  54  48  46  59  85 119 115  88  66  98  79  59  31
+ 105  c29 111 113  69  71  66  51  53  56  61  57  59  71  96 130 126  98  75  98  85  62  38
+ 106  c30  91  92  50  51  46  30  34  38  43  49  60  71 103 141 136 109  90 115  99  81  53
+ 107  c31  83  85  42  43  38  22  26  32  36  51  63  75 106 142 140 112  93 126 108  88  60
+ 108  c32  89  91  55  55  50  34  39  44  49  63  76  87 120 155 150 123 100 123 109  86  62
+ 109  c33  95  97  64  63  56  42  49  56  60  75  86  97 126 160 155 128 104 128 113  90  67
+ 110  c34  74  81  44  43  35  23  30  39  44  62  78  89 121 159 155 127 108 136 124 101  75
+ 111  c35  67  69  42  41  31  25  32  41  46  64  83  90 130 164 160 133 114 146 134 111  85
+ 112  c36  74  76  61  60  42  44  51  60  66  83 102 110 147 185 179 155 133 159 146 122  98
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 4
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+ 113  c37  57  59  46  41  25  30  36  47  52  71  93  98 136 172 172 148 126 158 147 124 121
+ 114  c38  45  46  41  34  20  34  38  48  53  73  96  99 137 176 178 151 131 163 159 135 108
+ 115  c39  35  37  35  26  18  34  36  46  51  70  93  97 134 171 176 151 129 161 163 139 118
+ 116  c40  29  33  30  21  18  35  33  40  45  65  87  91 117 166 171 144 125 157 156 139 113
+ 117  c41   3  11  41  37  47  57  55  58  63  83 105 109 147 186 188 164 144 176 182 161 134
+ 118  c42   5  12  55  41  53  64  61  61  66  84 111 113 150 186 192 166 147 180 188 167 140
+ 119   
+ 120  +
+ 121      c22 c23 c24 c25 c26 c27 c28 c29 c30 c31 c32 c33 c34 c35 c36 c37 c38 c39 c40 c41
+ 122  c23   5
+ 123  c24  32  29
+ 124  c25  40  37   8
+ 125  c26  36  39  12  11
+ 126  c27  32  36   9  15   3
+ 127  c28  36  42  28  33  21  20
+ 128  c29  47  53  39  42  29  30  12
+ 129  c30  61  62  36  34  24  28  20  20
+ 130  c31  64  66  39  36  27  31  28  28   8
+ 131  c32  71  78  52  49  39  44  35  24  15  12
+ 132  c33  76  82  62  59  49  53  40  29  25  23  11
+ 133  c34  79  81  54  50  42  46  43  39  23  14  14  21
+ 134  c35  84  86  59  52  47  51  53  49  32  24  24  30   9
+ 135  c36 105 107  79  71  66  70  70  60  48  40  36  33  25  18
+ 136  c37  97  99  71  65  59  63  67  62  46  38  37  43  23  13  17
+ 137  c38 102 103  73  67  64  69  75  72  54  46  49  54  34  24  29  12
+ 138  c39 102 101  71  65  65  70  84  78  58  50  56  62  41  32  38  21   9
+ 139  c40  95  97  67  60  62  67  79  82  62  53  59  66  45  38  45  27  15   6
+ 140  c41 119 116  86  78  84  88 101 108  88  80  86  92  71  64  71  54  41  32  25
+ 141  c42 124 119  90  87  90  94 107 114  77  86  92  98  80  74  77  60  48  38  32   6
+ 142   
+ 143  ;
+ 144   
+ 145   
+ 146  set lt(i,j) lower triangular;
+ 147  lt(i,j)$(ord(i)>ord(j)) = yes;
+ 148   
+ 149  free variable z;
+ 150  binary variable x(i,j);
+ 151  equations twomatch(i), obj;
+ 152   
+ 153   
+ 154  obj.. z =e= sum(lt(i,j), d(i,j)*x(i,j));
+ 155  twomatch(k).. sum(lt(i,k), x(i,k)) + sum(lt(k,j),x(k,j)) =e= 2;
+ 156   
+ 157  model match /obj,twomatch/;
+ 158   
+ 159  solve match minimizing z using mip;
+ 160   
+ 161  *display x.l;
+ 162   
+ 163   
+ 164   
+ 165  *
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 5
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+ 166  * dynamic number of cuts
+ 167  *
+ 168   
+ 169  set cycle /cycle1*cycle50/;
+ 170  set t tours  /t1*t100/;
+ 171  set cutindex(cycle,t)              dynamic set for addressing cuts;
+ 172  equation cut(cycle,t)              actual cuts;
+ 173  parameter cutcoeff(cycle,t,i,j)    coefficients in cuts;
+ 174  parameter cutlength(cycle,t)       rhs for cuts;
+ 175   
+ 176  cut(cutindex).. sum((i,j), cutcoeff(cutindex,i,j)*x(i,j)) =l= cutlength(cutindex)-1;
+ 177   
+ 178  model tsp /obj, twomatch, cut/;
+ 179   
+ 180   
+ 181  *
+ 182  * used to find and display tours
+ 183  *
+ 184  set s(i,j) current solution;
+ 185  set tour(t,i,j) subtours;
+ 186  set tt(t) current subtour;
+ 187  set first(i,j) 'first (i,j) in S';
+ 188  set reach(i,j) "(i,j)'s connected to tour(tt)";
+ 189   
+ 190  scalar done /0/;
+ 191  scalar continue;
+ 192   
+ 193  parameter results;  // for reporting
+ 194  results('relaxed','obj')=z.l;
+ 195  results('relaxed','total equs') = match.numequ;
+ 196   
+ 197  parameter solutions(*,i,j);
+ 198  solutions('relaxed',i,j) = x.l(i,j);
+ 199   
+ 200   
+ 201  loop(cycle,
+ 202   
+ 203  *
+ 204  * initialization
+ 205  *
+ 206     tour(t,i,j) = no;
+ 207     s(i,j) = no;
+ 208     first(i,j) = no;
+ 209     reach(i,j) = no;
+ 210     done = 0;
+ 211   
+ 212     tt(t) = no;
+ 213     tt(t)$(ord(t)=1) = 1;         // initialize tt(1) = yes
+ 214   
+ 215     s(i,j)=yes$(x.l(i,j) > 0.5);  // initialize to current solution
+ 216   
+ 217     while(not done,
+ 218   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 6
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+ 219  *
+ 220  * pick any (i,j) from remaining solutions
+ 221  *
+ 222   
+ 223        first(i,j)=no;
+ 224        loop((i,j)$(card(first)=0),
+ 225           first(i,j) = s(i,j);
+ 226        );
+ 227  *   display first;
+ 228   
+ 229  *
+ 230  * this is he beginning of a new subtour
+ 231  *
+ 232        tour(tt,first) = yes;
+ 233        s(first) = no;
+ 234   
+ 235        continue = 1;
+ 236        while(continue,
+ 237  *
+ 238  * find (i,j)'s connected to tour(tt)
+ 239  * note that the loop over tt is just syntax: tt contains one element
+ 240  *
+ 241           reach(i,j) = no;
+ 242           loop((tt,k),
+ 243              reach(s(i,j))$tour(tt,k,j) = yes;
+ 244              reach(s(i,j))$tour(tt,i,k) = yes;
+ 245              reach(s(i,j))$tour(tt,k,i) = yes;
+ 246              reach(s(i,j))$tour(tt,j,k) = yes;
+ 247           );
+ 248  *       display tour,s,reach;
+ 249   
+ 250   
+ 251  *
+ 252  * if reach = empty then we can stop the while loop
+ 253  *
+ 254           if (card(reach)=0, continue = 0);
+ 255   
+ 256  *
+ 257  * add them to the current subtour
+ 258  * note that the loop over tt is just syntax: tt contains one element
+ 259  *
+ 260           loop(tt,
+ 261              tour(tt,reach) = yes;
+ 262           );
+ 263           s(reach) = no;
+ 264        );
+ 265   
+ 266  *   display tour;
+ 267   
+ 268  *
+ 269  * if no remaining solutions, we are done
+ 270  *
+ 271        if (card(s)=0, done=1);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 7
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+ 272   
+ 273  *
+ 274  * new subtour
+ 275  *
+ 276        tt(t) = tt(t-1);   // t := t + 1
+ 277   
+ 278     );
+ 279   
+ 280   
+ 281     cutindex(cycle,t)$(sum(tour(t,i,j),1)>0.5) = yes;
+ 282  *
+ 283  * check
+ 284  *
+ 285     option tour:0:1:1;
+ 286  *  display tour;
+ 287     loop(cutindex(cycle,t),
+ 288        abort$(sum(tour(t,i,j),1) < 2.5) "subtour with 1 or 2 points";
+ 289     );
+ 290   
+ 291     if (sum(cutindex(cycle,t),1) > 1.5,
+ 292   
+ 293        cutcoeff(cycle,tour(t,i,j))$cutindex(cycle,t) = 1;
+ 294        cutlength(cutindex(cycle,t)) = sum(tour(t,i,j),1);
+ 295   
+ 296        option cutindex:0:1:1;
+ 297        option cutcoeff:0:1:1;
+ 298  *     display cutindex,cutcoeff,cutlength;
+ 299   
+ 300        solve tsp minimizing z using mip;
+ 301  *     display x.l;
+ 302   
+ 303        results(cycle,'obj') = z.l;
+ 304        results(cycle,'cuts added') = sum(cutindex(cycle,t), 1);
+ 305        results(cycle,'total equs') = tsp.numequ;
+ 306  *     display results;
+ 307   
+ 308        solutions(cycle,i,j) = x.l(i,j);
+ 309   
+ 310     else
+ 311   
+ 312        display "Optimal solution found!";
+ 313        done = 1;
+ 314   
+ 315        solutions('optimal',i,j) = x.l(i,j);
+ 316   
+ 317     );
+ 318  );
+ 319   
+ 320  option x:0:0:1; display x.l;
+ 321   
+ 322  display results;
+ 323   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 8
+TSP solution with subtour elimination (TSP42,SEQ=213)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:27 Page 9
+TSP solution with subtour elimination (TSP42,SEQ=213)
+Model Statistics    SOLVE match Using MIP From line 159
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           43
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          862
+NON ZERO ELEMENTS         2,584     DISCRETE VARIABLES        861
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 10
+TSP solution with subtour elimination (TSP42,SEQ=213)
+Solution Report     SOLVE match Using MIP From line 159
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   match               OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  159
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp42/convert.opt"
+>>  gams tsp42-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp42/convert.opt"
+Gams      : tsp42-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 11
+TSP solution with subtour elimination (TSP42,SEQ=213)
+E x e c u t i o n
+
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 12
+TSP solution with subtour elimination (TSP42,SEQ=213)
+E x e c u t i o n
+
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    312 Optimal solution found!
+
+----    320 VARIABLE x.L  
+
+                      ( ALL          0. )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:27 Page 13
+TSP solution with subtour elimination (TSP42,SEQ=213)
+E x e c u t i o n
+
+
+----    322 PARAMETER results  
+
+         total equs
+
+relaxed      43.000
+
+
+
+EXECUTION TIME       =        0.021 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tsp42/tsp42.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tsp42/tsp42-scalar.gms.lst

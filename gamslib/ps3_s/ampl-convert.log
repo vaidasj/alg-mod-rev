@@ -1,0 +1,30 @@
+--- Job ps3_s.gms Start 12/13/18 11:30:38 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- ps3_s.gms(53) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- ps3_s.gms(47) 4 Mb
+--- Generating NLP model SB3
+--- ps3_s.gms(51) 6 Mb
+---   10 rows  10 columns  29 non-zeroes
+---   18 nl-code  3 nl-non-zeroes
+--- ps3_s.gms(51) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s/convert.opt"
+>>  ampl ps3_s-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s/convert.opt"
+--- Writing Ampl      : ps3_s-scalar.mod
+
+--- Restarting execution
+--- ps3_s.gms(51) 2 Mb
+--- Reading solution for model SB3
+*** Status: Normal completion
+--- Job ps3_s.gms Stop 12/13/18 11:30:38 elapsed 0:00:00.014

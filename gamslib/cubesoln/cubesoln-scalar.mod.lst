@@ -1,0 +1,213 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 2
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+C o m p i l a t i o n
+
+
+   3   
+       
+      White and black balls are to be arranged in a cube one to a
+      cell in such a way as to minimize the number of lines with balls
+      of equal color. For this example the length of the cube is three.
+      a total of 49 lines exist in a cube of 3x3x3. 27 lines by changing
+      only one coordinate, 18 diagonals within a plane, and 4 diagonals
+      going across planes.
+       
+      This variation of the model uses a simple "binary cut" to eliminate a solution
+      so a subsequent solve produces an alternative solution. This is done in a loop
+      to produce altenative solutions. It also uses Cplex' solution pool facility to
+      generate multiple solutions.
+       
+      There are many symmetries in the cube model so both procedures find multiple
+      optimal solutions.
+       
+       
+      Williams, H P, Experiments in the formulation of Integer Programming
+      Problems. Mathematical Programming Study 2 (1974).
+       
+  26   
+  27  Sets  s       domain for line identification   / a, b, c, incr, decr /
+  28        x(s)    coordinate labels                / a, b, c /
+  29        d(s)    directions                       / incr, decr /
+  30        b       bounds                           / low, high /
+  31   
+  32  Alias (x,y,z), (d,dp), (s,sp,spp)
+  33   
+  34  Set ld(s,sp,spp)  line definition ;
+  35   
+  36     ld("incr",y,z) = yes;  ld(x,"incr",z) = yes; ld(x,y,"incr") = yes;
+  37     ld("incr",d,z) = yes;  ld(x,"incr",d) = yes; ld(d,y,"incr") = yes;
+  38     ld("incr",d,dp) = yes; display ld;
+  39   
+  40  Parameters  ls(b)    sign for line definitions      / low  +1, high -1 /
+  41              lr(b)    rhs for line definitions       / low   2, high -1 /
+  42              df(x,s)  line definition function;
+  43   
+  44     df(x,y) = ord(y) - ord(x); df(x,"decr") = 1 + card(x) - 2*ord(x); display df;
+  45   
+  46  Variables  core(x,y,z)    placement of balls (white 0  black 1)
+  47             line(s,sp,spp) line identification
+  48             num            number of lines of equal color
+  49   
+  50  Binary Variables core;
+  51  Positive Variable line;
+  52   
+  53  Equations  nbb              total number of balls definition
+  54             ldef(s,sp,spp,b) line definitions
+  55             ndef             number of lines definition ;
+  56   
+  57  nbb..  sum((x,y,z), core(x,y,z)) =e= floor(card(x)**3/2);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 3
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+C o m p i l a t i o n
+
+
+  58   
+  59  ldef(s,sp,spp,b)$ld(s,sp,spp).. ls(b)*sum(x, core(x+df(x,s),x+df(x,sp),x+df(x,spp))) =l= line(s,sp,spp) + lr(b) ;
+  60   
+  61  ndef.. num =e= sum((s,sp,spp)$ld(s,sp,spp), line(s,sp,spp)) ;
+  62   
+  63  Model cube / all /
+  64   
+  65  Option optcr=0, reslim=10, limrow=0, limcol=0, solprint=silent;
+  66  Solve cube minimizing num using mip;
+  67   
+  68  *
+  69  * Cuts to cut off binary solution
+  70  *
+  71  set cuts / c1*c5 /, cc(cuts) dynamic cuts;
+  72  parameter sol solutions to cut off;
+  73  equation cut(cuts);
+  74   
+  75  cut(cc)..     sum((x,y,z)$sol(cc,x,y,z), core(x,y,z))
+  76            +   sum((x,y,z)$(sol(cc,x,y,z)=0), 1-core(x,y,z))
+  77            =l= card(x)*card(y)*card(z)-1;
+  78   
+  79   
+  80  Model cubeCut /all/;
+  81   
+  82  loop(cuts,
+  83    sol(cuts,x,y,z) = round(core.l(x,y,z));
+  84    sol(cuts,'','','obj') = num.l;
+  85    cc(cuts) = yes;
+  86    Solve cubeCut minimizing num using mip;
+  87    abort.noerror$(cubeCut.modelstat <> 1 and
+  88                   cubeCut.modelstat <> 8) sol;
+  89   
+  90  );
+  91  display 'more solutions available', sol, core.l, num.l;
+  92  option clear=sol;
+  93   
+  94  *
+  95  * Cplex solution pool facility
+  96  *
+ 104   
+ 105  cube.optfile = 1;
+ 106  option mip=cplex;
+ 107  Solve cube minimizing num using mip;
+ 108  display core.l, num.l;
+ 109   
+ 110  sets soln           possible solutions in the solution pool /file1*file40/
+ 111       solnpool(soln) actual solutions;
+ 112  file fsoln;
+ 113  execute_load 'solnpool.gdx', solnpool=index;
+ 114  loop(solnpool(soln),
+ 115    put_utility fsoln 'gdxin' / solnpool.te(soln);
+ 116    execute_loadpoint;
+ 117    sol(soln,x,y,z) = round(core.l(x,y,z));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 4
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+C o m p i l a t i o n
+
+
+ 118    sol(soln,'','','obj') = num.l;
+ 119  );
+ 120  display$(card(solnpool)=card(soln)) 'more solutions available';
+ 121  display sol;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 5
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+E x e c u t i o n
+
+
+----     38 SET ld  line definition
+
+                    a           b           c        incr        decr
+
+a   .a                                                YES
+a   .b                                                YES
+a   .c                                                YES
+a   .incr         YES         YES         YES         YES         YES
+b   .a                                                YES
+b   .b                                                YES
+b   .c                                                YES
+b   .incr         YES         YES         YES         YES         YES
+c   .a                                                YES
+c   .b                                                YES
+c   .c                                                YES
+c   .incr         YES         YES         YES         YES         YES
+incr.a            YES         YES         YES         YES
+incr.b            YES         YES         YES         YES
+incr.c            YES         YES         YES         YES
+incr.incr         YES         YES         YES         YES         YES
+incr.decr         YES         YES         YES         YES         YES
+decr.a                                                YES
+decr.b                                                YES
+decr.c                                                YES
+
+
+----     44 PARAMETER df  line definition function
+
+            a           b           c        decr
+
+a                   1.000       2.000       2.000
+b      -1.000                   1.000
+c      -2.000      -1.000                  -2.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 7
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+Model Analysis      SOLVE cube Using MIP From line 66
+
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:19 Page 9
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+Model Analysis      SOLVE cubeCut Using MIP From line 86
+
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:19 Page 10
+Three-dimensional Noughts and Crosses Multiple Solutions (CUBESOLN,SEQ=371)
+E x e c u t i o n
+
+
+----     87 PARAMETER sol  solutions to cut off
+
+                      ( ALL       0.000 )
+
+****
+**** Execution halted from line 87: abort.noerror$1 sol
+****
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/cubesoln/cubesoln.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/cubesoln/cubesoln-scalar.mod.lst

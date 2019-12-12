@@ -1,0 +1,1043 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 2
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+C o m p i l a t i o n
+
+
+   5   
+       
+         A small four sector model is used to illustrate the importance of
+         economies-of-scale in a dynamic context. Detailed attention has been
+         paid to the evaluation of terminal savings, capacity and utilization.
+       
+       
+      Chenery, H B, and Westphal, L E, Economies of Scale and Investment
+      Over Time. In Chenery, H B, Ed, Structural Change and Development
+      Policy. Oxford University Press, New York and Oxford, 1979.
+       
+  18   
+  19   Sets i       sectors                   / finished, intermed, primary, overhead /
+  20        ia(i)   sectors needing aux units / finished, intermed /
+  21        im(i)   import possible           / finished, intermed /
+  22        ie(i)   export possible           / primary /
+  23        n       capacity type             / normal, auxiliary /
+  24        in(i,n) capacity use              / (finished, intermed).(normal,auxiliary), (primary,overhead).normal /
+  25        es(i,n) units with economies of scale
+  26        r       resources                 / foreign, domestic /
+  27        forn(r)                            / foreign /
+  28        dom(r)                            / domestic /
+  29   
+  30        te      extended time horizon     / base, 1*9, terminal /
+  31        t(te)   time horizon              /       1*9, terminal /
+  32        ti(te)  initial period
+  33        tb(te)  all periods but last
+  34        tl(te)  last or terminal period;
+  35   
+  36   Alias (i,j);
+  37   
+  38   ti(te) = yes$(ord(te) eq 1);
+  39   tb(te) = yes$(ord(te) lt card(te));
+  40   tl(te) = not tb(te);
+  41   Display ti,tb,tl;
+  42   
+  43   
+  44   Scalars  cmin   minimum annual consumption increase  / 10.6 /
+  45            dmax   debt limit per period                / 75 /
+  46            rho    discount rate                        / .07 /
+  47            vmax   largest plant size                   / 200 /
+  48   
+  49   
+  50   Table a(i,j) input output matrix
+  51   
+  52             finished  intermed  primary  overhead
+  53   
+  54   finished   1.0
+  55   intermed   -.4       1.0
+  56   primary    -.12      -.48       1.0
+  57   overhead   -.10      -.21       -.35     1.0
+  58   
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 3
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+C o m p i l a t i o n
+
+
+  60   Table u(i,r)  resource use
+  61   
+  62              foreign  domestic
+  63   
+  64   finished     .04       -.2
+  65   intermed     .06       -.2
+  66   primary                -.2
+  67   overhead               -.2
+  68   
+  69   
+  70   Parameters  rbase(r)   base resources  / foreign  40, domestic  82.3 /
+  71               delt(t)    discount factor
+  72               alpha(i)   allocation      / finished  .45, intermed  .32, primary  .04, overhead  .19 /
+  73               cbb(i)     base demand     / finished   90, intermed   75, primary 11.5, overhead  50  /
+  74               kb(i,n)    base capacity   / finished.(normal,auxiliary)   50, intermed.(normal,auxiliary)   75
+  75                                            primary.normal               160, overhead.normal              126.7 /
+  76   
+  77   
+  78   Table inv(i,n,*,r)  investment cost data
+  79   
+  80                      fixed.foreign  fixed.domestic   prop.foreign  prop.domestic
+  81   finished.normal                                        .2            .53
+  82   finished.auxiliary                                     .1            .27
+  83   intermed.normal        19             42               .15           .45
+  84   intermed.auxiliary                                     .05           .15
+  85   primary.normal                                         .6           7
+  86   overhead.normal        57.6          108              1.28          2.4
+  87                                                ;
+  88   
+  89   es(i,n) = yes$sum(r, inv(i,n,"fixed",r) gt 0);
+  90   delt(t) = (1+rho)**(-ord(t));
+  91   Display es,delt;
+  92   
+  93   Scalar dft1  discount factor: terminal + 1 to infinity
+  94          dft3  discount factor: terminal + 3 to infinity
+  95          dft8  discount factor: terminal + 8 to infinity;
+  96   
+  97   dft1 = (1/(1+rho))**card(t)/(1-1/(1+rho));
+  98   dft3 = (1/(1+rho))**(card(t)+2)/(1-1/(1+rho));
+  99   dft8 = (1/(1+rho))**(card(t)+7)/(1-1/(1+rho));
+ 100   
+ 101   Display dft1, dft3, dft8;
+ 102   
+ 103  * solve square system with CNS solver
+ 104   Equations  mbone(i)   material balance for terminal model;
+ 105   Variables  xone(i)    local production required for one unit of consumption;
+ 106   Model      one        terminal model one / mbone /;
+ 107   
+ 108   mbone(i)..  sum(j, a(i,j)*xone(j)) =e= alpha(i);
+ 109   
+ 110   Solve one using cns;
+ 111   
+ 112   Parameters aic(i,n,r)  average investment cost for size clev
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 4
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+C o m p i l a t i o n
+
+
+ 113              clev        average capacity use
+ 114              ar(r)       average resource use for size clev;
+ 115   
+ 116   clev  = 265;
+ 117   aic(i,n,r)$in(i,n) = inv(i,n,"fixed",r)/(clev*xone.l(i)) + inv(i,n,"prop",r);
+ 118   ar(r) = sum((i,n)$in(i,n), aic(i,n,r)*xone.l(i));
+ 119   Display clev,aic,ar;
+ 120   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 5
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+model definition
+
+
+ 122   
+ 123   Variables  x(te,i)     production
+ 124              m(te,i)     imports
+ 125              e(te,i)     exports
+ 126              v(te,i,n)   capacity expansion
+ 127              f(te,i,n)   fixed charge variable
+ 128              k(te,i,n)   capacity stock
+ 129              ke3(i,n)    excess capacity: during first five post terminal years
+ 130              ke8(i,n)    excess capacity: during second five post terminal years
+ 131              c(t)        consumption increment
+ 132              d(te)       level of debt or borrowing
+ 133              ufe(te)     unused foreign exchange
+ 134              ms(te)      foreign exchange into domestic
+ 135              vr          terminal savings in terms of unit consumption
+ 136              vc3         terminal excess capacity value 3
+ 137              vc8         terminal excess capacity value 8
+ 138              vc          post terminal consumption valuation
+ 139              wterm       terminal valuation
+ 140              welfare     discounted welfare
+ 141   
+ 142   Binary   Variable f
+ 143   Positive Variable x, m, e, v, ke3, ke8, ufe, ms, vr, vc3, vc8, vc, c
+ 144   
+ 145   Equations  mb(t,i)    material balance
+ 146              cc(t,i,n)  capacity constraint
+ 147              ecc(i,n)   excess capacity valuation
+ 148              cb(te,i,n) capacity balance
+ 149              bi(te,i,n) integer constraint
+ 150              rb(te,r)   resource balance
+ 151              vc38(r)    terminal excess capacity valuation
+ 152              clow(t)    increment bounds
+ 153              xlow(t)    production bounds
+ 154              vcdef(i)   utilized capacity valuation
+ 155              term       terminal value definition
+ 156              obj        objective definition;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 6
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+model definition
+
+
+ 158   
+ 159   mb(t,i)..  sum(j, a(i,j)*x(t,j)) + m(t,i)$im(i) =e= e(t,i)$ie(i) + alpha(i)*c(t) + cbb(i);
+ 160   
+ 161   cc(t,i,n)$in(i,n).. x(t,i) =l= k(t,i,n) ;
+ 162   
+ 163   ecc(i,n)$in(i,n)..  ke3(i,n) + ke8(i,n) =e= k("terminal",i,n) - x("terminal",i);
+ 164   
+ 165   cb(te-1,i,n)$in(i,n).. k(te,i,n) =e= k(te-1,i,n) + v(te-1,i,n);
+ 166   
+ 167   bi(te+1,i,n)$es(i,n).. v(te,i,n) =l= vmax*f(te,i,n);
+ 168   
+ 169   rb(te,r)..  sum(i, u(i,r)*x(te,i) + (m(te,i)$im(i) - e(te,i)$ie(i))$forn(r) )$t(te)
+ 170             + sum((i,n)$in(i,n), inv(i,n,"fixed",r)*f(te,i,n) + inv(i,n,"prop",r)*v(te,i,n) )$tb(te)
+ 171             + (1+rho)*d(te-1) - d(te)$tb(te) + ms(te)$forn(r) - .8*ms(te)$dom(r)
+ 172             + (ufe(te)$tb(te) - ufe(te-1))$forn(r) + ar(r)*vr$tl(te) =l= rbase(r)$ti(te);
+ 173   
+ 174   vc38(r)..   sum((i,n)$in(i,n), aic(i,n,r)*(ke3(i,n) + ke8(i,n)) ) =g= ar(r)*(vc3 + vc8);
+ 175   
+ 176   clow(t+1).. c(t+1) =g= cmin + c(t);
+ 177   
+ 178   xlow(t+1).. x(t+1,"primary") =g= x(t,"primary");
+ 179   
+ 180   vcdef(i)..  sum(j, a(i,j)*(x("terminal",j) - kb(j,"normal")) ) =g= alpha(i)*vc;
+ 181   
+ 182   term..      wterm =e= dft1*vr + dft3*vc3 + dft8*vc8 + dft1*vc ;
+ 183   
+ 184   obj..       welfare =e= sum(t, delt(t)*c(t)) + wterm;
+ 185   
+ 186   
+ 187   Model westmip  / mb, cc, ecc, cb, bi, rb, vc38, clow, xlow, vcdef, term, obj /;
+ 188   
+ 189   d.up(te) = dmax;
+ 190   k.fx(ti,i,n) = kb(i,n);
+ 191   ke3.up(i,n)  = 5*cmin*xone.l(i);
+ 192   
+ 193  * this is a difficult mip problem and we set a very sloppy
+ 194  * termination tolerance
+ 195   
+ 196   Option optcr=.5;
+ 197   
+ 198   Solve westmip maximizing welfare using mip;
+ 199   
+ 200   
+ 201   Parameter finsum  summary of financial results;
+ 202   
+ 203   finsum(te,"debt-level")  = d.l(te);
+ 204   finsum(te,"fxch-local")  = ms.l(te);
+ 205   finsum(te,"u-fxch")      = ufe.l(te);
+ 206   
+ 207   Display x.l,m.l,e.l,c.l,k.l,v.l,f.l,finsum;
+ 208   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 7
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+model definition
+
+
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 8
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+E x e c u t i o n
+
+
+----     41 SET ti  initial period
+
+base
+
+
+----     41 SET tb  all periods but last
+
+base,    1   ,    2   ,    3   ,    4   ,    5   ,    6   ,    7   ,    8   ,    9   
+
+
+----     41 SET tl  last or terminal period
+
+terminal
+
+
+----     91 SET es  units with economies of scale
+
+              normal
+
+intermed         YES
+overhead         YES
+
+
+----     91 PARAMETER delt  discount factor
+
+1        0.935,    2        0.873,    3        0.816,    4        0.763,    5        0.713,    6        0.666,    7        0.623,    8        0.582,    9        0.544,    terminal 0.508
+
+
+----    101 PARAMETER dft1                 =        7.770  discount factor: terminal + 1 to infinity
+            PARAMETER dft3                 =        6.787  discount factor: terminal + 3 to infinity
+            PARAMETER dft8                 =        4.839  discount factor: terminal + 8 to infinity
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:39 Page 9
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Equation Listing    SOLVE one Using CNS From line 110
+
+
+---- mbone  =E=  material balance for terminal model
+
+mbone(finished)..  xone(finished) =E= 0.45 ; (LHS = 0, INFES = 0.45 ****)
+     
+mbone(intermed)..  - 0.4*xone(finished) + xone(intermed) =E= 0.32 ; (LHS = 0, INFES = 0.32 ****)
+     
+mbone(primary)..  - 0.12*xone(finished) - 0.48*xone(intermed) + xone(primary) =E= 0.04 ; (LHS = 0, INFES = 0.04 ****)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 10
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE one Using CNS From line 110
+
+
+---- xone  local production required for one unit of consumption
+
+xone(finished)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mbone(finished)
+       -0.4     mbone(intermed)
+       -0.12    mbone(primary)
+       -0.1     mbone(overhead)
+
+xone(intermed)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mbone(intermed)
+       -0.48    mbone(primary)
+       -0.21    mbone(overhead)
+
+xone(primary)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mbone(primary)
+       -0.35    mbone(overhead)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 11
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Model Statistics    SOLVE one Using CNS From line 110
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            4
+BLOCKS OF VARIABLES           1     SINGLE VARIABLES            4
+NON ZERO ELEMENTS            10     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0
+FIXED EQUATIONS               4     FREE VARIABLES              4
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 12
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Solution Report     SOLVE one Using CNS From line 110
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   one                 
+     TYPE    CNS                 
+     SOLVER  CONOPT              FROM LINE  110
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      15 Solved Unique            
+
+ RESOURCE USAGE, LIMIT          0.001      1000.000
+ ITERATION COUNT, LIMIT         2    2000000000
+ EVALUATION ERRORS              0             0
+CONOPT 3         24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/westmip/conopt.opt"
+*** Error Error code = 2; No such file or directory
+ 
+ 
+    C O N O P T 3   version 3.17A
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+ 
+                   Pre-triangular equations:   4
+                   Post-triangular equations:  0
+ 
+ 
+ ** Feasible solution to a square system.
+ 
+ 
+ CONOPT time Total                            0.000 seconds
+   of which: Function evaluations             0.000 =  0.0%
+             1st Derivative evaluations       0.000 =  0.0%
+ 
+
+---- EQU mbone  material balance for terminal model
+
+                LOWER          LEVEL          UPPER
+
+finished         0.4500         0.4500         0.4500      
+intermed         0.3200         0.3200         0.3200      
+primary          0.0400         0.0400         0.0400      
+overhead         0.1900         0.1900         0.1900      
+
+---- VAR xone  local production required for one unit of consumption
+
+                LOWER          LEVEL          UPPER
+
+finished        -INF            0.4500        +INF         
+intermed        -INF            0.5000        +INF         
+primary         -INF            0.3340        +INF         
+overhead        -INF            0.4569        +INF         
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 13
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Solution Report     SOLVE one Using CNS From line 110
+
+
+**** REPORT SUMMARY :        0 INFEASIBLE
+                             0  DEPENDENT
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 14
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+E x e c u t i o n
+
+
+----    119 PARAMETER clev                 =      265.000  average capacity use
+
+----    119 PARAMETER aic  average investment cost for size clev
+
+                       foreign    domestic
+
+finished.normal          0.200       0.530
+finished.auxiliary       0.100       0.270
+intermed.normal          0.293       0.767
+intermed.auxiliary       0.050       0.150
+primary .normal          0.600       7.000
+overhead.normal          1.756       3.292
+
+
+----    119 PARAMETER ar  average resource use for size clev
+
+foreign  1.309,    domestic 4.661
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 15
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Equation Listing    SOLVE westmip Using MIP From line 198
+
+
+---- mb  =E=  material balance
+
+mb(1,finished)..  x(1,finished) + m(1,finished) - 0.45*c(1) =E= 90 ; (LHS = 0, INFES = 90 ****)
+     
+mb(1,intermed)..  - 0.4*x(1,finished) + x(1,intermed) + m(1,intermed) - 0.32*c(1) =E= 75 ; (LHS = 0, INFES = 75 ****)
+     
+mb(1,primary)..  - 0.12*x(1,finished) - 0.48*x(1,intermed) + x(1,primary) - e(1,primary) - 0.04*c(1) =E= 11.5 ; (LHS = 0, INFES = 11.5 ****)
+     
+REMAINING 37 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraint
+
+cc(1,finished,normal)..  x(1,finished) - k(1,finished,normal) =L= 0 ; (LHS = 0)
+     
+cc(1,finished,auxiliary)..  x(1,finished) - k(1,finished,auxiliary) =L= 0 ; (LHS = 0)
+     
+cc(1,intermed,normal)..  x(1,intermed) - k(1,intermed,normal) =L= 0 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- ecc  =E=  excess capacity valuation
+
+ecc(finished,normal)..  x(terminal,finished) - k(terminal,finished,normal) + ke3(finished,normal) + ke8(finished,normal) =E= 0 ; (LHS = 0)
+     
+ecc(finished,auxiliary)..  x(terminal,finished) - k(terminal,finished,auxiliary) + ke3(finished,auxiliary) + ke8(finished,auxiliary) =E= 0 ; (LHS = 0)
+     
+ecc(intermed,normal)..  x(terminal,intermed) - k(terminal,intermed,normal) + ke3(intermed,normal) + ke8(intermed,normal) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- cb  =E=  capacity balance
+
+cb(base,finished,normal)..  - v(base,finished,normal) - k(base,finished,normal) + k(1,finished,normal) =E= 0 ; (LHS = -50, INFES = 50 ****)
+     
+cb(base,finished,auxiliary)..  - v(base,finished,auxiliary) - k(base,finished,auxiliary) + k(1,finished,auxiliary) =E= 0 ; (LHS = -50, INFES = 50 ****)
+     
+cb(base,intermed,normal)..  - v(base,intermed,normal) - k(base,intermed,normal) + k(1,intermed,normal) =E= 0 ; (LHS = -75, INFES = 75 ****)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- bi  =L=  integer constraint
+
+bi(1,intermed,normal)..  v(base,intermed,normal) - 200*f(base,intermed,normal) =L= 0 ; (LHS = 0)
+     
+bi(1,overhead,normal)..  v(base,overhead,normal) - 200*f(base,overhead,normal) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 16
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Equation Listing    SOLVE westmip Using MIP From line 198
+
+
+     bi  =L=  integer constraint
+
+bi(2,intermed,normal)..  v(1,intermed,normal) - 200*f(1,intermed,normal) =L= 0 ; (LHS = 0)
+     
+REMAINING 17 ENTRIES SKIPPED
+
+
+---- rb  =L=  resource balance
+
+rb(base,foreign)..  0.2*v(base,finished,normal) + 0.1*v(base,finished,auxiliary) + 0.15*v(base,intermed,normal) + 0.05*v(base,intermed,auxiliary) + 0.6*v(base,primary,normal) + 1.28*v(base,overhead,normal) + 19*f(base,intermed,normal)
+     
+      + 57.6*f(base,overhead,normal) - d(base) + ufe(base) + ms(base) =L= 40 ; (LHS = 0)
+     
+rb(base,domestic)..  0.53*v(base,finished,normal) + 0.27*v(base,finished,auxiliary) + 0.45*v(base,intermed,normal) + 0.15*v(base,intermed,auxiliary) + 7*v(base,primary,normal) + 2.4*v(base,overhead,normal) + 42*f(base,intermed,normal)
+     
+      + 108*f(base,overhead,normal) - d(base) - 0.8*ms(base) =L= 82.3 ; (LHS = 0)
+     
+rb(1,foreign)..  0.04*x(1,finished) + 0.06*x(1,intermed) + m(1,finished) + m(1,intermed) - e(1,primary) + 0.2*v(1,finished,normal) + 0.1*v(1,finished,auxiliary) + 0.15*v(1,intermed,normal) + 0.05*v(1,intermed,auxiliary) + 0.6*v(1,primary,normal)
+     
+      + 1.28*v(1,overhead,normal) + 19*f(1,intermed,normal) + 57.6*f(1,overhead,normal) + 1.07*d(base) - d(1) - ufe(base) + ufe(1) + ms(1) =L= 0 ; (LHS = 0)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+
+---- vc38  =G=  terminal excess capacity valuation
+
+vc38(foreign)..  0.2*ke3(finished,normal) + 0.1*ke3(finished,auxiliary) + 0.293396226415094*ke3(intermed,normal) + 0.05*ke3(intermed,auxiliary) + 0.6*ke3(primary,normal) + 1.7557244267149*ke3(overhead,normal) + 0.2*ke8(finished,normal)
+     
+      + 0.1*ke8(finished,auxiliary) + 0.293396226415094*ke8(intermed,normal) + 0.05*ke8(intermed,auxiliary) + 0.6*ke8(primary,normal) + 1.7557244267149*ke8(overhead,normal) - 1.30928860377358*vc3 - 1.30928860377358*vc8 =G= 0 ; (LHS = 0)
+     
+vc38(domestic)..  0.53*ke3(finished,normal) + 0.27*ke3(finished,auxiliary) + 0.766981132075472*ke3(intermed,normal) + 0.15*ke3(intermed,auxiliary) + 7*ke3(primary,normal) + 3.29198330009044*ke3(overhead,normal) + 0.53*ke8(finished,normal)
+     
+      + 0.27*ke8(finished,auxiliary) + 0.766981132075472*ke8(intermed,normal) + 0.15*ke8(intermed,auxiliary) + 7*ke8(primary,normal) + 3.29198330009044*ke8(overhead,normal) - 4.66059773584906*vc3 - 4.66059773584906*vc8 =G= 0 ; (LHS = 0)
+     
+
+---- clow  =G=  increment bounds
+
+clow(2)..  - c(1) + c(2) =G= 10.6 ; (LHS = 0, INFES = 10.6 ****)
+     
+clow(3)..  - c(2) + c(3) =G= 10.6 ; (LHS = 0, INFES = 10.6 ****)
+     
+clow(4)..  - c(3) + c(4) =G= 10.6 ; (LHS = 0, INFES = 10.6 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- xlow  =G=  production bounds
+
+xlow(2)..  - x(1,primary) + x(2,primary) =G= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 17
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Equation Listing    SOLVE westmip Using MIP From line 198
+
+
+     xlow  =G=  production bounds
+
+xlow(3)..  - x(2,primary) + x(3,primary) =G= 0 ; (LHS = 0)
+     
+xlow(4)..  - x(3,primary) + x(4,primary) =G= 0 ; (LHS = 0)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- vcdef  =G=  utilized capacity valuation
+
+vcdef(finished)..  x(terminal,finished) - 0.45*vc =G= 50 ; (LHS = 0, INFES = 50 ****)
+     
+vcdef(intermed)..  - 0.4*x(terminal,finished) + x(terminal,intermed) - 0.32*vc =G= 55 ; (LHS = 0, INFES = 55 ****)
+     
+vcdef(primary)..  - 0.12*x(terminal,finished) - 0.48*x(terminal,intermed) + x(terminal,primary) - 0.04*vc =G= 118 ; (LHS = 0, INFES = 118 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- term  =E=  terminal value definition
+
+term..  - 7.7704820369164*vr - 6.7870399483941*vc3 - 4.83906568280854*vc8 - 7.7704820369164*vc + wterm =E= 0 ; (LHS = 0)
+     
+
+---- obj  =E=  objective definition
+
+obj..  - 0.934579439252336*c(1) - 0.873438728273212*c(2) - 0.816297876890852*c(3) - 0.762895212047525*c(4) - 0.712986179483668*c(5) - 0.666342223816512*c(6) - 0.622749741884591*c(7) - 0.582009104565038*c(8) - 0.543933742584148*c(9)
+     
+      - 0.508349292134718*c(terminal) - wterm + welfare =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 18
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+---- x  production
+
+x(1,finished)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(1,finished)
+       -0.4     mb(1,intermed)
+       -0.12    mb(1,primary)
+       -0.1     mb(1,overhead)
+        1       cc(1,finished,normal)
+        1       cc(1,finished,auxiliary)
+        0.04    rb(1,foreign)
+       -0.2     rb(1,domestic)
+
+x(1,intermed)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(1,intermed)
+       -0.48    mb(1,primary)
+       -0.21    mb(1,overhead)
+        1       cc(1,intermed,normal)
+        1       cc(1,intermed,auxiliary)
+        0.06    rb(1,foreign)
+       -0.2     rb(1,domestic)
+
+x(1,primary)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(1,primary)
+       -0.35    mb(1,overhead)
+        1       cc(1,primary,normal)
+       -0.2     rb(1,domestic)
+       -1       xlow(2)
+
+REMAINING 37 ENTRIES SKIPPED
+
+---- m  imports
+
+m(1,finished)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(1,finished)
+        1       rb(1,foreign)
+
+m(1,intermed)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(1,intermed)
+        1       rb(1,foreign)
+
+m(2,finished)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(2,finished)
+        1       rb(2,foreign)
+
+REMAINING 17 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 19
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+---- e  exports
+
+e(1,primary)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(1,primary)
+       -1       rb(1,foreign)
+
+e(2,primary)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(2,primary)
+       -1       rb(2,foreign)
+
+e(3,primary)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(3,primary)
+       -1       rb(3,foreign)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- v  capacity expansion
+
+v(base,finished,normal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cb(base,finished,normal)
+        0.2     rb(base,foreign)
+        0.53    rb(base,domestic)
+
+v(base,finished,auxiliary)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cb(base,finished,auxiliary)
+        0.1     rb(base,foreign)
+        0.27    rb(base,domestic)
+
+v(base,intermed,normal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cb(base,intermed,normal)
+        1       bi(1,intermed,normal)
+        0.15    rb(base,foreign)
+        0.45    rb(base,domestic)
+
+REMAINING 57 ENTRIES SKIPPED
+
+---- f  fixed charge variable
+
+f(base,intermed,normal)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -200       bi(1,intermed,normal)
+       19       rb(base,foreign)
+       42       rb(base,domestic)
+
+f(base,overhead,normal)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -200       bi(1,overhead,normal)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 20
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+     f  fixed charge variable
+
+       57.6     rb(base,foreign)
+      108       rb(base,domestic)
+
+f(1,intermed,normal)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     -200       bi(2,intermed,normal)
+       19       rb(1,foreign)
+       42       rb(1,domestic)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- k  capacity stock
+
+k(base,finished,normal)
+                (.LO, .L, .UP, .M = 50, 50, 50, 0)
+       -1       cb(base,finished,normal)
+
+k(base,finished,auxiliary)
+                (.LO, .L, .UP, .M = 50, 50, 50, 0)
+       -1       cb(base,finished,auxiliary)
+
+k(base,intermed,normal)
+                (.LO, .L, .UP, .M = 75, 75, 75, 0)
+       -1       cb(base,intermed,normal)
+
+REMAINING 63 ENTRIES SKIPPED
+
+---- ke3  excess capacity: during first five post terminal years
+
+ke3(finished,normal)
+                (.LO, .L, .UP, .M = 0, 0, 23.85, 0)
+        1       ecc(finished,normal)
+        0.2     vc38(foreign)
+        0.53    vc38(domestic)
+
+ke3(finished,auxiliary)
+                (.LO, .L, .UP, .M = 0, 0, 23.85, 0)
+        1       ecc(finished,auxiliary)
+        0.1     vc38(foreign)
+        0.27    vc38(domestic)
+
+ke3(intermed,normal)
+                (.LO, .L, .UP, .M = 0, 0, 26.5, 0)
+        1       ecc(intermed,normal)
+        0.2934  vc38(foreign)
+        0.767   vc38(domestic)
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 21
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+---- ke8  excess capacity: during second five post terminal years
+
+ke8(finished,normal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ecc(finished,normal)
+        0.2     vc38(foreign)
+        0.53    vc38(domestic)
+
+ke8(finished,auxiliary)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ecc(finished,auxiliary)
+        0.1     vc38(foreign)
+        0.27    vc38(domestic)
+
+ke8(intermed,normal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ecc(intermed,normal)
+        0.2934  vc38(foreign)
+        0.767   vc38(domestic)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- c  consumption increment
+
+c(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.45    mb(1,finished)
+       -0.32    mb(1,intermed)
+       -0.04    mb(1,primary)
+       -0.19    mb(1,overhead)
+       -1       clow(2)
+       -0.9346  obj
+
+c(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.45    mb(2,finished)
+       -0.32    mb(2,intermed)
+       -0.04    mb(2,primary)
+       -0.19    mb(2,overhead)
+        1       clow(2)
+       -1       clow(3)
+       -0.8734  obj
+
+c(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.45    mb(3,finished)
+       -0.32    mb(3,intermed)
+       -0.04    mb(3,primary)
+       -0.19    mb(3,overhead)
+        1       clow(3)
+       -1       clow(4)
+       -0.8163  obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 22
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+     c  consumption increment
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- d  level of debt or borrowing
+
+d(base)
+                (.LO, .L, .UP, .M = -INF, 0, 75, 0)
+       -1       rb(base,foreign)
+       -1       rb(base,domestic)
+        1.07    rb(1,foreign)
+        1.07    rb(1,domestic)
+
+d(1)
+                (.LO, .L, .UP, .M = -INF, 0, 75, 0)
+       -1       rb(1,foreign)
+       -1       rb(1,domestic)
+        1.07    rb(2,foreign)
+        1.07    rb(2,domestic)
+
+d(2)
+                (.LO, .L, .UP, .M = -INF, 0, 75, 0)
+       -1       rb(2,foreign)
+       -1       rb(2,domestic)
+        1.07    rb(3,foreign)
+        1.07    rb(3,domestic)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- ufe  unused foreign exchange
+
+ufe(base)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       rb(base,foreign)
+       -1       rb(1,foreign)
+
+ufe(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       rb(1,foreign)
+       -1       rb(2,foreign)
+
+ufe(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       rb(2,foreign)
+       -1       rb(3,foreign)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- ms  foreign exchange into domestic
+
+ms(base)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       rb(base,foreign)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 23
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+     ms  foreign exchange into domestic
+
+       -0.8     rb(base,domestic)
+
+ms(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       rb(1,foreign)
+       -0.8     rb(1,domestic)
+
+ms(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       rb(2,foreign)
+       -0.8     rb(2,domestic)
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- vr  terminal savings in terms of unit consumption
+
+vr
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1.3093  rb(terminal,foreign)
+        4.6606  rb(terminal,domestic)
+       -7.7705  term
+
+
+---- vc3  terminal excess capacity value 3
+
+vc3
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.3093  vc38(foreign)
+       -4.6606  vc38(domestic)
+       -6.787   term
+
+
+---- vc8  terminal excess capacity value 8
+
+vc8
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.3093  vc38(foreign)
+       -4.6606  vc38(domestic)
+       -4.8391  term
+
+
+---- vc  post terminal consumption valuation
+
+vc
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.45    vcdef(finished)
+       -0.32    vcdef(intermed)
+       -0.04    vcdef(primary)
+       -0.19    vcdef(overhead)
+       -7.7705  term
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 24
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Column Listing      SOLVE westmip Using MIP From line 198
+
+
+---- wterm  terminal valuation
+
+wterm
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       term
+       -1       obj
+
+
+---- welfare  discounted welfare
+
+welfare
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 25
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Model Statistics    SOLVE westmip Using MIP From line 198
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS          234
+BLOCKS OF VARIABLES          18     SINGLE VARIABLES          275
+NON ZERO ELEMENTS           963     DISCRETE VARIABLES         20
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 26
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+Solution Report     SOLVE westmip Using MIP From line 198
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   westmip             OBJECTIVE  welfare
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  198
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/westmip/convert.opt"
+>>  pyomo westmip-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/westmip/convert.opt"
+Pyomo     : westmip-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 27
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+E x e c u t i o n
+
+
+----    207 VARIABLE x.L  production
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE m.L  imports
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE e.L  exports
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE c.L  consumption increment
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE k.L  capacity stock
+
+                   normal   auxiliary
+
+base.finished      50.000      50.000
+base.intermed      75.000      75.000
+base.primary      160.000
+base.overhead     126.700
+
+
+----    207 VARIABLE v.L  capacity expansion
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE f.L  fixed charge variable
+
+                      ( ALL       0.000 )
+
+
+----    207 PARAMETER finsum  summary of financial results
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:39 Page 28
+Economies of Scale and Investment over Time (WESTMIP,SEQ=58)
+E x e c u t i o n
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/westmip/westmip.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/westmip/westmip-scalar.py.lst

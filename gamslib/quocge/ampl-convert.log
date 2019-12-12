@@ -1,0 +1,50 @@
+--- Job quocge.gms Start 12/13/18 11:23:24 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- quocge.gms(408) 3 Mb
+--- Starting execution: elapsed 0:00:00.004
+--- quocge.gms(347) 4 Mb
+--- Generating NLP model quocge
+--- quocge.gms(351) 6 Mb
+---   55 rows  53 columns  203 non-zeroes
+---   343 nl-code  106 nl-non-zeroes
+--- quocge.gms(351) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.010
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+>>  ampl quocge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+--- Writing Ampl      : quocge-scalar.mod
+
+--- Restarting execution
+--- quocge.gms(351) 2 Mb
+--- Reading solution for model quocge
+--- quocge.gms(356) 3 Mb
+--- Generating NLP model quocge
+--- quocge.gms(357) 5 Mb
+---   55 rows  53 columns  203 non-zeroes
+---   343 nl-code  106 nl-non-zeroes
+--- quocge.gms(357) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.024
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+>>  ampl quocge-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+--- Writing Ampl      : quocge-scalar.mod
+
+--- Restarting execution
+--- quocge.gms(357) 2 Mb
+--- Reading solution for model quocge
+--- quocge.gms(405) 3 Mb
+*** Status: Normal completion
+--- Job quocge.gms Stop 12/13/18 11:23:24 elapsed 0:00:00.039

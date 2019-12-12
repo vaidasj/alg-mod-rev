@@ -1,0 +1,427 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Simple 2 x 2 x 2 General Equilibrium Model Using Macros (TWO3MAC,SEQ=341)
+
+
+   3   
+      This is the TWO3MCP model written using macros. The documentation
+      of GAMS-F uses this model as example 7.
+       
+      Reference:  Shoven and Whalley: "Applied G.E. Models"
+                  Journal of Economic Literature, XXII (1984)
+  11   
+  12  sets
+  13          f  factors    /labor, capital/
+  14          s  sectors    /mfrs,  nonmfrs/
+  15          h  households /rich,  poor/;
+  16   
+  17  *
+  18  *       demand function parameters.
+  19  *
+  20  parameter sigmac(h)
+  21         / rich    1.5 ,  poor    0.75/;
+  22   
+  23  table alpha(s,h)
+  24                  rich    poor
+  25          mfrs    0.5     0.3
+  26          nonmfrs 0.5     0.7;
+  27   
+  28  table e(f,h)
+  29                  rich    poor
+  30          labor             60
+  31          capital   25
+  32  *
+  33  *       production function parameters.
+  34  *
+  35  parameter phi(s)
+  36          / mfrs 1.5,  nonmfrs 2.0 /;
+  37   
+  38  table delta(f,s)        factor share coefficients
+  39                          mfrs    nonmfrs
+  40          labor           0.6     0.7
+  41          capital         0.4     0.3;
+  42   
+  43  parameter sigma(s)      elasticities of factor substitution
+  44        /  mfrs 2.0,   nonmfrs 0.5/;
+  45   
+  46  parameter       tshr(h) share of tax revenue,
+  47                  t(f,s)  ad-valorem tax rates;
+  48   
+  49  tshr(h) = 0;
+  50  t(f,s) = 0;
+  51   
+  52  $macro PF(f,s)    (W[f]*(1+t[f,s]))
+  53  $macro COST(s)     sum{f.local, delta[f,s]**sigma[s]*PF(f,s)**(1-sigma[s])}**(1/(1-sigma[s]))/phi[s]
+  54  $macro FD(f,s)    (delta[f,s]*COST(s)/PF(f,s))**sigma[s]
+  55  $macro TAX(s)      sum{f.local, t[f,s]*W[f]*Y[s]*FD(f,s)}
+  56  $macro INCOME(h)  (sum{f, e[f,h]*W[f]} + tshr[h]*sum{s.local, TAX(s)})
+  57  $macro D(s,h)      INCOME(h)*alpha[s,h]*sum{s.local, alpha[s,h]*P[s]**(sigmac[h]-1)}*P[s]**(-sigmac[h])
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Simple 2 x 2 x 2 General Equilibrium Model Using Macros (TWO3MAC,SEQ=341)
+
+
+  58   
+  59  positive
+  60  variables
+  61          W(f)    factor price,
+  62          P(s)    commodity price,
+  63          Y(s)    production level;
+  64   
+  65   
+  66   
+  67  equations
+  68          fmkt(f)         factor market,
+  69          cmkt(s)         commodity market,
+  70          profit(s)       zero profit;
+  71   
+  72  *       Factor supply (endowments) equals factor demand:
+  73   
+  74  fmkt(f)..       sum(h, e(f,h)) =g= sum(s, (delta[f,s]*sum{f.local, delta[f,s]**sigma[s]*(W[f]*(1+t[f,s]))**(1-sigma[s])}**(1/(1-sigma[s]))/phi[s]/(W[f]*(1+t[f,s])))**sigma[s]*Y(s));
+  75   
+  76  *       Commodity output equals commodity demand:
+  77   
+  78  cmkt(s)..       Y(s) =g= sum(h, (sum{f, e[f,h]*W[f]} + tshr[h]*sum{s.local, sum{f.local, t[f,s]*W[f]*Y[s]*(delta[f,s]*sum{f.local, delta[f,s]**sigma[s]*(W[f]*(1+t[f,s]))**(1-sigma[s])}**(1/(1-sigma[s]))/phi[s]/(W[f]*(1+t[f,s])))**sigma[s]}})*alpha[s
+      ,h]*sum{s.local, alpha[s,h]*P[s]**(sigmac[h]-1)}*P[s]**(-sigmac[h]));
+  79   
+  80  *       Unit cost equals market price:
+  81   
+  82  profit(s)..  sum{f.local, delta[f,s]**sigma[s]*(W[f]*(1+t[f,s]))**(1-sigma[s])}**(1/(1-sigma[s]))/phi[s] =g= P(s);
+  83   
+  84  parameter DL(s,h);
+  85   
+  86   
+  87  model jel / fmkt.W, cmkt.P, profit.Y/;
+  88   
+  89  *       compute solution for this dimension problem:
+  90   
+  91  W.lo(f) = 0.0001;
+  92  P.lo(s) = 0.0001;
+  93   
+  94  W.l(f) = 1;
+  95  P.l(s) = 1;
+  96  Y.l(s) = 10;
+  97   
+  98  *       solve the reference case:
+  99   
+ 100  W.fx("labor") = 1;
+ 101  solve jel using mcp;
+ 102   
+ 104   
+ 105  dl(s,h) = (sum{f, e[f,h]*W[f]} + tshr[h]*sum{s.local, sum{f.local, t[f,s]*W[f]*Y[s]*(delta[f,s]*sum{f.local, delta[f,s]**sigma[s]*(W[f]*(1+t[f,s]))**(1-sigma[s])}**(1/(1-sigma[s]))/phi[s]/(W[f]*(1+t[f,s])))**sigma[s]}})*alpha[s,h]*sum{s.local, alpha
+      [s,h]*P[s]**(sigmac[h]-1)}*P[s]**(-sigmac[h]); display dl;
+ 106   
+ 107  *       apply tax in test problem:
+ 108  tshr("rich") = 0.4;
+ 109  tshr("poor") = 1 - tshr("rich");
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Simple 2 x 2 x 2 General Equilibrium Model Using Macros (TWO3MAC,SEQ=341)
+
+
+ 110  t("capital","mfrs") = 0.5;
+ 111  solve jel using mcp;
+ 112   
+ 113  dl(s,h) = (sum{f, e[f,h]*W[f]} + tshr[h]*sum{s.local, sum{f.local, t[f,s]*W[f]*Y[s]*(delta[f,s]*sum{f.local, delta[f,s]**sigma[s]*(W[f]*(1+t[f,s]))**(1-sigma[s])}**(1/(1-sigma[s]))/phi[s]/(W[f]*(1+t[f,s])))**sigma[s]}})*alpha[s,h]*sum{s.local, alpha
+      [s,h]*P[s]**(sigmac[h]-1)}*P[s]**(-sigmac[h]); display dl;
+ 114   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE jel Using MCP From line 101
+
+
+---- fmkt  =G=  factor market
+
+fmkt(labor)..  (5.26151425971803)*W(labor) - (5.26151425971803)*W(capital) - (0.591715976331361)*Y(mfrs) - (0.819011781750976)*Y(nonmfrs) =G= -60 ; (LHS = -14.1072775808234)
+     
+fmkt(capital)..  - (5.26151425971803)*W(labor) + (5.26151425971803)*W(capital) - (0.262984878369494)*Y(mfrs) - (0.536169069276357)*Y(nonmfrs) =G= -25 ; (LHS = -7.99153947645851)
+     
+
+---- cmkt  =G=  commodity market
+
+cmkt(mfrs)..  - (18)*W(labor) - (12.5)*W(capital) + (30.475)*P(mfrs) + (0.0249999999999999)*P(nonmfrs) + Y(mfrs) =G= 0 ; (LHS = -20.5, INFES = 20.5 ****)
+     
+cmkt(nonmfrs)..  - (42)*W(labor) - (12.5)*W(capital) + (0.0249999999999999)*P(mfrs) + (54.475)*P(nonmfrs) + Y(nonmfrs) =G= 0 ; (LHS = -44.5, INFES = 44.5 ****)
+     
+
+---- profit  =G=  zero profit
+
+profit(mfrs)..  (0.887573964497041)*W(labor) + (0.394477317554241)*W(capital) - P(mfrs) =G= 0 ; (LHS = 0.282051282051282)
+     
+profit(nonmfrs)..  (0.579128784747792)*W(labor) + (0.379128784747792)*W(capital) - P(nonmfrs) =G= 0 ; (LHS = -0.0417424305044161, INFES = 0.0417424305044161 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE jel Using MCP From line 101
+
+
+---- W  factor price
+
+W(labor)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (5.2615) fmkt(labor)
+      (-5.2615) fmkt(capital)
+     (-18)      cmkt(mfrs)
+     (-42)      cmkt(nonmfrs)
+       (0.8876) profit(mfrs)
+       (0.5791) profit(nonmfrs)
+
+W(capital)
+                (.LO, .L, .UP, .M = 0.0001, 1, +INF, 0)
+      (-5.2615) fmkt(labor)
+       (5.2615) fmkt(capital)
+     (-12.5)    cmkt(mfrs)
+     (-12.5)    cmkt(nonmfrs)
+       (0.3945) profit(mfrs)
+       (0.3791) profit(nonmfrs)
+
+
+---- P  commodity price
+
+P(mfrs)
+                (.LO, .L, .UP, .M = 0.0001, 1, +INF, 0)
+      (30.475)  cmkt(mfrs)
+       (0.025)  cmkt(nonmfrs)
+       -1       profit(mfrs)
+
+P(nonmfrs)
+                (.LO, .L, .UP, .M = 0.0001, 1, +INF, 0)
+       (0.025)  cmkt(mfrs)
+      (54.475)  cmkt(nonmfrs)
+       -1       profit(nonmfrs)
+
+
+---- Y  production level
+
+Y(mfrs)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+      (-0.5917) fmkt(labor)
+      (-0.263)  fmkt(capital)
+        1       cmkt(mfrs)
+
+Y(nonmfrs)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+      (-0.819)  fmkt(labor)
+      (-0.5362) fmkt(capital)
+        1       cmkt(nonmfrs)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE jel Using MCP From line 101
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            6
+NON ZERO ELEMENTS            24     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              32
+CODE LENGTH                 171
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE jel Using MCP From line 101
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jel                 
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  101
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/two3mac/convert.opt"
+>>  ampl two3mac-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/two3mac/convert.opt"
+Ampl      : two3mac-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 9
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+----    105 PARAMETER DL  
+
+               rich        poor
+
+mfrs         12.500      18.000
+nonmfrs      12.500      42.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 10
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE jel Using MCP From line 111
+
+
+---- fmkt  =G=  factor market
+
+fmkt(labor)..  (4.97878575769234)*W(labor) - (4.97878575769234)*W(capital) - (0.73469387755102)*Y(mfrs) - (0.819011781750976)*Y(nonmfrs) =G= -60 ; (LHS = -15.53705659302)
+     
+fmkt(capital)..  - (3.85925222999555)*W(labor) + (3.85925222999555)*W(capital) - (0.145124716553288)*Y(mfrs) - (0.536169069276357)*Y(nonmfrs) =G= -25 ; (LHS = -6.81293785829645)
+     
+
+---- cmkt  =G=  commodity market
+
+cmkt(mfrs)..  - (18.4254227405248)*W(labor) - (12.3503142209265)*W(capital) + (30.7641609977324)*P(mfrs) + (0.01157596371882)*P(nonmfrs) + (0.972426303854875)*Y(mfrs) =G= 0 ; (LHS = -20.7757369614512, INFES = 20.7757369614512 ****)
+     
+cmkt(nonmfrs)..  - (42.694110787172)*W(labor) - (12.2557758341432)*W(capital) + (0.0115759637188204)*P(mfrs) + (54.9383106575964)*P(nonmfrs) - (0.0449886621315193)*Y(mfrs) + Y(nonmfrs) =G= 0 ; (LHS = -44.9498866213152, INFES = 44.9498866213152 ****)
+     
+
+---- profit  =G=  zero profit
+
+profit(mfrs)..  (1.10204081632653)*W(labor) + (0.326530612244898)*W(capital) - P(mfrs) =G= 0 ; (LHS = 0.428571428571429)
+     
+profit(nonmfrs)..  (0.579128784747792)*W(labor) + (0.379128784747792)*W(capital) - P(nonmfrs) =G= 0 ; (LHS = -0.0417424305044161, INFES = 0.0417424305044161 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 11
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE jel Using MCP From line 111
+
+
+---- W  factor price
+
+W(labor)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (4.9788) fmkt(labor)
+      (-3.8593) fmkt(capital)
+     (-18.4254) cmkt(mfrs)
+     (-42.6941) cmkt(nonmfrs)
+       (1.102)  profit(mfrs)
+       (0.5791) profit(nonmfrs)
+
+W(capital)
+                (.LO, .L, .UP, .M = 0.0001, 1, +INF, 0)
+      (-4.9788) fmkt(labor)
+       (3.8593) fmkt(capital)
+     (-12.3503) cmkt(mfrs)
+     (-12.2558) cmkt(nonmfrs)
+       (0.3265) profit(mfrs)
+       (0.3791) profit(nonmfrs)
+
+
+---- P  commodity price
+
+P(mfrs)
+                (.LO, .L, .UP, .M = 0.0001, 1, +INF, 0)
+      (30.7642) cmkt(mfrs)
+       (0.0116) cmkt(nonmfrs)
+       -1       profit(mfrs)
+
+P(nonmfrs)
+                (.LO, .L, .UP, .M = 0.0001, 1, +INF, 0)
+       (0.0116) cmkt(mfrs)
+      (54.9383) cmkt(nonmfrs)
+       -1       profit(nonmfrs)
+
+
+---- Y  production level
+
+Y(mfrs)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+      (-0.7347) fmkt(labor)
+      (-0.1451) fmkt(capital)
+       (0.9724) cmkt(mfrs)
+      (-0.045)  cmkt(nonmfrs)
+
+Y(nonmfrs)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+      (-0.819)  fmkt(labor)
+      (-0.5362) fmkt(capital)
+        1       cmkt(nonmfrs)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE jel Using MCP From line 111
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            6
+NON ZERO ELEMENTS            25     NON LINEAR N-Z             22
+DERIVATIVE POOL              20     CONSTANT POOL              31
+CODE LENGTH                 272
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE jel Using MCP From line 111
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jel                 
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  111
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/two3mac/convert.opt"
+>>  ampl two3mac-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/two3mac/convert.opt"
+Ampl      : two3mac-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+----    113 PARAMETER DL  
+
+               rich        poor
+
+mfrs         12.645      18.131
+nonmfrs      12.645      42.305
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/two3mac/two3mac.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/two3mac/two3mac-scalar.mod.lst

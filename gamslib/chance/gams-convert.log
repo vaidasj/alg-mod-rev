@@ -1,0 +1,64 @@
+--- Job chance.gms Start 12/13/18 10:24:34 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- chance.gms(57) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- chance.gms(2) 4 Mb
+--- Generating LP model det
+--- chance.gms(54) 4 Mb
+---   4 rows  5 columns  17 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.003
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/chance/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 1 rows and 1 columns.
+Reduced LP has 3 rows, 4 columns, and 12 nonzeros.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1              24.550000              x(barley)               mc artif
+     2              26.350000                x(oats)       nbal(fats) slack
+     3              28.942648              x(sesame)    nbal(protein) slack
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.01 ticks)
+
+Optimal solution found.
+Objective :          28.942648
+
+--- Restarting execution
+--- chance.gms(54) 2 Mb
+--- Reading solution for model det
+--- chance.gms(54) 3 Mb
+--- Generating NLP model chance
+--- chance.gms(55) 5 Mb
+---   4 rows  5 columns  17 non-zeroes
+---   25 nl-code  4 nl-non-zeroes
+--- chance.gms(55) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.027
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/chance/convert.opt"
+>>  gams chance-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/chance/convert.opt"
+--- Writing Gams      : chance-scalar.gms
+
+--- Restarting execution
+--- chance.gms(55) 2 Mb
+--- Reading solution for model chance
+--- chance.gms(57) 3 Mb
+*** Status: Normal completion
+--- Job chance.gms Stop 12/13/18 10:24:34 elapsed 0:00:00.039

@@ -1,0 +1,2641 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 2
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+C o m p i l a t i o n
+
+
+   4   
+       
+      This is a detailed production and distribution scheduling model of
+      the Mexican steel sector. The model is reduced explicitly.
+       
+       
+      Kendrick, D, Meeraus, A, and Alatorre, J, The Planning of Investment
+      Programs in the Steel Industry. The Johns Hopkins University Press,
+      Baltimore and London, 1984.
+       
+      A scanned version of this out-of-print book is accessible at
+      http://www.gams.com/docs/pdf/steel_investment.pdf
+       
+         Data References
+         ---------------
+       
+          1.  Sicartsa, Descripcion de los procesos que se realizan en las
+              plantas del complejo siderurgico sicartsa, 1978
+       
+          2.  Altos Horos, Information general (blueprint), 1974
+       
+          3.  Altos Hornos, Diagrama de flujo  3.75 mmt/a and 4.25 mmt/a
+              (blueprints), 1978
+       
+          4.  CCIS, Situacion actual y crecimiento futuro de la industria
+              siderurgica, 1978
+       
+          5.  CCIS, Reporte de la prueba del empleo de fierro esponja
+              hyl en el Alto Horno 2, 1978
+       
+          6.  CCIS, Estudio de pre-factibilidad para una planta de fierro
+              esponja para exportacion convenio Mexico-Brasil, 1978
+       
+          7.  CCIS, Las materias primas y otros insumos en la industria
+              siderurgica, 1977
+       
+          8.  Russel and Vaughan, Steel Production, 1976
+       
+          9.  Secretaria de la Precidencia, La industria siderurgica
+              integrada de Mexico  (vol i and ii), 1976
+       
+         10.  Ahmsa, Capacity sheet, 1978
+       
+         11.  Ahmsa, Capacity expansion 1979 - 1982, 1978
+       
+         12.  Fundidora, La moderna fundidora ...., 197..
+       
+         13.  Sicartsa, Production y consumo
+       
+         14.  Sicartsa, Insumos principales, pecios de presupuesto, 1979
+       
+         15.  Hylsa, The hyl iron ore direct reduction process, 1973
+       
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 3
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+C o m p i l a t i o n
+
+
+         16.  Fundidora, Computer data bank, 1978
+       
+         17.  Fundidora, Oferta y Demanda, Joint industry projections, 1978
+       
+         18.  CCIS, Transport cost and distances for mineral coal
+       
+         19.  CCIS, Transport cost and distances for iron ore
+       
+         20.  CCIS, Shortest railroad distances between major cities
+       
+         21.  CCIS, Transport cost and distances for some steel products
+       
+         22.  IBRD, Sicartsa ii, 1975
+       
+         23.  Capital cost. Sicartsa first stage. 1973. Report by
+              industrial department. IBRD.
+       
+         24.  Plan de desarrollo de la industria siderurgica paraestatal
+              1979-1990. Sidermex. Confidential document. Not published yet
+       
+  79   
+  80   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 4
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Set Definitions
+
+
+  82   
+  83   Set im       iron ore and coal mines /
+  84   
+  85                p-colorada   pena colorada colima
+  86                lastruchas   lazaro cardenas michoacan
+  87                la-perla     camargo chihuahua
+  88                cerro-mer    cerro de mercado durango
+  89                hercules     sierra mojada coahuila
+  90   
+  91                la-chula     minatitlan colima
+  92                el-encino    pihuamo jalisco
+  93                coahuila     coal mining region    /
+  94   
+  95       ir       raw material plants /
+  96   
+  97                penacol      pena colorada colima
+  98                laperla      camargo chihuahua
+  99                alzada       colima
+ 100                esperanzas   coahuila             /
+ 101   
+ 102       is       steel mills /
+ 103   
+ 104                sicartsa     las truchas
+ 105                ahmsa        monclova
+ 106                fundidora    monterrey
+ 107                hylsa        monterrey
+ 108                hylsap       puebla
+ 109                tamsa        veracruz /
+ 110   
+ 111       j        domestic market areas /
+ 112   
+ 113                mexico-df    mexico d.f.
+ 114                puebla       puebla
+ 115                queretaro    queretaro
+ 116                san-luis     san luis potosi
+ 117                monterrey    nuevo leon
+ 118   
+ 119                guadalaja    guadalajara jalisco
+ 120                l-cardenas   michoacan
+ 121                coatzacoal   veracruz  /
+ 122   
+ 123       l        export points /
+ 124   
+ 125                gulf
+ 126                pacific  /
+ 127   
+ 128       mm       productive units at mines /
+ 129   
+ 130                mine-co      mining equipment for coal mines
+ 131                mine-eq      mining equipment: trucks and crushers
+ 132                conc-mag     magnetic concentrator
+ 133                conc-flot    flotation concentrator  /
+ 134   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 5
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Set Definitions
+
+
+ 135       mr       productive units at raw material plants /
+ 136   
+ 137                pellet       pellet plant
+ 138                coke-oven    coke oven and byproduct units  /
+ 139   
+ 140       ms       productive units at steel mills /
+ 141   
+ 142                pellet       pellet plant
+ 143                sinter       sinter plant
+ 144                coke-oven    coke ovens and by-product units
+ 145                blast-furn   blast furnaces
+ 146                direct-red   direct reduction units
+ 147   
+ 148                openhearth   open hearth furnaces
+ 149                bof          basic oxygen converters
+ 150                elec-arc     electric arc furnaces
+ 151                concas-sl    continuous casting unit for slabs
+ 152                concas-bi    continuous casting unit for billets
+ 153   
+ 154                ingot-cast   ingot casting
+ 155                primary-fl   primary mill and soaking pits - flat products
+ 156                primary-nf   primary mills and soaking pits - non flat
+ 157                plate-mill   plate mill
+ 158                hot-mill     hot strip mill
+ 159   
+ 160                pickleline   pickling line
+ 161                cold-mill    cold strip mill
+ 162                anneal       annealing units
+ 163                tempermill   temper mill
+ 164                tin-line     tinning line
+ 165   
+ 166                billet       billet mill
+ 167                heavysmill   heavy shapes mill
+ 168                bar-mill     integrated bar mill
+ 169                wire-mill    integrated wire mill
+ 170                seaml-mill   seamless pipe mill /
+ 171   
+ 172       pm       production processes at mines /
+ 173   
+ 174                min-co       mining unwashed coal
+ 175                was-co       washing of coal
+ 176                min-n        mining in the northern mines
+ 177                min-s        mining in the southern mines
+ 178                min-tr       mining in las truchas mine
+ 179   
+ 180                conc-n       concentration of northern ore
+ 181                conc-s       concentration of southern ore
+ 182                conc-tr      concentration of truchas ore  /
+ 183   
+ 184       pr       production processes at raw material plants /
+ 185   
+ 186                pelt-c        pellet production using conc ore
+ 187                coke-hd       coke production with  domestic coal /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 6
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Set Definitions
+
+
+ 188   
+ 189       ps       production processes at steel mills /
+ 190   
+ 191                pelt-c       pellet production using concentrated ore
+ 192                sinter       sinter production
+ 193                coke-hd      coke production with high domestic coal input
+ 194                coke-hi      coke production with high import coal input
+ 195                pig-ore      pig iron ore production with lump ore
+ 196   
+ 197                pig-sin      pig iron production with high sinter charge
+ 198                pig-pel      pig iron production with high pellets charge
+ 199                pig-pel-m    pig iron production with coke from imported coal
+ 200                sponge       sponge iron production
+ 201                stl-oh-p     steel production in open hearths with high pig iro
+ 202   
+ 203                stl-oh-s     steel production in open hearths with high scrap charge
+ 204                stl-oh-s2    steel production in open hearths with highest scrap charge
+ 205                stl-bof-p    steel production in bof with high pig iron charge
+ 206                stl-bof-s    steel production in bof with high scrap charge
+ 207                stl-eaf-sp   steel production in electric fur. with high sponge
+ 208   
+ 209                stl-eaf-s    steel production in electric furnace with high scrap
+ 210                slabs-cc     slabs production by continuous casting
+ 211                billets-cc   billet production by continuous casting
+ 212                ingot        ingot casting
+ 213                slab-roll    slab production by rolling
+ 214   
+ 215                bloom-roll   rolling of blooms from ingots
+ 216                billet-rol   billet production by rolling blooms
+ 217                plate        plate production from slabs
+ 218                hot-sheet    hot rolled coil production
+ 219                pickled      pickled coil production
+ 220   
+ 221                cold-sheet   cold roll coil production
+ 222                annealed     annealed coil production
+ 223                tempered     tempered coil production
+ 224                tinning      tin production
+ 225                heavyshape   heavy shape rolling
+ 226   
+ 227                lightshape   rolling of light shapes
+ 228                rough-nf     roughing mill for non-flat products
+ 229                bar-roll     rolling of bars
+ 230                rebars-ld    rolling of large diameter re-rods and bars
+ 231                rebars-sd    rolling of small diameter re-rods and bars
+ 232   
+ 233                wire rod     rolling of wire rod
+ 234                seam-rol     rollling of seamless pipes    /
+ 235   
+ 236       cs       commodities at steel mills /
+ 237   
+ 238                ore-n        iron ore from north. high s and p. 59% fe.
+ 239                ore-s        iron ore from south. no p. 60% fe.
+ 240                ore-trucha   iron ore from sicartsa. no p. 55% fe.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 7
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Set Definitions
+
+
+ 241                ore-conc     iron ore concentrated
+ 242                pellets      pellets
+ 243   
+ 244                sinter       sinter
+ 245                coal-d       coal-domestic: washed
+ 246                coal-i       coal-imported: washed
+ 247                coal-r       raw unwashed coal
+ 248                coke         coke produced with domestic coal
+ 249   
+ 250                coke-imp-c   coke produced with imported coal
+ 251                fuel-oil     fuel oil in thousand liters
+ 252                limestone    limestone
+ 253                pig-iron     pig iron (hot metal)
+ 254                nat-gas      natural gas in 1000 m3
+ 255   
+ 256                sponge       sponge iron
+ 257                scrap        steel scrap
+ 258                ferro-allo   ferroalloys
+ 259                refrac       refractories
+ 260                dolomite     dolomite
+ 261   
+ 262                lime         lime
+ 263                electrodes   electrodes (kg)
+ 264                steel-liq    liquid steel
+ 265                steel-ing    ingot steel
+ 266                slabs        slabs
+ 267   
+ 268                plate        plate
+ 269                hot-strip    hot strip sheet
+ 270                pick-strip   pickled strip sheet
+ 271                cold-strip   cold strip sheet
+ 272                anl-strip    annealed strip sheet
+ 273   
+ 274                temp-strip   tempered strip sheet
+ 275                tin          tin sheet
+ 276                blooms       blooms
+ 277                billets      billets
+ 278                heavyshape   heavy shapes
+ 279                lightshape   light shapes
+ 280                bars         bars
+ 281                rebars       reinforcing rods - demand data is available only for aggregate
+ 282                rebars-ld    large diameter reinforcing rods
+ 283                rebars-sd    small diameter reinforcing rods
+ 284                wire         wire rod
+ 285   
+ 286                seamless     seamless pipe
+ 287                pesos        mexican currency
+ 288                electric     electricity in 1000 kwh
+ 289                water        water in 1000 m3
+ 290                ing-blooms   steel blooms for seamless pipe
+ 291                rails        rails - only imported         /
+ 292   
+ 293       craw(cs) domestic raw materials /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 8
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Set Definitions
+
+
+ 294   
+ 295                fuel-oil, limestone, nat-gas, scrap, ferro-allo, refrac
+ 296                dolomite, lime, electrodes, water, electric  /
+ 297   
+ 298       cm(cs)   commodities at mines /
+ 299   
+ 300                ore-n, ore-s, ore-trucha, coal-r, coal-d, ore-conc  /
+ 301   
+ 302       cr(cs)   commodities at raw material plants /
+ 303   
+ 304                ore-n, ore-s, ore-trucha, coal-r, coal-d, ore-conc, pellets, coke, electric  /
+ 305   
+ 306       crv(cs)  imported raw materials and intermediate products / coal-i, pellets, scrap, coke  /
+ 307   
+ 308   
+ 309       cmr(cs)  commodities shipped from mines to raw material plants / ore-conc, coal-d  /
+ 310   
+ 311   
+ 312       cms(cs)  commodities shipped from mines to steel plants / coal-d, ore-conc, ore-s, ore-n, ore-trucha /
+ 313   
+ 314   
+ 315       crs(cs)  commodities shipped from raw material plants to steel mills / pellets, coke  /
+ 316   
+ 317   
+ 318       css(cs)  commodities for interplant shipment between steel mills / sponge, pellets, coke  /
+ 319   
+ 320       cf(cs)   final products / plate, hot-strip, temp-strip, tin , heavyshape, lightshape
+ 321                                 bars , rebars-ld, rebars-sd , wire, seamless  , rails      /
+ 322   
+ 323       ce(cs)   commodities for exports
+ 324   
+ 325       cfv(cs)  imported final products
+ 326   
+ 327       o        owner numbers   / 1*5  /
+ 328   
+ 329       own(o,is) owner groups   / 1.sicartsa, 2.ahmsa, 3.fundidora, 4.(hylsa,hylsap), 5.tamsa /
+ 330   
+ 331   
+ 332       isex(is) plants excluded from alzada ores / sicartsa, ahmsa, fundidora, tamsa /
+ 333   
+ 334       res(cm,im) reserve types at locations     / ore-s.p-colorada, ore-trucha.lastruchas, ore-n.la-perla
+ 335                                                   ore-n.cerro-mer , ore-n.hercules       , ore-s.la-chula
+ 336                                                   ore-s.el-encino , coal-r.coahuila                       / ;
+ 337   
+ 338   ce(cf)  = yes    ;
+ 339   cfv(cf) = yes    ;
+ 340   
+ 341   Alias(is,isp)    ;
+ 342   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 9
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 344   
+ 345   Parameter as(cs,ps,is)  input output relations for steel mills ;
+ 346   
+ 347   Table am(cm,pm)   a matrix for mining products
+ 348   
+ 349               min-n   min-s   min-tr  conc-n  conc-s  conc-tr  min-co  was-co
+ 350   
+ 351   ore-n        1.                      -1.42
+ 352   ore-s                 1.                     -1.28
+ 353   ore-trucha                     1.                     -1.37
+ 354   ore-conc                              1.      1.       1.
+ 355   coal-r                                                         1.        -2.1
+ 356   coal-d                                                                  1.
+ 357   
+ 358   
+ 359   Table ar(cs,pr)   a matrix for raw material plants
+ 360   
+ 361               pelt-c  coke-hd
+ 362   
+ 363   fuel-oil      -.02
+ 364   ore-conc      -.99
+ 365   pellets       1.0
+ 366   coal-d                 -1.50
+ 367   coke                    1.0
+ 368   electric      -.045     -.060
+ 369   
+ 370   Table asic(cs,ps)   a matrix for sicartsa
+ 371   
+ 372               pelt-c  coke-hi  pig-pel-m  stl-bof-p  stl-bof-s
+ 373   
+ 374   ore-trucha                    -.20
+ 375   ore-conc      -.99
+ 376   pellets       1.0            -1.384
+ 377   coal-i               -1.38
+ 378   coke-imp-c            1.0     -.60
+ 379   fuel-oil                      -.045
+ 380   limestone                     -.081
+ 381   pig-iron                      1.0         -.944      -.833
+ 382   scrap                                     -.166      -.180
+ 383   ferro-allo                                -.033      -.033
+ 384   refrac                                    -.006      -.006
+ 385   dolomite                      -.049       -.06       -.06
+ 386   lime                                      -.09       -.09
+ 387   steel-liq                                 1.0        1.0
+ 388   electric      -.045   -.060   -.090       -.068      -.068
+ 389   
+ 390   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 10
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 392   
+ 393     +        billets-cc  lightshape  rebars-ld  rebars-sd  wire
+ 394   
+ 395   scrap          .04         .03       .03         .03      .02
+ 396   steel-liq    -1.05
+ 397   billets       1.0        -1.06     -1.06       -1.06    -1.05
+ 398   lightshape                1.0
+ 399   rebars-ld                           1.0
+ 400   rebars-sd                                       1.0
+ 401   wire                                                     1.0
+ 402   electric                  -.08      -.08        -.08     -.08
+ 403   water                     -.01      -.01        -.01     -.01
+ 404   
+ 405  *
+ 406  *  data for pelt-c and coke-hi come from plant visit. data for pig-pel
+ 407  *  and stl-bof-p comes from (1 page 83 and 95). idealized data rather
+ 408  *  than historical yields for 1978 were used for rolling mills.
+ 409   
+ 410   
+ 411   Table aahm(cs,ps)   a matrix for ahmsa
+ 412   
+ 413               coke-hd  sinter  pig-pel  pig-sin
+ 414   
+ 415   ore-n                 -1.1             -.64
+ 416   coal-d        -1.50
+ 417   sinter                 1.0            -1.03
+ 418   pellets                       -1.6
+ 419   coke           1.0     -.11    -.63    -.70
+ 420   limestone              -.17            -.10
+ 421   dolomite                       -.049   -.049
+ 422   pig-iron                       1.0     1.0
+ 423   nat-gas                        -.05    -.05
+ 424   sponge
+ 425   electric       -.060   -.040   -.090   -.090
+ 426   ferro-allo                     -.065   -.065
+ 427   
+ 428       +       stl-oh-s  stl-bof-p  stl-bof-s  ingot  slabs-cc  slab-roll
+ 429   
+ 430   ore-n                              -.02
+ 431   pig-iron      -.77      -1.02      -.74
+ 432   scrap         -.33       -.11      -.42      .02      .02      .13
+ 433   nat-gas                            -.078    -.05              -.05
+ 434   fuel-oil                           -.079
+ 435   limestone     -.14
+ 436   ferro-allo    -.011      -.011     -.011
+ 437   refrac        -.012      -.006     -.012
+ 438   dolomite      -.10       -.06
+ 439   lime                     -.09      -.14
+ 440   steel-liq     1.0        1.0       1.0     -1.04    -1.04
+ 441   steel-ing                                   1.0              -1.17
+ 442   slabs                                                1.0      1.0
+ 443   electric      -.040      -.068     -.068
+ 444   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 11
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 445       +       bloom-roll  billet-rol  plate  hot-sheet  pickled
+ 446   
+ 447   scrap         .13          .13       .02      .03
+ 448   steel-ing   -1.17
+ 449   slabs                              -1.04    -1.05
+ 450   plate                               1.0
+ 451   hot-strip                                    1.0       -1.0
+ 452   blooms       1.0         -1.17
+ 453   billets                   1.0
+ 454   pick-strip                                              1.0
+ 455   
+ 456       +       cold-sheet  annealed  tempered  tinning
+ 457   
+ 458   scrap           .13
+ 459   pick-strip    -1.17
+ 460   cold-strip     1.0        -1.0
+ 461   anl-strip                  1.0       -1.0
+ 462   temp-strip                            1.0   -1.02
+ 463   tin                                          1.0
+ 464   
+ 465       +      heavyshape  lightshape  bar-roll  rebars-ld  rebars-sd  wire
+ 466   blooms        -1.15
+ 467   heavyshape     1.0
+ 468   billets                  -1.14      -1.06      -1.06     -1.06     -1.0
+ 469   lightshape                1.0
+ 470   bars                                 1.0
+ 471   rebars-ld                                       1.0
+ 472   rebars-sd                                                 1.0
+ 473   wire                                                                1.0
+ 474   scrap           .05        .03        .04        .04       .04       .0
+ 475   
+ 476   Table afund(cs,ps)   a matrix for fundidora
+ 477   
+ 478              pig-pel  pig-ore  pelt-c
+ 479   
+ 480   ore-n        -.29    -1.38
+ 481   ore-conc                      -.99
+ 482   pellets     -1.38     -.29    1.0
+ 483   coke         -.69     -.75
+ 484   limestone    -.24     -.27
+ 485   pig-iron     1.0      1.0
+ 486   nat-gas      -.051    -.029
+ 487   electric     -.06     -.036   -.045
+ 488   water        -.003    -.001
+ 489   ferro-allo   -.065    -.065
+ 490   
+ 491      +        stl-oh-s  stl-bof-p  stl-bof-s  stl-oh-s2
+ 492   
+ 493   ore-n          -.02                            -.02
+ 494   fuel-oil        -.079                          -.079
+ 495   pig-iron       -.74      -.96       -.81       -.32
+ 496   nat-gas        -.078                           -.078
+ 497   scrap          -.42      -.15       -.27       -.80
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 12
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 498   ferro-allo     -.012     -.012      -.012      -.012
+ 499   refrac         -.012     -.006      -.006      -.012
+ 500   lime           -.14                            -.14
+ 501   steel-liq      1.0       1.0        1.0        1.0
+ 502   electric       -.072     -.068      -.068      -.072
+ 503   
+ 504      +        ingot  slab-roll  plate  hot-sheet  pickled  cold-sheet
+ 505   
+ 506   scrap         .01      .10       .10                         .13
+ 507   steel-liq   -1.04
+ 508   steel-ing    1.0     -1.14
+ 509   slabs                 1.0      -1.12   -1.05
+ 510   plate                           1.0
+ 511   hot-strip                               1.0     -1.0
+ 512   pick-strip                                       1.0      -1.17
+ 513   cold-strip                                                  1.0
+ 514   
+ 515      +        annealed  tempered  bloom-roll  billet-rol  lightshape
+ 516   
+ 517   scrap                               .10                      .10
+ 518   steel-ing                         -1.13
+ 519   cold-strip    -1.0
+ 520   anl-strip      1.0       -1.0
+ 521   temp-strip                1.0
+ 522   blooms                             1.0        -1.03
+ 523   billets                                        1.0         -1.14
+ 524   lightshape                                                  1.0
+ 525   
+ 526      +        wire  rebars-sd
+ 527   
+ 528   scrap         .04     .04
+ 529   billets     -1.06   -1.06
+ 530   rebars-sd            1.0
+ 531   wire         1.0
+ 532   
+ 533   
+ 534  * data for  the pig-ore and pig-pel processes were derived
+ 535  * from bf no. 2 and bf no. 3 data for 1975 as reported in
+ 536  * (9- vol i) table 3.3.6
+ 537  * *  data for stl-oh-s  are from same source table 3.4.6
+ 538   
+ 539   
+ 540   Table  ahyl(cs,ps)   a matrix for hylsa in monterrey
+ 541   
+ 542               sponge  stl-eaf-sp  stl-eaf-s  ingot  slab-roll
+ 543   
+ 544   pellets     -1.38
+ 545   nat-gas      -.470                                  -.05
+ 546   sponge       1.0      -1.09      -.60
+ 547   scrap                             -.46               .05
+ 548   ferro-allo             -.012      -.012
+ 549   refrac                 -.006      -.006
+ 550   electrodes           -.0052       -.0052
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 13
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 551   dolomite               -.009      -.009
+ 552   lime                   -.007      -.007
+ 553   steel-liq              1.0        1.0       -1.02
+ 554   steel-ing                                    1.0   -1.07
+ 555   slabs                                               1.0
+ 556   electric     -.10      -.68      -.60
+ 557   
+ 558      +        hot-sheet  pickled  cold-sheet  annealed
+ 559   
+ 560   scrap         .05        .06       .02
+ 561   slabs       -1.07
+ 562   plate
+ 563   hot-strip    1.0       -1.06
+ 564   pick-strip              1.0      -1.05
+ 565   cold-strip                        1.0        -1.0
+ 566   anl-strip                                     1.0
+ 567   
+ 568      +        tempered  tinning
+ 569   
+ 570   scrap          .03      .01
+ 571   anl-strip    -1.04
+ 572   temp-strip    1.0     -1.02
+ 573   tin                    1.0
+ 574   
+ 575  *  data for eaf from (15), rolling processes from (9 vol ii)
+ 576  *  verify scrap generation and electricity
+ 577   
+ 578   
+ 579   Table ahylp(cs,ps)   a matrix for hylsa in puebla
+ 580   
+ 581               sponge  stl-eaf-sp  stl-eaf-s  billets-cc
+ 582   
+ 583   pellets      -1.38
+ 584   nat-gas       -.420
+ 585   sponge        1.0     -1.09
+ 586   scrap                             -1.06
+ 587   ferro-allo             -.014       -.012
+ 588   refrac                 -.006       -.006
+ 589   electrodes             -.0052        -.0052
+ 590   dolomite               -.009       -.009
+ 591   lime                   -.007       -.007
+ 592   steel-liq              1.0         1.0       -1.06
+ 593   billets                                       1.0
+ 594   electric      -.010    -.68        -.50
+ 595   
+ 596       +        lightshape  bar-roll  rebars-ld  rebars-sd  wire
+ 597   
+ 598   scrap            .04       .04       .04         .03      .03
+ 599   billets        -1.06     -1.06     -1.06       -1.05    -1.05
+ 600   lightshape     1.0
+ 601   bars                      1.0
+ 602   rebars-ld                           1.0
+ 603   rebars-sd                                       1.0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 14
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 604   wire                                                     1.0
+ 605   electric        -.03       -.025     -.025       -.03      -.03
+ 606   
+ 607  *   rolling processes from (9-ii), sponge and st-eaf from plant visits
+ 608  *   and (15)
+ 609   
+ 610   
+ 611   Table atam(cs,ps)    a matrix for tamsa
+ 612   
+ 613               sponge  stl-eaf-sp  stl-eaf-s    ingot
+ 614   
+ 615   pellets     -1.38
+ 616   nat-gas      -.50
+ 617   sponge       1.0       -1.09
+ 618   scrap                              -1.06
+ 619   ferro-allo              -.033       -.033
+ 620   refrac                  -.006       -.006
+ 621   electrodes              -.0052        -.0052
+ 622   dolomite                -.009       -.009
+ 623   lime                    -.007       -.007
+ 624   steel-liq               1.0         1.0       -1.06
+ 625   ing-blooms                                     1.0
+ 626   electric     -.01       -.68        -.50
+ 627   
+ 628       +       billet-rol  lightshape  bar-roll  seam-rol
+ 629   
+ 630   scrap           .01         .04       .04       .35
+ 631   ing-blooms    -1.03                           -1.45
+ 632   billets        1.0        -1.06     -1.06
+ 633   lightshape                1.0
+ 634   bars                                 1.0
+ 635   seamless                                       1.0
+ 636                               ;
+ 637   
+ 638        as(cs,ps,"sicartsa")      = asic(cs,ps);
+ 639        as(cs,ps,"ahmsa")         = aahm(cs,ps);
+ 640        as(cs,ps,"fundidora")     = afund(cs,ps);
+ 641        as(cs,ps,"hylsa")         = ahyl(cs,ps);
+ 642        as(cs,ps,"hylsap")        = ahylp(cs,ps);
+ 643        as(cs,ps,"tamsa")         = atam(cs,ps);
+ 644   
+ 645   
+ 646   Table bm(mm,pm)   capacity utilization matrix for mines
+ 647   
+ 648               min-n  min-s  min-tr  conc-s  conc-tr conc-n  min-co
+ 649   
+ 650   mine-eq       1      1      1
+ 651   conc-mag                            1       1
+ 652   conc-flot                                           1
+ 653   mine-co                                                     1
+ 654   
+ 655   Table br(mr,pr)   capacity utilization for raw materials plants
+ 656   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 15
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 657                   coke-hd     pelt-c
+ 658   
+ 659   coke-oven         1
+ 660   pellet                         1
+ 661   
+ 662   Table bs(ms,ps)   capacity utilization matrix for steel mills
+ 663   
+ 664               coke-hd  coke-hi  pig-ore pig-sin pig-pel pig-pel-m
+ 665   
+ 666   coke-oven      1        1
+ 667   blast-furn                       1       1      .96      1
+ 668   
+ 669       +           sponge stl-oh-p stl-oh-s stl-oh-s2
+ 670   
+ 671   blast-furn
+ 672   direct-red        1
+ 673   openhearth                1          1       1
+ 674   
+ 675       +       stl-bof-p  stl-bof-s  stl-eaf-sp  stl-eaf-s
+ 676   
+ 677   bof             1           1
+ 678   elec-arc                              1            1
+ 679   
+ 680       +       slabs-cc  billets-cc  ingot  slab-roll  bloom-roll
+ 681   
+ 682   concas-sl       1
+ 683   concas-bi                 1
+ 684   ingot-cast                          1
+ 685   primary-fl                                    1
+ 686   primary-nf                                                1
+ 687   
+ 688       +       billet-rol   plate  hot-sheet  pickled  cold-sheet
+ 689   
+ 690   plate-mill                  1
+ 691   hot-mill                             1
+ 692   pickleline                                    1
+ 693   cold-mill                                                 1
+ 694   billet            1
+ 695   
+ 696       +       annealed  tempered  tinning  heavyshape  lightshape
+ 697   
+ 698   anneal          1
+ 699   tempermill               1
+ 700   tin-line                            1
+ 701   heavysmill                                   1
+ 702   bar-mill                                                  1
+ 703   
+ 704       +       bar-roll  rebars-ld  rebars-sd  wire  seam-rol
+ 705   
+ 706   bar-mill        1         1
+ 707   wire-mill                             1        1
+ 708   seaml-mill                                             1
+ 709   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 16
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+production
+
+
+ 710     +         pelt-c     sinter
+ 711   
+ 712   pellet         1
+ 713   sinter                    1
+ 714   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 17
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+capacity
+
+
+ 716   
+ 717   Table km(mm,im)   initial capacities for mines (1000 tpy)
+ 718   
+ 719               p-colorada lastruchas la-perla cerro-mer hercules
+ 720   
+ 721   mine-eq        4000       2700      1000     3000      1000
+ 722   conc-mag       4000       1500
+ 723   conc-flot                           1000     3000
+ 724   
+ 725   
+ 726   +           la-chula  el-encino  coahuila
+ 727   
+ 728   mine-eq         500       3000
+ 729   conc-mag                  3000
+ 730   mine-co                            7000
+ 731   
+ 732   Table kr(mr,ir)   initial capacities for raw material plants  (1000 tpy)
+ 733   
+ 734               penacol  laperla  alzada  esperanzas
+ 735   
+ 736   pellet         3000     600     1500
+ 737   coke-oven                                684
+ 738   
+ 739   
+ 740   Table ks(ms,is)   initial capacities for steel mills  (1000 tpy)
+ 741   
+ 742               sicartsa  ahmsa  fundidora  hylsa  hylsap  tamsa
+ 743   
+ 744   pellet          1850               750
+ 745   sinter                 1500
+ 746   coke-oven        660   2100
+ 747   blast-furn      1100   3247       1400
+ 748   direct-red                                660    1000    270
+ 749   openhearth             1500        850
+ 750   bof             1300   2070       1500
+ 751   elec-arc                                 1000     560    450
+ 752   concas-sl               710
+ 753   concas-bi       1300                              560
+ 754   ingot-cast             2600       2000   1000            420
+ 755   primary-fl             1850       1450   1000
+ 756   primary-nf             1200
+ 757   plate-mill              960        250
+ 758   hot-mill               1600        870    900
+ 759   pickleline             1600        575    650
+ 760   cold-mill              1495        500    600
+ 761   anneal                 1348        420    450
+ 762   tempermill             1225        520    450
+ 763   tin-line                315                70
+ 764   billet                 1000       200
+ 765   heavysmill              200
+ 766   bar-mill         600    135                       430     80
+ 767   wire-mill        600    270                       200
+ 768   seaml-mill                                               280
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 18
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+capacity
+
+
+ 769   
+ 770          ;
+ 771   
+       
+        sicartsa
+       
+          1. coke-oven (1)  2200 t/day = 660 mt/a  based on stated coal mix
+          2. blast-furn (1)  3300 t/day with 330 days/year = 1100 mt/a
+          3. all capacities from (1) unless otherwise noted
+       
+        ahmsa
+       
+          1. all capacities from (10) unless otherwise noted
+       
+        fundidora
+       
+          1. coke plant is at the mine
+          2. all capacities from (12) unless otherwise noted
+          3. open hearth capacity is for steelshop no. 2 from (9 - vol i)
+             table 3.4.3
+       
+        hylsa
+       
+          1. all capacities from (9 - vol i) unless otherwise noted
+          2. only rough estimates for pickle, annealing, and temper lines
+          3. monterrey visit april 1981
+       
+        hylsap
+       
+          1. data obtained during plant visit
+       
+        tamsa
+       
+          1. all capacities from(9 -vol i)
+          2. monterrey visit 1981
+       
+ 807   
+ 808   Parameter ut(is) capacity utilization / sicartsa .5, (ahmsa,fundidora,tamsa) .9, hylsa 1, hylsap 1.1 / ;
+ 809   
+ 810    km(mm,im) = .9*km(mm,im);
+ 811    kr(mr,ir) = .9*kr(mr,ir);
+ 812    ks(ms,is) = ut(is)*ks(ms,is);
+ 813   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 19
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+demand data
+
+
+ 815   
+ 816   Set ds          demand data components / demand, semi-int, adj-dem /
+ 817   
+ 818   Table mrod(cs,cs) map for disaggregating demand for reinforced bars to large and small diameters
+ 819   
+ 820             rebars-sd   rebars-ld
+ 821   rebars        .4         .6
+ 822   
+ 823   
+ 824   Table demdat(cs,ds)   demand and semi-intgrated output (1000 tpy)
+ 825   
+ 826                    demand      semi-int
+ 827   
+ 828   plate            1050
+ 829   hot-strip         600
+ 830   temp-strip       1250
+ 831   tin               400
+ 832   heavyshape        300           130
+ 833   lightshape        310           160
+ 834   bars              340           155
+ 835   rebars           1150           395
+ 836   wire              600           190
+ 837   seamless          800
+ 838   rails             110
+ 839   
+ 840   
+ 841   Table regdem(cs,j)  regional demand per product ( % of total )
+ 842   
+ 843               mexico-df puebla queretaro san-luis monterrey
+ 844   
+ 845   plate          63.5     0.2     0.3       0.3      31.0
+ 846   hot-strip      41.9     2.8     1.6       2.8      36.2
+ 847   temp-strip     45.1     2.5     4.5       1.1      41.7
+ 848   tin            87.6             0.3                 9.4
+ 849   heavyshape     36.6     2.2     3.2       0.8      12.9
+ 850   lightshape     74.4     2.5     1.9       1.8       8.1
+ 851   bars           46.6     4.2    23.5       2.2      11.2
+ 852   rebars         46.7    10.3     4.0       3.4      12.8
+ 853   wire           61.2     5.3     3.9       3.7      12.2
+ 854   seamless       10.5    28.0     0.4       0.2      18.4
+ 855   rails          40.0     5.0     5.0      10.0      20.0
+ 856   
+ 857   +           guadalaja  l-cardenas  coatzacoal
+ 858   
+ 859   plate          4.5        0.1        0.1
+ 860   hot-strip     12.6        0.5        1.6
+ 861   temp-strip     4.3        0.4        0.4
+ 862   tin            2.7
+ 863   heavyshape    42.6        1.4        0.3
+ 864   lightshape     8.9        1.6        0.8
+ 865   bars          11.8        0.4        0.1
+ 866   rebars        11.8        6.1        4.9
+ 867   wire           9.8        1.9        2.0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 20
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+demand data
+
+
+ 868   seamless       1.8        1.7       39.0
+ 869   rails         10.0        5.0        5.0
+ 870                            ;
+ 871   
+ 872  *    data base estimated
+ 873  *    rail distibution has been added in washington
+ 874   
+ 875    demdat(cs,"adj-dem") = demdat(cs,"demand") - demdat(cs,"semi-int");
+ 876   
+ 877    demdat(cf,"adj-dem")$sum(cs, mrod(cs,cf)) = sum(cs, mrod(cs,cf)*demdat(cs,"adj-dem"));
+ 878   
+ 879    regdem(cf,j)$sum(cs, mrod(cs,cf)) = sum(cs$mrod(cs,cf), regdem(cs,j));
+ 880   
+ 881   Parameter d(*,*)  adjusted demand for semi-integr plants (1000 tpy) ;
+ 882   
+ 883   d(cf,j) = demdat(cf,"adj-dem")*regdem(cf,j)/100;
+ 884   d("   total  ",j)  =  sum(cf, d(cf,j))   ;
+ 885   d(cf,"   total  ") =  sum(j, d(cf,j))    ;
+ 886   d("   total  ","   total  ") =  sum(cf,  d(cf,"   total  "))  ;
+ 887   
+ 888   Display demdat, regdem, d;
+ 889   
+ 890   
+ 891   Parameter emax(cf) export limit by product (1000 tpy)
+ 892             etot     total export limit      (1000 tpy) ;
+ 893   
+ 894   emax(cf) = 500 ;  etot = 250 ;
+ 895   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 21
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+prices
+
+
+ 897   
+ 898   Set sp  domestic and international prices / domestic, internat /
+ 899   
+ 900   
+ 901   Parameter  mc(pm)  mining cost (pesos per ton) / min-co 250, (min-s,min-n,min-tr) 100 / ;
+ 902   
+ 903   Table prices(cs,sp)   domestic and international prices of commodities
+ 904   
+ 905             domestic     internat
+ 906  *         (79 pesos)  (79 dollars)
+ 907   
+                                                                                                                                                                                                                                            NEW MARGINS: 1 - 40
+ 909   
+ 910   ore-conc                  28                    tons
+ 911   pellets       430         45                    tons
+ 912   coal-d        880                               tons
+ 913   coal-i                    63                    tons
+ 914   coke         1200        100                    tons
+ 915   fuel-oil     1000                               tons **** 1000liters
+ 916   limestone     120                               tons
+ 917   nat-gas       322        152                    1000 m3
+ 918   scrap        3050        120                    tons
+ 919   ferro-allo  16000                               tons
+ 920   refrac      50000                               tons
+ 921   dolomite      800                               tons
+ 922   lime          690                               tons
+ 923   electrodes  48000                               tons
+ 924   electric      552                               1000 kwh
+ 925   plate                     347                   tons
+ 926   hot-strip                 393                   tons
+ 927   temp-strip                373                   tons
+ 928   tin                       393                   tons
+ 929   billets                   300                   tons
+ 930   heavyshape                338                   tons
+ 931   lightshape                364                   tons
+ 932   bars                      350                   tons
+ 933   rebars-ld                 347                   tons
+ 934   rebars-sd                 368                   tons
+ 935   wire                      434                   tons
+ 936   seamless                  455                   tons
+ 937   rails                     345                   tons
+ 938   
+                                                                                                                                                                                                                                           NEW MARGINS: 1 - 120
+ 940   
+ 941  *  different prices for limestone: ahmsa 90, fundidora 60, sicartsa 120
+ 942  *  price of natural gas for sicartsa expansions: 30% lower.
+ 943   
+ 944   
+ 945   Parameter   pd(cs)     prices of domestic products  (1979 pesos per unit)
+ 946               pv(cs)     prices of imports              (1979 us $ per ton)
+ 947               pe(cs)     export prices                  (1979 us $ per ton)
+ 948               sh         shadow exchange rate          (1979 pesos per us$);
+ 949   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 22
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+prices
+
+
+ 950    sh           = 25.0 ;
+ 951    pd(craw)     = prices(craw,"domestic");
+ 952    pv(crv)      = prices(crv,"internat");
+ 953    pv(cfv)      = prices(cfv,"internat");
+ 954    pe(ce)       = .8*prices(ce,"internat");
+ 955   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 23
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+transport data
+
+
+ 957   
+ 958   Table rdsj(is,j)  rail distances from steel mills to markets  (km)
+ 959   
+ 960               mexico-df puebla queretaro san-luis monterrey
+ 961   
+ 962   sicartsa      819      995      691      875       1305
+ 963   ahmsa        1204     1300      849      592        218
+ 964   fundidora    1017     1159      755      498
+ 965   hylsa        1017     1159      755      498
+ 966   hylsap        185               410      667       1085
+ 967   tamsa         428      315      650      907       1330
+ 968   
+ 969    +          guadalaja l-cardenas coatzacoal
+ 970   
+ 971   sicartsa       704                  1638
+ 972   ahmsa         1125       1416       1850
+ 973   fundidora     1030       1322       1756
+ 974   hylsa         1030       1322       1756
+ 975   hylsap         760        995        671
+ 976   tamsa         1005       1239        550
+ 977   
+ 978  *     data from (20) and (21)
+ 979  *     only steel plants included, since pellet and coke plants do not
+ 980  *     send final products to markets
+ 981   
+ 982   Table rdss(is,is)  rail distances between steel plants
+ 983   
+ 984               sicartsa ahmsa fundidora hylsa hylsap tamsa
+ 985   
+ 986   ahmsa         1416
+ 987   fundidora     1322     218
+ 988   hylsa         1322     218      10
+ 989   hylsap         995    1300    1159    1159
+ 990   tamsa         1239    1499    1405    1405   315
+ 991   
+ 992   Table rdrs(ir,is)  rail distances from raw material plants to steel mills
+ 993   
+ 994                  sicartsa  ahmsa  fundidora  hylsa  hylsap  tamsa
+ 995   
+ 996   penacol          1037     1490    1396     1396    1116     1360
+ 997   laperla          1797      403     621      621    1595     1703
+ 998   alzada            920     1360    1260     1260     990     1300
+ 999   esperanzas       1522      122     340      340    1422     1670
+1000   
+1001   
+1002  *     data from (19) and(20)
+1003   
+1004   Table rdms(im,is)  rail distances from mines to steel plants
+1005   
+1006               sicartsa ahmsa fundidora hylsa hylsap tamsa
+1007   
+1008   p-colorada     1037   1490    1396    1396  1116   1360
+1009   lastruchas            1416    1322    1322   995   1239
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 24
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+transport data
+
+
+1010   la-perla       1797    403     621     621  1595   1927
+1011   cerro-mer      1275    677     636     636  1245   1489
+1012   hercules       1613    219     563     563  1411   1655
+1013   la-chula       1044   1480    1300    1300  1112   1356
+1014   el-encino       965   1401    1307    1307  1033   1277
+1015   coahuila       1500    120     400     400  1420   1700
+1016   
+1017   Table rdmr(im,ir)  rail distances from mines to raw material plants
+1018   
+1019               penacol  laperla  alzada  esperanzas
+1020   
+1021   p-colorada             1803      70
+1022   lastruchas    1037     1797     920
+1023   la-perla      1803             1800
+1024   cerro-mer     1500      400    1500
+1025   hercules      1616      400    1600
+1026   la-chula        90     1800      60
+1027   el-encino       90     1800      40
+1028   coahuila                                15
+1029   
+1030  *     data from (19)
+1031  *     data from (18)
+1032  *     distances from coal mines to pellet plants not included for obviou
+1033   
+1034   Table rdps(*,is)   rail distances from nearest port to steel mill
+1035   
+1036                 sicartsa ahmsa fundidora hylsa hylsap tamsa
+1037   
+1038   gulf             1239    739    521     521   315
+1039   pacific                 1416   1322    1322   995    1239
+1040   
+1041   
+1042   
+1043  *     data from (19) and (20)
+1044  *     distances in this table are from plant to nearest port.
+1045  *     for gulf: sicartsa,hylsap,tamsa and new-manz po veracruz.
+1046  *               ahmsa,fundidora,hylsa,naw-tamp to tampico.
+1047  *               new-coat to coatzacoalcos.
+1048  *     for pacific: all plants to lazaro carenas, axcept fpr
+1049  *                  new-manz to manzanillo
+1050   
+1051   
+1052   
+1053   Table rdpj(*,j)  rail distances from nearest port to markets
+1054   
+1055                mexico-df puebla queretaro san-luis monterrey
+1056   
+1057   gulf           428       315     650      444      521
+1058   pacific        819       995     691      875     1305
+1059   
+1060     +          guadalaja l-cardenas coatzacoal
+1061   
+1062   gulf            995       1239
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 25
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+transport data
+
+
+1063   pacific         300                  1638
+1064   
+1065   
+1066  *    data base from (20) and (21)
+1067  *    nearest ports for
+1068  *       gulf: veracruz to mexico-df,puebla,queretaro,toluca,l-cardenas
+1069  *             tampico to san-luis,guadalajara
+1070  *             matamoros to monterrey
+1071  *             coatzacoalcos to coatzacoal
+1072  *    pacific: all to lazaro cardenas, except for manzanillo to guadalaja
+1073   
+1074  * mines - iron ore and coal mines
+1075  * plants - raw material plants
+1076  * mills - steel mills
+1077   
+1078   Parameter mumr(im,ir)  transport cost: mines to plants               (us$ per ton)
+1079             mums(im,is)  transport cost: mines to mills                (us$ per ton)
+1080             murs(ir,is)  transport cost: plants to mills               (us$ per ton)
+1081             muss(is,is)  transport cost: between mills                 (us$ per ton)
+1082             musj(is,j)   transport cost: mills to markets              (us$ per ton)
+1083             mupsr(is)    transport cost: ports to mills - raw material (us$ per ton)
+1084             muspf(is)    transport cost: mills to ports - final product  ($ per ton)
+1085             mupj(j)      transport cost: ports to markets              (us$ per ton);
+1086   
+1087        rdps("short",is)   = min(rdps("gulf",is) ,rdps("pacific",is) );
+1088        rdss(is,isp)       = max(rdss(is,isp),rdss(isp,is));
+1089        rdpj("short",j)    = min(rdpj("gulf",j ),rdpj("pacific",j ));
+1090   
+1091      mumr(im,ir)  = (35 + .11*rdmr(im,ir))$rdmr(im,ir);
+1092      mums(im,is)  = (35 + .11*rdms(im,is))$rdms(im,is);
+1093      murs(ir,is)  = (35 + .11*rdrs(ir,is))$rdrs(ir,is);
+1094      muss(is,isp) = (35 + .11*rdss(is,isp))$rdss(is,isp);
+1095      mupsr(is)    = (35 + .11*rdps("short",is))$rdps("short",is);
+1096      musj(is,j)   = (60 + .19*rdsj(is,j))$rdsj(is,j);
+1097      muspf(is)    = (60 + .19*rdps("short",is))$rdps("short",is);
+1098      mupj(j)      = (60 + .19*rdpj("short",j))$rdpj("short",j);
+1099   
+1100  *  data base from (19) and (20)
+1101  *  old figures were 57.16 + .194  and   17.46 + .106
+1102   
+1103   Display mumr, mums, murs, muss, musj, mupsr, muspf, mupj;
+1104   
+1105   Parameter  loss(cs)  correction factor for coke losses during intermill shipments of coke
+1106              pct(o)    share of pellet shipments from pena colarada by ownership / 2 = .46, 3 = .1, 4 = .26, 5 = .18 /;
+1107   
+1108    loss(cs) = 1;  loss("coke") = 0.9;
+1109   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 26
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+model reduction
+
+
+1111   
+1112   Set  mmpos(mm,im)  productive unit possibility: mines
+1113        mrpos(mr,ir)  productive unit possibility: raw material plants
+1114        mspos(ms,is)  productive unit possibility: steel mills
+1115   
+1116        pmpos(pm,im)  process possibility: mines
+1117        prpos(pr,ir)  process possibility: raw material plants
+1118        pspos(ps,is)  process possibility: steel mills
+1119   
+1120        cmposp(cs,im) commodity production possibility: mines
+1121        crposp(cs,ir) commodity production possibility: raw material plants
+1122        csposp(cs,is) commodity production possibility: steel mills
+1123   
+1124        cmposn(cs,im) commodity consumption possibility: mines
+1125        crposn(cs,ir) commodity consumption possibility: raw material plants
+1126        csposn(cs,is) commodity consumption possibility: steel mills ;
+1127   
+1128    mmpos(mm,im) = yes$km(mm,im);
+1129    mrpos(mr,ir) = yes$kr(mr,ir);
+1130    mspos(ms,is) = yes$ks(ms,is);
+1131   
+1132    pmpos(pm,im)$sum(cm, am(cm,pm)$res(cm,im) ne 0 ) =
+1133                 yes$(sum(mm$(not mmpos(mm,im)), bm(mm,pm) ne 0) eq 0) ;
+1134    prpos(pr,ir)$sum(cr, ar(cr,pr) ne 0 ) =
+1135                 yes$(sum(mr$(not mrpos(mr,ir)), br(mr,pr) ne 0) eq 0) ;
+1136    pspos(ps,is)$sum(cs, as(cs,ps,is) ne 0 ) =
+1137                 yes$(sum(ms$(not mspos(ms,is)), bs(ms,ps) ne 0) eq 0) ;
+1138   
+1139    cmposp(cm,im) = yes$sum(pm$pmpos(pm,im), am(cm,pm) gt 0) ;
+1140    crposp(cr,ir) = yes$sum(pr$prpos(pr,ir), ar(cr,pr) gt 0) ;
+1141    csposp(cs,is) = yes$sum(ps$pspos(ps,is), as(cs,ps,is) gt 0) ;
+1142   
+1143    cmposn(cm,im) = yes$sum(pm$pmpos(pm,im), am(cm,pm) lt 0) ;
+1144    crposn(cr,ir) = yes$sum(pr$prpos(pr,ir), ar(cr,pr) lt 0);
+1145    csposn(cs,is) = yes$sum(ps$pspos(ps,is), as(cs,ps,is) lt 0);
+1146   
+1147   Display mmpos, mrpos, mspos, pmpos, prpos, pspos, cmposp, crposp,
+1148           csposp, cmposn, crposn, csposn ;
+1149   
+1150   Set imres(im)       restricted mines / lastruchas /
+1151       imfree(im)      free mines
+1152       xmpos(cs,im,*)  possible shipments of mining products to raw mat plants;
+1153   
+1154       imfree(im) = yes - imres(im) ;
+1155   
+1156       xmpos("coal-d","coahuila","esperanzas")  = yes;
+1157       xmpos("ore-conc","p-colorada","penacol") = yes;
+1158       xmpos("ore-conc","la-perla","laperla")   = yes;
+1159       xmpos("ore-conc","el-encino","alzada")   = yes;
+1160       xmpos(cm,"lastruchas","sicartsa")        = yes;
+1161       xmpos(cm,imfree,is)                      = yes;
+1162   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 27
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+equations
+
+
+1164   
+1165   Equations
+1166   
+1167    mbm(cm,im)       material balance: mines                            (1000 tpy)
+1168    mbr(cr,ir)       material balance: raw material plants        (1000 units tpy)
+1169    mbs(cs,is)       material balance: steel mills                (1000 units tpy)
+1170   
+1171    ccm(mm,im)       capacity constraint: mines                         (1000 tpy)
+1172    ccr(mr,ir)       capacity constraint: raw material plants           (1000 tpy)
+1173    ccs(ms,is)       capacity constraint: steel mills                   (1000 tpy)
+1174   
+1175    mreq(cf,j)       market requirements                                (1000 tpy)
+1176    me(cf)           export bounds                                      (1000 tpy)
+1177    me2              total exports                                      (1000 tpy)
+1178   
+1179    pelpc(o)         pellet shipments from pena colarada                (1000 tpy)
+1180    pelal            pellet shipments from alzada                       (1000 tpy)
+1181   
+1182    acost            accounting: total cost                             (mill us$)
+1183    arec             accounting: recurrent cost                         (mill us$)
+1184    atrans           accounting: transport cost                         (mill us$)
+1185    aimp             accounting: import cost                            (mill us$)
+1186    aexp             accounting: export revenue                         (mill us$)
+1187   
+1188   Variables
+1189   
+1190    zm(pm,im)        process level: mines                               (1000 tpy)
+1191    zr(pr,ir)        process level: raw material plants                 (1000 tpy)
+1192    zs(ps,is)        process level: steel mills                         (1000 tpy)
+1193   
+1194    xm(cs,im,*)      shipments: mine products                           (1000 tpy)
+1195    xr(cs,ir,is)     shipments: from raw material plants                (1000 tpy)
+1196    xs(cs,is,isp)    shipments: interplant                              (1000 tpy)
+1197    xf(cs,is,j)      shipments: final products                          (1000 tpy)
+1198   
+1199    ur(cs,ir)        domestic products purchase: raw mat. plants  (1000 units tpy)
+1200    us(cs,is)        domestic products purchase: steel mills      (1000 units tpy)
+1201   
+1202    e(cs,is)         exports                                            (1000 tpy)
+1203    vs(cs,is)        imports to steel mills                             (1000 tpy)
+1204    vf(cs,j)         import of final products                           (1000 tpy)
+1205   
+1206    cost             total cost                                         (mill us$)
+1207    recurrent        cost                                               (mill us$)
+1208    transport        cost                                               (mill us$)
+1209    import           cost                                               (mill us$)
+1210    export           cost                                               (mill us$)
+1211   
+1212   Positive Variables zm, zr, zs, xm, xr, xs, xf, ur, us, e, vs, vf;
+1213   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 28
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+equations
+
+
+
+1216   
+
+1217   mbm(cm,im).. sum(pm$pmpos(pm,im), am(cm,pm)*zm(pm,im))
+
+1218            =g= ( sum(ir$(xmpos(cm,im,ir)*crposn(cm,ir)), xm(cm,im,ir))
+
+1219                + sum(is$(xmpos(cm,im,is)*csposn(cm,is)), xm(cm,im,is)))$cmposp(cm,im);
+
+1220   
+
+1221   mbr(cr,ir).. sum(pr$prpos(pr,ir), ar(cr,pr)*zr(pr,ir))
+
+1222              + ( sum(im$(cmposp(cr,im)*xmpos(cr,im,ir)), xm(cr,im,ir))$cmr(cr) + ur(cr,ir)$craw(cr) )$crposn(cr,ir)
+
+1223            =g= sum(is$(crs(cr)*crposp(cr,ir)*csposn(cr,is)), xr(cr,ir,is)) ;
+
+1224   
+
+1225   mbs(cs,is).. sum(ps$pspos(ps,is), as(cs,ps,is)*zs(ps,is))
+
+1226              + ( sum(im$(cmposp(cs,im)*xmpos(cs,im,is)), xm(cs,im,is))$cms(cs)
+
+1227                + sum(ir$crposp(cs,ir), loss(cs)*xr(cs,ir,is))$crs(cs)
+
+1228                + sum(isp$csposp(cs,isp), loss(cs)*xs(cs,isp,is))$css(cs)
+
+1229                + us(cs,is)$craw(cs) + vs(cs,is)$crv(cs)         )$csposn(cs,is)
+
+1230            =g= ( sum(isp$csposn(cs,isp), xs(cs,is,isp))$css(cs)
+
+1231                + sum(j, xf(cs,is,j))$cf(cs) + e(cs,is)$ce(cs)   )$csposp(cs,is) ;
+
+1232   
+
+1233   ccm(mm,im)$mmpos(mm,im)..  sum(pm$pmpos(pm,im), bm(mm,pm)*zm(pm,im)) =l= km(mm,im);
+
+1234   
+
+1235   ccr(mr,ir)$mrpos(mr,ir)..  sum(pr$prpos(pr,ir), br(mr,pr)*zr(pr,ir)) =l= kr(mr,ir);
+
+1236   
+
+1237   ccs(ms,is)$mspos(ms,is)..  sum(ps$pspos(ps,is), bs(ms,ps)*zs(ps,is)) =l= ks(ms,is);
+
+1238   
+
+1239   mreq(cf,j).. sum(is$csposp(cf,is), xf(cf,is,j)) + vf(cf,j) =g= d(cf,j);
+
+1240   
+
+1241   me(cf)..     sum(is$csposp(cf,is), e(cf,is)) =l= emax(cf);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 29
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+equations
+
+
+1242   
+
+1243   me2..        sum((cf,is)$csposp(cf,is), e(cf,is))  =l=  etot  ;
+
+1244   
+
+1245   pelpc(o)..   sum(is$(own(o,is)*csposn("pellets",is)), xr("pellets","penacol",is)) =l= pct(o)*kr("pellet","penacol");
+
+1246   
+
+1247   pelal..      sum(isex$csposn("pellets",isex), xr("pellets","alzada",isex)) =e= 0;
+
+1248   
+
+1249   acost..      cost =e= recurrent + transport + sh*(import-export) ;
+
+1250   
+
+1251   arec..       recurrent =e= ( sum((pm,im)$pmpos(pm,im), mc(pm)*zm(pm,im))
+
+1252                                + sum((craw,ir)$crposn(craw,ir), pd(craw)*ur(craw,ir))
+
+1253                                + sum((craw,is)$csposn(craw,is), pd(craw)*us(craw,is)) )/1000;
+
+1254   
+
+1255   atrans..     transport =e= ( sum((cmr,im,ir)$(cmposp(cmr,im)*xmpos(cmr,im,ir)*crposn(cmr,ir)),
+
+1256                                               mumr(im,ir)*xm(cmr,im,ir))
+
+1257                               + sum((cms,im,is)$(cmposp(cms,im)*csposn(cms,is)*xmpos(cms,im,is)),
+
+1258                                                mums(im,is)*xm(cms,im,is))
+
+1259                               + sum((crs,ir,is)$(crposp(crs,ir)*csposn(crs,is)), murs(ir,is)*xr(crs,ir,is))
+
+1260                               + sum((css,is,isp)$(csposp(css,is)*csposn(css,isp)), muss(is,isp)*xs(css,is,isp))
+
+1261                               + sum((cf,is,j)$csposp(cf,is), musj(is,j)*xf(cf,is,j))
+
+1262                               + sum((crv,is)$csposn(crv,is), mupsr(is)*vs(crv,is))
+
+1263                               + sum((cf,is)$csposp(cf,is), muspf(is)*e(cf,is)) + sum((cf,j), mupj(j)*vf(cf,j)) )/1000;
+
+1264   
+
+1265   aimp..       import =e= ( sum((crv,is)$csposn(crv,is), pv(crv)*vs(crv,is)) + sum((cfv,j), pv(cfv)*vf(cfv,j)) )/1000;
+
+1266   
+
+1267   aexp..       export =e= ( sum((ce,is)$csposp(ce,is), pe(ce)*e(ce,is)) )/1000;
+
+1268   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 30
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+equations
+
+
+
+1269   Model one /all/ ;
+
+1270   
+
+1271  *  define run 1
+
+1272   
+
+1273     vs.up("coke",is) = 0; us.up("scrap",is) = 0;
+
+1274   
+
+1275     ks(ms,"ahmsa")      = ks(ms,"ahmsa")*0.9;
+
+1276     ks(ms,"fundidora")  = ks(ms,"fundidora")*0.95;
+
+1277   
+
+1278   Display ks;
+
+1279   Solve one minimizing cost using lp ;
+
+
+COMPILATION TIME     =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 31
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+----    888 PARAMETER demdat  demand and semi-intgrated output (1000 tpy)
+
+                demand    semi-int     adj-dem
+
+plate         1050.000                1050.000
+heavyshape     300.000     130.000     170.000
+lightshape     310.000     160.000     150.000
+rebars-ld                              453.000
+rebars-sd                              302.000
+wire           600.000     190.000     410.000
+hot-strip      600.000                 600.000
+temp-strip    1250.000                1250.000
+tin            400.000                 400.000
+bars           340.000     155.000     185.000
+rebars        1150.000     395.000     755.000
+seamless       800.000                 800.000
+rails          110.000                 110.000
+
+
+----    888 PARAMETER regdem  regional demand per product ( % of total )
+
+             mexico-df      puebla   queretaro    san-luis   monterrey   guadalaja  l-cardenas  coatzacoal
+
+plate           63.500       0.200       0.300       0.300      31.000       4.500       0.100       0.100
+heavyshape      36.600       2.200       3.200       0.800      12.900      42.600       1.400       0.300
+lightshape      74.400       2.500       1.900       1.800       8.100       8.900       1.600       0.800
+rebars-ld       46.700      10.300       4.000       3.400      12.800      11.800       6.100       4.900
+rebars-sd       46.700      10.300       4.000       3.400      12.800      11.800       6.100       4.900
+wire            61.200       5.300       3.900       3.700      12.200       9.800       1.900       2.000
+hot-strip       41.900       2.800       1.600       2.800      36.200      12.600       0.500       1.600
+temp-strip      45.100       2.500       4.500       1.100      41.700       4.300       0.400       0.400
+tin             87.600                   0.300                   9.400       2.700
+bars            46.600       4.200      23.500       2.200      11.200      11.800       0.400       0.100
+rebars          46.700      10.300       4.000       3.400      12.800      11.800       6.100       4.900
+seamless        10.500      28.000       0.400       0.200      18.400       1.800       1.700      39.000
+rails           40.000       5.000       5.000      10.000      20.000      10.000       5.000       5.000
+
+
+----    888 PARAMETER d  adjusted demand for semi-integr plants (1000 tpy)
+
+             mexico-df      puebla   queretaro    san-luis   monterrey   guadalaja  l-cardenas  coatzacoal       total
+
+plate          666.750       2.100       3.150       3.150     325.500      47.250       1.050       1.050    1050.000
+heavyshape      62.220       3.740       5.440       1.360      21.930      72.420       2.380       0.510     170.000
+lightshape     111.600       3.750       2.850       2.700      12.150      13.350       2.400       1.200     150.000
+rebars-ld      211.551      46.659      18.120      15.402      57.984      53.454      27.633      22.197     453.000
+rebars-sd      141.034      31.106      12.080      10.268      38.656      35.636      18.422      14.798     302.000
+wire           250.920      21.730      15.990      15.170      50.020      40.180       7.790       8.200     410.000
+hot-strip      251.400      16.800       9.600      16.800     217.200      75.600       3.000       9.600     600.000
+temp-strip     563.750      31.250      56.250      13.750     521.250      53.750       5.000       5.000    1250.000
+tin            350.400                   1.200                  37.600      10.800                             400.000
+bars            86.210       7.770      43.475       4.070      20.720      21.830       0.740       0.185     185.000
+seamless        84.000     224.000       3.200       1.600     147.200      14.400      13.600     312.000     800.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 32
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+        888 PARAMETER d  adjusted demand for semi-integr plants (1000 tpy)
+
+             mexico-df      puebla   queretaro    san-luis   monterrey   guadalaja  l-cardenas  coatzacoal       total
+
+rails           44.000       5.500       5.500      11.000      22.000      11.000       5.500       5.500     110.000
+   total      2823.835     394.405     176.855      95.270    1472.210     449.670      87.515     380.240    5880.000
+
+
+----   1103 PARAMETER mumr  transport cost: mines to plants               (us$ per ton)
+
+               penacol     laperla      alzada  esperanzas
+
+p-colorada                 233.330      42.700
+lastruchas     149.070     232.670     136.200
+la-perla       233.330                 233.000
+cerro-mer      200.000      79.000     200.000
+hercules       212.760      79.000     211.000
+la-chula        44.900     233.000      41.600
+el-encino       44.900     233.000      39.400
+coahuila                                            36.650
+
+
+----   1103 PARAMETER mums  transport cost: mines to mills                (us$ per ton)
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+p-colorada     149.070     198.900     188.560     188.560     157.760     184.600
+lastruchas                 190.760     180.420     180.420     144.450     171.290
+la-perla       232.670      79.330     103.310     103.310     210.450     246.970
+cerro-mer      175.250     109.470     104.960     104.960     171.950     198.790
+hercules       212.430      59.090      96.930      96.930     190.210     217.050
+la-chula       149.840     197.800     178.000     178.000     157.320     184.160
+el-encino      141.150     189.110     178.770     178.770     148.630     175.470
+coahuila       200.000      48.200      79.000      79.000     191.200     222.000
+
+
+----   1103 PARAMETER murs  transport cost: plants to mills               (us$ per ton)
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+penacol        149.070     198.900     188.560     188.560     157.760     184.600
+laperla        232.670      79.330     103.310     103.310     210.450     222.330
+alzada         136.200     184.600     173.600     173.600     143.900     178.000
+esperanzas     202.420      48.420      72.400      72.400     191.420     218.700
+
+
+----   1103 PARAMETER muss  transport cost: between mills                 (us$ per ton)
+
+             sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+sicartsa                  190.760     180.420     180.420     144.450     171.290
+ahmsa         190.760                  58.980      58.980     178.000     199.890
+fundidora     180.420      58.980                  36.100     162.490     189.550
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 33
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+       1103 PARAMETER muss  transport cost: between mills                 (us$ per ton)
+
+             sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+hylsa         180.420      58.980      36.100                 162.490     189.550
+hylsap        144.450     178.000     162.490     162.490                  69.650
+tamsa         171.290     199.890     189.550     189.550      69.650
+
+
+----   1103 PARAMETER musj  transport cost: mills to markets              (us$ per ton)
+
+            mexico-df      puebla   queretaro    san-luis   monterrey   guadalaja  l-cardenas  coatzacoal
+
+sicartsa      215.610     249.050     191.290     226.250     307.950     193.760                 371.220
+ahmsa         288.760     307.000     221.310     172.480     101.420     273.750     329.040     411.500
+fundidora     253.230     280.210     203.450     154.620                 255.700     311.180     393.640
+hylsa         253.230     280.210     203.450     154.620                 255.700     311.180     393.640
+hylsap         95.150                 137.900     186.730     266.150     204.400     249.050     187.490
+tamsa         141.320     119.850     183.500     232.330     312.700     250.950     295.410     164.500
+
+
+----   1103 PARAMETER mupsr  transport cost: ports to mills - raw material (us$ per ton)
+
+ahmsa     116.290,    fundidora  92.310,    hylsa      92.310,    hylsap     69.650
+
+
+----   1103 PARAMETER muspf  transport cost: mills to ports - final product  ($ per ton)
+
+ahmsa     200.410,    fundidora 158.990,    hylsa     158.990,    hylsap    119.850
+
+
+----   1103 PARAMETER mupj  transport cost: ports to markets              (us$ per ton)
+
+mexico-df 141.320,    puebla    119.850,    queretaro 183.500,    san-luis  144.360,    monterrey 158.990,    guadalaja 117.000
+
+
+----   1147 SET mmpos  productive unit possibility: mines
+
+           p-colorada  lastruchas    la-perla   cerro-mer    hercules    la-chula   el-encino    coahuila
+
+mine-co                                                                                               YES
+mine-eq           YES         YES         YES         YES         YES         YES         YES
+conc-mag          YES         YES                                                         YES
+conc-flot                                 YES         YES
+
+
+----   1147 SET mrpos  productive unit possibility: raw material plants
+
+              penacol     laperla      alzada  esperanzas
+
+pellet            YES         YES         YES
+coke-oven                                             YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 34
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+----   1147 SET mspos  productive unit possibility: steel mills
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+pellet             YES                     YES
+coke-oven          YES         YES
+sinter                         YES
+blast-furn         YES         YES         YES
+direct-red                                             YES         YES         YES
+openhearth                     YES         YES
+bof                YES         YES         YES
+elec-arc                                               YES         YES         YES
+concas-sl                      YES
+concas-bi          YES                                             YES
+ingot-cast                     YES         YES         YES                     YES
+primary-fl                     YES         YES         YES
+primary-nf                     YES
+plate-mill                     YES         YES
+hot-mill                       YES         YES         YES
+pickleline                     YES         YES         YES
+cold-mill                      YES         YES         YES
+anneal                         YES         YES         YES
+tempermill                     YES         YES         YES
+tin-line                       YES                     YES
+billet                         YES         YES
+heavysmill                     YES
+bar-mill           YES         YES                                 YES         YES
+wire-mill          YES         YES                                 YES
+seaml-mill                                                                     YES
+
+
+----   1147 SET pmpos  process possibility: mines
+
+         p-colorada  lastruchas    la-perla   cerro-mer    hercules    la-chula   el-encino    coahuila
+
+min-co                                                                                              YES
+was-co                                                                                              YES
+min-n                                   YES         YES         YES
+min-s           YES                                                         YES         YES
+min-tr                      YES
+conc-n                                  YES         YES
+conc-s          YES                                                                     YES
+conc-tr                     YES
+
+
+----   1147 SET prpos  process possibility: raw material plants
+
+            penacol     laperla      alzada  esperanzas
+
+pelt-c          YES         YES         YES
+coke-hd                                             YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 35
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+----   1147 SET pspos  process possibility: steel mills
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+sinter                         YES
+pelt-c             YES                     YES
+coke-hd                        YES
+coke-hi            YES
+pig-ore                                    YES
+pig-sin                        YES
+pig-pel                        YES         YES
+pig-pel-m          YES
+sponge                                                 YES         YES         YES
+stl-oh-s                       YES         YES
+stl-oh-s2                                  YES
+stl-bof-p          YES         YES         YES
+stl-bof-s          YES         YES         YES
+stl-eaf-sp                                             YES         YES         YES
+stl-eaf-s                                              YES         YES         YES
+slabs-cc                       YES
+billets-cc         YES                                             YES
+ingot                          YES         YES         YES                     YES
+slab-roll                      YES         YES         YES
+bloom-roll                     YES
+billet-rol                     YES         YES
+plate                          YES         YES
+hot-sheet                      YES         YES         YES
+pickled                        YES         YES         YES
+cold-sheet                     YES         YES         YES
+annealed                       YES         YES         YES
+tempered                       YES         YES         YES
+tinning                        YES                     YES
+heavyshape                     YES
+lightshape         YES         YES                                 YES         YES
+bar-roll                       YES                                 YES         YES
+rebars-ld          YES         YES                                 YES
+rebars-sd          YES         YES                                 YES
+wire               YES         YES                                 YES
+seam-rol                                                                       YES
+
+
+----   1147 SET cmposp  commodity production possibility: mines
+
+            p-colorada  lastruchas    la-perla   cerro-mer    hercules    la-chula   el-encino    coahuila
+
+ore-n                                      YES         YES         YES
+ore-s              YES                                                         YES         YES
+ore-trucha                     YES
+ore-conc           YES         YES         YES         YES                                 YES
+coal-d                                                                                                 YES
+coal-r                                                                                                 YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 36
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+----   1147 SET crposp  commodity production possibility: raw material plants
+
+            penacol     laperla      alzada  esperanzas
+
+pellets         YES         YES         YES
+coke                                                YES
+
+
+----   1147 SET csposp  commodity production possibility: steel mills
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+sinter                         YES
+sponge                                                 YES         YES         YES
+plate                          YES         YES
+heavyshape                     YES
+lightshape         YES         YES                                 YES         YES
+rebars-ld          YES         YES                                 YES
+rebars-sd          YES         YES                                 YES
+wire               YES         YES                                 YES
+pellets            YES                     YES
+coke                           YES
+coke-imp-c         YES
+pig-iron           YES         YES         YES
+scrap              YES         YES         YES         YES         YES         YES
+steel-liq          YES         YES         YES         YES         YES         YES
+steel-ing                      YES         YES         YES
+slabs                          YES         YES         YES
+hot-strip                      YES         YES         YES
+pick-strip                     YES         YES         YES
+cold-strip                     YES         YES         YES
+anl-strip                      YES         YES         YES
+temp-strip                     YES         YES         YES
+tin                            YES                     YES
+blooms                         YES
+billets            YES         YES         YES                     YES
+bars                           YES                                 YES         YES
+seamless                                                                       YES
+ing-blooms                                                                     YES
+
+
+----   1147 SET cmposn  commodity consumption possibility: mines
+
+            p-colorada  lastruchas    la-perla   cerro-mer   el-encino    coahuila
+
+ore-n                                      YES         YES
+ore-s              YES                                             YES
+ore-trucha                     YES
+coal-r                                                                         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 37
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+----   1147 SET crposn  commodity consumption possibility: raw material plants
+
+             penacol     laperla      alzada  esperanzas
+
+ore-conc         YES         YES         YES
+coal-d                                               YES
+electric         YES         YES         YES         YES
+
+
+----   1147 SET csposn  commodity consumption possibility: steel mills
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+sinter                         YES
+sponge                                                 YES         YES         YES
+ore-n                          YES         YES
+ore-trucha         YES
+ore-conc           YES                     YES
+pellets            YES         YES         YES         YES         YES         YES
+coal-d                         YES
+coal-i             YES
+coke                           YES         YES
+coke-imp-c         YES
+fuel-oil           YES         YES         YES
+limestone          YES         YES         YES
+pig-iron           YES         YES         YES
+nat-gas                        YES         YES         YES         YES         YES
+scrap              YES         YES         YES         YES         YES         YES
+ferro-allo         YES         YES         YES         YES         YES         YES
+refrac             YES         YES         YES         YES         YES         YES
+dolomite           YES         YES                     YES         YES         YES
+lime               YES         YES         YES         YES         YES         YES
+electrodes                                             YES         YES         YES
+steel-liq          YES         YES         YES         YES         YES         YES
+steel-ing                      YES         YES         YES
+slabs                          YES         YES         YES
+hot-strip                      YES         YES         YES
+pick-strip                     YES         YES         YES
+cold-strip                     YES         YES         YES
+anl-strip                      YES         YES         YES
+temp-strip                     YES                     YES
+blooms                         YES         YES
+billets            YES         YES                                 YES         YES
+electric           YES         YES         YES         YES         YES         YES
+water              YES                     YES
+ing-blooms                                                                     YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 38
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+E x e c u t i o n
+
+
+----   1278 PARAMETER ks  initial capacities for steel mills  (1000 tpy)
+
+              sicartsa       ahmsa   fundidora       hylsa      hylsap       tamsa
+
+pellet         925.000                 641.250
+coke-oven      330.000    1701.000
+sinter                    1215.000
+blast-furn     550.000    2630.070    1197.000
+direct-red                                         660.000    1100.000     243.000
+openhearth                1215.000     726.750
+bof            650.000    1676.700    1282.500
+elec-arc                                          1000.000     616.000     405.000
+concas-sl                  575.100
+concas-bi      650.000                                         616.000
+ingot-cast                2106.000    1710.000    1000.000                 378.000
+primary-fl                1498.500    1239.750    1000.000
+primary-nf                 972.000
+plate-mill                 777.600     213.750
+hot-mill                  1296.000     743.850     900.000
+pickleline                1296.000     491.625     650.000
+cold-mill                 1210.950     427.500     600.000
+anneal                    1091.880     359.100     450.000
+tempermill                 992.250     444.600     450.000
+tin-line                   255.150                  70.000
+billet                     810.000     171.000
+heavysmill                 162.000
+bar-mill       300.000     109.350                             473.000      72.000
+wire-mill      300.000     218.700                             220.000
+seaml-mill                                                                 252.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 39
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Equation Listing    SOLVE one Using LP From line 1279
+
+
+---- mbm  =G=  material balance: mines                            (1000 tpy)
+
+mbm(ore-n,la-perla)..  zm(min-n,la-perla) - 1.42*zm(conc-n,la-perla) - xm(ore-n,la-perla,ahmsa) - xm(ore-n,la-perla,fundidora) =G= 0 ; (LHS = 0)
+     
+mbm(ore-n,cerro-mer)..  zm(min-n,cerro-mer) - 1.42*zm(conc-n,cerro-mer) - xm(ore-n,cerro-mer,ahmsa) - xm(ore-n,cerro-mer,fundidora) =G= 0 ; (LHS = 0)
+     
+mbm(ore-n,hercules)..  zm(min-n,hercules) - xm(ore-n,hercules,ahmsa) - xm(ore-n,hercules,fundidora) =G= 0 ; (LHS = 0)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- mbr  =G=  material balance: raw material plants        (1000 units tpy)
+
+mbr(ore-conc,penacol)..  - 0.99*zr(pelt-c,penacol) + xm(ore-conc,p-colorada,penacol) =G= 0 ; (LHS = 0)
+     
+mbr(ore-conc,laperla)..  - 0.99*zr(pelt-c,laperla) + xm(ore-conc,la-perla,laperla) =G= 0 ; (LHS = 0)
+     
+mbr(ore-conc,alzada)..  - 0.99*zr(pelt-c,alzada) + xm(ore-conc,el-encino,alzada) =G= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- mbs  =G=  material balance: steel mills                (1000 units tpy)
+
+mbs(sinter,ahmsa)..  zs(sinter,ahmsa) - 1.03*zs(pig-sin,ahmsa) =G= 0 ; (LHS = 0)
+     
+mbs(sponge,hylsa)..  zs(sponge,hylsa) - 1.09*zs(stl-eaf-sp,hylsa) - 0.6*zs(stl-eaf-s,hylsa) - xs(sponge,hylsa,hylsap) - xs(sponge,hylsa,tamsa) + xs(sponge,hylsap,hylsa) + xs(sponge,tamsa,hylsa) =G= 0 ; (LHS = 0)
+     
+mbs(sponge,hylsap)..  zs(sponge,hylsap) - 1.09*zs(stl-eaf-sp,hylsap) + xs(sponge,hylsa,hylsap) - xs(sponge,hylsap,hylsa) - xs(sponge,hylsap,tamsa) + xs(sponge,tamsa,hylsap) =G= 0 ; (LHS = 0)
+     
+REMAINING 128 ENTRIES SKIPPED
+
+
+---- ccm  =L=  capacity constraint: mines                         (1000 tpy)
+
+ccm(mine-co,coahuila)..  zm(min-co,coahuila) =L= 6300 ; (LHS = 0)
+     
+ccm(mine-eq,p-colorada)..  zm(min-s,p-colorada) =L= 3600 ; (LHS = 0)
+     
+ccm(mine-eq,lastruchas)..  zm(min-tr,lastruchas) =L= 2430 ; (LHS = 0)
+     
+REMAINING 10 ENTRIES SKIPPED
+
+
+---- ccr  =L=  capacity constraint: raw material plants           (1000 tpy)
+
+ccr(pellet,penacol)..  zr(pelt-c,penacol) =L= 2700 ; (LHS = 0)
+     
+ccr(pellet,laperla)..  zr(pelt-c,laperla) =L= 540 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 40
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Equation Listing    SOLVE one Using LP From line 1279
+
+
+     ccr  =L=  capacity constraint: raw material plants           (1000 tpy)
+
+ccr(pellet,alzada)..  zr(pelt-c,alzada) =L= 1350 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- ccs  =L=  capacity constraint: steel mills                   (1000 tpy)
+
+ccs(pellet,sicartsa)..  zs(pelt-c,sicartsa) =L= 925 ; (LHS = 0)
+     
+ccs(pellet,fundidora)..  zs(pelt-c,fundidora) =L= 641.25 ; (LHS = 0)
+     
+ccs(coke-oven,sicartsa)..  zs(coke-hi,sicartsa) =L= 330 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- mreq  =G=  market requirements                                (1000 tpy)
+
+mreq(plate,mexico-df)..  xf(plate,ahmsa,mexico-df) + xf(plate,fundidora,mexico-df) + vf(plate,mexico-df) =G= 666.75 ; (LHS = 0, INFES = 666.75 ****)
+     
+mreq(plate,puebla)..  xf(plate,ahmsa,puebla) + xf(plate,fundidora,puebla) + vf(plate,puebla) =G= 2.1 ; (LHS = 0, INFES = 2.1 ****)
+     
+mreq(plate,queretaro)..  xf(plate,ahmsa,queretaro) + xf(plate,fundidora,queretaro) + vf(plate,queretaro) =G= 3.15 ; (LHS = 0, INFES = 3.15 ****)
+     
+REMAINING 93 ENTRIES SKIPPED
+
+
+---- me  =L=  export bounds                                      (1000 tpy)
+
+me(plate)..  e(plate,ahmsa) + e(plate,fundidora) =L= 500 ; (LHS = 0)
+     
+me(heavyshape)..  e(heavyshape,ahmsa) =L= 500 ; (LHS = 0)
+     
+me(lightshape)..  e(lightshape,sicartsa) + e(lightshape,ahmsa) + e(lightshape,hylsap) + e(lightshape,tamsa) =L= 500 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- me2  =L=  total exports                                      (1000 tpy)
+
+me2..  e(plate,ahmsa) + e(plate,fundidora) + e(heavyshape,ahmsa) + e(lightshape,sicartsa) + e(lightshape,ahmsa) + e(lightshape,hylsap) + e(lightshape,tamsa) + e(rebars-ld,sicartsa) + e(rebars-ld,ahmsa) + e(rebars-ld,hylsap) + e(rebars-sd,sicartsa)
+     
+      + e(rebars-sd,ahmsa) + e(rebars-sd,hylsap) + e(wire,sicartsa) + e(wire,ahmsa) + e(wire,hylsap) + e(hot-strip,ahmsa) + e(hot-strip,fundidora) + e(hot-strip,hylsa) + e(temp-strip,ahmsa) + e(temp-strip,fundidora) + e(temp-strip,hylsa) + e(tin,ahmsa)
+     
+      + e(tin,hylsa) + e(bars,ahmsa) + e(bars,hylsap) + e(bars,tamsa) + e(seamless,tamsa) =L= 250 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 41
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Equation Listing    SOLVE one Using LP From line 1279
+
+
+---- pelpc  =L=  pellet shipments from pena colarada                (1000 tpy)
+
+pelpc(1)..  xr(pellets,penacol,sicartsa) =L= 0 ; (LHS = 0)
+     
+pelpc(2)..  xr(pellets,penacol,ahmsa) =L= 1242 ; (LHS = 0)
+     
+pelpc(3)..  xr(pellets,penacol,fundidora) =L= 270 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- pelal  =E=  pellet shipments from alzada                       (1000 tpy)
+
+pelal..  xr(pellets,alzada,sicartsa) + xr(pellets,alzada,ahmsa) + xr(pellets,alzada,fundidora) + xr(pellets,alzada,tamsa) =E= 0 ; (LHS = 0)
+     
+
+---- acost  =E=  accounting: total cost                             (mill us$)
+
+acost..  cost - recurrent - transport - 25*import + 25*export =E= 0 ; (LHS = 0)
+     
+
+---- arec  =E=  accounting: recurrent cost                         (mill us$)
+
+arec..  - 0.25*zm(min-co,coahuila) - 0.1*zm(min-n,la-perla) - 0.1*zm(min-n,cerro-mer) - 0.1*zm(min-n,hercules) - 0.1*zm(min-s,p-colorada) - 0.1*zm(min-s,la-chula) - 0.1*zm(min-s,el-encino) - 0.1*zm(min-tr,lastruchas) - 0.552*ur(electric,penacol)
+     
+      - 0.552*ur(electric,laperla) - 0.552*ur(electric,alzada) - 0.552*ur(electric,esperanzas) - us(fuel-oil,sicartsa) - us(fuel-oil,ahmsa) - us(fuel-oil,fundidora) - 0.12*us(limestone,sicartsa) - 0.12*us(limestone,ahmsa) - 0.12*us(limestone,fundidora)
+     
+      - 0.322*us(nat-gas,ahmsa) - 0.322*us(nat-gas,fundidora) - 0.322*us(nat-gas,hylsa) - 0.322*us(nat-gas,hylsap) - 0.322*us(nat-gas,tamsa) - 3.05*us(scrap,sicartsa) - 3.05*us(scrap,ahmsa) - 3.05*us(scrap,fundidora) - 3.05*us(scrap,hylsa)
+     
+      - 3.05*us(scrap,hylsap) - 3.05*us(scrap,tamsa) - 16*us(ferro-allo,sicartsa) - 16*us(ferro-allo,ahmsa) - 16*us(ferro-allo,fundidora) - 16*us(ferro-allo,hylsa) - 16*us(ferro-allo,hylsap) - 16*us(ferro-allo,tamsa) - 50*us(refrac,sicartsa)
+     
+      - 50*us(refrac,ahmsa) - 50*us(refrac,fundidora) - 50*us(refrac,hylsa) - 50*us(refrac,hylsap) - 50*us(refrac,tamsa) - 0.8*us(dolomite,sicartsa) - 0.8*us(dolomite,ahmsa) - 0.8*us(dolomite,hylsa) - 0.8*us(dolomite,hylsap) - 0.8*us(dolomite,tamsa)
+     
+      - 0.69*us(lime,sicartsa) - 0.69*us(lime,ahmsa) - 0.69*us(lime,fundidora) - 0.69*us(lime,hylsa) - 0.69*us(lime,hylsap) - 0.69*us(lime,tamsa) - 48*us(electrodes,hylsa) - 48*us(electrodes,hylsap) - 48*us(electrodes,tamsa) - 0.552*us(electric,sicartsa)
+     
+      - 0.552*us(electric,ahmsa) - 0.552*us(electric,fundidora) - 0.552*us(electric,hylsa) - 0.552*us(electric,hylsap) - 0.552*us(electric,tamsa) + recurrent =E= 0 ; (LHS = 0)
+     
+
+---- atrans  =E=  accounting: transport cost                         (mill us$)
+
+atrans..  - 0.07933*xm(ore-n,la-perla,ahmsa) - 0.10331*xm(ore-n,la-perla,fundidora) - 0.10947*xm(ore-n,cerro-mer,ahmsa) - 0.10496*xm(ore-n,cerro-mer,fundidora) - 0.05909*xm(ore-n,hercules,ahmsa) - 0.09693*xm(ore-n,hercules,fundidora)
+     
+      - 0.14907*xm(ore-conc,p-colorada,sicartsa) - 0.18856*xm(ore-conc,p-colorada,fundidora) - 0.23267*xm(ore-conc,la-perla,sicartsa) - 0.10331*xm(ore-conc,la-perla,fundidora) - 0.17525*xm(ore-conc,cerro-mer,sicartsa)
+     
+      - 0.10496*xm(ore-conc,cerro-mer,fundidora) - 0.0394*xm(ore-conc,el-encino,alzada) - 0.14115*xm(ore-conc,el-encino,sicartsa) - 0.17877*xm(ore-conc,el-encino,fundidora) - 0.03665*xm(coal-d,coahuila,esperanzas) - 0.0482*xm(coal-d,coahuila,ahmsa)
+     
+      - 0.14907*xr(pellets,penacol,sicartsa) - 0.1989*xr(pellets,penacol,ahmsa) - 0.18856*xr(pellets,penacol,fundidora) - 0.18856*xr(pellets,penacol,hylsa) - 0.15776*xr(pellets,penacol,hylsap) - 0.1846*xr(pellets,penacol,tamsa)
+     
+      - 0.23267*xr(pellets,laperla,sicartsa) - 0.07933*xr(pellets,laperla,ahmsa) - 0.10331*xr(pellets,laperla,fundidora) - 0.10331*xr(pellets,laperla,hylsa) - 0.21045*xr(pellets,laperla,hylsap) - 0.22233*xr(pellets,laperla,tamsa)
+     
+      - 0.1362*xr(pellets,alzada,sicartsa) - 0.1846*xr(pellets,alzada,ahmsa) - 0.1736*xr(pellets,alzada,fundidora) - 0.1736*xr(pellets,alzada,hylsa) - 0.1439*xr(pellets,alzada,hylsap) - 0.178*xr(pellets,alzada,tamsa) - 0.04842*xr(coke,esperanzas,ahmsa)
+     
+      - 0.0724*xr(coke,esperanzas,fundidora) - 0.16249*xs(sponge,hylsa,hylsap) - 0.18955*xs(sponge,hylsa,tamsa) - 0.16249*xs(sponge,hylsap,hylsa) - 0.06965*xs(sponge,hylsap,tamsa) - 0.18955*xs(sponge,tamsa,hylsa) - 0.06965*xs(sponge,tamsa,hylsap)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 42
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Equation Listing    SOLVE one Using LP From line 1279
+
+
+     atrans  =E=  accounting: transport cost                         (mill us$)     
+     
+      - 0.19076*xs(pellets,sicartsa,ahmsa) - 0.18042*xs(pellets,sicartsa,fundidora) - 0.18042*xs(pellets,sicartsa,hylsa) - 0.14445*xs(pellets,sicartsa,hylsap) - 0.17129*xs(pellets,sicartsa,tamsa) - 0.18042*xs(pellets,fundidora,sicartsa)
+     
+      - 0.05898*xs(pellets,fundidora,ahmsa) - 0.0361*xs(pellets,fundidora,hylsa) - 0.16249*xs(pellets,fundidora,hylsap) - 0.18955*xs(pellets,fundidora,tamsa) - 0.05898*xs(coke,ahmsa,fundidora) - 0.28876*xf(plate,ahmsa,mexico-df)
+     
+      - 0.307*xf(plate,ahmsa,puebla) - 0.22131*xf(plate,ahmsa,queretaro) - 0.17248*xf(plate,ahmsa,san-luis) - 0.10142*xf(plate,ahmsa,monterrey) - 0.27375*xf(plate,ahmsa,guadalaja) - 0.32904*xf(plate,ahmsa,l-cardenas) - 0.4115*xf(plate,ahmsa,coatzacoal)
+     
+      - 0.25323*xf(plate,fundidora,mexico-df) - 0.28021*xf(plate,fundidora,puebla) - 0.20345*xf(plate,fundidora,queretaro) - 0.15462*xf(plate,fundidora,san-luis) - 0.2557*xf(plate,fundidora,guadalaja) - 0.31118*xf(plate,fundidora,l-cardenas)
+     
+      - 0.39364*xf(plate,fundidora,coatzacoal) - 0.28876*xf(heavyshape,ahmsa,mexico-df) - 0.307*xf(heavyshape,ahmsa,puebla) - 0.22131*xf(heavyshape,ahmsa,queretaro) - 0.17248*xf(heavyshape,ahmsa,san-luis) - 0.10142*xf(heavyshape,ahmsa,monterrey)
+     
+      - 0.27375*xf(heavyshape,ahmsa,guadalaja) - 0.32904*xf(heavyshape,ahmsa,l-cardenas) - 0.4115*xf(heavyshape,ahmsa,coatzacoal) - 0.21561*xf(lightshape,sicartsa,mexico-df) - 0.24905*xf(lightshape,sicartsa,puebla)
+     
+      - 0.19129*xf(lightshape,sicartsa,queretaro) - 0.22625*xf(lightshape,sicartsa,san-luis) - 0.30795*xf(lightshape,sicartsa,monterrey) - 0.19376*xf(lightshape,sicartsa,guadalaja) - 0.37122*xf(lightshape,sicartsa,coatzacoal)
+     
+      - 0.28876*xf(lightshape,ahmsa,mexico-df) - 0.307*xf(lightshape,ahmsa,puebla) - 0.22131*xf(lightshape,ahmsa,queretaro) - 0.17248*xf(lightshape,ahmsa,san-luis) - 0.10142*xf(lightshape,ahmsa,monterrey) - 0.27375*xf(lightshape,ahmsa,guadalaja)
+     
+      - 0.32904*xf(lightshape,ahmsa,l-cardenas) - 0.4115*xf(lightshape,ahmsa,coatzacoal) - 0.09515*xf(lightshape,hylsap,mexico-df) - 0.1379*xf(lightshape,hylsap,queretaro) - 0.18673*xf(lightshape,hylsap,san-luis) - 0.26615*xf(lightshape,hylsap,monterrey)
+     
+      - 0.2044*xf(lightshape,hylsap,guadalaja) - 0.24905*xf(lightshape,hylsap,l-cardenas) - 0.18749*xf(lightshape,hylsap,coatzacoal) - 0.14132*xf(lightshape,tamsa,mexico-df) - 0.11985*xf(lightshape,tamsa,puebla) - 0.1835*xf(lightshape,tamsa,queretaro)
+     
+      - 0.23233*xf(lightshape,tamsa,san-luis) - 0.3127*xf(lightshape,tamsa,monterrey) - 0.25095*xf(lightshape,tamsa,guadalaja) - 0.29541*xf(lightshape,tamsa,l-cardenas) - 0.1645*xf(lightshape,tamsa,coatzacoal) - 0.21561*xf(rebars-ld,sicartsa,mexico-df)
+     
+      - 0.24905*xf(rebars-ld,sicartsa,puebla) - 0.19129*xf(rebars-ld,sicartsa,queretaro) - 0.22625*xf(rebars-ld,sicartsa,san-luis) - 0.30795*xf(rebars-ld,sicartsa,monterrey) - 0.19376*xf(rebars-ld,sicartsa,guadalaja)
+     
+      - 0.37122*xf(rebars-ld,sicartsa,coatzacoal) - 0.28876*xf(rebars-ld,ahmsa,mexico-df) - 0.307*xf(rebars-ld,ahmsa,puebla) - 0.22131*xf(rebars-ld,ahmsa,queretaro) - 0.17248*xf(rebars-ld,ahmsa,san-luis) - 0.10142*xf(rebars-ld,ahmsa,monterrey)
+     
+      - 0.27375*xf(rebars-ld,ahmsa,guadalaja) - 0.32904*xf(rebars-ld,ahmsa,l-cardenas) - 0.4115*xf(rebars-ld,ahmsa,coatzacoal) - 0.09515*xf(rebars-ld,hylsap,mexico-df) - 0.1379*xf(rebars-ld,hylsap,queretaro) - 0.18673*xf(rebars-ld,hylsap,san-luis)
+     
+      - 0.26615*xf(rebars-ld,hylsap,monterrey) - 0.2044*xf(rebars-ld,hylsap,guadalaja) - 0.24905*xf(rebars-ld,hylsap,l-cardenas) - 0.18749*xf(rebars-ld,hylsap,coatzacoal) - 0.21561*xf(rebars-sd,sicartsa,mexico-df) - 0.24905*xf(rebars-sd,sicartsa,puebla)
+     
+      - 0.19129*xf(rebars-sd,sicartsa,queretaro) - 0.22625*xf(rebars-sd,sicartsa,san-luis) - 0.30795*xf(rebars-sd,sicartsa,monterrey) - 0.19376*xf(rebars-sd,sicartsa,guadalaja) - 0.37122*xf(rebars-sd,sicartsa,coatzacoal)
+     
+      - 0.28876*xf(rebars-sd,ahmsa,mexico-df) - 0.307*xf(rebars-sd,ahmsa,puebla) - 0.22131*xf(rebars-sd,ahmsa,queretaro) - 0.17248*xf(rebars-sd,ahmsa,san-luis) - 0.10142*xf(rebars-sd,ahmsa,monterrey) - 0.27375*xf(rebars-sd,ahmsa,guadalaja)
+     
+      - 0.32904*xf(rebars-sd,ahmsa,l-cardenas) - 0.4115*xf(rebars-sd,ahmsa,coatzacoal) - 0.09515*xf(rebars-sd,hylsap,mexico-df) - 0.1379*xf(rebars-sd,hylsap,queretaro) - 0.18673*xf(rebars-sd,hylsap,san-luis) - 0.26615*xf(rebars-sd,hylsap,monterrey)
+     
+      - 0.2044*xf(rebars-sd,hylsap,guadalaja) - 0.24905*xf(rebars-sd,hylsap,l-cardenas) - 0.18749*xf(rebars-sd,hylsap,coatzacoal) - 0.21561*xf(wire,sicartsa,mexico-df) - 0.24905*xf(wire,sicartsa,puebla) - 0.19129*xf(wire,sicartsa,queretaro)
+     
+      - 0.22625*xf(wire,sicartsa,san-luis) - 0.30795*xf(wire,sicartsa,monterrey) - 0.19376*xf(wire,sicartsa,guadalaja) - 0.37122*xf(wire,sicartsa,coatzacoal) - 0.28876*xf(wire,ahmsa,mexico-df) - 0.307*xf(wire,ahmsa,puebla)
+     
+      - 0.22131*xf(wire,ahmsa,queretaro) - 0.17248*xf(wire,ahmsa,san-luis) - 0.10142*xf(wire,ahmsa,monterrey) - 0.27375*xf(wire,ahmsa,guadalaja) - 0.32904*xf(wire,ahmsa,l-cardenas) - 0.4115*xf(wire,ahmsa,coatzacoal) - 0.09515*xf(wire,hylsap,mexico-df)
+     
+      - 0.1379*xf(wire,hylsap,queretaro) - 0.18673*xf(wire,hylsap,san-luis) - 0.26615*xf(wire,hylsap,monterrey) - 0.2044*xf(wire,hylsap,guadalaja) - 0.24905*xf(wire,hylsap,l-cardenas) - 0.18749*xf(wire,hylsap,coatzacoal)
+     
+      - 0.28876*xf(hot-strip,ahmsa,mexico-df) - 0.307*xf(hot-strip,ahmsa,puebla) - 0.22131*xf(hot-strip,ahmsa,queretaro) - 0.17248*xf(hot-strip,ahmsa,san-luis) - 0.10142*xf(hot-strip,ahmsa,monterrey) - 0.27375*xf(hot-strip,ahmsa,guadalaja)
+     
+      - 0.32904*xf(hot-strip,ahmsa,l-cardenas) - 0.4115*xf(hot-strip,ahmsa,coatzacoal) - 0.25323*xf(hot-strip,fundidora,mexico-df) - 0.28021*xf(hot-strip,fundidora,puebla) - 0.20345*xf(hot-strip,fundidora,queretaro)
+     
+      - 0.15462*xf(hot-strip,fundidora,san-luis) - 0.2557*xf(hot-strip,fundidora,guadalaja) - 0.31118*xf(hot-strip,fundidora,l-cardenas) - 0.39364*xf(hot-strip,fundidora,coatzacoal) - 0.25323*xf(hot-strip,hylsa,mexico-df)
+     
+      - 0.28021*xf(hot-strip,hylsa,puebla) - 0.20345*xf(hot-strip,hylsa,queretaro) - 0.15462*xf(hot-strip,hylsa,san-luis) - 0.2557*xf(hot-strip,hylsa,guadalaja) - 0.31118*xf(hot-strip,hylsa,l-cardenas) - 0.39364*xf(hot-strip,hylsa,coatzacoal)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 43
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Equation Listing    SOLVE one Using LP From line 1279
+
+
+     atrans  =E=  accounting: transport cost                         (mill us$)     
+     
+      - 0.28876*xf(temp-strip,ahmsa,mexico-df) - 0.307*xf(temp-strip,ahmsa,puebla) - 0.22131*xf(temp-strip,ahmsa,queretaro) - 0.17248*xf(temp-strip,ahmsa,san-luis) - 0.10142*xf(temp-strip,ahmsa,monterrey) - 0.27375*xf(temp-strip,ahmsa,guadalaja)
+     
+      - 0.32904*xf(temp-strip,ahmsa,l-cardenas) - 0.4115*xf(temp-strip,ahmsa,coatzacoal) - 0.25323*xf(temp-strip,fundidora,mexico-df) - 0.28021*xf(temp-strip,fundidora,puebla) - 0.20345*xf(temp-strip,fundidora,queretaro)
+     
+      - 0.15462*xf(temp-strip,fundidora,san-luis) - 0.2557*xf(temp-strip,fundidora,guadalaja) - 0.31118*xf(temp-strip,fundidora,l-cardenas) - 0.39364*xf(temp-strip,fundidora,coatzacoal) - 0.25323*xf(temp-strip,hylsa,mexico-df)
+     
+      - 0.28021*xf(temp-strip,hylsa,puebla) - 0.20345*xf(temp-strip,hylsa,queretaro) - 0.15462*xf(temp-strip,hylsa,san-luis) - 0.2557*xf(temp-strip,hylsa,guadalaja) - 0.31118*xf(temp-strip,hylsa,l-cardenas) - 0.39364*xf(temp-strip,hylsa,coatzacoal)
+     
+      - 0.28876*xf(tin,ahmsa,mexico-df) - 0.307*xf(tin,ahmsa,puebla) - 0.22131*xf(tin,ahmsa,queretaro) - 0.17248*xf(tin,ahmsa,san-luis) - 0.10142*xf(tin,ahmsa,monterrey) - 0.27375*xf(tin,ahmsa,guadalaja) - 0.32904*xf(tin,ahmsa,l-cardenas)
+     
+      - 0.4115*xf(tin,ahmsa,coatzacoal) - 0.25323*xf(tin,hylsa,mexico-df) - 0.28021*xf(tin,hylsa,puebla) - 0.20345*xf(tin,hylsa,queretaro) - 0.15462*xf(tin,hylsa,san-luis) - 0.2557*xf(tin,hylsa,guadalaja) - 0.31118*xf(tin,hylsa,l-cardenas)
+     
+      - 0.39364*xf(tin,hylsa,coatzacoal) - 0.28876*xf(bars,ahmsa,mexico-df) - 0.307*xf(bars,ahmsa,puebla) - 0.22131*xf(bars,ahmsa,queretaro) - 0.17248*xf(bars,ahmsa,san-luis) - 0.10142*xf(bars,ahmsa,monterrey) - 0.27375*xf(bars,ahmsa,guadalaja)
+     
+      - 0.32904*xf(bars,ahmsa,l-cardenas) - 0.4115*xf(bars,ahmsa,coatzacoal) - 0.09515*xf(bars,hylsap,mexico-df) - 0.1379*xf(bars,hylsap,queretaro) - 0.18673*xf(bars,hylsap,san-luis) - 0.26615*xf(bars,hylsap,monterrey) - 0.2044*xf(bars,hylsap,guadalaja)
+     
+      - 0.24905*xf(bars,hylsap,l-cardenas) - 0.18749*xf(bars,hylsap,coatzacoal) - 0.14132*xf(bars,tamsa,mexico-df) - 0.11985*xf(bars,tamsa,puebla) - 0.1835*xf(bars,tamsa,queretaro) - 0.23233*xf(bars,tamsa,san-luis) - 0.3127*xf(bars,tamsa,monterrey)
+     
+      - 0.25095*xf(bars,tamsa,guadalaja) - 0.29541*xf(bars,tamsa,l-cardenas) - 0.1645*xf(bars,tamsa,coatzacoal) - 0.14132*xf(seamless,tamsa,mexico-df) - 0.11985*xf(seamless,tamsa,puebla) - 0.1835*xf(seamless,tamsa,queretaro)
+     
+      - 0.23233*xf(seamless,tamsa,san-luis) - 0.3127*xf(seamless,tamsa,monterrey) - 0.25095*xf(seamless,tamsa,guadalaja) - 0.29541*xf(seamless,tamsa,l-cardenas) - 0.1645*xf(seamless,tamsa,coatzacoal) - 0.20041*e(plate,ahmsa) - 0.15899*e(plate,fundidora)
+     
+      - 0.20041*e(heavyshape,ahmsa) - 0.20041*e(lightshape,ahmsa) - 0.11985*e(lightshape,hylsap) - 0.20041*e(rebars-ld,ahmsa) - 0.11985*e(rebars-ld,hylsap) - 0.20041*e(rebars-sd,ahmsa) - 0.11985*e(rebars-sd,hylsap) - 0.20041*e(wire,ahmsa)
+     
+      - 0.11985*e(wire,hylsap) - 0.20041*e(hot-strip,ahmsa) - 0.15899*e(hot-strip,fundidora) - 0.15899*e(hot-strip,hylsa) - 0.20041*e(temp-strip,ahmsa) - 0.15899*e(temp-strip,fundidora) - 0.15899*e(temp-strip,hylsa) - 0.20041*e(tin,ahmsa)
+     
+      - 0.15899*e(tin,hylsa) - 0.20041*e(bars,ahmsa) - 0.11985*e(bars,hylsap) - 0.11629*vs(pellets,ahmsa) - 0.09231*vs(pellets,fundidora) - 0.09231*vs(pellets,hylsa) - 0.06965*vs(pellets,hylsap) - 0.11629*vs(coke,ahmsa) - 0.09231*vs(coke,fundidora)
+     
+      - 0.11629*vs(scrap,ahmsa) - 0.09231*vs(scrap,fundidora) - 0.09231*vs(scrap,hylsa) - 0.06965*vs(scrap,hylsap) - 0.14132*vf(plate,mexico-df) - 0.11985*vf(plate,puebla) - 0.1835*vf(plate,queretaro) - 0.14436*vf(plate,san-luis)
+     
+      - 0.15899*vf(plate,monterrey) - 0.117*vf(plate,guadalaja) - 0.14132*vf(heavyshape,mexico-df) - 0.11985*vf(heavyshape,puebla) - 0.1835*vf(heavyshape,queretaro) - 0.14436*vf(heavyshape,san-luis) - 0.15899*vf(heavyshape,monterrey)
+     
+      - 0.117*vf(heavyshape,guadalaja) - 0.14132*vf(lightshape,mexico-df) - 0.11985*vf(lightshape,puebla) - 0.1835*vf(lightshape,queretaro) - 0.14436*vf(lightshape,san-luis) - 0.15899*vf(lightshape,monterrey) - 0.117*vf(lightshape,guadalaja)
+     
+      - 0.14132*vf(rebars-ld,mexico-df) - 0.11985*vf(rebars-ld,puebla) - 0.1835*vf(rebars-ld,queretaro) - 0.14436*vf(rebars-ld,san-luis) - 0.15899*vf(rebars-ld,monterrey) - 0.117*vf(rebars-ld,guadalaja) - 0.14132*vf(rebars-sd,mexico-df)
+     
+      - 0.11985*vf(rebars-sd,puebla) - 0.1835*vf(rebars-sd,queretaro) - 0.14436*vf(rebars-sd,san-luis) - 0.15899*vf(rebars-sd,monterrey) - 0.117*vf(rebars-sd,guadalaja) - 0.14132*vf(wire,mexico-df) - 0.11985*vf(wire,puebla) - 0.1835*vf(wire,queretaro)
+     
+      - 0.14436*vf(wire,san-luis) - 0.15899*vf(wire,monterrey) - 0.117*vf(wire,guadalaja) - 0.14132*vf(hot-strip,mexico-df) - 0.11985*vf(hot-strip,puebla) - 0.1835*vf(hot-strip,queretaro) - 0.14436*vf(hot-strip,san-luis) - 0.15899*vf(hot-strip,monterrey)
+     
+      - 0.117*vf(hot-strip,guadalaja) - 0.14132*vf(temp-strip,mexico-df) - 0.11985*vf(temp-strip,puebla) - 0.1835*vf(temp-strip,queretaro) - 0.14436*vf(temp-strip,san-luis) - 0.15899*vf(temp-strip,monterrey) - 0.117*vf(temp-strip,guadalaja)
+     
+      - 0.14132*vf(tin,mexico-df) - 0.11985*vf(tin,puebla) - 0.1835*vf(tin,queretaro) - 0.14436*vf(tin,san-luis) - 0.15899*vf(tin,monterrey) - 0.117*vf(tin,guadalaja) - 0.14132*vf(bars,mexico-df) - 0.11985*vf(bars,puebla) - 0.1835*vf(bars,queretaro)
+     
+      - 0.14436*vf(bars,san-luis) - 0.15899*vf(bars,monterrey) - 0.117*vf(bars,guadalaja) - 0.14132*vf(seamless,mexico-df) - 0.11985*vf(seamless,puebla) - 0.1835*vf(seamless,queretaro) - 0.14436*vf(seamless,san-luis) - 0.15899*vf(seamless,monterrey)
+     
+      - 0.117*vf(seamless,guadalaja) - 0.14132*vf(rails,mexico-df) - 0.11985*vf(rails,puebla) - 0.1835*vf(rails,queretaro) - 0.14436*vf(rails,san-luis) - 0.15899*vf(rails,monterrey) - 0.117*vf(rails,guadalaja) + transport =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 44
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Equation Listing    SOLVE one Using LP From line 1279
+
+
+---- aimp  =E=  accounting: import cost                            (mill us$)
+
+aimp..  - 0.045*vs(pellets,sicartsa) - 0.045*vs(pellets,ahmsa) - 0.045*vs(pellets,fundidora) - 0.045*vs(pellets,hylsa) - 0.045*vs(pellets,hylsap) - 0.045*vs(pellets,tamsa) - 0.063*vs(coal-i,sicartsa) - 0.1*vs(coke,ahmsa) - 0.1*vs(coke,fundidora)
+     
+      - 0.12*vs(scrap,sicartsa) - 0.12*vs(scrap,ahmsa) - 0.12*vs(scrap,fundidora) - 0.12*vs(scrap,hylsa) - 0.12*vs(scrap,hylsap) - 0.12*vs(scrap,tamsa) - 0.347*vf(plate,mexico-df) - 0.347*vf(plate,puebla) - 0.347*vf(plate,queretaro)
+     
+      - 0.347*vf(plate,san-luis) - 0.347*vf(plate,monterrey) - 0.347*vf(plate,guadalaja) - 0.347*vf(plate,l-cardenas) - 0.347*vf(plate,coatzacoal) - 0.338*vf(heavyshape,mexico-df) - 0.338*vf(heavyshape,puebla) - 0.338*vf(heavyshape,queretaro)
+     
+      - 0.338*vf(heavyshape,san-luis) - 0.338*vf(heavyshape,monterrey) - 0.338*vf(heavyshape,guadalaja) - 0.338*vf(heavyshape,l-cardenas) - 0.338*vf(heavyshape,coatzacoal) - 0.364*vf(lightshape,mexico-df) - 0.364*vf(lightshape,puebla)
+     
+      - 0.364*vf(lightshape,queretaro) - 0.364*vf(lightshape,san-luis) - 0.364*vf(lightshape,monterrey) - 0.364*vf(lightshape,guadalaja) - 0.364*vf(lightshape,l-cardenas) - 0.364*vf(lightshape,coatzacoal) - 0.347*vf(rebars-ld,mexico-df)
+     
+      - 0.347*vf(rebars-ld,puebla) - 0.347*vf(rebars-ld,queretaro) - 0.347*vf(rebars-ld,san-luis) - 0.347*vf(rebars-ld,monterrey) - 0.347*vf(rebars-ld,guadalaja) - 0.347*vf(rebars-ld,l-cardenas) - 0.347*vf(rebars-ld,coatzacoal)
+     
+      - 0.368*vf(rebars-sd,mexico-df) - 0.368*vf(rebars-sd,puebla) - 0.368*vf(rebars-sd,queretaro) - 0.368*vf(rebars-sd,san-luis) - 0.368*vf(rebars-sd,monterrey) - 0.368*vf(rebars-sd,guadalaja) - 0.368*vf(rebars-sd,l-cardenas)
+     
+      - 0.368*vf(rebars-sd,coatzacoal) - 0.434*vf(wire,mexico-df) - 0.434*vf(wire,puebla) - 0.434*vf(wire,queretaro) - 0.434*vf(wire,san-luis) - 0.434*vf(wire,monterrey) - 0.434*vf(wire,guadalaja) - 0.434*vf(wire,l-cardenas) - 0.434*vf(wire,coatzacoal)
+     
+      - 0.393*vf(hot-strip,mexico-df) - 0.393*vf(hot-strip,puebla) - 0.393*vf(hot-strip,queretaro) - 0.393*vf(hot-strip,san-luis) - 0.393*vf(hot-strip,monterrey) - 0.393*vf(hot-strip,guadalaja) - 0.393*vf(hot-strip,l-cardenas)
+     
+      - 0.393*vf(hot-strip,coatzacoal) - 0.373*vf(temp-strip,mexico-df) - 0.373*vf(temp-strip,puebla) - 0.373*vf(temp-strip,queretaro) - 0.373*vf(temp-strip,san-luis) - 0.373*vf(temp-strip,monterrey) - 0.373*vf(temp-strip,guadalaja)
+     
+      - 0.373*vf(temp-strip,l-cardenas) - 0.373*vf(temp-strip,coatzacoal) - 0.393*vf(tin,mexico-df) - 0.393*vf(tin,puebla) - 0.393*vf(tin,queretaro) - 0.393*vf(tin,san-luis) - 0.393*vf(tin,monterrey) - 0.393*vf(tin,guadalaja) - 0.393*vf(tin,l-cardenas)
+     
+      - 0.393*vf(tin,coatzacoal) - 0.35*vf(bars,mexico-df) - 0.35*vf(bars,puebla) - 0.35*vf(bars,queretaro) - 0.35*vf(bars,san-luis) - 0.35*vf(bars,monterrey) - 0.35*vf(bars,guadalaja) - 0.35*vf(bars,l-cardenas) - 0.35*vf(bars,coatzacoal)
+     
+      - 0.455*vf(seamless,mexico-df) - 0.455*vf(seamless,puebla) - 0.455*vf(seamless,queretaro) - 0.455*vf(seamless,san-luis) - 0.455*vf(seamless,monterrey) - 0.455*vf(seamless,guadalaja) - 0.455*vf(seamless,l-cardenas) - 0.455*vf(seamless,coatzacoal)
+     
+      - 0.345*vf(rails,mexico-df) - 0.345*vf(rails,puebla) - 0.345*vf(rails,queretaro) - 0.345*vf(rails,san-luis) - 0.345*vf(rails,monterrey) - 0.345*vf(rails,guadalaja) - 0.345*vf(rails,l-cardenas) - 0.345*vf(rails,coatzacoal) + import =E= 0 ; (LHS = 0)
+     
+
+---- aexp  =E=  accounting: export revenue                         (mill us$)
+
+aexp..  - 0.2776*e(plate,ahmsa) - 0.2776*e(plate,fundidora) - 0.2704*e(heavyshape,ahmsa) - 0.2912*e(lightshape,sicartsa) - 0.2912*e(lightshape,ahmsa) - 0.2912*e(lightshape,hylsap) - 0.2912*e(lightshape,tamsa) - 0.2776*e(rebars-ld,sicartsa)
+     
+      - 0.2776*e(rebars-ld,ahmsa) - 0.2776*e(rebars-ld,hylsap) - 0.2944*e(rebars-sd,sicartsa) - 0.2944*e(rebars-sd,ahmsa) - 0.2944*e(rebars-sd,hylsap) - 0.3472*e(wire,sicartsa) - 0.3472*e(wire,ahmsa) - 0.3472*e(wire,hylsap) - 0.3144*e(hot-strip,ahmsa)
+     
+      - 0.3144*e(hot-strip,fundidora) - 0.3144*e(hot-strip,hylsa) - 0.2984*e(temp-strip,ahmsa) - 0.2984*e(temp-strip,fundidora) - 0.2984*e(temp-strip,hylsa) - 0.3144*e(tin,ahmsa) - 0.3144*e(tin,hylsa) - 0.28*e(bars,ahmsa) - 0.28*e(bars,hylsap)
+     
+      - 0.28*e(bars,tamsa) - 0.364*e(seamless,tamsa) + export =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 45
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+---- zm  process level: mines                               (1000 tpy)
+
+zm(min-co,coahuila)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbm(coal-r,coahuila)
+        1       ccm(mine-co,coahuila)
+       -0.25    arec
+
+zm(was-co,coahuila)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbm(coal-d,coahuila)
+       -2.1     mbm(coal-r,coahuila)
+
+zm(min-n,la-perla)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbm(ore-n,la-perla)
+        1       ccm(mine-eq,la-perla)
+       -0.1     arec
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- zr  process level: raw material plants                 (1000 tpy)
+
+zr(pelt-c,penacol)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.99    mbr(ore-conc,penacol)
+        1       mbr(pellets,penacol)
+       -0.045   mbr(electric,penacol)
+        1       ccr(pellet,penacol)
+
+zr(pelt-c,laperla)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.99    mbr(ore-conc,laperla)
+        1       mbr(pellets,laperla)
+       -0.045   mbr(electric,laperla)
+        1       ccr(pellet,laperla)
+
+zr(pelt-c,alzada)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.99    mbr(ore-conc,alzada)
+        1       mbr(pellets,alzada)
+       -0.045   mbr(electric,alzada)
+        1       ccr(pellet,alzada)
+
+REMAINING ENTRY SKIPPED
+
+---- zs  process level: steel mills                         (1000 tpy)
+
+zs(sinter,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(sinter,ahmsa)
+       -1.1     mbs(ore-n,ahmsa)
+       -0.11    mbs(coke,ahmsa)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 46
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+     zs  process level: steel mills                         (1000 tpy)
+
+       -0.17    mbs(limestone,ahmsa)
+       -0.04    mbs(electric,ahmsa)
+        1       ccs(sinter,ahmsa)
+
+zs(pelt-c,sicartsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.99    mbs(ore-conc,sicartsa)
+        1       mbs(pellets,sicartsa)
+       -0.045   mbs(electric,sicartsa)
+        1       ccs(pellet,sicartsa)
+
+zs(pelt-c,fundidora)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.99    mbs(ore-conc,fundidora)
+        1       mbs(pellets,fundidora)
+       -0.045   mbs(electric,fundidora)
+        1       ccs(pellet,fundidora)
+
+REMAINING 75 ENTRIES SKIPPED
+
+---- xm  shipments: mine products                           (1000 tpy)
+
+xm(ore-n,la-perla,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbm(ore-n,la-perla)
+        1       mbs(ore-n,ahmsa)
+       -0.0793  atrans
+
+xm(ore-n,la-perla,fundidora)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbm(ore-n,la-perla)
+        1       mbs(ore-n,fundidora)
+       -0.1033  atrans
+
+xm(ore-n,cerro-mer,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbm(ore-n,cerro-mer)
+        1       mbs(ore-n,ahmsa)
+       -0.1095  atrans
+
+REMAINING 18 ENTRIES SKIPPED
+
+---- xr  shipments: from raw material plants                (1000 tpy)
+
+xr(pellets,penacol,sicartsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbr(pellets,penacol)
+        1       mbs(pellets,sicartsa)
+        1       pelpc(1)
+       -0.1491  atrans
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 47
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+     xr  shipments: from raw material plants                (1000 tpy)
+
+xr(pellets,penacol,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbr(pellets,penacol)
+        1       mbs(pellets,ahmsa)
+        1       pelpc(2)
+       -0.1989  atrans
+
+xr(pellets,penacol,fundidora)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbr(pellets,penacol)
+        1       mbs(pellets,fundidora)
+        1       pelpc(3)
+       -0.1886  atrans
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- xs  shipments: interplant                              (1000 tpy)
+
+xs(sponge,hylsa,hylsap)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(sponge,hylsa)
+        1       mbs(sponge,hylsap)
+       -0.1625  atrans
+
+xs(sponge,hylsa,tamsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(sponge,hylsa)
+        1       mbs(sponge,tamsa)
+       -0.1896  atrans
+
+xs(sponge,hylsap,hylsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(sponge,hylsa)
+       -1       mbs(sponge,hylsap)
+       -0.1625  atrans
+
+REMAINING 15 ENTRIES SKIPPED
+
+---- xf  shipments: final products                          (1000 tpy)
+
+xf(plate,ahmsa,mexico-df)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(plate,ahmsa)
+        1       mreq(plate,mexico-df)
+       -0.2888  atrans
+
+xf(plate,ahmsa,puebla)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(plate,ahmsa)
+        1       mreq(plate,puebla)
+       -0.307   atrans
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 48
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+     xf  shipments: final products                          (1000 tpy)
+
+
+xf(plate,ahmsa,queretaro)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(plate,ahmsa)
+        1       mreq(plate,queretaro)
+       -0.2213  atrans
+
+REMAINING 221 ENTRIES SKIPPED
+
+---- ur  domestic products purchase: raw mat. plants  (1000 units tpy)
+
+ur(electric,penacol)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(electric,penacol)
+       -0.552   arec
+
+ur(electric,laperla)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(electric,laperla)
+       -0.552   arec
+
+ur(electric,alzada)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(electric,alzada)
+       -0.552   arec
+
+REMAINING ENTRY SKIPPED
+
+---- us  domestic products purchase: steel mills      (1000 units tpy)
+
+us(fuel-oil,sicartsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(fuel-oil,sicartsa)
+       -1       arec
+
+us(fuel-oil,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(fuel-oil,ahmsa)
+       -1       arec
+
+us(fuel-oil,fundidora)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(fuel-oil,fundidora)
+       -1       arec
+
+REMAINING 48 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 49
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+---- e  exports                                            (1000 tpy)
+
+e(plate,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(plate,ahmsa)
+        1       me(plate)
+        1       me2
+       -0.2004  atrans
+       -0.2776  aexp
+
+e(plate,fundidora)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(plate,fundidora)
+        1       me(plate)
+        1       me2
+       -0.159   atrans
+       -0.2776  aexp
+
+e(heavyshape,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbs(heavyshape,ahmsa)
+        1       me(heavyshape)
+        1       me2
+       -0.2004  atrans
+       -0.2704  aexp
+
+REMAINING 25 ENTRIES SKIPPED
+
+---- vs  imports to steel mills                             (1000 tpy)
+
+vs(pellets,sicartsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(pellets,sicartsa)
+       -0.045   aimp
+
+vs(pellets,ahmsa)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(pellets,ahmsa)
+       -0.1163  atrans
+       -0.045   aimp
+
+vs(pellets,fundidora)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbs(pellets,fundidora)
+       -0.0923  atrans
+       -0.045   aimp
+
+REMAINING 12 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 50
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+---- vf  import of final products                           (1000 tpy)
+
+vf(plate,mexico-df)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mreq(plate,mexico-df)
+       -0.1413  atrans
+       -0.347   aimp
+
+vf(plate,puebla)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mreq(plate,puebla)
+       -0.1198  atrans
+       -0.347   aimp
+
+vf(plate,queretaro)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mreq(plate,queretaro)
+       -0.1835  atrans
+       -0.347   aimp
+
+REMAINING 93 ENTRIES SKIPPED
+
+---- cost  total cost                                         (mill us$)
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acost
+
+
+---- recurrent  cost                                               (mill us$)
+
+recurrent
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       acost
+        1       arec
+
+
+---- transport  cost                                               (mill us$)
+
+transport
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       acost
+        1       atrans
+
+
+---- import  cost                                               (mill us$)
+
+import
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+      -25       acost
+        1       aimp
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 51
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Column Listing      SOLVE one Using LP From line 1279
+
+
+---- export  cost                                               (mill us$)
+
+export
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       25       acost
+        1       aexp
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 52
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Model Statistics    SOLVE one Using LP From line 1279
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          16     SINGLE EQUATIONS          353
+BLOCKS OF VARIABLES          17     SINGLE VARIABLES          578
+NON ZERO ELEMENTS         1,873
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 53
+Mexico Steel - Large Static    (MEXLS,SEQ=17)
+Solution Report     SOLVE one Using LP From line 1279
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   one                 OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  1279
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mexls/convert.opt"
+>>  gams mexls-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mexls/convert.opt"
+Gams      : mexls-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mexls/mexls.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mexls/mexls-scalar.gms.lst

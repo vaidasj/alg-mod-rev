@@ -1,0 +1,323 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 2
+Non-transitive Dice Design (DICE,SEQ=176)
+C o m p i l a t i o n
+
+
+       Probabilistic dice - an example of a non-transitive relation.
+       We want to design a set of dice with an integer number on each face
+       such that on average dice1 beats dice2, and dice2 on average beats
+       dice3 etc, but diceN has to beat dice1.
+       
+       MIP codes behave very erratic on such a problem and slight
+       reformulations can result in dramatic changes in performance. Also
+       note the face value will be integers automatically.
+       
+       
+       Gardner, M, Scientific American.
+       
+       Robert A Bosch, Mindsharpener, Optima, MP Society Newsletter, Vol 70,
+       June 2003, page 8-9
+       
+       Robert A Bosch, Monochromatic Squares, Optima, MP Society Newsletter,
+       Vol 71, March 2004, page 6-7
+       
+  24   
+  25  sets    f    faces on a dice  / face1*face6 /
+  26          dice number of dice   / dice1*dice3 / ;
+  27   
+  28  scalars flo  lowest face value  / 1 /
+  29          fup  highest face value
+  30          wn   wins needed - possible bound ;
+  31   
+  32  fup = card(dice) * card(f);
+  33   
+  34  wn = floor(0.5 * sqr(card(f))) + 1;
+  35   
+  36  alias(f,fp);
+  37  alias(dice,dicep);
+  38   
+  39  variables  wnx               number of wins
+  40             fval(dice,f)      value of dice - will be integer
+  41             comp(dice,f,fp)   one if f beats fp ;
+  42  binary variable comp;
+  43   
+  44  fval.lo(dice,f) = flo;
+  45  fval.up(dice,f) = fup;
+  46   
+  47  fval.fx("dice1","face1") = flo;
+  48   
+  49  equation eq1(dice)       count the wins
+  50           eq3(dice,f,fp)  definition of non-transitive relation
+  51           eq4(dice,f)     different face values for a single dice;
+  52   
+  53  eq1(dice).. sum((f,fp), comp(dice,f,fp)) =e= wnx;
+  54   
+  55  eq3(dice,f,fp) .. fval(dice,f) + (fup-flo)*(1-comp(dice,f,fp)) =g= fval(dice++1,fp) + 1;
+  56   
+  57  eq4(dice,f-1) .. fval(dice,f-1) + 1 =l= fval(dice,f);
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 3
+Non-transitive Dice Design (DICE,SEQ=176)
+C o m p i l a t i o n
+
+
+  59   
+  60  model xdice /all /;
+  61   
+  63   
+  64  xdice.reslim = 20;
+  65  solve xdice using mip max wnx;
+  66   
+  67  option fval:0; display wn,fval.l;
+  68   
+  69  parameter rep1 Chance of winning against next;
+  70  rep1(dice,f) = 100*sum(fp, comp.l(dice,f,fp)) / card(f);
+  71  rep1(dice,'chance') = sum(f, rep1(dice,f))/card(f);
+  72  option rep1:0; display rep1;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 4
+Non-transitive Dice Design (DICE,SEQ=176)
+Equation Listing    SOLVE xdice Using MIP From line 65
+
+
+---- eq1  =E=  count the wins
+
+eq1(dice1)..  - wnx + comp(dice1,face1,face1) + comp(dice1,face1,face2) + comp(dice1,face1,face3) + comp(dice1,face1,face4) + comp(dice1,face1,face5) + comp(dice1,face1,face6) + comp(dice1,face2,face1) + comp(dice1,face2,face2) + comp(dice1,face2,face3)
+     
+      + comp(dice1,face2,face4) + comp(dice1,face2,face5) + comp(dice1,face2,face6) + comp(dice1,face3,face1) + comp(dice1,face3,face2) + comp(dice1,face3,face3) + comp(dice1,face3,face4) + comp(dice1,face3,face5) + comp(dice1,face3,face6)
+     
+      + comp(dice1,face4,face1) + comp(dice1,face4,face2) + comp(dice1,face4,face3) + comp(dice1,face4,face4) + comp(dice1,face4,face5) + comp(dice1,face4,face6) + comp(dice1,face5,face1) + comp(dice1,face5,face2) + comp(dice1,face5,face3)
+     
+      + comp(dice1,face5,face4) + comp(dice1,face5,face5) + comp(dice1,face5,face6) + comp(dice1,face6,face1) + comp(dice1,face6,face2) + comp(dice1,face6,face3) + comp(dice1,face6,face4) + comp(dice1,face6,face5) + comp(dice1,face6,face6) =E= 0 ;
+     
+      (LHS = 0)
+     
+eq1(dice2)..  - wnx + comp(dice2,face1,face1) + comp(dice2,face1,face2) + comp(dice2,face1,face3) + comp(dice2,face1,face4) + comp(dice2,face1,face5) + comp(dice2,face1,face6) + comp(dice2,face2,face1) + comp(dice2,face2,face2) + comp(dice2,face2,face3)
+     
+      + comp(dice2,face2,face4) + comp(dice2,face2,face5) + comp(dice2,face2,face6) + comp(dice2,face3,face1) + comp(dice2,face3,face2) + comp(dice2,face3,face3) + comp(dice2,face3,face4) + comp(dice2,face3,face5) + comp(dice2,face3,face6)
+     
+      + comp(dice2,face4,face1) + comp(dice2,face4,face2) + comp(dice2,face4,face3) + comp(dice2,face4,face4) + comp(dice2,face4,face5) + comp(dice2,face4,face6) + comp(dice2,face5,face1) + comp(dice2,face5,face2) + comp(dice2,face5,face3)
+     
+      + comp(dice2,face5,face4) + comp(dice2,face5,face5) + comp(dice2,face5,face6) + comp(dice2,face6,face1) + comp(dice2,face6,face2) + comp(dice2,face6,face3) + comp(dice2,face6,face4) + comp(dice2,face6,face5) + comp(dice2,face6,face6) =E= 0 ;
+     
+      (LHS = 0)
+     
+eq1(dice3)..  - wnx + comp(dice3,face1,face1) + comp(dice3,face1,face2) + comp(dice3,face1,face3) + comp(dice3,face1,face4) + comp(dice3,face1,face5) + comp(dice3,face1,face6) + comp(dice3,face2,face1) + comp(dice3,face2,face2) + comp(dice3,face2,face3)
+     
+      + comp(dice3,face2,face4) + comp(dice3,face2,face5) + comp(dice3,face2,face6) + comp(dice3,face3,face1) + comp(dice3,face3,face2) + comp(dice3,face3,face3) + comp(dice3,face3,face4) + comp(dice3,face3,face5) + comp(dice3,face3,face6)
+     
+      + comp(dice3,face4,face1) + comp(dice3,face4,face2) + comp(dice3,face4,face3) + comp(dice3,face4,face4) + comp(dice3,face4,face5) + comp(dice3,face4,face6) + comp(dice3,face5,face1) + comp(dice3,face5,face2) + comp(dice3,face5,face3)
+     
+      + comp(dice3,face5,face4) + comp(dice3,face5,face5) + comp(dice3,face5,face6) + comp(dice3,face6,face1) + comp(dice3,face6,face2) + comp(dice3,face6,face3) + comp(dice3,face6,face4) + comp(dice3,face6,face5) + comp(dice3,face6,face6) =E= 0 ;
+     
+      (LHS = 0)
+     
+
+---- eq3  =G=  definition of non-transitive relation
+
+eq3(dice1,face1,face1)..  fval(dice1,face1) - fval(dice2,face1) - 17*comp(dice1,face1,face1) =G= -16 ; (LHS = 0)
+     
+eq3(dice1,face1,face2)..  fval(dice1,face1) - fval(dice2,face2) - 17*comp(dice1,face1,face2) =G= -16 ; (LHS = 0)
+     
+eq3(dice1,face1,face3)..  fval(dice1,face1) - fval(dice2,face3) - 17*comp(dice1,face1,face3) =G= -16 ; (LHS = 0)
+     
+REMAINING 105 ENTRIES SKIPPED
+
+
+---- eq4  =L=  different face values for a single dice
+
+eq4(dice1,face1)..  fval(dice1,face1) - fval(dice1,face2) =L= -1 ; (LHS = 0, INFES = 1 ****)
+     
+eq4(dice1,face2)..  fval(dice1,face2) - fval(dice1,face3) =L= -1 ; (LHS = 0, INFES = 1 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 5
+Non-transitive Dice Design (DICE,SEQ=176)
+Equation Listing    SOLVE xdice Using MIP From line 65
+
+
+     eq4  =L=  different face values for a single dice
+
+eq4(dice1,face3)..  fval(dice1,face3) - fval(dice1,face4) =L= -1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 6
+Non-transitive Dice Design (DICE,SEQ=176)
+Column Listing      SOLVE xdice Using MIP From line 65
+
+
+---- wnx  number of wins
+
+wnx
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       eq1(dice1)
+       -1       eq1(dice2)
+       -1       eq1(dice3)
+
+
+---- fval  value of dice - will be integer
+
+fval(dice1,face1)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+        1       eq3(dice1,face1,face1)
+        1       eq3(dice1,face1,face2)
+        1       eq3(dice1,face1,face3)
+        1       eq3(dice1,face1,face4)
+        1       eq3(dice1,face1,face5)
+        1       eq3(dice1,face1,face6)
+       -1       eq3(dice3,face1,face1)
+       -1       eq3(dice3,face2,face1)
+       -1       eq3(dice3,face3,face1)
+       -1       eq3(dice3,face4,face1)
+       -1       eq3(dice3,face5,face1)
+       -1       eq3(dice3,face6,face1)
+        1       eq4(dice1,face1)
+
+fval(dice1,face2)
+                (.LO, .L, .UP, .M = 1, 1, 18, 0)
+        1       eq3(dice1,face2,face1)
+        1       eq3(dice1,face2,face2)
+        1       eq3(dice1,face2,face3)
+        1       eq3(dice1,face2,face4)
+        1       eq3(dice1,face2,face5)
+        1       eq3(dice1,face2,face6)
+       -1       eq3(dice3,face1,face2)
+       -1       eq3(dice3,face2,face2)
+       -1       eq3(dice3,face3,face2)
+       -1       eq3(dice3,face4,face2)
+       -1       eq3(dice3,face5,face2)
+       -1       eq3(dice3,face6,face2)
+       -1       eq4(dice1,face1)
+        1       eq4(dice1,face2)
+        0       (OLD LEVEL ****)
+
+fval(dice1,face3)
+                (.LO, .L, .UP, .M = 1, 1, 18, 0)
+        1       eq3(dice1,face3,face1)
+        1       eq3(dice1,face3,face2)
+        1       eq3(dice1,face3,face3)
+        1       eq3(dice1,face3,face4)
+        1       eq3(dice1,face3,face5)
+        1       eq3(dice1,face3,face6)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 7
+Non-transitive Dice Design (DICE,SEQ=176)
+Column Listing      SOLVE xdice Using MIP From line 65
+
+
+     fval  value of dice - will be integer
+
+       -1       eq3(dice3,face1,face3)
+       -1       eq3(dice3,face2,face3)
+       -1       eq3(dice3,face3,face3)
+       -1       eq3(dice3,face4,face3)
+       -1       eq3(dice3,face5,face3)
+       -1       eq3(dice3,face6,face3)
+       -1       eq4(dice1,face2)
+        1       eq4(dice1,face3)
+        0       (OLD LEVEL ****)
+
+REMAINING 15 ENTRIES SKIPPED
+
+---- comp  one if f beats fp
+
+comp(dice1,face1,face1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       eq1(dice1)
+      -17       eq3(dice1,face1,face1)
+
+comp(dice1,face1,face2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       eq1(dice1)
+      -17       eq3(dice1,face1,face2)
+
+comp(dice1,face1,face3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       eq1(dice1)
+      -17       eq3(dice1,face1,face3)
+
+REMAINING 105 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 8
+Non-transitive Dice Design (DICE,SEQ=176)
+Model Statistics    SOLVE xdice Using MIP From line 65
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          126
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          127  17 projected
+NON ZERO ELEMENTS           465     DISCRETE VARIABLES        108
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 9
+Non-transitive Dice Design (DICE,SEQ=176)
+Solution Report     SOLVE xdice Using MIP From line 65
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   xdice               OBJECTIVE  wnx
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  65
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000        20.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dice/convert.opt"
+>>  gams dice-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dice/convert.opt"
+Gams      : dice-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:11 Page 10
+Non-transitive Dice Design (DICE,SEQ=176)
+E x e c u t i o n
+
+
+----     67 PARAMETER wn                   =       19.000  wins needed - possible bound
+
+----     67 VARIABLE fval.L  value of dice - will be integer
+
+            face1
+
+dice1           1
+
+
+----     72 PARAMETER rep1  Chance of winning against next
+
+                      ( ALL          0. )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/dice/dice.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/dice/dice-scalar.gms.lst

@@ -1,0 +1,446 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 2
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+C o m p i l a t i o n
+
+
+      The problem of distributing gas through a network of pipelines is formulated as
+      a cost minimization subject to nonlinear flow-pressure relations, material
+      balances, and pressure bounds. The Belgian gas network is used as an example.
+       
+      First, we model a straight-forward NLP formulation that can be solved fine 
+      by todays NLP solvers.
+      Afterwards, the 3-stage approach by Wolf & Smeers is implemented (line 160ff).
+       
+      de Wolf, D, and Smeers, Y, The Gas Transmission Problem Solved by
+      and Extension of the Simplex Algorithm. Management Science 46, 11
+      (2000), 1454-1465.
+       
+  18   
+  19  Sets i Towns / Anderlues, Antwerpen, Arlon, Berneau, Blaregnies, Brugge, Dudzele,
+  20                 Gent, Liege, Loenhout, Mons, Namur, Petange, Peronnes, Sinsin,
+  21                 Voeren, Wanze, Warnand, Zeebrugge, Zomergem /
+  22       a Arcs  / 1*24 /
+  23       as(a) active arcs
+  24       ap(a) passive arcs
+  25       aij(a,i,i) arc description
+  26   
+  27  alias (i,j)
+  28   
+  29  set nc node data column headers /
+  30         slo supply lower bound (mill M3 per day)
+  31         sup supply upper bound (mill M3 per day)
+  32         plo pressure lower bound (bar)
+  33         pup pressure upper bound (bar)
+  34         c   cost ($ per MBTU)   /
+  35   
+  36  table Ndata(i,nc) Node Data
+  37   
+  38                 slo     sup     plo     pup     c
+  39  Anderlues       0     1.2      0      66.2     0
+  40  Antwerpen    -inf   -4.034    30      80.0     0
+  41  Arlon        -inf   -0.222     0      66.2     0
+  42  Berneau         0      0       0      66.2     0
+  43  Blaregnies   -inf   -15.616   50      66.2     0
+  44  Brugge       -inf    -3.918   30      80.0     0
+  45  Dudzele         0     8.4      0      77.0    2.28
+  46  Gent         -inf    -5.256   30      80       0
+  47  Liege        -inf    -6.385   30      66.2     0
+  48  Loenhout        0     4.8      0      77.0    2.28
+  49  Mons         -inf    -6.848    0      66.2     0
+  50  Namur        -inf    -2.120    0      66.2     0
+  51  Petange      -inf    -1.919   25      66.2     0
+  52  Peronnes        0     0.96     0      66.2    1.68
+  53  Sinsin          0      0       0      63.0     0
+  54  Voeren       20.344   22.012  50      66.2    1.68
+  55  Wanze           0      0       0      66.2     0
+  56  Warnand         0      0       0      66.2     0
+  57  Zeebrugge      8.870  11.594   0      77.0    2.28
+  58  Zomergem        0      0       0      80.0     0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 3
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+C o m p i l a t i o n
+
+
+  59   
+  60  set ac  Arc data column headers /
+  61          D   diameter (mm)
+  62          L   length (km)
+  63          act type indicator ( 1 = active)  /
+  64   
+  65  table AData(a,i,j,*) Arc Data
+  66                                  D       L    act
+  67   1 . Zeebrugge  . Dudzele      890.0   4.0
+  68   2 . Zeebrugge  . Dudzele      890.0   4.0
+  69   3 . Dudzele    . Brugge       890.0   6.0
+  70   4 . Dudzele    . Brugge       890.0   6.0
+  71   5 . Brugge     . Zomergem     890.0  26.0
+  72   6 . Loenhout   . Antwerpen    590.1  43.0
+  73   7 . Antwerpen  . Gent         590.1  29.0
+  74   8 . Gent       . Zomergem     590.1  19.0
+  75   9 . Zomergem   . Peronnes     890.0  55.0
+  76  10 . Voeren     . Berneau      890.0   5.0    1
+  77  11 . Voeren     . Berneau      395.0   5.0    1
+  78  12 . Berneau    . Liege        890.0  20.0
+  79  13 . Berneau    . Liege        395.0  20.0
+  80  14 . Liege      . Warnand      890.0  25.0
+  81  15 . Liege      . Warnand      395.0  25.0
+  82  16 . Warnand    . Namur        890.0  42.0
+  83  17 . Namur      . Anderlues    890.0  40.0
+  84  18 . Anderlues  . Peronnes     890.0   5.0
+  85  19 . Peronnes   . Mons         890.0  10.0
+  86  20 . Mons       . Blaregnies   890.0  25.0
+  87  21 . Warnand    . Wanze        395.5  10.5
+  88  22 . Wanze      . Sinsin       315.5  26.0    1
+  89  23 . Sinsin     . Arlon        315.5  98.0
+  90  24 . Arlon      . Petange      315.5   6.0
+  91   
+  92  Scalars  T   gas temperature (K)                / 281.15  /
+  93           e   absolute rugosity (mm)             /   0.05  /
+  94           den density of gas relative to air (-) /   0.616 /
+  95           z   compressibility factor (-)         /   0.8   /
+  96   
+  97  parameter lam(a,i,j)    lambda constant (page 1464)
+  98            c2(a,i,j)     pipe constant (page 1463)
+  99            arep(a,i,j,*) Arc Report;
+ 100   
+ 101    aij(a,i,j) = adata(a,i,j,'L');
+ 102   
+ 103    as(a) = sum(aij(a,i,j), adata(aij,'act'));
+ 104    ap(a) = not as(a);
+ 105   
+ 106    lam(aij(a,i,j)) = 1/sqr(2*log10(3.7*adata(aij,'D')/e));
+ 107    c2(aij(a,i,j)) = 96.074830e-15*power(adata(aij,'D'),5)/lam(aij)/z/t/adata(aij,'L')/den;
+ 108   
+ 109    arep(aij,'lam') = lam(aij);
+ 110    arep(aij,'c2')  = c2(aij);
+ 111   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 4
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+C o m p i l a t i o n
+
+
+ 112  option arep:6:3:1; display arep,as,ap;
+ 113   
+ 114  Variables f(a,i,j)   Arc flow (1e6 SCM)
+ 115            s(i)       supply - demand (1e6 SCM)
+ 116            pi(i)      squared pressure
+ 117            sc         supply cost
+ 118  ;
+ 119   
+ 120  Equations flowbalance(i)    flow conservation
+ 121            weymouthp(a,i,j)  flow pressure relationship - passive
+ 122            weymoutha(a,i,j)  flow pressure relationship - active
+ 123            defsc             definition of supply cost
+ 124  ;
+ 125   
+ 126  flowbalance(i).. sum(aij(a,i,j), f(aij)) =e= sum(aij(a,j,i), f(aij)) + s(i);
+ 127   
+ 128  weymouthp(aij(ap,i,j)).. signpower(f(aij),2) =e= c2(aij)*(pi(i)-pi(j));
+ 129   
+ 130  weymoutha(aij(as,i,j))..       - sqr(f(aij)) =g= c2(aij)*(pi(i)-pi(j));
+ 131   
+ 132  defsc.. sc =e= sum(i, ndata(i,'c')*s(i));
+ 133   
+ 134  * supply, demand, pressure, and flow bounds
+ 135  s.lo(i)  = ndata(i,'slo');
+ 136  s.up(i)  = ndata(i,'sup');
+ 137  pi.lo(i) = sqr(ndata(i,'plo'));
+ 138  pi.up(i) = sqr(ndata(i,'pup'));
+ 139  f.lo(aij(as,i,j)) = 0;
+ 140   
+ 141  * initialize flow to avoid getting trapped at signpower(0,2)
+ 142  f.l(aij) = uniform(-1,1);
+ 143   
+ 144  model gastrans / flowbalance, weymouthp, weymoutha, defsc /;
+ 145   
+ 146  solve gastrans using nlp min sc;
+ 147   
+ 148  display f.l;
+ 149   
+ 150   
+ 151   
+ 152   
+ 153   
+ 154   
+ 155   
+ 156   
+ 157   
+ 158   
+ 159   
+ 160  * to run the Wolf & Smeers approach, remove the following $exit
+EXIT /home/renigijus/gams/opt-mod-lib/gamslib/gastrans/gastrans.gms
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 5
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/gastrans/gastrans.gms
+     2      161 EXIT           1     161  /home/renigijus/gams/opt-mod-lib/gamslib/gastrans/gastrans.gms
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 6
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+E x e c u t i o n
+
+
+----    112 PARAMETER arep  Arc Report
+
+                                lam          c2
+
+1 .Zeebrugge.Dudzele       0.010767    8.990763
+2 .Zeebrugge.Dudzele       0.010767    8.990763
+3 .Dudzele  .Brugge        0.010767    5.993842
+4 .Dudzele  .Brugge        0.010767    5.993842
+5 .Brugge   .Zomergem      0.010767    1.383194
+6 .Loenhout .Antwerpen     0.011611    0.099377
+7 .Antwerpen.Gent          0.011611    0.147352
+8 .Gent     .Zomergem      0.011611    0.224906
+9 .Zomergem .Peronnes      0.010767    0.653874
+10.Voeren   .Berneau       0.010767    7.192610
+11.Voeren   .Berneau       0.012535    0.106385
+12.Berneau  .Liege         0.010767    1.798153
+13.Berneau  .Liege         0.012535    0.026596
+14.Liege    .Warnand       0.010767    1.438522
+15.Liege    .Warnand       0.012535    0.021277
+16.Warnand  .Namur         0.010767    0.856263
+17.Namur    .Anderlues     0.010767    0.899076
+18.Anderlues.Peronnes      0.010767    7.192610
+19.Peronnes .Mons          0.010767    3.596305
+20.Mons     .Blaregnies    0.010767    1.438522
+21.Warnand  .Wanze         0.012532    0.050994
+22.Wanze    .Sinsin        0.013102    0.006363
+23.Sinsin   .Arlon         0.013102    0.001688
+24.Arlon    .Petange       0.013102    0.027575
+
+
+----    112 SET as  active arcs
+
+10,    11,    22
+
+
+----    112 SET ap  passive arcs
+
+1 ,    2 ,    3 ,    4 ,    5 ,    6 ,    7 ,    8 ,    9 ,    12,    13,    14,    15,    16,    17,    18,    19,    20,    21,    23,    24
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 7
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+Equation Listing    SOLVE gastrans Using NLP From line 146
+
+
+---- flowbalance  =E=  flow conservation
+
+flowbalance(Anderlues)..  - f(17,Namur,Anderlues) + f(18,Anderlues,Peronnes) - s(Anderlues) =E= 0 ; (LHS = 0.181125338, INFES = 0.181125338 ****)
+     
+flowbalance(Antwerpen)..  - f(6,Loenhout,Antwerpen) + f(7,Antwerpen,Gent) - s(Antwerpen) =E= 0 ; (LHS = 4.285555274, INFES = 4.285555274 ****)
+     
+flowbalance(Arlon)..  - f(23,Sinsin,Arlon) + f(24,Arlon,Petange) - s(Arlon) =E= 0 ; (LHS = 0.259220396, INFES = 0.259220396 ****)
+     
+REMAINING 17 ENTRIES SKIPPED
+
+
+---- weymouthp  =E=  flow pressure relationship - passive
+
+weymouthp(1,Zeebrugge,Dudzele)..  (1.313011472)*f(1,Zeebrugge,Dudzele) + 8.99076279639866*pi(Dudzele) - 8.99076279639866*pi(Zeebrugge) =E= 0 ; (LHS = -0.430999781400902, INFES = 0.430999781400902 ****)
+     
+weymouthp(2,Zeebrugge,Dudzele)..  (1.373066832)*f(2,Zeebrugge,Dudzele) + 8.99076279639866*pi(Dudzele) - 8.99076279639866*pi(Zeebrugge) =E= 0 ; (LHS = 0.471328131284629, INFES = 0.471328131284629 ****)
+     
+weymouthp(3,Dudzele,Brugge)..  (0.201501424)*f(3,Dudzele,Brugge) + 5.99384186426577*pi(Brugge) - 5.99384186426577*pi(Dudzele) =E= 0 ; (LHS = 5394.46782854516, INFES = 5394.46782854516 ****)
+     
+REMAINING 18 ENTRIES SKIPPED
+
+
+---- weymoutha  =G=  flow pressure relationship - active
+
+weymoutha(10,Voeren,Berneau)..  - (0.000842675999999987)*f(10,Voeren,Berneau) + 7.19261023711893*pi(Berneau) - 7.19261023711893*pi(Voeren) =G= 0 ; (LHS = -17981.5255929748, INFES = 17981.5255929748 ****)
+     
+weymoutha(11,Voeren,Berneau)..  - (1.992470508)*f(11,Voeren,Berneau) + 0.106385011792235*pi(Berneau) - 0.106385011792235*pi(Voeren) =G= 0 ; (LHS = -266.955014161901, INFES = 266.955014161901 ****)
+     
+weymoutha(22,Wanze,Sinsin)..  (0)*f(22,Wanze,Sinsin) + 0.0063634920908912*pi(Sinsin) - 0.0063634920908912*pi(Wanze) =G= 0 ; (LHS = 0)
+     
+
+---- defsc  =E=  definition of supply cost
+
+defsc..  - 2.28*s(Dudzele) - 2.28*s(Loenhout) - 1.68*s(Peronnes) - 1.68*s(Voeren) - 2.28*s(Zeebrugge) + sc =E= 0 ; (LHS = -54.40152, INFES = 54.40152 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 8
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+Column Listing      SOLVE gastrans Using NLP From line 146
+
+
+---- f  Arc flow (1e6 SCM)
+
+f(1,Zeebrugge,Dudzele)
+                (.LO, .L, .UP, .M = -INF, -0.656505736, +INF, 0)
+       -1       flowbalance(Dudzele)
+        1       flowbalance(Zeebrugge)
+       (1.313)  weymouthp(1,Zeebrugge,Dudzele)
+
+f(2,Zeebrugge,Dudzele)
+                (.LO, .L, .UP, .M = -INF, 0.686533416, +INF, 0)
+       -1       flowbalance(Dudzele)
+        1       flowbalance(Zeebrugge)
+       (1.3731) weymouthp(2,Zeebrugge,Dudzele)
+
+f(3,Dudzele,Brugge)
+                (.LO, .L, .UP, .M = -INF, 0.100750712, +INF, 0)
+       -1       flowbalance(Brugge)
+        1       flowbalance(Dudzele)
+       (0.2015) weymouthp(3,Dudzele,Brugge)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- s  supply - demand (1e6 SCM)
+
+s(Anderlues)
+                (.LO, .L, .UP, .M = 0, 0, 1.2, 0)
+       -1       flowbalance(Anderlues)
+
+s(Antwerpen)
+                (.LO, .L, .UP, .M = -INF, -4.034, -4.034, 0)
+       -1       flowbalance(Antwerpen)
+        0       (OLD LEVEL ****)
+
+s(Arlon)
+                (.LO, .L, .UP, .M = -INF, -0.222, -0.222, 0)
+       -1       flowbalance(Arlon)
+        0       (OLD LEVEL ****)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- pi  squared pressure
+
+pi(Anderlues)
+                (.LO, .L, .UP, .M = 0, 0, 4382.44, 0)
+        0.8991  weymouthp(17,Namur,Anderlues)
+       -7.1926  weymouthp(18,Anderlues,Peronnes)
+
+pi(Antwerpen)
+                (.LO, .L, .UP, .M = 900, 900, 6400, 0)
+        0.0994  weymouthp(6,Loenhout,Antwerpen)
+       -0.1474  weymouthp(7,Antwerpen,Gent)
+        0       (OLD LEVEL ****)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 9
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+Column Listing      SOLVE gastrans Using NLP From line 146
+
+
+     pi  squared pressure
+
+pi(Arlon)
+                (.LO, .L, .UP, .M = 0, 0, 4382.44, 0)
+        0.0017  weymouthp(23,Sinsin,Arlon)
+       -0.0276  weymouthp(24,Arlon,Petange)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- sc  supply cost
+
+sc
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defsc
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 10
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+Model Statistics    SOLVE gastrans Using NLP From line 146
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           45
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           65  19 projected
+NON ZERO ELEMENTS           146     NON LINEAR N-Z             24
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                 120
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 11
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+Solution Report     SOLVE gastrans Using NLP From line 146
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gastrans            OBJECTIVE  sc
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  146
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gastrans/convert.opt"
+>>  ampl gastrans-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gastrans/convert.opt"
+Ampl      : gastrans-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:28 Page 12
+Gas Transmission Problem - Belgium (GASTRANS,SEQ=217)
+E x e c u t i o n
+
+
+----    148 VARIABLE f.L  Arc flow (1e6 SCM)
+
+               Anderlues   Antwerpen       Arlon     Berneau  Blaregnies      Brugge     Dudzele        Gent       Liege        Mons       Namur     Petange    Peronnes      Sinsin       Wanze     Warnand    Zomergem
+
+1 .Zeebrugge                                                                              -0.657
+2 .Zeebrugge                                                                               0.687
+3 .Dudzele                                                                     0.101
+4 .Dudzele                                                                    -0.398
+5 .Brugge                                                                                                                                                                                                         -0.416
+6 .Loenhout                   -0.552
+7 .Antwerpen                                                                                          -0.300
+8 .Gent                                                                                                                                                                                                            0.713
+9 .Zomergem                                                                                                                                                       -0.866
+10.Voeren                                        4.213380E-4
+11.Voeren                                              0.996
+12.Berneau                                                                                                         0.157
+13.Berneau                                                                                                         0.982
+14.Liege                                                                                                                                                                                               0.525
+15.Liege                                                                                                                                                                                              -0.739
+16.Warnand                                                                                                                                 0.279
+17.Namur          -0.681
+18.Anderlues                                                                                                                                                      -0.500
+19.Peronnes                                                                                                                    0.338
+20.Mons                                                           -0.129
+21.Warnand                                                                                                                                                                                -0.281
+22.Wanze                                                                                                                                                                      -0.297
+23.Sinsin                                 -0.737
+24.Arlon                                                                                                                                              -0.700
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/gastrans/gastrans.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/gastrans/gastrans-scalar.mod.lst

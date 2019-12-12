@@ -1,0 +1,63 @@
+--- Job airsp.gms Start 12/13/18 10:32:16 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- airsp.gms(170) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- airsp.gms(119) 4 Mb
+--- Generating LP model alloch
+--- airsp.gms(123) 4 Mb
+---   36 rows  49 columns  129 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  gams airsp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+--- Writing Gams      : airsp-scalar.gms
+
+--- Restarting execution
+--- airsp.gms(123) 2 Mb
+--- Reading solution for model alloch
+--- airsp.gms(137) 3 Mb
+--- Generating LP model allocs
+--- airsp.gms(139) 3 Mb
+---   511 rows  524 columns  1,559 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.022
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  gams airsp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+--- Writing Gams      : airsp-scalar.gms
+
+--- Restarting execution
+--- airsp.gms(139) 2 Mb
+--- Reading solution for model allocs
+--- airsp.gms(164) 3 Mb
+--- Generating LP model allocs
+--- airsp.gms(166) 4 Mb
+---   3,761 rows  3,774 columns  11,309 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.053
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+>>  gams airsp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp/convert.opt"
+--- Writing Gams      : airsp-scalar.gms
+
+--- Restarting execution
+--- airsp.gms(166) 2 Mb
+--- Reading solution for model allocs
+--- airsp.gms(170) 3 Mb
+*** Status: Normal completion
+--- Job airsp.gms Stop 12/13/18 10:32:17 elapsed 0:00:00.076

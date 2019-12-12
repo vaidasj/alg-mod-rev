@@ -1,0 +1,1865 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 2
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+C o m p i l a t i o n
+
+
+   4   
+       
+      This model is designed to find the optimal size and location
+      of ammonia and fertilizer plants. Three formulations are suggested.
+      MIP, expanded LP and enumeration are used.
+       
+       
+      Manne, A S, and Vietoriscz Thomas, Chemical Processes, Plant Location,
+      and Economies of Scale. In Manne, A S, and Markowitz, H M, Eds,
+      Studies in Process Analysis. John Wiley and Sons, New York and London,
+      1963, p. 136.
+       
+  18   
+  19  Sets i      sources of ammonia and fertilizer  / 0*5 /
+  20       id(i)  domestic sources - plants          / 1*5 /
+  21       k      demand centers              / 1*12 /
+  22   
+  23  Alias (i,j),(id,jd)
+  24   
+  25  Table fc(i,*)  fixed cost of plant erection
+  26   
+  27       ammonia  fertilizer
+  28    1    1760       810
+  29    2    1656       951
+  30    3    1626       754
+  31    4    1784       856
+  32    5    1782       852
+  33   
+  34  Table c(i,j)  production and shipping cost for ammonia
+  35   
+  36            1    2    3    4    5
+  37    0    56.0 47.4 47.6 54.4 51.0
+  38    1    20.4 33.6 34.5 26.9 29.5
+  39    2    33.4 20.2 26.7 31.3 28.1
+  40    3    35.3 27.7 21.2 35.0 32.2
+  41    4    41.8 46.4 49.1 35.3 42.1
+  42    5    43.0 41.8 44.9 40.7 33.9
+  43   
+  44  Table d(j,k)  production and shipping cost for fertilizer
+  45   
+  46            1    2    3    4    5    6    7    8    9   10   11   12
+  47    0    86.1 76.4 76.8 87.0 83.6 90.3 75.4 76.4 81.2 96.4 82.4 86.4
+  48    1    32.2 44.0 45.8 31.5 34.1 42.0 43.0 40.3 37.8 42.9 36.6 30.8
+  49    2    36.6 24.4 29.2 37.6 34.2 41.0 26.1 24.2 29.9 48.9 31.9 37.6
+  50    3    37.0 27.9 23.1 41.3 38.4 40.9 24.7 26.8 29.6 52.8 32.6 41.3
+  51    4    38.5 41.9 48.0 23.2 32.2 48.5 44.6 44.1 43.1 34.5 42.4 28.9
+  52    5    44.0 35.3 41.1 33.2 29.8 54.1 37.7 37.1 42.8 44.6 44.4 32.6
+  53   
+  54  Parameter r(k)  fertilizer demand   /  1   9.2,       7 168.6
+  55                                          2  59.9,       8  50.0
+  56                                          3  95.8,       9  34.0
+  57                                          4 185.3,      10  11.1
+  58                                          5 344.1,      11 109.5
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 3
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+C o m p i l a t i o n
+
+
+  59                                          6  66.1,      12  47.0 /
+  60   
+  61  Scalar bigm; bigm = sum(k, r(k)); Display bigm;
+  62   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 4
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+model
+
+
+  64   
+  65  Variables x(i,jd)  ammonia shipment
+  66            y(j,k)   fertilizer shipments
+  67            u(i,j,k) tagged product shipments
+  68            z(jd)    fertilizer decision
+  69            w(id)    ammonia decision
+  70            tc       total cost
+  71   
+  72  Positive Variables x, y, u;
+  73  Binary variables z, w;
+  74   
+  75  Equations fd(k)     final demand balance
+  76            fd1(k)    final demand balance (tagged)
+  77            ab(jd)    ammonia balance
+  78            ia(id)    integer constraint ammonia
+  79            ia1(id,k) integer constraint ammonia (tagged)
+  80            ifu(jd)   integer constraint fertilizer
+  81            ift(jd,k) integer constraint fertilizer (tagged)
+  82            ta        total cost balance
+  83            ta1       total cost balance (tagged) ;
+  84   
+
+  86   
+
+  87   ab(jd)..  sum(i, x(i,jd)) =g= sum(k, y(jd,k));
+
+  88   fd(k)..   sum(j, y(j,k))  =g= r(k);
+
+  89   ia(id)..  bigm*w(id)  =g=  sum(jd, x(id,jd));
+
+  90   ifu(jd).. bigm*z(jd)  =g=  sum(k, y(jd,k));
+
+  91   ta..      tc =e= sum(id, fc(id,"ammonia")*w(id)) + sum(jd, fc(jd,"fertilizer")*z(jd))
+
+  92                  + sum((i,jd), c(i,jd)*x(i,jd)) + sum((j,k), d(j,k)*y(j,k));
+
+  93   
+
+  94   fd1(k) ..   sum((i,j), u(i,j,k)) =g= r(k) ;
+
+  95   ia1(id,k).. r(k)*w(id) =g= sum(jd, u(id,jd,k)) ;
+
+  96   ift(jd,k).. r(k)*z(jd) =g= sum(i, u(i,jd,k)) ;
+
+  97   ta1..       tc =e= sum(id, fc(id,"ammonia")*w(id)) + sum(jd, fc(jd,"fertilizer")*z(jd))
+
+  98                    + sum((i,j,k), (c(i,j)+d(j,k))*u(i,j,k));
+ 100   
+ 101  Models  vietmip mip version       / fd,ab,ia,ifu,ta /
+ 102          viettag expanded version  / fd1,ia1,ift,ta1 /
+ 103   
+ 104  Solve vietmip minimizing tc using mip;
+ 105  Solve viettag minimizing tc using rmip;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 5
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+model
+
+
+ 106   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 6
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+enumeration
+
+
+ 108   
+ 109  Sets c32  labels 1 to 32 / 1*32 /
+ 110       type product types  / ammonia, fertilizer /
+ 111   
+ 112  Alias (c32,c32p)
+ 113   
+ 114  Parameters  pow2(id)         powers of 2
+ 115              com32(c32,i)     combinations
+ 116              tfix(c32,type)   total fixed cost at location
+ 117              minamm(c32,i)    minimum ammonia cost
+ 118              minfer(c32,c32p) minimum fertilizer cost
+ 119              fccom(c32,c32p)  fixed cost combinations
+ 120              tcost(c32,c32p)  total costs
+ 121              best             lowest cost
+ 122              best3p(c32,c32p) best combinations within 3 percent;
+ 123   
+ 124  pow2(id) = power(2,card(id)-ord(id));
+ 125  com32(c32,i)  = 1;
+ 126  com32(c32,id) = mod(floor((ord(c32)-1)/pow2(id)+.001),2);
+ 127   
+ 128  tfix(c32,type)   = sum(id, fc(id,type)*com32(c32,id));
+ 129  minamm(c32,id)   = smin(i$com32(c32,i), c(i,id));
+ 130  minfer(c32,c32p) = sum(k, r(k)*smin(i$com32(c32p,i), d(i,k) + minamm(c32,i)));
+ 131   
+ 132  fccom(c32,c32p)  = tfix(c32,"ammonia") + tfix(c32p,"fertilizer");
+ 133  tcost(c32,c32p)  = fccom(c32,c32p) + minfer(c32,c32p);
+ 134   
+ 135  best             = smin((c32,c32p), tcost(c32,c32p));
+ 136  best3p(c32,c32p) = tcost(c32,c32p)$(tcost(c32,c32p) le 1.03*best);
+ 137   
+ 138  Display pow2, com32, tfix, minamm, minfer, fccom, tcost, best, best3p;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 7
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+----     61 PARAMETER bigm                 =     1180.600  
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 8
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Equation Listing    SOLVE vietmip Using MIP From line 104
+
+
+---- fd  =G=  final demand balance
+
+fd(1)..  y(0,1) + y(1,1) + y(2,1) + y(3,1) + y(4,1) + y(5,1) =G= 9.2 ; (LHS = 0, INFES = 9.2 ****)
+     
+fd(2)..  y(0,2) + y(1,2) + y(2,2) + y(3,2) + y(4,2) + y(5,2) =G= 59.9 ; (LHS = 0, INFES = 59.9 ****)
+     
+fd(3)..  y(0,3) + y(1,3) + y(2,3) + y(3,3) + y(4,3) + y(5,3) =G= 95.8 ; (LHS = 0, INFES = 95.8 ****)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- ab  =G=  ammonia balance
+
+ab(1)..  x(0,1) + x(1,1) + x(2,1) + x(3,1) + x(4,1) + x(5,1) - y(1,1) - y(1,2) - y(1,3) - y(1,4) - y(1,5) - y(1,6) - y(1,7) - y(1,8) - y(1,9) - y(1,10) - y(1,11) - y(1,12) =G= 0 ; (LHS = 0)
+     
+ab(2)..  x(0,2) + x(1,2) + x(2,2) + x(3,2) + x(4,2) + x(5,2) - y(2,1) - y(2,2) - y(2,3) - y(2,4) - y(2,5) - y(2,6) - y(2,7) - y(2,8) - y(2,9) - y(2,10) - y(2,11) - y(2,12) =G= 0 ; (LHS = 0)
+     
+ab(3)..  x(0,3) + x(1,3) + x(2,3) + x(3,3) + x(4,3) + x(5,3) - y(3,1) - y(3,2) - y(3,3) - y(3,4) - y(3,5) - y(3,6) - y(3,7) - y(3,8) - y(3,9) - y(3,10) - y(3,11) - y(3,12) =G= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- ia  =G=  integer constraint ammonia
+
+ia(1)..  - x(1,1) - x(1,2) - x(1,3) - x(1,4) - x(1,5) + 1180.6*w(1) =G= 0 ; (LHS = 0)
+     
+ia(2)..  - x(2,1) - x(2,2) - x(2,3) - x(2,4) - x(2,5) + 1180.6*w(2) =G= 0 ; (LHS = 0)
+     
+ia(3)..  - x(3,1) - x(3,2) - x(3,3) - x(3,4) - x(3,5) + 1180.6*w(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- ifu  =G=  integer constraint fertilizer
+
+ifu(1)..  - y(1,1) - y(1,2) - y(1,3) - y(1,4) - y(1,5) - y(1,6) - y(1,7) - y(1,8) - y(1,9) - y(1,10) - y(1,11) - y(1,12) + 1180.6*z(1) =G= 0 ; (LHS = 0)
+     
+ifu(2)..  - y(2,1) - y(2,2) - y(2,3) - y(2,4) - y(2,5) - y(2,6) - y(2,7) - y(2,8) - y(2,9) - y(2,10) - y(2,11) - y(2,12) + 1180.6*z(2) =G= 0 ; (LHS = 0)
+     
+ifu(3)..  - y(3,1) - y(3,2) - y(3,3) - y(3,4) - y(3,5) - y(3,6) - y(3,7) - y(3,8) - y(3,9) - y(3,10) - y(3,11) - y(3,12) + 1180.6*z(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- ta  =E=  total cost balance
+
+ta..  - 56*x(0,1) - 47.4*x(0,2) - 47.6*x(0,3) - 54.4*x(0,4) - 51*x(0,5) - 20.4*x(1,1) - 33.6*x(1,2) - 34.5*x(1,3) - 26.9*x(1,4) - 29.5*x(1,5) - 33.4*x(2,1) - 20.2*x(2,2) - 26.7*x(2,3) - 31.3*x(2,4) - 28.1*x(2,5) - 35.3*x(3,1) - 27.7*x(3,2) - 21.2*x(3,3)
+     
+      - 35*x(3,4) - 32.2*x(3,5) - 41.8*x(4,1) - 46.4*x(4,2) - 49.1*x(4,3) - 35.3*x(4,4) - 42.1*x(4,5) - 43*x(5,1) - 41.8*x(5,2) - 44.9*x(5,3) - 40.7*x(5,4) - 33.9*x(5,5) - 86.1*y(0,1) - 76.4*y(0,2) - 76.8*y(0,3) - 87*y(0,4) - 83.6*y(0,5) - 90.3*y(0,6)
+     
+      - 75.4*y(0,7) - 76.4*y(0,8) - 81.2*y(0,9) - 96.4*y(0,10) - 82.4*y(0,11) - 86.4*y(0,12) - 32.2*y(1,1) - 44*y(1,2) - 45.8*y(1,3) - 31.5*y(1,4) - 34.1*y(1,5) - 42*y(1,6) - 43*y(1,7) - 40.3*y(1,8) - 37.8*y(1,9) - 42.9*y(1,10) - 36.6*y(1,11)
+     
+      - 30.8*y(1,12) - 36.6*y(2,1) - 24.4*y(2,2) - 29.2*y(2,3) - 37.6*y(2,4) - 34.2*y(2,5) - 41*y(2,6) - 26.1*y(2,7) - 24.2*y(2,8) - 29.9*y(2,9) - 48.9*y(2,10) - 31.9*y(2,11) - 37.6*y(2,12) - 37*y(3,1) - 27.9*y(3,2) - 23.1*y(3,3) - 41.3*y(3,4)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:34 Page 9
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Equation Listing    SOLVE vietmip Using MIP From line 104
+
+
+     ta  =E=  total cost balance     
+     
+      - 38.4*y(3,5) - 40.9*y(3,6) - 24.7*y(3,7) - 26.8*y(3,8) - 29.6*y(3,9) - 52.8*y(3,10) - 32.6*y(3,11) - 41.3*y(3,12) - 38.5*y(4,1) - 41.9*y(4,2) - 48*y(4,3) - 23.2*y(4,4) - 32.2*y(4,5) - 48.5*y(4,6) - 44.6*y(4,7) - 44.1*y(4,8) - 43.1*y(4,9)
+     
+      - 34.5*y(4,10) - 42.4*y(4,11) - 28.9*y(4,12) - 44*y(5,1) - 35.3*y(5,2) - 41.1*y(5,3) - 33.2*y(5,4) - 29.8*y(5,5) - 54.1*y(5,6) - 37.7*y(5,7) - 37.1*y(5,8) - 42.8*y(5,9) - 44.6*y(5,10) - 44.4*y(5,11) - 32.6*y(5,12) - 810*z(1) - 951*z(2) - 754*z(3)
+     
+      - 856*z(4) - 852*z(5) - 1760*w(1) - 1656*w(2) - 1626*w(3) - 1784*w(4) - 1782*w(5) + tc =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 10
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Column Listing      SOLVE vietmip Using MIP From line 104
+
+
+---- x  ammonia shipment
+
+x(0,1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(1)
+      -56       ta
+
+x(0,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(2)
+      -47.4     ta
+
+x(0,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(3)
+      -47.6     ta
+
+REMAINING 27 ENTRIES SKIPPED
+
+---- y  fertilizer shipments
+
+y(0,1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fd(1)
+      -86.1     ta
+
+y(0,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fd(2)
+      -76.4     ta
+
+y(0,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fd(3)
+      -76.8     ta
+
+REMAINING 69 ENTRIES SKIPPED
+
+---- z  fertilizer decision
+
+z(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1180.6     ifu(1)
+     -810       ta
+
+z(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1180.6     ifu(2)
+     -951       ta
+
+z(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1180.6     ifu(3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 11
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Column Listing      SOLVE vietmip Using MIP From line 104
+
+
+     z  fertilizer decision
+
+     -754       ta
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- w  ammonia decision
+
+w(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1180.6     ia(1)
+    -1760       ta
+
+w(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1180.6     ia(2)
+    -1656       ta
+
+w(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     1180.6     ia(3)
+    -1626       ta
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- tc  total cost
+
+tc
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ta
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 12
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Model Statistics    SOLVE vietmip Using MIP From line 104
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           28
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES          113
+NON ZERO ELEMENTS           370     DISCRETE VARIABLES         10
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 13
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE vietmip Using MIP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   vietmip             OBJECTIVE  tc
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/vietman/convert.opt"
+>>  gams vietman-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/vietman/convert.opt"
+Gams      : vietman-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 14
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Equation Listing    SOLVE viettag Using RMIP From line 105
+
+
+---- fd1  =G=  final demand balance (tagged)
+
+fd1(1)..  u(0,0,1) + u(0,1,1) + u(0,2,1) + u(0,3,1) + u(0,4,1) + u(0,5,1) + u(1,0,1) + u(1,1,1) + u(1,2,1) + u(1,3,1) + u(1,4,1) + u(1,5,1) + u(2,0,1) + u(2,1,1) + u(2,2,1) + u(2,3,1) + u(2,4,1) + u(2,5,1) + u(3,0,1) + u(3,1,1) + u(3,2,1) + u(3,3,1)
+     
+      + u(3,4,1) + u(3,5,1) + u(4,0,1) + u(4,1,1) + u(4,2,1) + u(4,3,1) + u(4,4,1) + u(4,5,1) + u(5,0,1) + u(5,1,1) + u(5,2,1) + u(5,3,1) + u(5,4,1) + u(5,5,1) =G= 9.2 ; (LHS = 0, INFES = 9.2 ****)
+     
+fd1(2)..  u(0,0,2) + u(0,1,2) + u(0,2,2) + u(0,3,2) + u(0,4,2) + u(0,5,2) + u(1,0,2) + u(1,1,2) + u(1,2,2) + u(1,3,2) + u(1,4,2) + u(1,5,2) + u(2,0,2) + u(2,1,2) + u(2,2,2) + u(2,3,2) + u(2,4,2) + u(2,5,2) + u(3,0,2) + u(3,1,2) + u(3,2,2) + u(3,3,2)
+     
+      + u(3,4,2) + u(3,5,2) + u(4,0,2) + u(4,1,2) + u(4,2,2) + u(4,3,2) + u(4,4,2) + u(4,5,2) + u(5,0,2) + u(5,1,2) + u(5,2,2) + u(5,3,2) + u(5,4,2) + u(5,5,2) =G= 59.9 ; (LHS = 0, INFES = 59.9 ****)
+     
+fd1(3)..  u(0,0,3) + u(0,1,3) + u(0,2,3) + u(0,3,3) + u(0,4,3) + u(0,5,3) + u(1,0,3) + u(1,1,3) + u(1,2,3) + u(1,3,3) + u(1,4,3) + u(1,5,3) + u(2,0,3) + u(2,1,3) + u(2,2,3) + u(2,3,3) + u(2,4,3) + u(2,5,3) + u(3,0,3) + u(3,1,3) + u(3,2,3) + u(3,3,3)
+     
+      + u(3,4,3) + u(3,5,3) + u(4,0,3) + u(4,1,3) + u(4,2,3) + u(4,3,3) + u(4,4,3) + u(4,5,3) + u(5,0,3) + u(5,1,3) + u(5,2,3) + u(5,3,3) + u(5,4,3) + u(5,5,3) =G= 95.8 ; (LHS = 0, INFES = 95.8 ****)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- ia1  =G=  integer constraint ammonia (tagged)
+
+ia1(1,1)..  - u(1,1,1) - u(1,2,1) - u(1,3,1) - u(1,4,1) - u(1,5,1) + 9.2*w(1) =G= 0 ; (LHS = 0)
+     
+ia1(1,2)..  - u(1,1,2) - u(1,2,2) - u(1,3,2) - u(1,4,2) - u(1,5,2) + 59.9*w(1) =G= 0 ; (LHS = 0)
+     
+ia1(1,3)..  - u(1,1,3) - u(1,2,3) - u(1,3,3) - u(1,4,3) - u(1,5,3) + 95.8*w(1) =G= 0 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- ift  =G=  integer constraint fertilizer (tagged)
+
+ift(1,1)..  - u(0,1,1) - u(1,1,1) - u(2,1,1) - u(3,1,1) - u(4,1,1) - u(5,1,1) + 9.2*z(1) =G= 0 ; (LHS = 0)
+     
+ift(1,2)..  - u(0,1,2) - u(1,1,2) - u(2,1,2) - u(3,1,2) - u(4,1,2) - u(5,1,2) + 59.9*z(1) =G= 0 ; (LHS = 0)
+     
+ift(1,3)..  - u(0,1,3) - u(1,1,3) - u(2,1,3) - u(3,1,3) - u(4,1,3) - u(5,1,3) + 95.8*z(1) =G= 0 ; (LHS = 0)
+     
+REMAINING 57 ENTRIES SKIPPED
+
+
+---- ta1  =E=  total cost balance (tagged)
+
+ta1..  - 86.1*u(0,0,1) - 76.4*u(0,0,2) - 76.8*u(0,0,3) - 87*u(0,0,4) - 83.6*u(0,0,5) - 90.3*u(0,0,6) - 75.4*u(0,0,7) - 76.4*u(0,0,8) - 81.2*u(0,0,9) - 96.4*u(0,0,10) - 82.4*u(0,0,11) - 86.4*u(0,0,12) - 88.2*u(0,1,1) - 100*u(0,1,2) - 101.8*u(0,1,3)
+     
+      - 87.5*u(0,1,4) - 90.1*u(0,1,5) - 98*u(0,1,6) - 99*u(0,1,7) - 96.3*u(0,1,8) - 93.8*u(0,1,9) - 98.9*u(0,1,10) - 92.6*u(0,1,11) - 86.8*u(0,1,12) - 84*u(0,2,1) - 71.8*u(0,2,2) - 76.6*u(0,2,3) - 85*u(0,2,4) - 81.6*u(0,2,5) - 88.4*u(0,2,6)
+     
+      - 73.5*u(0,2,7) - 71.6*u(0,2,8) - 77.3*u(0,2,9) - 96.3*u(0,2,10) - 79.3*u(0,2,11) - 85*u(0,2,12) - 84.6*u(0,3,1) - 75.5*u(0,3,2) - 70.7*u(0,3,3) - 88.9*u(0,3,4) - 86*u(0,3,5) - 88.5*u(0,3,6) - 72.3*u(0,3,7) - 74.4*u(0,3,8) - 77.2*u(0,3,9)
+     
+      - 100.4*u(0,3,10) - 80.2*u(0,3,11) - 88.9*u(0,3,12) - 92.9*u(0,4,1) - 96.3*u(0,4,2) - 102.4*u(0,4,3) - 77.6*u(0,4,4) - 86.6*u(0,4,5) - 102.9*u(0,4,6) - 99*u(0,4,7) - 98.5*u(0,4,8) - 97.5*u(0,4,9) - 88.9*u(0,4,10) - 96.8*u(0,4,11) - 83.3*u(0,4,12)
+     
+      - 95*u(0,5,1) - 86.3*u(0,5,2) - 92.1*u(0,5,3) - 84.2*u(0,5,4) - 80.8*u(0,5,5) - 105.1*u(0,5,6) - 88.7*u(0,5,7) - 88.1*u(0,5,8) - 93.8*u(0,5,9) - 95.6*u(0,5,10) - 95.4*u(0,5,11) - 83.6*u(0,5,12) - 86.1*u(1,0,1) - 76.4*u(1,0,2) - 76.8*u(1,0,3)
+     
+      - 87*u(1,0,4) - 83.6*u(1,0,5) - 90.3*u(1,0,6) - 75.4*u(1,0,7) - 76.4*u(1,0,8) - 81.2*u(1,0,9) - 96.4*u(1,0,10) - 82.4*u(1,0,11) - 86.4*u(1,0,12) - 52.6*u(1,1,1) - 64.4*u(1,1,2) - 66.2*u(1,1,3) - 51.9*u(1,1,4) - 54.5*u(1,1,5) - 62.4*u(1,1,6)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 15
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Equation Listing    SOLVE viettag Using RMIP From line 105
+
+
+     ta1  =E=  total cost balance (tagged)     
+     
+      - 63.4*u(1,1,7) - 60.7*u(1,1,8) - 58.2*u(1,1,9) - 63.3*u(1,1,10) - 57*u(1,1,11) - 51.2*u(1,1,12) - 70.2*u(1,2,1) - 58*u(1,2,2) - 62.8*u(1,2,3) - 71.2*u(1,2,4) - 67.8*u(1,2,5) - 74.6*u(1,2,6) - 59.7*u(1,2,7) - 57.8*u(1,2,8) - 63.5*u(1,2,9)
+     
+      - 82.5*u(1,2,10) - 65.5*u(1,2,11) - 71.2*u(1,2,12) - 71.5*u(1,3,1) - 62.4*u(1,3,2) - 57.6*u(1,3,3) - 75.8*u(1,3,4) - 72.9*u(1,3,5) - 75.4*u(1,3,6) - 59.2*u(1,3,7) - 61.3*u(1,3,8) - 64.1*u(1,3,9) - 87.3*u(1,3,10) - 67.1*u(1,3,11) - 75.8*u(1,3,12)
+     
+      - 65.4*u(1,4,1) - 68.8*u(1,4,2) - 74.9*u(1,4,3) - 50.1*u(1,4,4) - 59.1*u(1,4,5) - 75.4*u(1,4,6) - 71.5*u(1,4,7) - 71*u(1,4,8) - 70*u(1,4,9) - 61.4*u(1,4,10) - 69.3*u(1,4,11) - 55.8*u(1,4,12) - 73.5*u(1,5,1) - 64.8*u(1,5,2) - 70.6*u(1,5,3)
+     
+      - 62.7*u(1,5,4) - 59.3*u(1,5,5) - 83.6*u(1,5,6) - 67.2*u(1,5,7) - 66.6*u(1,5,8) - 72.3*u(1,5,9) - 74.1*u(1,5,10) - 73.9*u(1,5,11) - 62.1*u(1,5,12) - 86.1*u(2,0,1) - 76.4*u(2,0,2) - 76.8*u(2,0,3) - 87*u(2,0,4) - 83.6*u(2,0,5) - 90.3*u(2,0,6)
+     
+      - 75.4*u(2,0,7) - 76.4*u(2,0,8) - 81.2*u(2,0,9) - 96.4*u(2,0,10) - 82.4*u(2,0,11) - 86.4*u(2,0,12) - 65.6*u(2,1,1) - 77.4*u(2,1,2) - 79.2*u(2,1,3) - 64.9*u(2,1,4) - 67.5*u(2,1,5) - 75.4*u(2,1,6) - 76.4*u(2,1,7) - 73.7*u(2,1,8) - 71.2*u(2,1,9)
+     
+      - 76.3*u(2,1,10) - 70*u(2,1,11) - 64.2*u(2,1,12) - 56.8*u(2,2,1) - 44.6*u(2,2,2) - 49.4*u(2,2,3) - 57.8*u(2,2,4) - 54.4*u(2,2,5) - 61.2*u(2,2,6) - 46.3*u(2,2,7) - 44.4*u(2,2,8) - 50.1*u(2,2,9) - 69.1*u(2,2,10) - 52.1*u(2,2,11) - 57.8*u(2,2,12)
+     
+      - 63.7*u(2,3,1) - 54.6*u(2,3,2) - 49.8*u(2,3,3) - 68*u(2,3,4) - 65.1*u(2,3,5) - 67.6*u(2,3,6) - 51.4*u(2,3,7) - 53.5*u(2,3,8) - 56.3*u(2,3,9) - 79.5*u(2,3,10) - 59.3*u(2,3,11) - 68*u(2,3,12) - 69.8*u(2,4,1) - 73.2*u(2,4,2) - 79.3*u(2,4,3)
+     
+      - 54.5*u(2,4,4) - 63.5*u(2,4,5) - 79.8*u(2,4,6) - 75.9*u(2,4,7) - 75.4*u(2,4,8) - 74.4*u(2,4,9) - 65.8*u(2,4,10) - 73.7*u(2,4,11) - 60.2*u(2,4,12) - 72.1*u(2,5,1) - 63.4*u(2,5,2) - 69.2*u(2,5,3) - 61.3*u(2,5,4) - 57.9*u(2,5,5) - 82.2*u(2,5,6)
+     
+      - 65.8*u(2,5,7) - 65.2*u(2,5,8) - 70.9*u(2,5,9) - 72.7*u(2,5,10) - 72.5*u(2,5,11) - 60.7*u(2,5,12) - 86.1*u(3,0,1) - 76.4*u(3,0,2) - 76.8*u(3,0,3) - 87*u(3,0,4) - 83.6*u(3,0,5) - 90.3*u(3,0,6) - 75.4*u(3,0,7) - 76.4*u(3,0,8) - 81.2*u(3,0,9)
+     
+      - 96.4*u(3,0,10) - 82.4*u(3,0,11) - 86.4*u(3,0,12) - 67.5*u(3,1,1) - 79.3*u(3,1,2) - 81.1*u(3,1,3) - 66.8*u(3,1,4) - 69.4*u(3,1,5) - 77.3*u(3,1,6) - 78.3*u(3,1,7) - 75.6*u(3,1,8) - 73.1*u(3,1,9) - 78.2*u(3,1,10) - 71.9*u(3,1,11) - 66.1*u(3,1,12)
+     
+      - 64.3*u(3,2,1) - 52.1*u(3,2,2) - 56.9*u(3,2,3) - 65.3*u(3,2,4) - 61.9*u(3,2,5) - 68.7*u(3,2,6) - 53.8*u(3,2,7) - 51.9*u(3,2,8) - 57.6*u(3,2,9) - 76.6*u(3,2,10) - 59.6*u(3,2,11) - 65.3*u(3,2,12) - 58.2*u(3,3,1) - 49.1*u(3,3,2) - 44.3*u(3,3,3)
+     
+      - 62.5*u(3,3,4) - 59.6*u(3,3,5) - 62.1*u(3,3,6) - 45.9*u(3,3,7) - 48*u(3,3,8) - 50.8*u(3,3,9) - 74*u(3,3,10) - 53.8*u(3,3,11) - 62.5*u(3,3,12) - 73.5*u(3,4,1) - 76.9*u(3,4,2) - 83*u(3,4,3) - 58.2*u(3,4,4) - 67.2*u(3,4,5) - 83.5*u(3,4,6)
+     
+      - 79.6*u(3,4,7) - 79.1*u(3,4,8) - 78.1*u(3,4,9) - 69.5*u(3,4,10) - 77.4*u(3,4,11) - 63.9*u(3,4,12) - 76.2*u(3,5,1) - 67.5*u(3,5,2) - 73.3*u(3,5,3) - 65.4*u(3,5,4) - 62*u(3,5,5) - 86.3*u(3,5,6) - 69.9*u(3,5,7) - 69.3*u(3,5,8) - 75*u(3,5,9)
+     
+      - 76.8*u(3,5,10) - 76.6*u(3,5,11) - 64.8*u(3,5,12) - 86.1*u(4,0,1) - 76.4*u(4,0,2) - 76.8*u(4,0,3) - 87*u(4,0,4) - 83.6*u(4,0,5) - 90.3*u(4,0,6) - 75.4*u(4,0,7) - 76.4*u(4,0,8) - 81.2*u(4,0,9) - 96.4*u(4,0,10) - 82.4*u(4,0,11) - 86.4*u(4,0,12)
+     
+      - 74*u(4,1,1) - 85.8*u(4,1,2) - 87.6*u(4,1,3) - 73.3*u(4,1,4) - 75.9*u(4,1,5) - 83.8*u(4,1,6) - 84.8*u(4,1,7) - 82.1*u(4,1,8) - 79.6*u(4,1,9) - 84.7*u(4,1,10) - 78.4*u(4,1,11) - 72.6*u(4,1,12) - 83*u(4,2,1) - 70.8*u(4,2,2) - 75.6*u(4,2,3)
+     
+      - 84*u(4,2,4) - 80.6*u(4,2,5) - 87.4*u(4,2,6) - 72.5*u(4,2,7) - 70.6*u(4,2,8) - 76.3*u(4,2,9) - 95.3*u(4,2,10) - 78.3*u(4,2,11) - 84*u(4,2,12) - 86.1*u(4,3,1) - 77*u(4,3,2) - 72.2*u(4,3,3) - 90.4*u(4,3,4) - 87.5*u(4,3,5) - 90*u(4,3,6)
+     
+      - 73.8*u(4,3,7) - 75.9*u(4,3,8) - 78.7*u(4,3,9) - 101.9*u(4,3,10) - 81.7*u(4,3,11) - 90.4*u(4,3,12) - 73.8*u(4,4,1) - 77.2*u(4,4,2) - 83.3*u(4,4,3) - 58.5*u(4,4,4) - 67.5*u(4,4,5) - 83.8*u(4,4,6) - 79.9*u(4,4,7) - 79.4*u(4,4,8) - 78.4*u(4,4,9)
+     
+      - 69.8*u(4,4,10) - 77.7*u(4,4,11) - 64.2*u(4,4,12) - 86.1*u(4,5,1) - 77.4*u(4,5,2) - 83.2*u(4,5,3) - 75.3*u(4,5,4) - 71.9*u(4,5,5) - 96.2*u(4,5,6) - 79.8*u(4,5,7) - 79.2*u(4,5,8) - 84.9*u(4,5,9) - 86.7*u(4,5,10) - 86.5*u(4,5,11) - 74.7*u(4,5,12)
+     
+      - 86.1*u(5,0,1) - 76.4*u(5,0,2) - 76.8*u(5,0,3) - 87*u(5,0,4) - 83.6*u(5,0,5) - 90.3*u(5,0,6) - 75.4*u(5,0,7) - 76.4*u(5,0,8) - 81.2*u(5,0,9) - 96.4*u(5,0,10) - 82.4*u(5,0,11) - 86.4*u(5,0,12) - 75.2*u(5,1,1) - 87*u(5,1,2) - 88.8*u(5,1,3)
+     
+      - 74.5*u(5,1,4) - 77.1*u(5,1,5) - 85*u(5,1,6) - 86*u(5,1,7) - 83.3*u(5,1,8) - 80.8*u(5,1,9) - 85.9*u(5,1,10) - 79.6*u(5,1,11) - 73.8*u(5,1,12) - 78.4*u(5,2,1) - 66.2*u(5,2,2) - 71*u(5,2,3) - 79.4*u(5,2,4) - 76*u(5,2,5) - 82.8*u(5,2,6)
+     
+      - 67.9*u(5,2,7) - 66*u(5,2,8) - 71.7*u(5,2,9) - 90.7*u(5,2,10) - 73.7*u(5,2,11) - 79.4*u(5,2,12) - 81.9*u(5,3,1) - 72.8*u(5,3,2) - 68*u(5,3,3) - 86.2*u(5,3,4) - 83.3*u(5,3,5) - 85.8*u(5,3,6) - 69.6*u(5,3,7) - 71.7*u(5,3,8) - 74.5*u(5,3,9)
+     
+      - 97.7*u(5,3,10) - 77.5*u(5,3,11) - 86.2*u(5,3,12) - 79.2*u(5,4,1) - 82.6*u(5,4,2) - 88.7*u(5,4,3) - 63.9*u(5,4,4) - 72.9*u(5,4,5) - 89.2*u(5,4,6) - 85.3*u(5,4,7) - 84.8*u(5,4,8) - 83.8*u(5,4,9) - 75.2*u(5,4,10) - 83.1*u(5,4,11) - 69.6*u(5,4,12)
+     
+      - 77.9*u(5,5,1) - 69.2*u(5,5,2) - 75*u(5,5,3) - 67.1*u(5,5,4) - 63.7*u(5,5,5) - 88*u(5,5,6) - 71.6*u(5,5,7) - 71*u(5,5,8) - 76.7*u(5,5,9) - 78.5*u(5,5,10) - 78.3*u(5,5,11) - 66.5*u(5,5,12) - 810*z(1) - 951*z(2) - 754*z(3) - 856*z(4) - 852*z(5)
+     
+      - 1760*w(1) - 1656*w(2) - 1626*w(3) - 1784*w(4) - 1782*w(5) + tc =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 16
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Column Listing      SOLVE viettag Using RMIP From line 105
+
+
+---- u  tagged product shipments
+
+u(0,0,1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fd1(1)
+      -86.1     ta1
+
+u(0,0,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fd1(2)
+      -76.4     ta1
+
+u(0,0,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fd1(3)
+      -76.8     ta1
+
+REMAINING 429 ENTRIES SKIPPED
+
+---- z  fertilizer decision
+
+z(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        9.2     ift(1,1)
+       59.9     ift(1,2)
+       95.8     ift(1,3)
+      185.3     ift(1,4)
+      344.1     ift(1,5)
+       66.1     ift(1,6)
+      168.6     ift(1,7)
+       50       ift(1,8)
+       34       ift(1,9)
+       11.1     ift(1,10)
+      109.5     ift(1,11)
+       47       ift(1,12)
+     -810       ta1
+
+z(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        9.2     ift(2,1)
+       59.9     ift(2,2)
+       95.8     ift(2,3)
+      185.3     ift(2,4)
+      344.1     ift(2,5)
+       66.1     ift(2,6)
+      168.6     ift(2,7)
+       50       ift(2,8)
+       34       ift(2,9)
+       11.1     ift(2,10)
+      109.5     ift(2,11)
+       47       ift(2,12)
+     -951       ta1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 17
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Column Listing      SOLVE viettag Using RMIP From line 105
+
+
+     z  fertilizer decision
+
+z(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        9.2     ift(3,1)
+       59.9     ift(3,2)
+       95.8     ift(3,3)
+      185.3     ift(3,4)
+      344.1     ift(3,5)
+       66.1     ift(3,6)
+      168.6     ift(3,7)
+       50       ift(3,8)
+       34       ift(3,9)
+       11.1     ift(3,10)
+      109.5     ift(3,11)
+       47       ift(3,12)
+     -754       ta1
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- w  ammonia decision
+
+w(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        9.2     ia1(1,1)
+       59.9     ia1(1,2)
+       95.8     ia1(1,3)
+      185.3     ia1(1,4)
+      344.1     ia1(1,5)
+       66.1     ia1(1,6)
+      168.6     ia1(1,7)
+       50       ia1(1,8)
+       34       ia1(1,9)
+       11.1     ia1(1,10)
+      109.5     ia1(1,11)
+       47       ia1(1,12)
+    -1760       ta1
+
+w(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        9.2     ia1(2,1)
+       59.9     ia1(2,2)
+       95.8     ia1(2,3)
+      185.3     ia1(2,4)
+      344.1     ia1(2,5)
+       66.1     ia1(2,6)
+      168.6     ia1(2,7)
+       50       ia1(2,8)
+       34       ia1(2,9)
+       11.1     ia1(2,10)
+      109.5     ia1(2,11)
+       47       ia1(2,12)
+    -1656       ta1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 18
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Column Listing      SOLVE viettag Using RMIP From line 105
+
+
+     w  ammonia decision
+
+
+w(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        9.2     ia1(3,1)
+       59.9     ia1(3,2)
+       95.8     ia1(3,3)
+      185.3     ia1(3,4)
+      344.1     ia1(3,5)
+       66.1     ia1(3,6)
+      168.6     ia1(3,7)
+       50       ia1(3,8)
+       34       ia1(3,9)
+       11.1     ia1(3,10)
+      109.5     ia1(3,11)
+       47       ia1(3,12)
+    -1626       ta1
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- tc  total cost
+
+tc
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ta1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 19
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Model Statistics    SOLVE viettag Using RMIP From line 105
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          133
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          443
+NON ZERO ELEMENTS         1,655     DISCRETE VARIABLES         10
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 20
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   viettag             OBJECTIVE  tc
+     TYPE    RMIP                DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  105
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            64926.4600
+
+ RESOURCE USAGE, LIMIT          0.005      1000.000
+ ITERATION COUNT, LIMIT        36    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+--- GAMS/Cplex licensed for continuous and discrete problems.
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/vietman/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.01 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.48 ticks)
+Optimal solution found.
+Objective :       64926.460000
+
+
+---- EQU fd1  final demand balance (tagged)
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1          9.2000         9.2000        +INF           56.8000      
+2         59.9000        59.9000        +INF           44.6000      
+3         95.8000        95.8000        +INF           65.4706      
+4        185.3000       185.3000        +INF           59.5598      
+5        344.1000       344.1000        +INF           56.0010      
+6         66.1000        66.1000        +INF           62.1000      
+7        168.6000       168.6000        +INF           46.3000      
+8         50.0000        50.0000        +INF           44.4000      
+9         34.0000        34.0000        +INF           50.8000      
+10        11.1000        11.1000        +INF           69.1000      
+11       109.5000       109.5000        +INF           52.1000      
+12        47.0000        47.0000        +INF           62.5000      
+
+---- EQU ia1  integer constraint ammonia (tagged)
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+1.1           .              .            +INF            4.2000      
+1.2           .              .            +INF             .          
+1.3           .              .            +INF             .          
+1.4           .              .            +INF            6.1598      
+1.5           .              .            +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 21
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     EQU ia1  integer constraint ammonia (tagged)
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+1.6           .              .            +INF             .          
+1.7           .              .            +INF             .          
+1.8           .              .            +INF             .          
+1.9           .              .            +INF             .          
+1.10          .              .            +INF            4.4000      
+1.11          .              .            +INF             .          
+1.12          .              .            +INF           11.3000      
+2.1           .              .            +INF             .          
+2.2           .              .            +INF             .          
+2.3           .              .            +INF            7.8000      
+2.4           .              .            +INF            1.7598      
+2.5           .              .            +INF            1.1371      
+2.6           .              .            +INF            0.9000      
+2.7           .              .            +INF             .          
+2.8           .              .            +INF             .          
+2.9           .              .            +INF            0.7000      
+2.10          .              .            +INF             .          
+2.11          .              .            +INF             .          
+2.12          .              .            +INF            2.3000      
+3.1           .              .            +INF             .          
+3.2           .              .            +INF             .          
+3.3           .              .            +INF           13.3000      
+3.4           .              .            +INF             .          
+3.5           .              .            +INF             .          
+3.6           .              .            +INF             .          
+3.7           .              .            +INF            0.4000      
+3.8           .              .            +INF             .          
+3.9           .              .            +INF             .          
+3.10          .              .            +INF             .          
+3.11          .              .            +INF             .          
+3.12          .              .            +INF             .          
+4.1           .              .            +INF             .          
+4.2           .              .            +INF             .          
+4.3           .              .            +INF             .          
+4.4           .              .            +INF             .          
+4.5           .              .            +INF             .          
+4.6           .              .            +INF             .          
+4.7           .              .            +INF             .          
+4.8           .              .            +INF             .          
+4.9           .              .            +INF             .          
+4.10          .              .            +INF             .          
+4.11          .              .            +INF             .          
+4.12          .              .            +INF             .          
+5.1           .              .            +INF             .          
+5.2           .              .            +INF             .          
+5.3           .              .            +INF             .          
+5.4           .              .            +INF             .          
+5.5           .              .            +INF             .          
+5.6           .              .            +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 22
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     EQU ia1  integer constraint ammonia (tagged)
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+5.7           .              .            +INF             .          
+5.8           .              .            +INF             .          
+5.9           .              .            +INF             .          
+5.10          .              .            +INF             .          
+5.11          .              .            +INF             .          
+5.12          .              .            +INF             .          
+
+---- EQU ift  integer constraint fertilizer (tagged)
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+1.1           .              .            +INF             .          
+1.2           .              .            +INF             .          
+1.3           .              .            +INF             .          
+1.4           .              .            +INF            1.5000      
+1.5           .              .            +INF            1.5010      
+1.6           .              .            +INF             .          
+1.7           .              .            +INF             .          
+1.8           .              .            +INF             .          
+1.9           .              .            +INF             .          
+1.10          .              .            +INF            1.4000      
+1.11          .              .            +INF             .          
+1.12          .              .            +INF             .          
+2.1           .              .            +INF             .          
+2.2           .              .            +INF             .          
+2.3           .              .            +INF            8.2706      
+2.4           .              .            +INF             .          
+2.5           .              .            +INF            0.4640      
+2.6           .              .            +INF             .          
+2.7           .              .            +INF             .          
+2.8           .              .            +INF             .          
+2.9           .              .            +INF             .          
+2.10          .              .            +INF             .          
+2.11          .              .            +INF             .          
+2.12          .              .            +INF            2.4000      
+3.1           .              .            +INF             .          
+3.2           .              .            +INF             .          
+3.3           .              .            +INF            7.8706      
+3.4           .              .            +INF             .          
+3.5           .              .            +INF             .          
+3.6           .              .            +INF             .          
+3.7           .              .            +INF             .          
+3.8           .              .            +INF             .          
+3.9           .              .            +INF             .          
+3.10          .              .            +INF             .          
+3.11          .              .            +INF             .          
+3.12          .              .            +INF             .          
+4.1           .              .            +INF             .          
+4.2           .              .            +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 23
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     EQU ift  integer constraint fertilizer (tagged)
+
+            LOWER          LEVEL          UPPER         MARGINAL
+
+4.3           .              .            +INF             .          
+4.4           .              .            +INF            3.3000      
+4.5           .              .            +INF             .          
+4.6           .              .            +INF             .          
+4.7           .              .            +INF             .          
+4.8           .              .            +INF             .          
+4.9           .              .            +INF             .          
+4.10          .              .            +INF            3.3000      
+4.11          .              .            +INF             .          
+4.12          .              .            +INF             .          
+5.1           .              .            +INF             .          
+5.2           .              .            +INF             .          
+5.3           .              .            +INF             .          
+5.4           .              .            +INF             .          
+5.5           .              .            +INF             .          
+5.6           .              .            +INF             .          
+5.7           .              .            +INF             .          
+5.8           .              .            +INF             .          
+5.9           .              .            +INF             .          
+5.10          .              .            +INF             .          
+5.11          .              .            +INF             .          
+5.12          .              .            +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU ta1                 .              .              .             1.0000      
+
+  ta1  total cost balance (tagged)
+
+---- VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+0.0.1           .              .            +INF           29.3000      
+0.0.2           .              .            +INF           31.8000      
+0.0.3           .              .            +INF           11.3294      
+0.0.4           .              .            +INF           27.4402      
+0.0.5           .              .            +INF           27.5990      
+0.0.6           .              .            +INF           28.2000      
+0.0.7           .              .            +INF           29.1000      
+0.0.8           .              .            +INF           32.0000      
+0.0.9           .              .            +INF           30.4000      
+0.0.10          .              .            +INF           27.3000      
+0.0.11          .              .            +INF           30.3000      
+0.0.12          .              .            +INF           23.9000      
+0.1.1           .              .            +INF           31.4000      
+0.1.2           .              .            +INF           55.4000      
+0.1.3           .              .            +INF           36.3294      
+0.1.4           .              .            +INF           29.4402      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 24
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+0.1.5           .              .            +INF           35.6000      
+0.1.6           .              .            +INF           35.9000      
+0.1.7           .              .            +INF           52.7000      
+0.1.8           .              .            +INF           51.9000      
+0.1.9           .              .            +INF           43.0000      
+0.1.10          .              .            +INF           31.2000      
+0.1.11          .              .            +INF           40.5000      
+0.1.12          .              .            +INF           24.3000      
+0.2.1           .              .            +INF           27.2000      
+0.2.2           .              .            +INF           27.2000      
+0.2.3           .              .            +INF           19.4000      
+0.2.4           .              .            +INF           25.4402      
+0.2.5           .              .            +INF           26.0629      
+0.2.6           .              .            +INF           26.3000      
+0.2.7           .              .            +INF           27.2000      
+0.2.8           .              .            +INF           27.2000      
+0.2.9           .              .            +INF           26.5000      
+0.2.10          .              .            +INF           27.2000      
+0.2.11          .              .            +INF           27.2000      
+0.2.12          .              .            +INF           24.9000      
+0.3.1           .              .            +INF           27.8000      
+0.3.2           .              .            +INF           30.9000      
+0.3.3           .              .            +INF           13.1000      
+0.3.4           .              .            +INF           29.3402      
+0.3.5           .              .            +INF           29.9990      
+0.3.6           .              .            +INF           26.4000      
+0.3.7           .              .            +INF           26.0000      
+0.3.8           .              .            +INF           30.0000      
+0.3.9           .              .            +INF           26.4000      
+0.3.10          .              .            +INF           31.3000      
+0.3.11          .              .            +INF           28.1000      
+0.3.12          .              .            +INF           26.4000      
+0.4.1           .              .            +INF           36.1000      
+0.4.2           .              .            +INF           51.7000      
+0.4.3           .              .            +INF           36.9294      
+0.4.4           .              .            +INF           21.3402      
+0.4.5           .              .            +INF           30.5990      
+0.4.6           .              .            +INF           40.8000      
+0.4.7           .              .            +INF           52.7000      
+0.4.8           .              .            +INF           54.1000      
+0.4.9           .              .            +INF           46.7000      
+0.4.10          .              .            +INF           23.1000      
+0.4.11          .              .            +INF           44.7000      
+0.4.12          .              .            +INF           20.8000      
+0.5.1           .              .            +INF           38.2000      
+0.5.2           .              .            +INF           41.7000      
+0.5.3           .              .            +INF           26.6294      
+0.5.4           .              .            +INF           24.6402      
+0.5.5           .              .            +INF           24.7990      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 25
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+0.5.6           .              .            +INF           43.0000      
+0.5.7           .              .            +INF           42.4000      
+0.5.8           .              .            +INF           43.7000      
+0.5.9           .              .            +INF           43.0000      
+0.5.10          .              .            +INF           26.5000      
+0.5.11          .              .            +INF           43.3000      
+0.5.12          .              .            +INF           21.1000      
+1.0.1           .              .            +INF           29.3000      
+1.0.2           .              .            +INF           31.8000      
+1.0.3           .              .            +INF           11.3294      
+1.0.4           .              .            +INF           27.4402      
+1.0.5           .              .            +INF           27.5990      
+1.0.6           .              .            +INF           28.2000      
+1.0.7           .              .            +INF           29.1000      
+1.0.8           .              .            +INF           32.0000      
+1.0.9           .              .            +INF           30.4000      
+1.0.10          .              .            +INF           27.3000      
+1.0.11          .              .            +INF           30.3000      
+1.0.12          .              .            +INF           23.9000      
+1.1.1           .              .            +INF             .          
+1.1.2           .              .            +INF           19.8000      
+1.1.3           .              .            +INF            0.7294      
+1.1.4           .              .            +INF             .          
+1.1.5           .              .            +INF             .          
+1.1.6           .              .            +INF            0.3000      
+1.1.7           .              .            +INF           17.1000      
+1.1.8           .              .            +INF           16.3000      
+1.1.9           .              .            +INF            7.4000      
+1.1.10          .              .            +INF             .          
+1.1.11          .              .            +INF            4.9000      
+1.1.12          .              .            +INF             .          
+1.2.1           .              .            +INF           17.6000      
+1.2.2           .              .            +INF           13.4000      
+1.2.3           .              .            +INF            5.6000      
+1.2.4           .              .            +INF           17.8000      
+1.2.5           .              .            +INF           12.2629      
+1.2.6           .              .            +INF           12.5000      
+1.2.7           .              .            +INF           13.4000      
+1.2.8           .              .            +INF           13.4000      
+1.2.9           .              .            +INF           12.7000      
+1.2.10          .              .            +INF           17.8000      
+1.2.11          .              .            +INF           13.4000      
+1.2.12          .              .            +INF           22.4000      
+1.3.1           .              .            +INF           18.9000      
+1.3.2           .              .            +INF           17.8000      
+1.3.3           .              .            +INF             .          
+1.3.4           .              .            +INF           22.4000      
+1.3.5           .              .            +INF           16.8990      
+1.3.6           .              .            +INF           13.3000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 26
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+1.3.7           .              .            +INF           12.9000      
+1.3.8           .              .            +INF           16.9000      
+1.3.9           .              .            +INF           13.3000      
+1.3.10          .              .            +INF           22.6000      
+1.3.11          .              .            +INF           15.0000      
+1.3.12          .              .            +INF           24.6000      
+1.4.1           .              .            +INF           12.8000      
+1.4.2           .              .            +INF           24.2000      
+1.4.3           .              .            +INF            9.4294      
+1.4.4           .              .            +INF             .          
+1.4.5           .              .            +INF            3.0990      
+1.4.6           .              .            +INF           13.3000      
+1.4.7           .              .            +INF           25.2000      
+1.4.8           .              .            +INF           26.6000      
+1.4.9           .              .            +INF           19.2000      
+1.4.10          .              .            +INF             .          
+1.4.11          .              .            +INF           17.2000      
+1.4.12          .              .            +INF            4.6000      
+1.5.1           .              .            +INF           20.9000      
+1.5.2           .              .            +INF           20.2000      
+1.5.3           .              .            +INF            5.1294      
+1.5.4           .              .            +INF            9.3000      
+1.5.5           .              .            +INF            3.2990      
+1.5.6           .              .            +INF           21.5000      
+1.5.7           .              .            +INF           20.9000      
+1.5.8           .              .            +INF           22.2000      
+1.5.9           .              .            +INF           21.5000      
+1.5.10          .              .            +INF            9.4000      
+1.5.11          .              .            +INF           21.8000      
+1.5.12          .              .            +INF           10.9000      
+2.0.1           .              .            +INF           29.3000      
+2.0.2           .              .            +INF           31.8000      
+2.0.3           .              .            +INF           11.3294      
+2.0.4           .              .            +INF           27.4402      
+2.0.5           .              .            +INF           27.5990      
+2.0.6           .              .            +INF           28.2000      
+2.0.7           .              .            +INF           29.1000      
+2.0.8           .              .            +INF           32.0000      
+2.0.9           .              .            +INF           30.4000      
+2.0.10          .              .            +INF           27.3000      
+2.0.11          .              .            +INF           30.3000      
+2.0.12          .              .            +INF           23.9000      
+2.1.1           .              .            +INF            8.8000      
+2.1.2           .              .            +INF           32.8000      
+2.1.3           .              .            +INF           21.5294      
+2.1.4           .              .            +INF            8.6000      
+2.1.5           .              .            +INF           14.1371      
+2.1.6           .              .            +INF           14.2000      
+2.1.7           .              .            +INF           30.1000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 27
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+2.1.8           .              .            +INF           29.3000      
+2.1.9           .              .            +INF           21.1000      
+2.1.10          .              .            +INF            8.6000      
+2.1.11          .              .            +INF           17.9000      
+2.1.12          .              .            +INF            4.0000      
+2.2.1           .             9.2000        +INF             .          
+2.2.2           .            59.9000        +INF             .          
+2.2.3           .            95.8000        +INF             .          
+2.2.4           .           185.3000        +INF             .          
+2.2.5           .           344.1000        +INF             .          
+2.2.6           .            66.1000        +INF             .          
+2.2.7           .           168.6000        +INF             .          
+2.2.8           .            50.0000        +INF             .          
+2.2.9           .            34.0000        +INF             .          
+2.2.10          .            11.1000        +INF             .          
+2.2.11          .           109.5000        +INF             .          
+2.2.12          .            47.0000        +INF             .          
+2.3.1           .              .            +INF            6.9000      
+2.3.2           .              .            +INF           10.0000      
+2.3.3           .              .            +INF             .          
+2.3.4           .              .            +INF           10.2000      
+2.3.5           .              .            +INF           10.2360      
+2.3.6           .              .            +INF            6.4000      
+2.3.7           .              .            +INF            5.1000      
+2.3.8           .              .            +INF            9.1000      
+2.3.9           .              .            +INF            6.2000      
+2.3.10          .              .            +INF           10.4000      
+2.3.11          .              .            +INF            7.2000      
+2.3.12          .              .            +INF            7.8000      
+2.4.1           .              .            +INF           13.0000      
+2.4.2           .              .            +INF           28.6000      
+2.4.3           .              .            +INF           21.6294      
+2.4.4           .              .            +INF             .          
+2.4.5           .              .            +INF            8.6360      
+2.4.6           .              .            +INF           18.6000      
+2.4.7           .              .            +INF           29.6000      
+2.4.8           .              .            +INF           31.0000      
+2.4.9           .              .            +INF           24.3000      
+2.4.10          .              .            +INF             .          
+2.4.11          .              .            +INF           21.6000      
+2.4.12          .              .            +INF             .          
+2.5.1           .              .            +INF           15.3000      
+2.5.2           .              .            +INF           18.8000      
+2.5.3           .              .            +INF           11.5294      
+2.5.4           .              .            +INF            3.5000      
+2.5.5           .              .            +INF            3.0360      
+2.5.6           .              .            +INF           21.0000      
+2.5.7           .              .            +INF           19.5000      
+2.5.8           .              .            +INF           20.8000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 28
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+2.5.9           .              .            +INF           20.8000      
+2.5.10          .              .            +INF            3.6000      
+2.5.11          .              .            +INF           20.4000      
+2.5.12          .              .            +INF            0.5000      
+3.0.1           .              .            +INF           29.3000      
+3.0.2           .              .            +INF           31.8000      
+3.0.3           .              .            +INF           11.3294      
+3.0.4           .              .            +INF           27.4402      
+3.0.5           .              .            +INF           27.5990      
+3.0.6           .              .            +INF           28.2000      
+3.0.7           .              .            +INF           29.1000      
+3.0.8           .              .            +INF           32.0000      
+3.0.9           .              .            +INF           30.4000      
+3.0.10          .              .            +INF           27.3000      
+3.0.11          .              .            +INF           30.3000      
+3.0.12          .              .            +INF           23.9000      
+3.1.1           .              .            +INF           10.7000      
+3.1.2           .              .            +INF           34.7000      
+3.1.3           .              .            +INF           28.9294      
+3.1.4           .              .            +INF            8.7402      
+3.1.5           .              .            +INF           14.9000      
+3.1.6           .              .            +INF           15.2000      
+3.1.7           .              .            +INF           32.4000      
+3.1.8           .              .            +INF           31.2000      
+3.1.9           .              .            +INF           22.3000      
+3.1.10          .              .            +INF           10.5000      
+3.1.11          .              .            +INF           19.8000      
+3.1.12          .              .            +INF            3.6000      
+3.2.1           .              .            +INF            7.5000      
+3.2.2           .              .            +INF            7.5000      
+3.2.3           .              .            +INF           13.0000      
+3.2.4           .              .            +INF            5.7402      
+3.2.5           .              .            +INF            6.3629      
+3.2.6           .              .            +INF            6.6000      
+3.2.7           .              .            +INF            7.9000      
+3.2.8           .              .            +INF            7.5000      
+3.2.9           .              .            +INF            6.8000      
+3.2.10          .              .            +INF            7.5000      
+3.2.11          .              .            +INF            7.5000      
+3.2.12          .              .            +INF            5.2000      
+3.3.1           .              .            +INF            1.4000      
+3.3.2           .              .            +INF            4.5000      
+3.3.3           .              .            +INF             .          
+3.3.4           .              .            +INF            2.9402      
+3.3.5           .              .            +INF            3.5990      
+3.3.6           .              .            +INF             .          
+3.3.7           .              .            +INF             .          
+3.3.8           .              .            +INF            3.6000      
+3.3.9           .              .            +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 29
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+3.3.10          .              .            +INF            4.9000      
+3.3.11          .              .            +INF            1.7000      
+3.3.12          .              .            +INF             .          
+3.4.1           .              .            +INF           16.7000      
+3.4.2           .              .            +INF           32.3000      
+3.4.3           .              .            +INF           30.8294      
+3.4.4           .              .            +INF            1.9402      
+3.4.5           .              .            +INF           11.1990      
+3.4.6           .              .            +INF           21.4000      
+3.4.7           .              .            +INF           33.7000      
+3.4.8           .              .            +INF           34.7000      
+3.4.9           .              .            +INF           27.3000      
+3.4.10          .              .            +INF            3.7000      
+3.4.11          .              .            +INF           25.3000      
+3.4.12          .              .            +INF            1.4000      
+3.5.1           .              .            +INF           19.4000      
+3.5.2           .              .            +INF           22.9000      
+3.5.3           .              .            +INF           21.1294      
+3.5.4           .              .            +INF            5.8402      
+3.5.5           .              .            +INF            5.9990      
+3.5.6           .              .            +INF           24.2000      
+3.5.7           .              .            +INF           24.0000      
+3.5.8           .              .            +INF           24.9000      
+3.5.9           .              .            +INF           24.2000      
+3.5.10          .              .            +INF            7.7000      
+3.5.11          .              .            +INF           24.5000      
+3.5.12          .              .            +INF            2.3000      
+4.0.1           .              .            +INF           29.3000      
+4.0.2           .              .            +INF           31.8000      
+4.0.3           .              .            +INF           11.3294      
+4.0.4           .              .            +INF           27.4402      
+4.0.5           .              .            +INF           27.5990      
+4.0.6           .              .            +INF           28.2000      
+4.0.7           .              .            +INF           29.1000      
+4.0.8           .              .            +INF           32.0000      
+4.0.9           .              .            +INF           30.4000      
+4.0.10          .              .            +INF           27.3000      
+4.0.11          .              .            +INF           30.3000      
+4.0.12          .              .            +INF           23.9000      
+4.1.1           .              .            +INF           17.2000      
+4.1.2           .              .            +INF           41.2000      
+4.1.3           .              .            +INF           22.1294      
+4.1.4           .              .            +INF           15.2402      
+4.1.5           .              .            +INF           21.4000      
+4.1.6           .              .            +INF           21.7000      
+4.1.7           .              .            +INF           38.5000      
+4.1.8           .              .            +INF           37.7000      
+4.1.9           .              .            +INF           28.8000      
+4.1.10          .              .            +INF           17.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 30
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+4.1.11          .              .            +INF           26.3000      
+4.1.12          .              .            +INF           10.1000      
+4.2.1           .              .            +INF           26.2000      
+4.2.2           .              .            +INF           26.2000      
+4.2.3           .              .            +INF           18.4000      
+4.2.4           .              .            +INF           24.4402      
+4.2.5           .              .            +INF           25.0629      
+4.2.6           .              .            +INF           25.3000      
+4.2.7           .              .            +INF           26.2000      
+4.2.8           .              .            +INF           26.2000      
+4.2.9           .              .            +INF           25.5000      
+4.2.10          .              .            +INF           26.2000      
+4.2.11          .              .            +INF           26.2000      
+4.2.12          .              .            +INF           23.9000      
+4.3.1           .              .            +INF           29.3000      
+4.3.2           .              .            +INF           32.4000      
+4.3.3           .              .            +INF           14.6000      
+4.3.4           .              .            +INF           30.8402      
+4.3.5           .              .            +INF           31.4990      
+4.3.6           .              .            +INF           27.9000      
+4.3.7           .              .            +INF           27.5000      
+4.3.8           .              .            +INF           31.5000      
+4.3.9           .              .            +INF           27.9000      
+4.3.10          .              .            +INF           32.8000      
+4.3.11          .              .            +INF           29.6000      
+4.3.12          .              .            +INF           27.9000      
+4.4.1           .              .            +INF           17.0000      
+4.4.2           .              .            +INF           32.6000      
+4.4.3           .              .            +INF           17.8294      
+4.4.4           .              .            +INF            2.2402      
+4.4.5           .              .            +INF           11.4990      
+4.4.6           .              .            +INF           21.7000      
+4.4.7           .              .            +INF           33.6000      
+4.4.8           .              .            +INF           35.0000      
+4.4.9           .              .            +INF           27.6000      
+4.4.10          .              .            +INF            4.0000      
+4.4.11          .              .            +INF           25.6000      
+4.4.12          .              .            +INF            1.7000      
+4.5.1           .              .            +INF           29.3000      
+4.5.2           .              .            +INF           32.8000      
+4.5.3           .              .            +INF           17.7294      
+4.5.4           .              .            +INF           15.7402      
+4.5.5           .              .            +INF           15.8990      
+4.5.6           .              .            +INF           34.1000      
+4.5.7           .              .            +INF           33.5000      
+4.5.8           .              .            +INF           34.8000      
+4.5.9           .              .            +INF           34.1000      
+4.5.10          .              .            +INF           17.6000      
+4.5.11          .              .            +INF           34.4000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 31
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+4.5.12          .              .            +INF           12.2000      
+5.0.1           .              .            +INF           29.3000      
+5.0.2           .              .            +INF           31.8000      
+5.0.3           .              .            +INF           11.3294      
+5.0.4           .              .            +INF           27.4402      
+5.0.5           .              .            +INF           27.5990      
+5.0.6           .              .            +INF           28.2000      
+5.0.7           .              .            +INF           29.1000      
+5.0.8           .              .            +INF           32.0000      
+5.0.9           .              .            +INF           30.4000      
+5.0.10          .              .            +INF           27.3000      
+5.0.11          .              .            +INF           30.3000      
+5.0.12          .              .            +INF           23.9000      
+5.1.1           .              .            +INF           18.4000      
+5.1.2           .              .            +INF           42.4000      
+5.1.3           .              .            +INF           23.3294      
+5.1.4           .              .            +INF           16.4402      
+5.1.5           .              .            +INF           22.6000      
+5.1.6           .              .            +INF           22.9000      
+5.1.7           .              .            +INF           39.7000      
+5.1.8           .              .            +INF           38.9000      
+5.1.9           .              .            +INF           30.0000      
+5.1.10          .              .            +INF           18.2000      
+5.1.11          .              .            +INF           27.5000      
+5.1.12          .              .            +INF           11.3000      
+5.2.1           .              .            +INF           21.6000      
+5.2.2           .              .            +INF           21.6000      
+5.2.3           .              .            +INF           13.8000      
+5.2.4           .              .            +INF           19.8402      
+5.2.5           .              .            +INF           20.4629      
+5.2.6           .              .            +INF           20.7000      
+5.2.7           .              .            +INF           21.6000      
+5.2.8           .              .            +INF           21.6000      
+5.2.9           .              .            +INF           20.9000      
+5.2.10          .              .            +INF           21.6000      
+5.2.11          .              .            +INF           21.6000      
+5.2.12          .              .            +INF           19.3000      
+5.3.1           .              .            +INF           25.1000      
+5.3.2           .              .            +INF           28.2000      
+5.3.3           .              .            +INF           10.4000      
+5.3.4           .              .            +INF           26.6402      
+5.3.5           .              .            +INF           27.2990      
+5.3.6           .              .            +INF           23.7000      
+5.3.7           .              .            +INF           23.3000      
+5.3.8           .              .            +INF           27.3000      
+5.3.9           .              .            +INF           23.7000      
+5.3.10          .              .            +INF           28.6000      
+5.3.11          .              .            +INF           25.4000      
+5.3.12          .              .            +INF           23.7000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 32
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+     VAR u  tagged product shipments
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+5.4.1           .              .            +INF           22.4000      
+5.4.2           .              .            +INF           38.0000      
+5.4.3           .              .            +INF           23.2294      
+5.4.4           .              .            +INF            7.6402      
+5.4.5           .              .            +INF           16.8990      
+5.4.6           .              .            +INF           27.1000      
+5.4.7           .              .            +INF           39.0000      
+5.4.8           .              .            +INF           40.4000      
+5.4.9           .              .            +INF           33.0000      
+5.4.10          .              .            +INF            9.4000      
+5.4.11          .              .            +INF           31.0000      
+5.4.12          .              .            +INF            7.1000      
+5.5.1           .              .            +INF           21.1000      
+5.5.2           .              .            +INF           24.6000      
+5.5.3           .              .            +INF            9.5294      
+5.5.4           .              .            +INF            7.5402      
+5.5.5           .              .            +INF            7.6990      
+5.5.6           .              .            +INF           25.9000      
+5.5.7           .              .            +INF           25.3000      
+5.5.8           .              .            +INF           26.6000      
+5.5.9           .              .            +INF           25.9000      
+5.5.10          .              .            +INF            9.4000      
+5.5.11          .              .            +INF           26.2000      
+5.5.12          .              .            +INF            4.0000      
+
+---- VAR z  fertilizer decision
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .             1.0000          .          
+2          .             1.0000         1.0000      -113.7700      
+3          .              .             1.0000          .          
+4          .              .             1.0000       207.8800      
+5          .              .             1.0000       852.0000      
+
+---- VAR w  ammonia decision
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .             1.0000          .          
+2          .             1.0000         1.0000          .          
+3          .              .             1.0000       284.4200      
+4          .              .             1.0000      1784.0000      
+5          .              .             1.0000      1782.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 33
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+Solution Report     SOLVE viettag Using RMIP From line 105
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR tc                -INF        64926.4600        +INF             .          
+
+  tc  total cost
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 34
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+----    138 PARAMETER pow2  powers of 2
+
+1 16.000,    2  8.000,    3  4.000,    4  2.000,    5  1.000
+
+
+----    138 PARAMETER com32  combinations
+
+             0           1           2           3           4           5
+
+1        1.000
+2        1.000                                                       1.000
+3        1.000                                           1.000
+4        1.000                                           1.000       1.000
+5        1.000                               1.000
+6        1.000                               1.000                   1.000
+7        1.000                               1.000       1.000
+8        1.000                               1.000       1.000       1.000
+9        1.000                   1.000
+10       1.000                   1.000                               1.000
+11       1.000                   1.000                   1.000
+12       1.000                   1.000                   1.000       1.000
+13       1.000                   1.000       1.000
+14       1.000                   1.000       1.000                   1.000
+15       1.000                   1.000       1.000       1.000
+16       1.000                   1.000       1.000       1.000       1.000
+17       1.000       1.000
+18       1.000       1.000                                           1.000
+19       1.000       1.000                               1.000
+20       1.000       1.000                               1.000       1.000
+21       1.000       1.000                   1.000
+22       1.000       1.000                   1.000                   1.000
+23       1.000       1.000                   1.000       1.000
+24       1.000       1.000                   1.000       1.000       1.000
+25       1.000       1.000       1.000
+26       1.000       1.000       1.000                               1.000
+27       1.000       1.000       1.000                   1.000
+28       1.000       1.000       1.000                   1.000       1.000
+29       1.000       1.000       1.000       1.000
+30       1.000       1.000       1.000       1.000                   1.000
+31       1.000       1.000       1.000       1.000       1.000
+32       1.000       1.000       1.000       1.000       1.000       1.000
+
+
+----    138 PARAMETER tfix  total fixed cost at location
+
+       ammonia  fertilizer
+
+2     1782.000     852.000
+3     1784.000     856.000
+4     3566.000    1708.000
+5     1626.000     754.000
+6     3408.000    1606.000
+7     3410.000    1610.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 35
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER tfix  total fixed cost at location
+
+       ammonia  fertilizer
+
+8     5192.000    2462.000
+9     1656.000     951.000
+10    3438.000    1803.000
+11    3440.000    1807.000
+12    5222.000    2659.000
+13    3282.000    1705.000
+14    5064.000    2557.000
+15    5066.000    2561.000
+16    6848.000    3413.000
+17    1760.000     810.000
+18    3542.000    1662.000
+19    3544.000    1666.000
+20    5326.000    2518.000
+21    3386.000    1564.000
+22    5168.000    2416.000
+23    5170.000    2420.000
+24    6952.000    3272.000
+25    3416.000    1761.000
+26    5198.000    2613.000
+27    5200.000    2617.000
+28    6982.000    3469.000
+29    5042.000    2515.000
+30    6824.000    3367.000
+31    6826.000    3371.000
+32    8608.000    4223.000
+
+
+----    138 PARAMETER minamm  minimum ammonia cost
+
+             1           2           3           4           5
+
+1       56.000      47.400      47.600      54.400      51.000
+2       43.000      41.800      44.900      40.700      33.900
+3       41.800      46.400      47.600      35.300      42.100
+4       41.800      41.800      44.900      35.300      33.900
+5       35.300      27.700      21.200      35.000      32.200
+6       35.300      27.700      21.200      35.000      32.200
+7       35.300      27.700      21.200      35.000      32.200
+8       35.300      27.700      21.200      35.000      32.200
+9       33.400      20.200      26.700      31.300      28.100
+10      33.400      20.200      26.700      31.300      28.100
+11      33.400      20.200      26.700      31.300      28.100
+12      33.400      20.200      26.700      31.300      28.100
+13      33.400      20.200      21.200      31.300      28.100
+14      33.400      20.200      21.200      31.300      28.100
+15      33.400      20.200      21.200      31.300      28.100
+16      33.400      20.200      21.200      31.300      28.100
+17      20.400      33.600      34.500      26.900      29.500
+18      20.400      33.600      34.500      26.900      29.500
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 36
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER minamm  minimum ammonia cost
+
+             1           2           3           4           5
+
+19      20.400      33.600      34.500      26.900      29.500
+20      20.400      33.600      34.500      26.900      29.500
+21      20.400      27.700      21.200      26.900      29.500
+22      20.400      27.700      21.200      26.900      29.500
+23      20.400      27.700      21.200      26.900      29.500
+24      20.400      27.700      21.200      26.900      29.500
+25      20.400      20.200      26.700      26.900      28.100
+26      20.400      20.200      26.700      26.900      28.100
+27      20.400      20.200      26.700      26.900      28.100
+28      20.400      20.200      26.700      26.900      28.100
+29      20.400      20.200      21.200      26.900      28.100
+30      20.400      20.200      21.200      26.900      28.100
+31      20.400      20.200      21.200      26.900      28.100
+32      20.400      20.200      21.200      26.900      28.100
+
+
+----    138 PARAMETER minfer  minimum fertilizer cost
+
+             1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20          21
+
+1    97029.490   95406.690   95058.720   94095.240   95258.860   93636.060   93288.090   92324.610   94431.780   93934.690   92898.520   92623.240   93660.840   93163.750   92127.580   91852.300   97029.490   95406.690   95058.720   94095.240   95258.860
+2    97029.490   83016.620   87906.080   82387.030   93396.620   81701.000   84645.430   81071.410   87820.420   80562.480   83248.910   79932.890   87533.020   80275.080   82961.510   79645.490   90997.030   82793.480   87271.460   82163.890   88281.320
+3    97029.490   90177.940   83717.110   83717.110   95258.860   88407.310   82415.360   82415.360   93251.180   88112.840   82416.370   82416.370   92748.040   87609.700   81913.230   81913.230   90029.470   88653.070   83717.110   83717.110   88686.920
+4    97029.490   83016.620   83717.110   80837.330   93396.620   81701.000   81291.050   79732.830   87820.420   80562.480   80034.090   78726.510   87533.020   80275.080   79746.690   78439.110   90029.470   82703.120   83717.110   80837.330   87485.960
+5    97029.490   81009.600   83475.220   79342.190   65430.830   65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090   84748.520   79755.410   82197.950   78297.920   65430.830
+6    97029.490   81009.600   83475.220   79342.190   65430.830   65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090   84748.520   79755.410   82197.950   78297.920   65430.830
+7    97029.490   81009.600   83475.220   79342.190   65430.830   65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090   84748.520   79755.410   82197.950   78297.920   65430.830
+8    97029.490   81009.600   83475.220   79342.190   65430.830   65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090   84748.520   79755.410   82197.950   78297.920   65430.830
+9    97029.490   76169.140   80250.230   74629.210   71924.130   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340   83121.550   75386.110   79321.800   74025.980   71135.580
+10   97029.490   76169.140   80250.230   74629.210   71924.130   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340   83121.550   75386.110   79321.800   74025.980   71135.580
+11   97029.490   76169.140   80250.230   74629.210   71924.130   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340   83121.550   75386.110   79321.800   74025.980   71135.580
+12   97029.490   76169.140   80250.230   74629.210   71924.130   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340   83121.550   75386.110   79321.800   74025.980   71135.580
+13   97029.490   76169.140   80250.230   74629.210   65430.830   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320   83121.550   75386.110   79321.800   74025.980   65430.830
+14   97029.490   76169.140   80250.230   74629.210   65430.830   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320   83121.550   75386.110   79321.800   74025.980   65430.830
+15   97029.490   76169.140   80250.230   74629.210   65430.830   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320   83121.550   75386.110   79321.800   74025.980   65430.830
+16   97029.490   76169.140   80250.230   74629.210   65430.830   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320   83121.550   75386.110   79321.800   74025.980   65430.830
+17   97029.490   77821.980   75379.390   73782.870   81132.810   73235.200   70338.410   70338.410   78139.500   73118.660   70233.830   70233.830   77557.040   72536.200   69651.370   69651.370   68232.170   68232.170   67877.540   67877.540   66580.370
+18   97029.490   77821.980   75379.390   73782.870   81132.810   73235.200   70338.410   70338.410   78139.500   73118.660   70233.830   70233.830   77557.040   72536.200   69651.370   69651.370   68232.170   68232.170   67877.540   67877.540   66580.370
+19   97029.490   77821.980   75379.390   73782.870   81132.810   73235.200   70338.410   70338.410   78139.500   73118.660   70233.830   70233.830   77557.040   72536.200   69651.370   69651.370   68232.170   68232.170   67877.540   67877.540   66580.370
+20   97029.490   77821.980   75379.390   73782.870   81132.810   73235.200   70338.410   70338.410   78139.500   73118.660   70233.830   70233.830   77557.040   72536.200   69651.370   69651.370   68232.170   68232.170   67877.540   67877.540   66580.370
+21   97029.490   77821.980   75379.390   73782.870   65430.830   65308.800   62506.300   62506.300   71173.960   69619.370   66778.700   66778.700   65430.830   65308.800   62506.300   62506.300   68232.170   68232.170   67877.540   67877.540   61010.350
+22   97029.490   77821.980   75379.390   73782.870   65430.830   65308.800   62506.300   62506.300   71173.960   69619.370   66778.700   66778.700   65430.830   65308.800   62506.300   62506.300   68232.170   68232.170   67877.540   67877.540   61010.350
+23   97029.490   77821.980   75379.390   73782.870   65430.830   65308.800   62506.300   62506.300   71173.960   69619.370   66778.700   66778.700   65430.830   65308.800   62506.300   62506.300   68232.170   68232.170   67877.540   67877.540   61010.350
+24   97029.490   77821.980   75379.390   73782.870   65430.830   65308.800   62506.300   62506.300   71173.960   69619.370   66778.700   66778.700   65430.830   65308.800   62506.300   62506.300   68232.170   68232.170   67877.540   67877.540   61010.350
+25   97029.490   76169.140   75379.390   72845.930   71924.130   67786.520   65768.350   65355.430   62319.460   62319.460   60713.180   60713.180   62319.460   62319.460   60713.180   60713.180   68232.170   68172.270   67877.540   67817.640   63626.230
+26   97029.490   76169.140   75379.390   72845.930   71924.130   67786.520   65768.350   65355.430   62319.460   62319.460   60713.180   60713.180   62319.460   62319.460   60713.180   60713.180   68232.170   68172.270   67877.540   67817.640   63626.230
+27   97029.490   76169.140   75379.390   72845.930   71924.130   67786.520   65768.350   65355.430   62319.460   62319.460   60713.180   60713.180   62319.460   62319.460   60713.180   60713.180   68232.170   68172.270   67877.540   67817.640   63626.230
+28   97029.490   76169.140   75379.390   72845.930   71924.130   67786.520   65768.350   65355.430   62319.460   62319.460   60713.180   60713.180   62319.460   62319.460   60713.180   60713.180   68232.170   68172.270   67877.540   67817.640   63626.230
+29   97029.490   76169.140   75379.390   72845.930   65430.830   64524.470   62506.300   62093.380   62319.460   62319.460   60713.180   60713.180   61763.440   61763.440   60157.160   60157.160   68232.170   68172.270   67877.540   67817.640   61010.350
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 37
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER minfer  minimum fertilizer cost
+
+             1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20          21
+
+30   97029.490   76169.140   75379.390   72845.930   65430.830   64524.470   62506.300   62093.380   62319.460   62319.460   60713.180   60713.180   61763.440   61763.440   60157.160   60157.160   68232.170   68172.270   67877.540   67817.640   61010.350
+31   97029.490   76169.140   75379.390   72845.930   65430.830   64524.470   62506.300   62093.380   62319.460   62319.460   60713.180   60713.180   61763.440   61763.440   60157.160   60157.160   68232.170   68172.270   67877.540   67817.640   61010.350
+32   97029.490   76169.140   75379.390   72845.930   65430.830   64524.470   62506.300   62093.380   62319.460   62319.460   60713.180   60713.180   61763.440   61763.440   60157.160   60157.160   68232.170   68172.270   67877.540   67817.640   61010.350
+
+ +          22          23          24          25          26          27          28          29          30          31          32
+
+1    93636.060   93288.090   92324.610   94431.780   93934.690   92898.520   92623.240   93660.840   93163.750   92127.580   91852.300
+2    81623.280   84555.750   80993.690   86566.530   80537.640   83219.470   79908.050   86279.130   80250.240   82932.070   79620.650
+3    87310.520   82415.360   82415.360   88676.980   87300.580   82416.370   82416.370   88173.840   86797.440   81913.230   81913.230
+4    81532.920   81291.050   79732.830   86229.000   80526.600   80034.090   78726.510   85941.600   80239.200   79746.690   78439.110
+5    65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090
+6    65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090
+7    65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090
+8    65430.830   64584.090   64584.090   71173.960   71150.460   69713.720   69713.720   65430.830   65430.830   64584.090   64584.090
+9    67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340
+10   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340
+11   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340
+12   67786.520   68353.350   66426.390   62319.460   62319.460   61671.340   61671.340   62319.460   62319.460   61671.340   61671.340
+13   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320
+14   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320
+15   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320
+16   64524.470   63749.310   63164.340   62319.460   62319.460   61671.340   61671.340   61763.440   61763.440   61115.320   61115.320
+17   66580.370   66225.740   66225.740   66754.270   66754.270   66399.640   66399.640   66171.810   66171.810   65817.180   65817.180
+18   66580.370   66225.740   66225.740   66754.270   66754.270   66399.640   66399.640   66171.810   66171.810   65817.180   65817.180
+19   66580.370   66225.740   66225.740   66754.270   66754.270   66399.640   66399.640   66171.810   66171.810   65817.180   65817.180
+20   66580.370   66225.740   66225.740   66754.270   66754.270   66399.640   66399.640   66171.810   66171.810   65817.180   65817.180
+21   61010.350   60655.720   60655.720   64525.500   64525.500   64170.870   64170.870   61010.350   61010.350   60655.720   60655.720
+22   61010.350   60655.720   60655.720   64525.500   64525.500   64170.870   64170.870   61010.350   61010.350   60655.720   60655.720
+23   61010.350   60655.720   60655.720   64525.500   64525.500   64170.870   64170.870   61010.350   61010.350   60655.720   60655.720
+24   61010.350   60655.720   60655.720   64525.500   64525.500   64170.870   64170.870   61010.350   61010.350   60655.720   60655.720
+25   63626.230   63271.600   63271.600   60812.970   60812.970   60458.340   60458.340   60812.970   60812.970   60458.340   60458.340
+26   63626.230   63271.600   63271.600   60812.970   60812.970   60458.340   60458.340   60812.970   60812.970   60458.340   60458.340
+27   63626.230   63271.600   63271.600   60812.970   60812.970   60458.340   60458.340   60812.970   60812.970   60458.340   60458.340
+28   63626.230   63271.600   63271.600   60812.970   60812.970   60458.340   60458.340   60812.970   60812.970   60458.340   60458.340
+29   61010.350   60655.720   60655.720   60812.970   60812.970   60458.340   60458.340   60256.950   60256.950   59902.320   59902.320
+30   61010.350   60655.720   60655.720   60812.970   60812.970   60458.340   60458.340   60256.950   60256.950   59902.320   59902.320
+31   61010.350   60655.720   60655.720   60812.970   60812.970   60458.340   60458.340   60256.950   60256.950   59902.320   59902.320
+32   61010.350   60655.720   60655.720   60812.970   60812.970   60458.340   60458.340   60256.950   60256.950   59902.320   59902.320
+
+
+----    138 PARAMETER fccom  fixed cost combinations
+
+             1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20          21
+
+1                  852.000     856.000    1708.000     754.000    1606.000    1610.000    2462.000     951.000    1803.000    1807.000    2659.000    1705.000    2557.000    2561.000    3413.000     810.000    1662.000    1666.000    2518.000    1564.000
+2     1782.000    2634.000    2638.000    3490.000    2536.000    3388.000    3392.000    4244.000    2733.000    3585.000    3589.000    4441.000    3487.000    4339.000    4343.000    5195.000    2592.000    3444.000    3448.000    4300.000    3346.000
+3     1784.000    2636.000    2640.000    3492.000    2538.000    3390.000    3394.000    4246.000    2735.000    3587.000    3591.000    4443.000    3489.000    4341.000    4345.000    5197.000    2594.000    3446.000    3450.000    4302.000    3348.000
+4     3566.000    4418.000    4422.000    5274.000    4320.000    5172.000    5176.000    6028.000    4517.000    5369.000    5373.000    6225.000    5271.000    6123.000    6127.000    6979.000    4376.000    5228.000    5232.000    6084.000    5130.000
+5     1626.000    2478.000    2482.000    3334.000    2380.000    3232.000    3236.000    4088.000    2577.000    3429.000    3433.000    4285.000    3331.000    4183.000    4187.000    5039.000    2436.000    3288.000    3292.000    4144.000    3190.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 38
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER fccom  fixed cost combinations
+
+             1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20          21
+
+6     3408.000    4260.000    4264.000    5116.000    4162.000    5014.000    5018.000    5870.000    4359.000    5211.000    5215.000    6067.000    5113.000    5965.000    5969.000    6821.000    4218.000    5070.000    5074.000    5926.000    4972.000
+7     3410.000    4262.000    4266.000    5118.000    4164.000    5016.000    5020.000    5872.000    4361.000    5213.000    5217.000    6069.000    5115.000    5967.000    5971.000    6823.000    4220.000    5072.000    5076.000    5928.000    4974.000
+8     5192.000    6044.000    6048.000    6900.000    5946.000    6798.000    6802.000    7654.000    6143.000    6995.000    6999.000    7851.000    6897.000    7749.000    7753.000    8605.000    6002.000    6854.000    6858.000    7710.000    6756.000
+9     1656.000    2508.000    2512.000    3364.000    2410.000    3262.000    3266.000    4118.000    2607.000    3459.000    3463.000    4315.000    3361.000    4213.000    4217.000    5069.000    2466.000    3318.000    3322.000    4174.000    3220.000
+10    3438.000    4290.000    4294.000    5146.000    4192.000    5044.000    5048.000    5900.000    4389.000    5241.000    5245.000    6097.000    5143.000    5995.000    5999.000    6851.000    4248.000    5100.000    5104.000    5956.000    5002.000
+11    3440.000    4292.000    4296.000    5148.000    4194.000    5046.000    5050.000    5902.000    4391.000    5243.000    5247.000    6099.000    5145.000    5997.000    6001.000    6853.000    4250.000    5102.000    5106.000    5958.000    5004.000
+12    5222.000    6074.000    6078.000    6930.000    5976.000    6828.000    6832.000    7684.000    6173.000    7025.000    7029.000    7881.000    6927.000    7779.000    7783.000    8635.000    6032.000    6884.000    6888.000    7740.000    6786.000
+13    3282.000    4134.000    4138.000    4990.000    4036.000    4888.000    4892.000    5744.000    4233.000    5085.000    5089.000    5941.000    4987.000    5839.000    5843.000    6695.000    4092.000    4944.000    4948.000    5800.000    4846.000
+14    5064.000    5916.000    5920.000    6772.000    5818.000    6670.000    6674.000    7526.000    6015.000    6867.000    6871.000    7723.000    6769.000    7621.000    7625.000    8477.000    5874.000    6726.000    6730.000    7582.000    6628.000
+15    5066.000    5918.000    5922.000    6774.000    5820.000    6672.000    6676.000    7528.000    6017.000    6869.000    6873.000    7725.000    6771.000    7623.000    7627.000    8479.000    5876.000    6728.000    6732.000    7584.000    6630.000
+16    6848.000    7700.000    7704.000    8556.000    7602.000    8454.000    8458.000    9310.000    7799.000    8651.000    8655.000    9507.000    8553.000    9405.000    9409.000   10261.000    7658.000    8510.000    8514.000    9366.000    8412.000
+17    1760.000    2612.000    2616.000    3468.000    2514.000    3366.000    3370.000    4222.000    2711.000    3563.000    3567.000    4419.000    3465.000    4317.000    4321.000    5173.000    2570.000    3422.000    3426.000    4278.000    3324.000
+18    3542.000    4394.000    4398.000    5250.000    4296.000    5148.000    5152.000    6004.000    4493.000    5345.000    5349.000    6201.000    5247.000    6099.000    6103.000    6955.000    4352.000    5204.000    5208.000    6060.000    5106.000
+19    3544.000    4396.000    4400.000    5252.000    4298.000    5150.000    5154.000    6006.000    4495.000    5347.000    5351.000    6203.000    5249.000    6101.000    6105.000    6957.000    4354.000    5206.000    5210.000    6062.000    5108.000
+20    5326.000    6178.000    6182.000    7034.000    6080.000    6932.000    6936.000    7788.000    6277.000    7129.000    7133.000    7985.000    7031.000    7883.000    7887.000    8739.000    6136.000    6988.000    6992.000    7844.000    6890.000
+21    3386.000    4238.000    4242.000    5094.000    4140.000    4992.000    4996.000    5848.000    4337.000    5189.000    5193.000    6045.000    5091.000    5943.000    5947.000    6799.000    4196.000    5048.000    5052.000    5904.000    4950.000
+22    5168.000    6020.000    6024.000    6876.000    5922.000    6774.000    6778.000    7630.000    6119.000    6971.000    6975.000    7827.000    6873.000    7725.000    7729.000    8581.000    5978.000    6830.000    6834.000    7686.000    6732.000
+23    5170.000    6022.000    6026.000    6878.000    5924.000    6776.000    6780.000    7632.000    6121.000    6973.000    6977.000    7829.000    6875.000    7727.000    7731.000    8583.000    5980.000    6832.000    6836.000    7688.000    6734.000
+24    6952.000    7804.000    7808.000    8660.000    7706.000    8558.000    8562.000    9414.000    7903.000    8755.000    8759.000    9611.000    8657.000    9509.000    9513.000   10365.000    7762.000    8614.000    8618.000    9470.000    8516.000
+25    3416.000    4268.000    4272.000    5124.000    4170.000    5022.000    5026.000    5878.000    4367.000    5219.000    5223.000    6075.000    5121.000    5973.000    5977.000    6829.000    4226.000    5078.000    5082.000    5934.000    4980.000
+26    5198.000    6050.000    6054.000    6906.000    5952.000    6804.000    6808.000    7660.000    6149.000    7001.000    7005.000    7857.000    6903.000    7755.000    7759.000    8611.000    6008.000    6860.000    6864.000    7716.000    6762.000
+27    5200.000    6052.000    6056.000    6908.000    5954.000    6806.000    6810.000    7662.000    6151.000    7003.000    7007.000    7859.000    6905.000    7757.000    7761.000    8613.000    6010.000    6862.000    6866.000    7718.000    6764.000
+28    6982.000    7834.000    7838.000    8690.000    7736.000    8588.000    8592.000    9444.000    7933.000    8785.000    8789.000    9641.000    8687.000    9539.000    9543.000   10395.000    7792.000    8644.000    8648.000    9500.000    8546.000
+29    5042.000    5894.000    5898.000    6750.000    5796.000    6648.000    6652.000    7504.000    5993.000    6845.000    6849.000    7701.000    6747.000    7599.000    7603.000    8455.000    5852.000    6704.000    6708.000    7560.000    6606.000
+30    6824.000    7676.000    7680.000    8532.000    7578.000    8430.000    8434.000    9286.000    7775.000    8627.000    8631.000    9483.000    8529.000    9381.000    9385.000   10237.000    7634.000    8486.000    8490.000    9342.000    8388.000
+31    6826.000    7678.000    7682.000    8534.000    7580.000    8432.000    8436.000    9288.000    7777.000    8629.000    8633.000    9485.000    8531.000    9383.000    9387.000   10239.000    7636.000    8488.000    8492.000    9344.000    8390.000
+32    8608.000    9460.000    9464.000   10316.000    9362.000   10214.000   10218.000   11070.000    9559.000   10411.000   10415.000   11267.000   10313.000   11165.000   11169.000   12021.000    9418.000   10270.000   10274.000   11126.000   10172.000
+
+ +          22          23          24          25          26          27          28          29          30          31          32
+
+1     2416.000    2420.000    3272.000    1761.000    2613.000    2617.000    3469.000    2515.000    3367.000    3371.000    4223.000
+2     4198.000    4202.000    5054.000    3543.000    4395.000    4399.000    5251.000    4297.000    5149.000    5153.000    6005.000
+3     4200.000    4204.000    5056.000    3545.000    4397.000    4401.000    5253.000    4299.000    5151.000    5155.000    6007.000
+4     5982.000    5986.000    6838.000    5327.000    6179.000    6183.000    7035.000    6081.000    6933.000    6937.000    7789.000
+5     4042.000    4046.000    4898.000    3387.000    4239.000    4243.000    5095.000    4141.000    4993.000    4997.000    5849.000
+6     5824.000    5828.000    6680.000    5169.000    6021.000    6025.000    6877.000    5923.000    6775.000    6779.000    7631.000
+7     5826.000    5830.000    6682.000    5171.000    6023.000    6027.000    6879.000    5925.000    6777.000    6781.000    7633.000
+8     7608.000    7612.000    8464.000    6953.000    7805.000    7809.000    8661.000    7707.000    8559.000    8563.000    9415.000
+9     4072.000    4076.000    4928.000    3417.000    4269.000    4273.000    5125.000    4171.000    5023.000    5027.000    5879.000
+10    5854.000    5858.000    6710.000    5199.000    6051.000    6055.000    6907.000    5953.000    6805.000    6809.000    7661.000
+11    5856.000    5860.000    6712.000    5201.000    6053.000    6057.000    6909.000    5955.000    6807.000    6811.000    7663.000
+12    7638.000    7642.000    8494.000    6983.000    7835.000    7839.000    8691.000    7737.000    8589.000    8593.000    9445.000
+13    5698.000    5702.000    6554.000    5043.000    5895.000    5899.000    6751.000    5797.000    6649.000    6653.000    7505.000
+14    7480.000    7484.000    8336.000    6825.000    7677.000    7681.000    8533.000    7579.000    8431.000    8435.000    9287.000
+15    7482.000    7486.000    8338.000    6827.000    7679.000    7683.000    8535.000    7581.000    8433.000    8437.000    9289.000
+16    9264.000    9268.000   10120.000    8609.000    9461.000    9465.000   10317.000    9363.000   10215.000   10219.000   11071.000
+17    4176.000    4180.000    5032.000    3521.000    4373.000    4377.000    5229.000    4275.000    5127.000    5131.000    5983.000
+18    5958.000    5962.000    6814.000    5303.000    6155.000    6159.000    7011.000    6057.000    6909.000    6913.000    7765.000
+19    5960.000    5964.000    6816.000    5305.000    6157.000    6161.000    7013.000    6059.000    6911.000    6915.000    7767.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 39
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER fccom  fixed cost combinations
+
+ +          22          23          24          25          26          27          28          29          30          31          32
+
+20    7742.000    7746.000    8598.000    7087.000    7939.000    7943.000    8795.000    7841.000    8693.000    8697.000    9549.000
+21    5802.000    5806.000    6658.000    5147.000    5999.000    6003.000    6855.000    5901.000    6753.000    6757.000    7609.000
+22    7584.000    7588.000    8440.000    6929.000    7781.000    7785.000    8637.000    7683.000    8535.000    8539.000    9391.000
+23    7586.000    7590.000    8442.000    6931.000    7783.000    7787.000    8639.000    7685.000    8537.000    8541.000    9393.000
+24    9368.000    9372.000   10224.000    8713.000    9565.000    9569.000   10421.000    9467.000   10319.000   10323.000   11175.000
+25    5832.000    5836.000    6688.000    5177.000    6029.000    6033.000    6885.000    5931.000    6783.000    6787.000    7639.000
+26    7614.000    7618.000    8470.000    6959.000    7811.000    7815.000    8667.000    7713.000    8565.000    8569.000    9421.000
+27    7616.000    7620.000    8472.000    6961.000    7813.000    7817.000    8669.000    7715.000    8567.000    8571.000    9423.000
+28    9398.000    9402.000   10254.000    8743.000    9595.000    9599.000   10451.000    9497.000   10349.000   10353.000   11205.000
+29    7458.000    7462.000    8314.000    6803.000    7655.000    7659.000    8511.000    7557.000    8409.000    8413.000    9265.000
+30    9240.000    9244.000   10096.000    8585.000    9437.000    9441.000   10293.000    9339.000   10191.000   10195.000   11047.000
+31    9242.000    9246.000   10098.000    8587.000    9439.000    9443.000   10295.000    9341.000   10193.000   10197.000   11049.000
+32   11024.000   11028.000   11880.000   10369.000   11221.000   11225.000   12077.000   11123.000   11975.000   11979.000   12831.000
+
+
+----    138 PARAMETER tcost  total costs
+
+             1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20          21
+
+1    97029.490   96258.690   95914.720   95803.240   96012.860   95242.060   94898.090   94786.610   95382.780   95737.690   94705.520   95282.240   95365.840   95720.750   94688.580   95265.300   97839.490   97068.690   96724.720   96613.240   96822.860
+2    98811.490   85650.620   90544.080   85877.030   95932.620   85089.000   88037.430   85315.410   90553.420   84147.480   86837.910   84373.890   91020.020   84614.080   87304.510   84840.490   93589.030   86237.480   90719.460   86463.890   91627.320
+3    98813.490   92813.940   86357.110   87209.110   97796.860   91797.310   85809.360   86661.360   95986.180   91699.840   86007.370   86859.370   96237.040   91950.700   86258.230   87110.230   92623.470   92099.070   87167.110   88019.110   92034.920
+4   100595.490   87434.620   88139.110   86111.330   97716.620   86873.000   86467.050   85760.830   92337.420   85931.480   85407.090   84951.510   92804.020   86398.080   85873.690   85418.110   94405.470   87931.120   88949.110   86921.330   92615.960
+5    98655.490   83487.600   85957.220   82676.190   67810.830   68662.830   67820.090   68672.090   73750.960   74579.460   73146.720   73998.720   68761.830   69613.830   68771.090   69623.090   87184.520   83043.410   85489.950   82441.920   68620.830
+6   100437.490   85269.600   87739.220   84458.190   69592.830   70444.830   69602.090   70454.090   75532.960   76361.460   74928.720   75780.720   70543.830   71395.830   70553.090   71405.090   88966.520   84825.410   87271.950   84223.920   70402.830
+7   100439.490   85271.600   87741.220   84460.190   69594.830   70446.830   69604.090   70456.090   75534.960   76363.460   74930.720   75782.720   70545.830   71397.830   70555.090   71407.090   88968.520   84827.410   87273.950   84225.920   70404.830
+8   102221.490   87053.600   89523.220   86242.190   71376.830   72228.830   71386.090   72238.090   77316.960   78145.460   76712.720   77564.720   72327.830   73179.830   72337.090   73189.090   90750.520   86609.410   89055.950   86007.920   72186.830
+9    98685.490   78677.140   82762.230   77993.210   74334.130   71048.520   71619.350   70544.390   64926.460   65778.460   65134.340   65986.340   65680.460   66532.460   65888.340   66740.340   85587.550   78704.110   82643.800   78199.980   74355.580
+10  100467.490   80459.140   84544.230   79775.210   76116.130   72830.520   73401.350   72326.390   66708.460   67560.460   66916.340   67768.340   67462.460   68314.460   67670.340   68522.340   87369.550   80486.110   84425.800   79981.980   76137.580
+11  100469.490   80461.140   84546.230   79777.210   76118.130   72832.520   73403.350   72328.390   66710.460   67562.460   66918.340   67770.340   67464.460   68316.460   67672.340   68524.340   87371.550   80488.110   84427.800   79983.980   76139.580
+12  102251.490   82243.140   86328.230   81559.210   77900.130   74614.520   75185.350   74110.390   68492.460   69344.460   68700.340   69552.340   69246.460   70098.460   69454.340   70306.340   89153.550   82270.110   86209.800   81765.980   77921.580
+13  100311.490   80303.140   84388.230   79619.210   69466.830   69412.470   68641.310   68908.340   66552.460   67404.460   66760.340   67612.340   66750.440   67602.440   66958.320   67810.320   87213.550   80330.110   84269.800   79825.980   70276.830
+14  102093.490   82085.140   86170.230   81401.210   71248.830   71194.470   70423.310   70690.340   68334.460   69186.460   68542.340   69394.340   68532.440   69384.440   68740.320   69592.320   88995.550   82112.110   86051.800   81607.980   72058.830
+15  102095.490   82087.140   86172.230   81403.210   71250.830   71196.470   70425.310   70692.340   68336.460   69188.460   68544.340   69396.340   68534.440   69386.440   68742.320   69594.320   88997.550   82114.110   86053.800   81609.980   72060.830
+16  103877.490   83869.140   87954.230   83185.210   73032.830   72978.470   72207.310   72474.340   70118.460   70970.460   70326.340   71178.340   70316.440   71168.440   70524.320   71376.320   90779.550   83896.110   87835.800   83391.980   73842.830
+17   98789.490   80433.980   77995.390   77250.870   83646.810   76601.200   73708.410   74560.410   80850.500   76681.660   73800.830   74652.830   81022.040   76853.200   73972.370   74824.370   70802.170   71654.170   71303.540   72155.540   69904.370
+18  100571.490   82215.980   79777.390   79032.870   85428.810   78383.200   75490.410   76342.410   82632.500   78463.660   75582.830   76434.830   82804.040   78635.200   75754.370   76606.370   72584.170   73436.170   73085.540   73937.540   71686.370
+19  100573.490   82217.980   79779.390   79034.870   85430.810   78385.200   75492.410   76344.410   82634.500   78465.660   75584.830   76436.830   82806.040   78637.200   75756.370   76608.370   72586.170   73438.170   73087.540   73939.540   71688.370
+20  102355.490   83999.980   81561.390   80816.870   87212.810   80167.200   77274.410   78126.410   84416.500   80247.660   77366.830   78218.830   84588.040   80419.200   77538.370   78390.370   74368.170   75220.170   74869.540   75721.540   73470.370
+21  100415.490   82059.980   79621.390   78876.870   69570.830   70300.800   67502.300   68354.300   75510.960   74808.370   71971.700   72823.700   70521.830   71251.800   68453.300   69305.300   72428.170   73280.170   72929.540   73781.540   65960.350
+22  102197.490   83841.980   81403.390   80658.870   71352.830   72082.800   69284.300   70136.300   77292.960   76590.370   73753.700   74605.700   72303.830   73033.800   70235.300   71087.300   74210.170   75062.170   74711.540   75563.540   67742.350
+23  102199.490   83843.980   81405.390   80660.870   71354.830   72084.800   69286.300   70138.300   77294.960   76592.370   73755.700   74607.700   72305.830   73035.800   70237.300   71089.300   74212.170   75064.170   74713.540   75565.540   67744.350
+24  103981.490   85625.980   83187.390   82442.870   73136.830   73866.800   71068.300   71920.300   79076.960   78374.370   75537.700   76389.700   74087.830   74817.800   72019.300   72871.300   75994.170   76846.170   76495.540   77347.540   69526.350
+25  100445.490   80437.140   79651.390   77969.930   76094.130   72808.520   70794.350   71233.430   66686.460   67538.460   65936.180   66788.180   67440.460   68292.460   66690.180   67542.180   72458.170   73250.270   72959.540   73751.640   68606.230
+26  102227.490   82219.140   81433.390   79751.930   77876.130   74590.520   72576.350   73015.430   68468.460   69320.460   67718.180   68570.180   69222.460   70074.460   68472.180   69324.180   74240.170   75032.270   74741.540   75533.640   70388.230
+27  102229.490   82221.140   81435.390   79753.930   77878.130   74592.520   72578.350   73017.430   68470.460   69322.460   67720.180   68572.180   69224.460   70076.460   68474.180   69326.180   74242.170   75034.270   74743.540   75535.640   70390.230
+28  104011.490   84003.140   83217.390   81535.930   79660.130   76374.520   74360.350   74799.430   70252.460   71104.460   69502.180   70354.180   71006.460   71858.460   70256.180   71108.180   76024.170   76816.270   76525.540   77317.640   72172.230
+29  102071.490   82063.140   81277.390   79595.930   71226.830   71172.470   69158.300   69597.380   68312.460   69164.460   67562.180   68414.180   68510.440   69362.440   67760.160   68612.160   74084.170   74876.270   74585.540   75377.640   67616.350
+30  103853.490   83845.140   83059.390   81377.930   73008.830   72954.470   70940.300   71379.380   70094.460   70946.460   69344.180   70196.180   70292.440   71144.440   69542.160   70394.160   75866.170   76658.270   76367.540   77159.640   69398.350
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 40
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER tcost  total costs
+
+             1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20          21
+
+31  103855.490   83847.140   83061.390   81379.930   73010.830   72956.470   70942.300   71381.380   70096.460   70948.460   69346.180   70198.180   70294.440   71146.440   69544.160   70396.160   75868.170   76660.270   76369.540   77161.640   69400.350
+32  105637.490   85629.140   84843.390   83161.930   74792.830   74738.470   72724.300   73163.380   71878.460   72730.460   71128.180   71980.180   72076.440   72928.440   71326.160   72178.160   77650.170   78442.270   78151.540   78943.640   71182.350
+
+ +          22          23          24          25          26          27          28          29          30          31          32
+
+1    96052.060   95708.090   95596.610   96192.780   96547.690   95515.520   96092.240   96175.840   96530.750   95498.580   96075.300
+2    85821.280   88757.750   86047.690   90109.530   84932.640   87618.470   85159.050   90576.130   85399.240   88085.070   85625.650
+3    91510.520   86619.360   87471.360   92221.980   91697.580   86817.370   87669.370   92472.840   91948.440   87068.230   87920.230
+4    87514.920   87277.050   86570.830   91556.000   86705.600   86217.090   85761.510   92022.600   87172.200   86683.690   86228.110
+5    69472.830   68630.090   69482.090   74560.960   75389.460   73956.720   74808.720   69571.830   70423.830   69581.090   70433.090
+6    71254.830   70412.090   71264.090   76342.960   77171.460   75738.720   76590.720   71353.830   72205.830   71363.090   72215.090
+7    71256.830   70414.090   71266.090   76344.960   77173.460   75740.720   76592.720   71355.830   72207.830   71365.090   72217.090
+8    73038.830   72196.090   73048.090   78126.960   78955.460   77522.720   78374.720   73137.830   73989.830   73147.090   73999.090
+9    71858.520   72429.350   71354.390   65736.460   66588.460   65944.340   66796.340   66490.460   67342.460   66698.340   67550.340
+10   73640.520   74211.350   73136.390   67518.460   68370.460   67726.340   68578.340   68272.460   69124.460   68480.340   69332.340
+11   73642.520   74213.350   73138.390   67520.460   68372.460   67728.340   68580.340   68274.460   69126.460   68482.340   69334.340
+12   75424.520   75995.350   74920.390   69302.460   70154.460   69510.340   70362.340   70056.460   70908.460   70264.340   71116.340
+13   70222.470   69451.310   69718.340   67362.460   68214.460   67570.340   68422.340   67560.440   68412.440   67768.320   68620.320
+14   72004.470   71233.310   71500.340   69144.460   69996.460   69352.340   70204.340   69342.440   70194.440   69550.320   70402.320
+15   72006.470   71235.310   71502.340   69146.460   69998.460   69354.340   70206.340   69344.440   70196.440   69552.320   70404.320
+16   73788.470   73017.310   73284.340   70928.460   71780.460   71136.340   71988.340   71126.440   71978.440   71334.320   72186.320
+17   70756.370   70405.740   71257.740   70275.270   71127.270   70776.640   71628.640   70446.810   71298.810   70948.180   71800.180
+18   72538.370   72187.740   73039.740   72057.270   72909.270   72558.640   73410.640   72228.810   73080.810   72730.180   73582.180
+19   72540.370   72189.740   73041.740   72059.270   72911.270   72560.640   73412.640   72230.810   73082.810   72732.180   73584.180
+20   74322.370   73971.740   74823.740   73841.270   74693.270   74342.640   75194.640   74012.810   74864.810   74514.180   75366.180
+21   66812.350   66461.720   67313.720   69672.500   70524.500   70173.870   71025.870   66911.350   67763.350   67412.720   68264.720
+22   68594.350   68243.720   69095.720   71454.500   72306.500   71955.870   72807.870   68693.350   69545.350   69194.720   70046.720
+23   68596.350   68245.720   69097.720   71456.500   72308.500   71957.870   72809.870   68695.350   69547.350   69196.720   70048.720
+24   70378.350   70027.720   70879.720   73238.500   74090.500   73739.870   74591.870   70477.350   71329.350   70978.720   71830.720
+25   69458.230   69107.600   69959.600   65989.970   66841.970   66491.340   67343.340   66743.970   67595.970   67245.340   68097.340
+26   71240.230   70889.600   71741.600   67771.970   68623.970   68273.340   69125.340   68525.970   69377.970   69027.340   69879.340
+27   71242.230   70891.600   71743.600   67773.970   68625.970   68275.340   69127.340   68527.970   69379.970   69029.340   69881.340
+28   73024.230   72673.600   73525.600   69555.970   70407.970   70057.340   70909.340   70309.970   71161.970   70811.340   71663.340
+29   68468.350   68117.720   68969.720   67615.970   68467.970   68117.340   68969.340   67813.950   68665.950   68315.320   69167.320
+30   70250.350   69899.720   70751.720   69397.970   70249.970   69899.340   70751.340   69595.950   70447.950   70097.320   70949.320
+31   70252.350   69901.720   70753.720   69399.970   70251.970   69901.340   70753.340   69597.950   70449.950   70099.320   70951.320
+32   72034.350   71683.720   72535.720   71181.970   72033.970   71683.340   72535.340   71379.950   72231.950   71881.320   72733.320
+
+
+----    138 PARAMETER best                 =    64926.460  lowest cost
+
+----    138 PARAMETER best3p  best combinations within 3 percent
+
+             9          10          11          12          13          14          15          16          21          22          23          25          26          27          28          29          31
+
+9    64926.460   65778.460   65134.340   65986.340   65680.460   66532.460   65888.340   66740.340                                       65736.460   66588.460   65944.340   66796.340   66490.460   66698.340
+10   66708.460
+11   66710.460
+13   66552.460               66760.340               66750.440
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:34 Page 41
+Vietorisz/Manne Fertilizer Model 1961  (VIETMAN,SEQ=30)
+E x e c u t i o n
+
+
+        138 PARAMETER best3p  best combinations within 3 percent
+
+             9          10          11          12          13          14          15          16          21          22          23          25          26          27          28          29          31
+
+21                                                                                                   65960.350   66812.350   66461.720
+25   66686.460               65936.180   66788.180                           66690.180                                                   65989.970   66841.970   66491.340               66743.970
+
+
+
+EXECUTION TIME       =        0.019 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/vietman/vietman.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/vietman/vietman-scalar.gms.lst

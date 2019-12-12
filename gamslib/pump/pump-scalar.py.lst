@@ -1,0 +1,623 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+   3  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 2
+Pump Network Synthesis (PUMP,SEQ=205)
+C o m p i l a t i o n
+
+
+       The aim is to identify the least costly configuration of centrifugal
+       pumps that achieves a pre specified pressure rise based on a given
+       total flowrate.
+       
+       
+      Floudas, C A, Pardalos, P M, Adjiman, C S, Esposito, W R,
+      Gumus, Z H, Harding, S T, Klepeis, J L, Meyer, C A, and
+      Schweiger, C A, Handbook of Test Problems in Local and Global
+      Optimization. Kluwer Academic Publishers, 1999.
+       
+      Westerlund, T, Petterson, F, and Grossmann, I E, Optimization
+      of Pump Configuration Problems as a MINLP Problem. Computers
+      and Chemical Engineering 18, 9 (1994), 845-858.
+       
+       The entire collection of models can found at
+          http://titan.princeton.edu/TestProblems/
+       
+  24   
+  25  SET i set of levels /1*3/;
+  26   
+  27  SCALAR wmax maximum rotation speed /2950/
+  28         Vtot total volumetric flowrate /350/
+  29         dPtot total pressure rise /400/
+  30         nsmax maximum number of pumps in series /3/
+  31         npmax maximum number of pumps in parallel /3/;
+  32   
+  33  PARAMETER Pmax(i) maximum power output
+  34            C(i) fixed cost of pump
+  35            Cd(i) operating cost coefficient;
+  36   
+  37  TABLE ldata(i,*) data of the levels
+  38    Pmax       C   Cd    m1     m2       m3    m4  m5      m6
+  39  1   80 6329.03 1800 19.90 0.1610 0.000561 0.696 629 0.01160
+  40  2   25 2489.31 1800  1.21 0.0644 0.000564 2.950 215 0.11500
+  41  3   45 3270.27 1800  6.52 0.1020 0.000232 0.530 361 0.00946
+  42  ;
+  43   
+  44  Pmax(i) = ldata(i,'Pmax');
+  45  C(i) = ldata(i,'C');
+  46  Cd(i) = ldata(i,'Cd');
+  47   
+  48  VARIABLES
+  49           P(i)     power output of pumps on level i
+  50           w(i)     rotation speed for pumps on level i
+  51           dp(i)    pressure rise on level i
+  52           vdot(i)  flow through pumps on level i
+  53           x(i)     fraction of total flow on level i
+  54           np(i)    number of parallel lines on level i
+  55           ns(i)    number of pumps in series on level i
+  56           z(i)     existence of level i
+  57           objval   objective function variable;
+  58   
+  59  POSITIVE VARIABLES P, w, dp, vdot, x;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 3
+Pump Network Synthesis (PUMP,SEQ=205)
+C o m p i l a t i o n
+
+
+  60  INTEGER VARIABLES np, ns;
+  61  BINARY VARIABLE z;
+  62   
+  63  EQUATIONS
+  64           f         Objective function
+  65           g(i)      Power output calculation for level i
+  66           gd(i)     Pressure rise calculation for level i
+  67           sumx      Constraint on volume fractions
+  68           gvdot(i)  Volume flowrate calculation for pumps on level i
+  69           gdp(i)    Constraints on pressure rise
+  70           lw(i)     Logical constraints on w
+  71           lP(i)     Logical constraints on P
+  72           ldp(i)    Logical constraints dp
+  73           lvdot(i)  Logical constraints on vdot
+  74           lx(i)     Logical constraints on x
+  75           lnp(i)    Logical constraints on np
+  76           lns(i)    Logical constraints on ns;
+  77   
+  78  f.. objval =e= SUM(i, (C(i) + Cd(i)*P(i)) * np(i)*ns(i)*z(i));
+  79   
+  80  g(i).. P(i) =e= ldata(i,'m1') * POWER(w(i)/wmax,3) +
+  81                  ldata(i,'m2') * POWER(w(i)/wmax,2)*vdot(i) -
+  82                  ldata(i,'m3') * w(i)/wmax*POWER(vdot(i),2);
+  83   
+  84  gd(i).. dp(i) =e=  ldata(i,'m4') * w(i)/wmax*vdot(i) +
+  85                     ldata(i,'m5') * POWER(w(i)/wmax,2)  -
+  86                     ldata(i,'m6') * POWER(vdot(i),2);
+  87   
+  88  sumx.. SUM(i,x(i)) =e= 1;
+  89   
+  90  gvdot(i).. x(i) =e= vdot(i)/Vtot * np(i);
+  91   
+  92  gdp(i)..   z(i) =e= dp(i) / dPtot * ns(i);
+  93   
+  94  lw(i)..    w(i) / wmax =l= z(i);
+  95  lP(i)..    P(i) / Pmax(i) =l= z(i);
+  96  ldp(i)..   dp(i) / dPtot =l= z(i);
+  97  lvdot(i).. vdot(i) / Vtot =l= z(i);
+  98  lx(i)..    x(i) =l= z(i);
+  99  lnp(i)..   np(i) =l= npmax * z(i);
+ 100  lns(i)..   ns(i) =l= nsmax * z(i);
+ 101   
+ 102   
+ 103  * Bounds
+ 104  P.UP(i) = Pmax(i);
+ 105  w.UP(i) = wmax;
+ 106  dp.UP(i) = dPtot;
+ 107  vdot.UP(i) = Vtot;
+ 108  x.UP(i) = 1;
+ 109  np.UP(i) = npmax;
+ 110  ns.UP(i) = nsmax;
+ 111   
+ 112  SEt h "Variable name headers" / P, dp, vdot, w, x, np, ns, z /;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 4
+Pump Network Synthesis (PUMP,SEQ=205)
+C o m p i l a t i o n
+
+
+ 113   
+ 114  Table gs(i,h) global solution
+ 115         P      dp   vdot        w           x   np   ns  z
+ 116  1  28.27034  400    160 2855.102  0.91428570    2    1  1
+ 117  2   2.63440  200     30 2950.000  0.08571429    1    2  1
+ 118  3
+ 119  ;
+ 120   
+ 121   
+ 122  * Initialize starting point
+ 123  * Turn on all equipment and let model turn some down
+ 124  * Otherwise NLP solver doesn't find a feasible point
+ 125  P.L(i) = P.up(i);
+ 126  dp.L(i) = dp.up(i);
+ 127  vdot.L(i) = vdot.up(i);
+ 128  w.L(i) = w.up(i);
+ 129  x.L(i) = 0.33;
+ 130  z.L(i) = 1;
+ 131  np.L(i) = np.up(i);
+ 132  ns.L(i) = ns.up(i);
+ 133   
+ 134  option optcr=0.0;
+ 135  MODEL pump /ALL/;
+ 136   
+ 137  SOLVE pump USING MINLP MINIMIZING objval;
+ 138  execerror=0;
+ 139   
+ 140  * Did we find the global solution?
+ 141  PARAMETER rep solution report;
+ 142   
+ 143  rep('P',i,'local') = P.L(i);
+ 144  rep('dp',i,'local') = dp.L(i);
+ 145  rep('vdot',i,'local') = vdot.L(i);
+ 146  rep('w',i,'local') = w.L(i);
+ 147  rep('x',i,'local') = x.L(i);
+ 148  rep('z',i,'local') = z.L(i);
+ 149  rep('np',i,'local') = np.L(i);
+ 150  rep('ns',i,'local') = ns.L(i);
+ 151   
+ 152  rep(h,i,'global') = gs(i,h);
+ 153  rep(h,i,'diff') = rep(h,i,'global') - rep(h,i,'local');
+ 154   
+ 155  option rep:8:2:1;
+ 156  display rep;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 5
+Pump Network Synthesis (PUMP,SEQ=205)
+Equation Listing    SOLVE pump Using MINLP From line 137
+
+
+---- f  =E=  Objective function
+
+f..  - (16200)*P(1) - (16200)*P(2) - (16200)*P(3) - (450987.09)*np(1) - (142467.93)*np(2) - (252810.81)*np(3) - (450987.09)*ns(1) - (142467.93)*ns(2) - (252810.81)*ns(3) - (1352961.27)*z(1) - (427403.79)*z(2) - (758432.43)*z(3) + objval =E= 0 ;
+     
+      (LHS = -2538797.49, INFES = 2538797.49 ****)
+     
+
+---- g  =E=  Power output calculation for level i
+
+g(1)..  P(1) - (0.0351449152542373)*w(1) + (0.2317)*vdot(1) =E= 0 ; (LHS = 72.4725, INFES = 72.4725 ****)
+     
+g(2)..  P(2) + (0.00690847457627119)*w(2) + (0.3304)*vdot(2) =E= 0 ; (LHS = 70.34, INFES = 70.34 ****)
+     
+g(3)..  P(3) - (0.0212)*w(3) + (0.0604)*vdot(3) =E= 0 ; (LHS = 31.2, INFES = 31.2 ****)
+     
+
+---- gd  =E=  Pressure rise calculation for level i
+
+gd(1)..  - (0.509016949152542)*w(1) + dp(1) + (7.424)*vdot(1) =E= 0 ; (LHS = 948.4, INFES = 948.4 ****)
+     
+gd(2)..  - (0.495762711864407)*w(2) + dp(2) + (77.55)*vdot(2) =E= 0 ; (LHS = 13240, INFES = 13240 ****)
+     
+gd(3)..  - (0.307627118644068)*w(3) + dp(3) + (6.092)*vdot(3) =E= 0 ; (LHS = 1012.35, INFES = 1012.35 ****)
+     
+
+---- sumx  =E=  Constraint on volume fractions
+
+sumx..  x(1) + x(2) + x(3) =E= 1 ; (LHS = 0.99, INFES = 0.01 ****)
+     
+
+---- gvdot  =E=  Volume flowrate calculation for pumps on level i
+
+gvdot(1)..  - (0.00857142857142857)*vdot(1) + x(1) - (1)*np(1) =E= 0 ; (LHS = -2.67, INFES = 2.67 ****)
+     
+gvdot(2)..  - (0.00857142857142857)*vdot(2) + x(2) - (1)*np(2) =E= 0 ; (LHS = -2.67, INFES = 2.67 ****)
+     
+gvdot(3)..  - (0.00857142857142857)*vdot(3) + x(3) - (1)*np(3) =E= 0 ; (LHS = -2.67, INFES = 2.67 ****)
+     
+
+---- gdp  =E=  Constraints on pressure rise
+
+gdp(1)..  - (0.0075)*dp(1) - (1)*ns(1) + z(1) =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+gdp(2)..  - (0.0075)*dp(2) - (1)*ns(2) + z(2) =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+gdp(3)..  - (0.0075)*dp(3) - (1)*ns(3) + z(3) =E= 0 ; (LHS = -2, INFES = 2 ****)
+     
+
+---- lw  =L=  Logical constraints on w
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 6
+Pump Network Synthesis (PUMP,SEQ=205)
+Equation Listing    SOLVE pump Using MINLP From line 137
+
+
+     lw  =L=  Logical constraints on w
+
+lw(1)..  0.000338983050847458*w(1) - z(1) =L= 0 ; (LHS = 0)
+     
+lw(2)..  0.000338983050847458*w(2) - z(2) =L= 0 ; (LHS = 0)
+     
+lw(3)..  0.000338983050847458*w(3) - z(3) =L= 0 ; (LHS = 0)
+     
+
+---- lP  =L=  Logical constraints on P
+
+lP(1)..  0.0125*P(1) - z(1) =L= 0 ; (LHS = 0)
+     
+lP(2)..  0.04*P(2) - z(2) =L= 0 ; (LHS = 0)
+     
+lP(3)..  0.0222222222222222*P(3) - z(3) =L= 0 ; (LHS = 0)
+     
+
+---- ldp  =L=  Logical constraints dp
+
+ldp(1)..  0.0025*dp(1) - z(1) =L= 0 ; (LHS = 0)
+     
+ldp(2)..  0.0025*dp(2) - z(2) =L= 0 ; (LHS = 0)
+     
+ldp(3)..  0.0025*dp(3) - z(3) =L= 0 ; (LHS = 0)
+     
+
+---- lvdot  =L=  Logical constraints on vdot
+
+lvdot(1)..  0.00285714285714286*vdot(1) - z(1) =L= 0 ; (LHS = 0)
+     
+lvdot(2)..  0.00285714285714286*vdot(2) - z(2) =L= 0 ; (LHS = 0)
+     
+lvdot(3)..  0.00285714285714286*vdot(3) - z(3) =L= 0 ; (LHS = 0)
+     
+
+---- lx  =L=  Logical constraints on x
+
+lx(1)..  x(1) - z(1) =L= 0 ; (LHS = -0.67)
+     
+lx(2)..  x(2) - z(2) =L= 0 ; (LHS = -0.67)
+     
+lx(3)..  x(3) - z(3) =L= 0 ; (LHS = -0.67)
+     
+
+---- lnp  =L=  Logical constraints on np
+
+lnp(1)..  np(1) - 3*z(1) =L= 0 ; (LHS = 0)
+     
+lnp(2)..  np(2) - 3*z(2) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 7
+Pump Network Synthesis (PUMP,SEQ=205)
+Equation Listing    SOLVE pump Using MINLP From line 137
+
+
+     lnp  =L=  Logical constraints on np
+
+lnp(3)..  np(3) - 3*z(3) =L= 0 ; (LHS = 0)
+     
+
+---- lns  =L=  Logical constraints on ns
+
+lns(1)..  ns(1) - 3*z(1) =L= 0 ; (LHS = 0)
+     
+lns(2)..  ns(2) - 3*z(2) =L= 0 ; (LHS = 0)
+     
+lns(3)..  ns(3) - 3*z(3) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 8
+Pump Network Synthesis (PUMP,SEQ=205)
+Column Listing      SOLVE pump Using MINLP From line 137
+
+
+---- P  power output of pumps on level i
+
+P(1)
+                (.LO, .L, .UP, .M = 0, 80, 80, 0)
+  (-16200)      f
+        1       g(1)
+        0.0125  lP(1)
+
+P(2)
+                (.LO, .L, .UP, .M = 0, 25, 25, 0)
+  (-16200)      f
+        1       g(2)
+        0.04    lP(2)
+
+P(3)
+                (.LO, .L, .UP, .M = 0, 45, 45, 0)
+  (-16200)      f
+        1       g(3)
+        0.0222  lP(3)
+
+
+---- w  rotation speed for pumps on level i
+
+w(1)
+                (.LO, .L, .UP, .M = 0, 2950, 2950, 0)
+      (-0.0351) g(1)
+      (-0.509)  gd(1)
+        0.0003  lw(1)
+
+w(2)
+                (.LO, .L, .UP, .M = 0, 2950, 2950, 0)
+       (0.0069) g(2)
+      (-0.4958) gd(2)
+        0.0003  lw(2)
+
+w(3)
+                (.LO, .L, .UP, .M = 0, 2950, 2950, 0)
+      (-0.0212) g(3)
+      (-0.3076) gd(3)
+        0.0003  lw(3)
+
+
+---- dp  pressure rise on level i
+
+dp(1)
+                (.LO, .L, .UP, .M = 0, 400, 400, 0)
+        1       gd(1)
+      (-0.0075) gdp(1)
+        0.0025  ldp(1)
+
+dp(2)
+                (.LO, .L, .UP, .M = 0, 400, 400, 0)
+        1       gd(2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:23 Page 9
+Pump Network Synthesis (PUMP,SEQ=205)
+Column Listing      SOLVE pump Using MINLP From line 137
+
+
+     dp  pressure rise on level i
+
+      (-0.0075) gdp(2)
+        0.0025  ldp(2)
+
+dp(3)
+                (.LO, .L, .UP, .M = 0, 400, 400, 0)
+        1       gd(3)
+      (-0.0075) gdp(3)
+        0.0025  ldp(3)
+
+
+---- vdot  flow through pumps on level i
+
+vdot(1)
+                (.LO, .L, .UP, .M = 0, 350, 350, 0)
+       (0.2317) g(1)
+       (7.424)  gd(1)
+      (-0.0086) gvdot(1)
+        0.0029  lvdot(1)
+
+vdot(2)
+                (.LO, .L, .UP, .M = 0, 350, 350, 0)
+       (0.3304) g(2)
+      (77.55)   gd(2)
+      (-0.0086) gvdot(2)
+        0.0029  lvdot(2)
+
+vdot(3)
+                (.LO, .L, .UP, .M = 0, 350, 350, 0)
+       (0.0604) g(3)
+       (6.092)  gd(3)
+      (-0.0086) gvdot(3)
+        0.0029  lvdot(3)
+
+
+---- x  fraction of total flow on level i
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0.33, 1, 0)
+        1       sumx
+        1       gvdot(1)
+        1       lx(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0.33, 1, 0)
+        1       sumx
+        1       gvdot(2)
+        1       lx(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0.33, 1, 0)
+        1       sumx
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:23 Page 10
+Pump Network Synthesis (PUMP,SEQ=205)
+Column Listing      SOLVE pump Using MINLP From line 137
+
+
+     x  fraction of total flow on level i
+
+        1       gvdot(3)
+        1       lx(3)
+
+
+---- np  number of parallel lines on level i
+
+np(1)
+                (.LO, .L, .UP, .M = 0, 3, 3, 0)
+ (-450987.09)   f
+      (-1)      gvdot(1)
+        1       lnp(1)
+
+np(2)
+                (.LO, .L, .UP, .M = 0, 3, 3, 0)
+ (-142467.93)   f
+      (-1)      gvdot(2)
+        1       lnp(2)
+
+np(3)
+                (.LO, .L, .UP, .M = 0, 3, 3, 0)
+ (-252810.81)   f
+      (-1)      gvdot(3)
+        1       lnp(3)
+
+
+---- ns  number of pumps in series on level i
+
+ns(1)
+                (.LO, .L, .UP, .M = 0, 3, 3, 0)
+ (-450987.09)   f
+      (-1)      gdp(1)
+        1       lns(1)
+
+ns(2)
+                (.LO, .L, .UP, .M = 0, 3, 3, 0)
+ (-142467.93)   f
+      (-1)      gdp(2)
+        1       lns(2)
+
+ns(3)
+                (.LO, .L, .UP, .M = 0, 3, 3, 0)
+ (-252810.81)   f
+      (-1)      gdp(3)
+        1       lns(3)
+
+
+---- z  existence of level i
+
+z(1)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+ (-1.352961E+6) f
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:23 Page 11
+Pump Network Synthesis (PUMP,SEQ=205)
+Column Listing      SOLVE pump Using MINLP From line 137
+
+
+     z  existence of level i
+
+        1       gdp(1)
+       -1       lw(1)
+       -1       lP(1)
+       -1       ldp(1)
+       -1       lvdot(1)
+       -1       lx(1)
+       -3       lnp(1)
+       -3       lns(1)
+
+z(2)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+ (-427403.79)   f
+        1       gdp(2)
+       -1       lw(2)
+       -1       lP(2)
+       -1       ldp(2)
+       -1       lvdot(2)
+       -1       lx(2)
+       -3       lnp(2)
+       -3       lns(2)
+
+z(3)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+ (-758432.43)   f
+        1       gdp(3)
+       -1       lw(3)
+       -1       lP(3)
+       -1       ldp(3)
+       -1       lvdot(3)
+       -1       lx(3)
+       -3       lnp(3)
+       -3       lns(3)
+
+
+---- objval  objective function variable
+
+objval
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       f
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:23 Page 12
+Pump Network Synthesis (PUMP,SEQ=205)
+Model Statistics    SOLVE pump Using MINLP From line 137
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           35
+BLOCKS OF VARIABLES           9     SINGLE VARIABLES           25
+NON ZERO ELEMENTS            94     NON LINEAR N-Z             36
+DERIVATIVE POOL              20     CONSTANT POOL              41
+CODE LENGTH                 161     DISCRETE VARIABLES          9
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:23 Page 13
+Pump Network Synthesis (PUMP,SEQ=205)
+Solution Report     SOLVE pump Using MINLP From line 137
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   pump                OBJECTIVE  objval
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  137
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pump/convert.opt"
+>>  pyomo pump-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pump/convert.opt"
+Pyomo     : pump-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:23 Page 14
+Pump Network Synthesis (PUMP,SEQ=205)
+E x e c u t i o n
+
+
+**** EXECERROR AT LINE 138 CLEARED (EXECERROR=0)
+
+----    156 PARAMETER rep  solution report
+
+             local      global        diff
+
+P   .1 80.00000000 28.27034000 -5.17297E+1
+P   .2 25.00000000  2.63440000 -2.23656E+1
+P   .3 45.00000000             -4.50000E+1
+dp  .1 4.000000E+2 4.000000E+2
+dp  .2 4.000000E+2 2.000000E+2 -2.00000E+2
+dp  .3 4.000000E+2             -4.00000E+2
+vdot.1 3.500000E+2 1.600000E+2 -1.90000E+2
+vdot.2 3.500000E+2 30.00000000 -3.20000E+2
+vdot.3 3.500000E+2             -3.50000E+2
+w   .1 2.950000E+3 2.855102E+3 -9.48980E+1
+w   .2 2.950000E+3 2.950000E+3
+w   .3 2.950000E+3             -2.95000E+3
+x   .1  0.33000000  0.91428570  0.58428570
+x   .2  0.33000000  0.08571429 -0.24428571
+x   .3  0.33000000             -0.33000000
+np  .1  3.00000000  2.00000000 -1.00000000
+np  .2  3.00000000  1.00000000 -2.00000000
+np  .3  3.00000000             -3.00000000
+ns  .1  3.00000000  1.00000000 -2.00000000
+ns  .2  3.00000000  2.00000000 -1.00000000
+ns  .3  3.00000000             -3.00000000
+z   .1  1.00000000  1.00000000
+z   .2  1.00000000  1.00000000
+z   .3  1.00000000             -1.00000000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/pump/pump.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/pump/pump-scalar.py.lst

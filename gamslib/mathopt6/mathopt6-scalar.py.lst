@@ -1,0 +1,393 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:03 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option DNLP=convert;
+   2  option DNLP=convert;
+   3  option DNLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:03 Page 2
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+C o m p i l a t i o n
+
+
+   5  * The Hundred-dollar, Hundred-digit Challenge Problems as stated by
+   6  * N. Trefethen, Oxford University.
+   7  *
+   8  * Several random points are used to test the robustness of global and
+   9  * local codes. You may want to run gams with lo=0 or lo=2 to reduce
+  10  * output to the log.
+  11  *
+  12  * More information at http://www.wolfram.com/products/applications/mathoptimizer/
+  13  *
+  14  *
+  15  *  N. Trefethen, SIAM News, January - February 2002, page 3.
+  16  *
+  17  *  Mathematica, MathOptimizer - An Advanced Modeling and Optimization System
+  18  *  for Mathematica Users, http://www.wolfram.com/products/applications/mathoptimizer/
+  19  *
+  20  *  Janos D Pinter, Global Optimization in Action, Kluwer Academic Publishers,
+  21  *  Dordrecht/Boston/London, 1996.
+  22  *
+  23  *  Janos D Pinter, Computational Global Optimization in Nonlinear Systems,
+  24  *  Lionheart Publishing, Inc., Atlanta, GA, 2001
+  25  *
+  27   
+  28  variables x, y, obj; equation objdef;
+  29   
+  30  objdef.. obj =e= Exp[Sin[50*x]] + Sin[60*Exp[y]] + Sin[70*Sin[x]] + Sin[Sin[80*y]] - Sin[10*(x + y)] + (sqr(x) + sqr(y))/4;
+  31   
+  32  model m / objdef /;
+  33   
+  34  x.lo= -3; x.up = 3;
+  35  y.lo= -3; y.up = 3;
+  36   
+  37  parameter report summary report;
+  38   
+  39  report('best','x0')  = -0.0244030796935730;
+  40  report('best','y0')  =  0.2106124271552849;
+  41  report('best','obj') = -3.306868647475235 ;
+  42   
+  43  report('best','x.l') = report('best','x0');
+  44  report('best','y.l') = report('best','y0');
+  45   
+  46   
+  47  scalar global best known solution; global = report('best','obj')
+  48   
+  49  set i random samples / rand1*rand100 /;
+  50   
+  51  * You may want to run gams with lo=0 or lo=2 to reduce output to the log
+  52   
+  53  m.limrow=0; m.limcol=0; m.solprint=1;
+  54   
+  55  scalar best / inf /;
+  56   
+  57  * try random starting points and report better solution only
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:03 Page 3
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+C o m p i l a t i o n
+
+
+  59  loop(i$(best > (global + 1e-6)),
+  60     x.l = uniform(x.lo,x.up);  // get
+  61     y.l = uniform(y.lo,y.up);  // random
+  62     report(i,'x0') = x.l;      // starting point
+  63     report(i,'y0') = y.l;      // and save
+  64     solve m us dnlp min obj;
+  65     m.solprint=2; // turn off solution listing
+  66     if(m.solvestat <> 1,
+  67        display 'solver failed - no further solutions';
+  68        best = -inf );   // stop the loop
+  69     if(obj.l >= best or not(m.modelstat=1 or
+  70                             m.modelstat=7 or
+  71                             m.modelstat=2),
+  72        report(i,'x0') = 0;  // remove entries from report
+  73        report(i,'y0') = 0;  // remove entries from report
+  74     else
+  75        best := obj.l;
+  76        report(i,'obj') = obj.l;
+  77        report(i,'x.l') = x.l;
+  78        report(i,'y.l') = y.l;
+  79        report(i,'optcr') = -(obj.l - report('best','obj'))/report('best','obj');
+  80        report(i,'cpu') = m.resusd;   ) );
+  81   
+  82  display report;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:03 Page 4
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+Model Statistics    SOLVE m Using DNLP From line 64
+
+
+LOOPS                                    i   rand1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             3     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              20
+CODE LENGTH                  35
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  i rand1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:03 Page 5
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+Solution Report     SOLVE m Using DNLP From line 64
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  64
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+Pyomo     : mathopt6-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:03 Page 7
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+Model Analysis      SOLVE m Using DNLP From line 64
+
+
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:03 Page 34
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+Model Analysis      SOLVE m Using DNLP From line 64
+
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:03 Page 62
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+Model Analysis      SOLVE m Using DNLP From line 64
+
+
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:03 Page 89
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+Model Analysis      SOLVE m Using DNLP From line 64
+
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                    12/13/18 11:23:03 Page 109
+MathOptimizer Example 6 (MATHOPT6,SEQ=260)
+E x e c u t i o n
+
+
+----     82 PARAMETER report  summary report
+
+              x0          y0         obj         x.l         y.l
+
+best      -0.024       0.211      -3.307      -0.024       0.211
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/mathopt6.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/mathopt6-scalar.py.lst

@@ -1,0 +1,203 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 2
+Chemical Equilibrium Problem  (CHEM,SEQ=21)
+C o m p i l a t i o n
+
+
+       
+      The problem is to find the equilibrium composition of a
+      mixture of different atoms.
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 5. In Selected Applications of Nonlinear Programming. John Wiley and Sons, New York, 1968, pp. 48-49.
+       
+  14   
+  15  sets  c  compounds / H, H2, H2O, N, N2, NH, NO, O, O2, OH /
+  16        i  atoms     / H  hydrogen, N  nitrogen, O  oxygen /
+  17   
+  18         table  a(i,c)  atoms per compound
+  19   
+  20       H  H2  H2O  N  N2  NH  NO  O  O2  OH
+  21  H    1   2    2          1              1
+  22  N                1   2   1   1
+  23  O             1              1  1   2   1
+  24   
+  25  parameters mix(i)   number of elements in mixture / h=2, n=1, o=1 /
+  26             gibbs(c) gibbs free energy at 3500 k and 750 psi /
+  27             H  -10.021,  H2  -21.096,  H2O -37.986,  N   -9.846, N2 -28.653
+  28             NH -18.918, NO -28.032,  O  -14.640,   o2 -30.594, OH -26.11 /
+  29             gplus(c) gibbs energy plus pressure ;
+  30   
+  31   gplus(c) = gibbs(c) + log(750*.07031); display gplus;
+  32   
+  33  variables x(c)    number of mols in mixture
+  34            xb      total number of mols in mixture
+  35            energy  total free energy in mixture
+  36  positive variables x, xb;
+  37   
+  38  equations cdef(i) component definition
+  39            edef    energy definition
+  40            xdef    total mol definition ;
+  41   
+  42  cdef(i)..  sum(c, a(i,c)*x(c)) =e= mix(i);
+  43   
+  44  xdef..     xb =e= sum(c, x(c));
+  45   
+  46  edef..     energy =e= sum(c, x(c)*(gplus(c) + log(x(c)/xb)));
+  47   
+  48  x.lo(c) = .001; xb.lo = .01;
+  49   
+  50  model mixer chemical mix for N2H4+O2 / all /;
+  51   
+  52  solve mixer minimizing energy using nlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 3
+Chemical Equilibrium Problem  (CHEM,SEQ=21)
+E x e c u t i o n
+
+
+----     31 PARAMETER gplus  gibbs energy plus pressure
+
+H    -6.056,    H2  -17.131,    H2O -34.021,    N    -5.881,    N2  -24.688,    NH  -14.953,    NO  -24.067,    O   -10.675,    O2  -26.629,    OH  -22.145
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 4
+Chemical Equilibrium Problem  (CHEM,SEQ=21)
+Equation Listing    SOLVE mixer Using NLP From line 52
+
+
+---- cdef  =E=  component definition
+
+cdef(H)..  x(H) + 2*x(H2) + 2*x(H2O) + x(NH) + x(OH) =E= 2 ; (LHS = 0.0069999999999999, INFES = 1.993 ****)
+     
+cdef(N)..  x(N) + 2*x(N2) + x(NH) + x(NO) =E= 1 ; (LHS = 0.005, INFES = 0.995 ****)
+     
+cdef(O)..  x(H2O) + x(NO) + x(O) + 2*x(O2) + x(OH) =E= 1 ; (LHS = 0.00600000000000001, INFES = 0.994 ****)
+     
+
+---- edef  =E=  energy definition
+
+edef..  (7.35835312923476)*x(H) + (18.4333531292348)*x(H2) + (35.3233531292348)*x(H2O) + (7.18335312923476)*x(N) + (25.9903531292348)*x(N2) + (16.2553531292348)*x(NH) + (25.3693531292348)*x(NO) + (11.9773531292348)*x(O) + (27.9313531292348)*x(O2)
+     
+      + (23.4473531292348)*x(OH) + (1)*xb + energy =E= 0 ; (LHS = 0.209269531292348, INFES = 0.209269531292348 ****)
+     
+
+---- xdef  =E=  total mol definition
+
+xdef..  - x(H) - x(H2) - x(H2O) - x(N) - x(N2) - x(NH) - x(NO) - x(O) - x(O2) - x(OH) + xb =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 5
+Chemical Equilibrium Problem  (CHEM,SEQ=21)
+Column Listing      SOLVE mixer Using NLP From line 52
+
+
+---- x  number of mols in mixture
+
+x(H)
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+        1       cdef(H)
+       (7.3584) edef
+       -1       xdef
+        0       (OLD LEVEL ****)
+
+x(H2)
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+        2       cdef(H)
+      (18.4334) edef
+       -1       xdef
+        0       (OLD LEVEL ****)
+
+x(H2O)
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+        2       cdef(H)
+        1       cdef(O)
+      (35.3234) edef
+       -1       xdef
+        0       (OLD LEVEL ****)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- xb  total number of mols in mixture
+
+xb
+                (.LO, .L, .UP, .M = 0.01, 0.01, +INF, 0)
+       (1)      edef
+        1       xdef
+        0       (OLD LEVEL ****)
+
+
+---- energy  total free energy in mixture
+
+energy
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       edef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 6
+Chemical Equilibrium Problem  (CHEM,SEQ=21)
+Model Statistics    SOLVE mixer Using NLP From line 52
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           12  11 projected
+NON ZERO ELEMENTS            37     NON LINEAR N-Z             11
+DERIVATIVE POOL              20     CONSTANT POOL              26
+CODE LENGTH                  72
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 7
+Chemical Equilibrium Problem  (CHEM,SEQ=21)
+Solution Report     SOLVE mixer Using NLP From line 52
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mixer               OBJECTIVE  energy
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  52
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/chem/convert.opt"
+>>  pyomo chem-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/chem/convert.opt"
+Pyomo     : chem-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/chem/chem.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/chem/chem-scalar.py.lst

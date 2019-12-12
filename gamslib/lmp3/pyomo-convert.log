@@ -1,0 +1,957 @@
+--- Job lmp3.gms Start 12/13/18 11:22:56 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- lmp3.gms(135) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c1
+---       i = i1
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 5 Mb
+--- LOOPS c = c1
+---       i = i2
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 5 Mb
+--- LOOPS c = c1
+---       i = i3
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.043
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 5 Mb
+--- LOOPS c = c1
+---       i = i4
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.058
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 5 Mb
+--- LOOPS c = c1
+---       i = i5
+---   23 rows  33 columns  665 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.076
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c2
+---       i = i1
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.105
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c2
+---       i = i2
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.140
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c2
+---       i = i3
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.180
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c2
+---       i = i4
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.277
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 3 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c2
+---       i = i5
+---   123 rows  103 columns  12,205 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.365
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 2 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c3
+---       i = i1
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.423
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c3
+---       i = i2
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.498
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c3
+---       i = i3
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.577
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c3
+---       i = i4
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.652
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c3
+---       i = i5
+---   223 rows  203 columns  44,405 non-zeroes
+---   5 nl-code  2 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:00.729
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c4
+---       i = i1
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.776
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c4
+---       i = i2
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.795
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c4
+---       i = i3
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.818
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c4
+---       i = i4
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.843
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c4
+---       i = i5
+---   24 rows  34 columns  697 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.866
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c5
+---       i = i1
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.896
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c5
+---       i = i2
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.935
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c5
+---       i = i3
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:00.979
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c5
+---       i = i4
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.024
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c5
+---       i = i5
+---   124 rows  124 columns  14,767 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.062
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c6
+---       i = i1
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.108
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c6
+---       i = i2
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.180
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c6
+---       i = i3
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.250
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c6
+---       i = i4
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.309
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c6
+---       i = i5
+---   204 rows  184 columns  36,547 non-zeroes
+---   6 nl-code  3 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.369
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c7
+---       i = i1
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.445
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c7
+---       i = i2
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.590
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c7
+---       i = i3
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.609
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c7
+---       i = i4
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.629
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 6 Mb
+--- LOOPS c = c7
+---       i = i5
+---   25 rows  35 columns  729 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:01.653
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c8
+---       i = i1
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.684
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c8
+---       i = i2
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.715
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c8
+---       i = i3
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.750
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c8
+---       i = i4
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.777
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 7 Mb
+--- LOOPS c = c8
+---       i = i5
+---   105 rows  105 columns  10,409 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 5 Mb
+--- Executing CONVERT: elapsed 0:00:01.806
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c9
+---       i = i1
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.855
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c9
+---       i = i2
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.930
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c9
+---       i = i3
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:01.997
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c9
+---       i = i4
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.063
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(86) 4 Mb
+--- Generating NLP model lmp3
+--- lmp3.gms(111) 9 Mb
+--- LOOPS c = c9
+---       i = i5
+---   205 rows  205 columns  40,809 non-zeroes
+---   7 nl-code  4 nl-non-zeroes
+--- lmp3.gms(111) 7 Mb
+--- Executing CONVERT: elapsed 0:00:02.134
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  pyomo lmp3-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+--- Writing Pyomo     : lmp3-scalar.py
+
+--- Restarting execution
+--- lmp3.gms(111) 3 Mb
+--- Reading solution for model lmp3
+--- lmp3.gms(133) 4 Mb
+*** Status: Normal completion
+--- Job lmp3.gms Stop 12/13/18 11:22:58 elapsed 0:00:02.171

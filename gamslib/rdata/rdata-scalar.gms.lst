@@ -1,0 +1,477 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 2
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+Set Definitions
+
+
+   5   
+       
+      A mini relational data base of the us economy is used to demonstrate
+      some basic concepts of the relational data model. Data verification
+      and the use of math programming is shown as well.
+       
+       
+      Kendrick, D, Chapter 3: A Relational Database of the US Economy.
+      In Kindleberger, C P, and Ditella, G, Eds, Economics in the Long View,
+      Essays in the Honor of W W Rostow. Macmillan, London, 1982.
+       
+  18   
+  19   
+  20  Sets plant      / sparrows, inland, comfort, rockdale, lansing /
+  21       city       / sparrows-p, rockdale, p-comfort, gary, lansing /
+  22       state      / indiana, maryland, michigan, texas /
+  23       region     / e-coast, g-coast, mid-west /
+  24       governor   / bowen, clements, hughes, milliken /
+  25       party      / democrat, republican /
+  26       company    / us-steel, alcoa, inld-steel, gm /
+  27       union      / iam, ibew, ibt, uaw, usa /
+  28       unit       / blast-furn, steel-shop, roll-mill, alumina, aluminum, stamping, assembly /
+  29       commodity  / iron-ore, pig-iron, scrap-iron, steel, flat-steel, bauxite, alumina, aluminum, auto-body, automobile /
+  30       process    / pig-iron, steel-pig, stl-scrap, rolling, alumina, aluminum, auto-body, auto-assm /
+  31       industry   / steel, aluminum, automobile /
+  32       sector     / p-metals, transp-equ /
+  33   
+  34       geography(plant,city,state,region) / (sparrows.sparrows-p.maryland.e-coast
+  35                                             inland  .gary      .indiana .mid-west
+  36                                             comfort .p-comfort .texas   .g-coast
+  37                                             rockdale.rockdale  .texas   .g-coast
+  38                                             lansing .lansing   .michigan.mid-west ) /
+  39   
+  40       govaff(state,governor,party) / (indiana .bowen   .republican
+  41                                       maryland.hughes  .democrat
+  42                                       michigan.milliken.republican
+  43                                       texas   .clements.republican ) /
+  44   
+  45       ownership(company,plant) / (alcoa     .(comfort,rockdale)
+  46                                   gm        .lansing
+  47                                   inld-steel.inland
+  48                                   us-steel  .sparrows            ) /
+  49       sic(sector,industry,commodity) / p-metals.(steel.(iron-ore,pig-iron,steel,flat-steel,scrap-iron)
+  50                                                  aluminum.(bauxite,alumina,aluminum))
+  51                                        transp-equ.automobile.(auto-body,automobile)  /
+  52       indpl(industry,plant)  classification of plants by industry
+  53   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 3
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+data
+
+
+  55   
+  56   Table a(commodity,process) input-output matrix
+  57   
+  58                pig-iron   steel-pig   stl-scrap     rolling   alumina   aluminum   auto-body   auto-assm
+  59   
+  60   iron-ore       -1.
+  61   pig-iron        1.        -.9          -.7
+  62   scrap-iron                -.2          -.4           .2
+  63   steel                     1.           1.          -1.2
+  64   flat-steel                                          1.                             -1.2
+  65   bauxite                                                       -1.4
+  66   alumina                                                        1.       -1.2
+  67   aluminum                                                                 1          -.2
+  68   auto-body                                                                           1.         -1.
+  69   automobile                                                                                      1.
+  70   
+  71   
+  72   Table b(unit,process) capacity utilization matrix
+  73   
+  74                pig-iron   steel-pig   stl-scrap     rolling   alumina   aluminum   auto-body   auto-assm
+  75   
+  76   blast-furn      1
+  77   steel-shop                  1            1
+  78   roll-mill                                            1
+  79   alumina                                                        1
+  80   aluminum                                                                  1
+  81   stamping                                                                              1
+  82   assembly                                                                                          1
+  83   
+  84   Table k80(unit,plant) capacity in 1980 ( millions of units)
+  85   
+  86                sparrows  inland  comfort  rockdale  lansing
+  87   
+  88   blast-furn      2       2.5
+  89   steel-shop      2.35    2.8
+  90   roll-mill       1.9     2.4
+  91   alumina                           .8
+  92   aluminum                          .6       .5
+  93   stamping                                            .6
+  94   assembly                                            .6
+  95   
+  96   
+  97   Table emp(plant,union) employment (thousands)
+  98   
+  99               uaw     usa     ibew    ibt    iam
+ 100   
+ 101   sparrows            1.2              .3    .05
+ 102   inland               .4
+ 103   comfort              .7              .2
+ 104   rockdale             .5     .05
+ 105   lansing     1.2
+ 106     ;
+ 107   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 4
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+data manipulations
+
+
+ 109   
+ 110   indpl(industry,plant) = yes$sum((sector,commodity,process,unit)$(sic(sector,industry,commodity)
+ 111                                                                     $(a(commodity,process) gt 0)$b(unit,process)
+ 112                                                                        $k80(unit,plant)), 1);
+ 113   Display indpl;
+ 114   
+ 115   Parameter q1(union,company)   employment by union and company (thousands)
+ 116             q2(unit,region)     capacity by region (millions of units)
+ 117             q3(governor)        employment in steel and automobiles (thousands)
+ 118             q4                  smallest number of union participation to build cars ;
+ 119   
+ 120   q1(union,company)   = sum(plant$ownership(company,plant), emp(plant,union));
+ 121   
+ 122   q2(unit,region)     = sum((plant,city,state)$geography(plant,city,state,region), k80(unit,plant));
+ 123   
+ 124   Set ind3(industry)  industry grouping for q3  / steel, automobile / ;
+ 125   q3(governor)        = sum((state,party)$govaff(state,governor,party),
+ 126                           sum((ind3,plant,city,region)$(geography(plant,city,state,region)*indpl(ind3,plant)),
+ 127                             sum(union, emp(plant,union)) ) );
+ 128   
+ 129   Display q1, q2, q3;
+ 130   
+ 131  * Query number 4 requires the solution of a mixed integer problem. Some other parameters are
+ 132  * are needed for the mip formulation.
+ 133   
+ 134   Parameter demand(commodity)       in millions of units                  / automobile .5 /
+ 135             ur(process,plant,union) union relationship to plant processes
+ 136             mu(union)               maximum ;
+ 137   Set rawmat(commodity) raw materials;
+ 138   
+ 139   ur(process,plant,union) = sum(unit$k80(unit,plant), emp(plant,union)*b(unit,process));
+ 140   mu(union)               = sum((process,plant), ur(process,plant,union));
+ 141   rawmat(commodity) = yes$(not sum(process, a(commodity,process) gt 0)); rawmat("scrap-iron") = yes;
+ 142   
+ 143   Display demand, ur, mu, rawmat;
+ 144   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 5
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+model definiton
+
+
+ 146   
+ 147   Variables nunion           number of unions                          (number)
+ 148             z(process,plant) process level                      (million units)
+ 149             up(union)        union participation
+ 150             u(commodity)     purchase of raw materials          (million units)
+ 151   
+ 152   Positive Variable z;
+ 153   Binary Variable up;
+ 154   
+ 155   Equations mb(commodity)   material balance                    (million units)
+ 156             cc(unit,plant)  capacity constraint                 (million units)
+ 157             ub(union)       union balance
+ 158             ud              union definition;
+ 159   
+
+ 161   
+
+ 162   mb(commodity)..  sum((process,plant), a(commodity,process)*z(process,plant))
+
+ 163                   + u(commodity)$rawmat(commodity) =e= demand(commodity);
+
+ 164   
+
+ 165   cc(unit,plant).. sum(process, b(unit,process)*z(process,plant)) =l= k80(unit,plant);
+
+ 166   
+
+ 167   ub(union)..      sum((process,plant), ur(process,plant,union)*z(process,plant)) =l= mu(union)*up(union);
+
+ 168   
+
+ 169   ud..             nunion =e= sum(union, up(union));
+
+ 170   
+
+ 171   Model david / all /;
+
+ 172   
+
+ 173   Solve david minimizing nunion using mip;
+
+ 174   
+
+ 175   q4 = nunion.l; Display q4;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 6
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+E x e c u t i o n
+
+
+----    113 SET indpl  classification of plants by industry
+
+              sparrows      inland     comfort    rockdale     lansing
+
+aluminum                                   YES         YES
+steel              YES         YES
+automobile                                                         YES
+
+
+----    129 PARAMETER q1  employment by union and company (thousands)
+
+        us-steel       alcoa  inld-steel          gm
+
+iam        0.050
+ibew                   0.050
+ibt        0.300       0.200
+uaw                                            1.200
+usa        1.200       1.200       0.400
+
+
+----    129 PARAMETER q2  capacity by region (millions of units)
+
+               e-coast     g-coast    mid-west
+
+blast-furn       2.000                   2.500
+steel-shop       2.350                   2.800
+roll-mill        1.900                   2.400
+alumina                      0.800
+aluminum                     1.100
+stamping                                 0.600
+assembly                                 0.600
+
+
+----    129 PARAMETER q3  employment in steel and automobiles (thousands)
+
+bowen    0.400,    hughes   1.550,    milliken 1.200
+
+
+----    143 PARAMETER demand  in millions of units
+
+automobile 0.500
+
+
+----    143 PARAMETER ur  union relationship to plant processes
+
+                           iam        ibew         ibt         uaw         usa
+
+alumina  .comfort                                0.200                   0.700
+aluminum .comfort                                0.200                   0.700
+aluminum .rockdale                   0.050                               0.500
+pig-iron .sparrows       0.050                   0.300                   1.200
+pig-iron .inland                                                         0.400
+auto-body.lansing                                            1.200
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 7
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+E x e c u t i o n
+
+
+        143 PARAMETER ur  union relationship to plant processes
+
+                           iam        ibew         ibt         uaw         usa
+
+steel-pig.sparrows       0.050                   0.300                   1.200
+steel-pig.inland                                                         0.400
+stl-scrap.sparrows       0.050                   0.300                   1.200
+stl-scrap.inland                                                         0.400
+rolling  .sparrows       0.050                   0.300                   1.200
+rolling  .inland                                                         0.400
+auto-assm.lansing                                            1.200
+
+
+----    143 PARAMETER mu  maximum
+
+iam  0.200,    ibew 0.050,    ibt  1.600,    uaw  2.400,    usa  8.300
+
+
+----    143 SET rawmat  raw materials
+
+iron-ore  ,    scrap-iron,    bauxite   
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 8
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+Equation Listing    SOLVE david Using MIP From line 173
+
+
+---- mb  =E=  material balance                    (million units)
+
+mb(alumina)..  z(alumina,sparrows) + z(alumina,inland) + z(alumina,comfort) + z(alumina,rockdale) + z(alumina,lansing) - 1.2*z(aluminum,sparrows) - 1.2*z(aluminum,inland) - 1.2*z(aluminum,comfort) - 1.2*z(aluminum,rockdale) - 1.2*z(aluminum,lansing) =E= 0
+      ; (LHS = 0)
+     
+mb(aluminum)..  z(aluminum,sparrows) + z(aluminum,inland) + z(aluminum,comfort) + z(aluminum,rockdale) + z(aluminum,lansing) - 0.2*z(auto-body,sparrows) - 0.2*z(auto-body,inland) - 0.2*z(auto-body,comfort) - 0.2*z(auto-body,rockdale)
+     
+      - 0.2*z(auto-body,lansing) =E= 0 ; (LHS = 0)
+     
+mb(iron-ore)..  - z(pig-iron,sparrows) - z(pig-iron,inland) - z(pig-iron,comfort) - z(pig-iron,rockdale) - z(pig-iron,lansing) + u(iron-ore) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraint                 (million units)
+
+cc(blast-furn,sparrows)..  z(pig-iron,sparrows) =L= 2 ; (LHS = 0)
+     
+cc(blast-furn,inland)..  z(pig-iron,inland) =L= 2.5 ; (LHS = 0)
+     
+cc(blast-furn,comfort)..  z(pig-iron,comfort) =L= 0 ; (LHS = 0)
+     
+REMAINING 32 ENTRIES SKIPPED
+
+
+---- ub  =L=  union balance
+
+ub(iam)..  0.05*z(pig-iron,sparrows) + 0.05*z(steel-pig,sparrows) + 0.05*z(stl-scrap,sparrows) + 0.05*z(rolling,sparrows) - 0.2*up(iam) =L= 0 ; (LHS = 0)
+     
+ub(ibew)..  0.05*z(aluminum,rockdale) - 0.05*up(ibew) =L= 0 ; (LHS = 0)
+     
+ub(ibt)..  0.2*z(alumina,comfort) + 0.2*z(aluminum,comfort) + 0.3*z(pig-iron,sparrows) + 0.3*z(steel-pig,sparrows) + 0.3*z(stl-scrap,sparrows) + 0.3*z(rolling,sparrows) - 1.6*up(ibt) =L= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- ud  =E=  union definition
+
+ud..  nunion - up(iam) - up(ibew) - up(ibt) - up(uaw) - up(usa) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 9
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+Column Listing      SOLVE david Using MIP From line 173
+
+
+---- nunion  number of unions                          (number)
+
+nunion
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ud
+
+
+---- z  process level                      (million units)
+
+z(alumina,sparrows)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(alumina)
+       -1.4     mb(bauxite)
+        1       cc(alumina,sparrows)
+
+z(alumina,inland)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(alumina)
+       -1.4     mb(bauxite)
+        1       cc(alumina,inland)
+
+z(alumina,comfort)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(alumina)
+       -1.4     mb(bauxite)
+        1       cc(alumina,comfort)
+        0.2     ub(ibt)
+        0.7     ub(usa)
+
+REMAINING 37 ENTRIES SKIPPED
+
+---- up  union participation
+
+up(iam)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.2     ub(iam)
+       -1       ud
+
+up(ibew)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.05    ub(ibew)
+       -1       ud
+
+up(ibt)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1.6     ub(ibt)
+       -1       ud
+
+REMAINING 2 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 10
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+Column Listing      SOLVE david Using MIP From line 173
+
+
+---- u  purchase of raw materials          (million units)
+
+u(iron-ore)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mb(iron-ore)
+
+u(scrap-iron)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mb(scrap-iron)
+
+u(bauxite)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       mb(bauxite)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 11
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+Model Statistics    SOLVE david Using MIP From line 173
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           51
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           49
+NON ZERO ELEMENTS           178     DISCRETE VARIABLES          5
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 12
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+Solution Report     SOLVE david Using MIP From line 173
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   david               OBJECTIVE  nunion
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  173
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/rdata/convert.opt"
+>>  gams rdata-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/rdata/convert.opt"
+Gams      : rdata-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 13
+Sample Data Base of the US Economy  (RDATA,SEQ=38)
+E x e c u t i o n
+
+
+----    175 PARAMETER q4                   =        0.000  smallest number of union participation to build cars
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/rdata/rdata.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/rdata/rdata-scalar.gms.lst

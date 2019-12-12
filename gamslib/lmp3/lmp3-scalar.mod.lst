@@ -1,0 +1,2616 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 2
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+C o m p i l a t i o n
+
+
+   3   
+       
+         Generate and solves random linear multiplicative models of
+         "Type 3." Problem instances are generated as proposed by
+         Benson and Boger. Model developed by N. Sahinidis.
+       
+       
+      H. P. Benson and G. M. Boger, "Multiplicative programming problems:
+      Analysis and efficient point search heuristic",
+      Journal of Optimization Theory and Applications, 94(487-510), 1997.
+       
+      M. Tawarmalani and N. Sahinidis, Convexification and Global
+      Optimization in Continuous and Mixed-Integer Nonlinear
+      Programming: Theory, Algorithms, Software, and Applications,
+      Kluwer Academic Publishers, 2002.
+       
+  21   
+  22   
+  23  Options
+  24       optcr    = 0,
+  25       optca    = 1.e-6,
+  26       limrow   = 0,
+  27       limcol   = 0,
+  28       solprint = off;
+  29   
+  30  Sets mm /m1*m220/
+  31       nn /n1*n200/
+  32       pp /p1*p4/;
+  33   
+  34  Sets m(mm) constraints
+  35       n(nn) variables
+  36       p(pp) products;
+  37   
+  38  Sets c cases       /c1*c9/
+  39       i instances   /i1*i5/ ;
+  40   
+  41   
+  42  * For each case to be solved, we use a different (m,n,p) triplet
+  43  Table cases(c,*)
+  44        m   n  p
+  45  c1   20  30  2
+  46  c2  120 100  2
+  47  c3  220 200  2
+  48  c4   20  30  3
+  49  c5  120 120  3
+  50  c6  200 180  3
+  51  c7   20  30  4
+  52  c8  100 100  4
+  53  c9  200 200  4 ;
+  54   
+  55   
+  56  Parameters cc(pp,nn)  cost coefficients
+  57             A(mm,nn)   constraint coefficients
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 3
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+C o m p i l a t i o n
+
+
+  58             b(mm)     left-hand-side
+  59             rep(c,*) summary report ;
+  60   
+  61  Parameters mactual, nactual, pactual,
+  62             ResMin, Resmax, NodMin, Nodmax;
+  63   
+  64  Variables y(pp), x(nn), obj ;
+  65  x.lo(nn) = 1;
+  66   
+  67   
+  68  Equations  Objective,
+  69             Constraints(mm),
+  70             Products(pp);
+  71   
+  72  Objective..      obj  =E= prod(p, y(p));
+  73   
+  74  Products(p)..    y(p) =E= sum(n, cc(p,n)*x(n));
+  75   
+  76  Constraints(m).. b(m) =L= sum(n, A(m,n)*x(n)) ;
+  77   
+  78  Model lmp3 /all/;
+  79  lmp3.workspace = 32;
+  80   
+  81  rep(c,'AvgResUsd') = 0;
+  82  rep(c,'AvgNodUsd') = 0;
+  83   
+  84  loop (c,
+  85   
+  86     m(mm)   = ord(mm)<= cases(c,'m');
+  87     n(nn)   = ord(nn)<= cases(c,'n');
+  88     p(pp)   = ord(pp)<= cases(c,'p');
+  89   
+  90     mactual = cases(c,'m');
+  91     nactual = cases(c,'n');
+  92     pactual = cases(c,'p');
+  93   
+  94     ResMin  = inf;
+  95     Resmax  = 0;
+  96     NodMin  = inf;
+  97     Nodmax  = 0;
+  98   
+  99     loop(i,
+ 100   
+ 101        cc(p,n) = round(uniform(1,10));
+ 102        A(m,n)  = round(uniform(1,10));
+ 103        b(m)    = sum(n, A(m,n)**2);
+ 104        x.up(n) = smax(m, b(m));
+ 105   
+ 106  * Set initial starting point for all models to 0
+ 107        x.l(n)=0; y.l(p)=0;
+ 108   
+ 109        Solve lmp3 minimizing obj using nlp;
+ 110   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 4
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+C o m p i l a t i o n
+
+
+ 111        rep(c,'AvgResUsd')  = rep(c,'AvgResUsd') + lmp3.resusd;
+ 112        rep(c,'AvgNodUsd')  = rep(c,'AvgNodUsd') + lmp3.nodusd;
+ 113   
+ 114        ResMin = min(ResMin, lmp3.resusd);
+ 115        NodMin = min(NodMin, lmp3.nodusd);
+ 116        ResMax = max(ResMax, lmp3.resusd);
+ 117        NodMax = max(NodMax, lmp3.nodusd);
+ 118   
+ 119     );
+ 120   
+ 121     rep(c,'MinResUsd') = ResMin;
+ 122     rep(c,'MaxResUsd') = ResMax;
+ 123     rep(c,'MinNodUsd') = NodMin;
+ 124     rep(c,'MaxNodUsd') = NodMax;
+ 125   
+ 126  );
+ 127   
+ 128  rep(c,'AvgResUsd') = rep(c,'AvgResUsd')/card(i);
+ 129  rep(c,'AvgNodUsd') = rep(c,'AvgnodUsd')/card(i);
+ 130   
+ 131  Display rep;
+ 132   
+ 133   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 5
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c1
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33  30 projected
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 6
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 7
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c1
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33  30 projected
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 8
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:52 Page 9
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c1
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33  30 projected
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 10
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 11
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c1
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33  30 projected
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 12
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 13
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c1
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           33  30 projected
+NON ZERO ELEMENTS           665     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c1
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 14
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 15
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c2
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103  100 projected
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 16
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 17
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c2
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103  100 projected
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 18
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 19
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c2
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103  100 projected
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 20
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 21
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c2
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103  100 projected
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.014 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 22
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 23
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c2
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          123
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          103  100 projected
+NON ZERO ELEMENTS        12,205     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.012 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c2
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 24
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 25
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c3
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203  200 projected
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.034 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 26
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 27
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c3
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203  200 projected
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.032 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 28
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 29
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c3
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203  200 projected
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.033 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 30
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 31
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c3
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203  200 projected
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.016 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.033 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 32
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 33
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c3
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          223
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          203  200 projected
+NON ZERO ELEMENTS        44,405     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   5
+
+
+GENERATION TIME      =        0.015 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.031 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c3
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 34
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 35
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c4
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34  30 projected
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 36
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 37
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c4
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34  30 projected
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 38
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 39
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c4
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34  30 projected
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 40
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 41
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c4
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34  30 projected
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 42
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 43
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c4
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           24
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           34  30 projected
+NON ZERO ELEMENTS           697     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c4
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 44
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 45
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c5
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124  120 projected
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.012 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 46
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 47
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c5
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124  120 projected
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.006 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.011 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 48
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 49
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c5
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124  120 projected
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.015 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 50
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 51
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c5
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124  120 projected
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.012 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 52
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 53
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c5
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          124
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          124  120 projected
+NON ZERO ELEMENTS        14,767     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.007 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.014 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c5
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 54
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 55
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c6
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184  180 projected
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.013 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.028 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 56
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 57
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c6
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184  180 projected
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.013 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.029 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 58
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 59
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c6
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184  180 projected
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.013 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.027 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 60
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 61
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c6
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184  180 projected
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.013 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.026 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 62
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 63
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c6
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          204
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          184  180 projected
+NON ZERO ELEMENTS        36,547     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   6
+
+
+GENERATION TIME      =        0.013 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.029 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c6
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 64
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 65
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c7
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35  30 projected
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 66
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 67
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c7
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35  30 projected
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 68
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 69
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c7
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35  30 projected
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 70
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 71
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c7
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35  30 projected
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 72
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 73
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c7
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           35  30 projected
+NON ZERO ELEMENTS           729     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c7
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 74
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 75
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c8
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105  100 projected
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.006 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.012 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 76
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 77
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c8
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105  100 projected
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 78
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 79
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c8
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105  100 projected
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.004 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 80
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 81
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c8
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105  100 projected
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 82
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 83
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c8
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          105
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          105  100 projected
+NON ZERO ELEMENTS        10,409     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.005 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.009 SECONDS      5 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c8
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 84
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 85
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c9
+                                         i   i1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205  200 projected
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.032 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 86
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 87
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c9
+                                         i   i2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205  200 projected
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.032 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 88
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 89
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c9
+                                         i   i3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205  200 projected
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.031 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 90
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 91
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c9
+                                         i   i4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205  200 projected
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.031 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 92
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 93
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Model Statistics    SOLVE lmp3 Using NLP From line 109
+
+
+LOOPS                                    c   c9
+                                         i   i5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          205
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          205  200 projected
+NON ZERO ELEMENTS        40,809     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   7
+
+
+GENERATION TIME      =        0.014 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.029 SECONDS      7 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c c9
+                                          i i5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 94
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+Solution Report     SOLVE lmp3 Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lmp3                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+>>  ampl lmp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lmp3/convert.opt"
+Ampl      : lmp3-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:52 Page 95
+Linear Multiplicative Programs - Type 3 (LMP3, SEQ=253)
+E x e c u t i o n
+
+
+----    131 PARAMETER rep  summary report
+
+     AvgNodUsd   MinNodUsd   MaxNodUsd
+
+c1          NA          NA          NA
+c2          NA          NA          NA
+c3          NA          NA          NA
+c4          NA          NA          NA
+c5          NA          NA          NA
+c6          NA          NA          NA
+c7          NA          NA          NA
+c8          NA          NA          NA
+c9          NA          NA          NA
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/lmp3/lmp3.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/lmp3/lmp3-scalar.mod.lst

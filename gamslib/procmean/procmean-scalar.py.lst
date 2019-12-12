@@ -1,0 +1,184 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 2
+Optimal Process Mean (PROCMEAN,SEQ=301)
+C o m p i l a t i o n
+
+
+       
+      Find the optimal process mean when the quality characteristic
+      follows a Beta distribution and using a linear quality loss.
+       
+       
+      Erwin Kalvelagen, April 2004
+       
+      Chen, C H, and Chou, C Y, Determining the Optimum Process Mean under a
+      Beta Distribution. Journal of the Chinese Institute of Industrial
+      Engineers 18 (3) (2003), 27--32.
+       
+      Phillips, M D, and Cho, B R, Determining the Optimum Process Mean
+      under a Beta Distribution. A Nonlinear model for determining the most
+      economic process mean under a beta distribution 7 (2000), 61--74.
+       
+  22   
+  23  scalars
+  24     a 'minimum value of quality characteristic'   /113/
+  25     b 'maximum value of quality characteristic'   /119/
+  26     alpha 'shape parameter' /2/
+  27     beta  'shape parameter' /4/
+  28     T 'target value' /115/
+  29     k1 'quality loss coefficient when x<T' /2/
+  30     k2 'quality loss coefficient when x>T' /3/
+  31  ;
+  32   
+  33   
+  34  scalars g1,g2,g3;
+  35   
+  36  g1 = gamma(alpha+beta)/(gamma(alpha)*gamma(beta));
+  37  g2 = gamma(alpha+1)*gamma(beta)/gamma(alpha+beta+1);
+  38  g3 = g1*g2;
+  39   
+  40   
+  41  variables
+  42     TC    'Total expected cost per unit'
+  43     delta 'location parameter'
+  44     y     'transformation'
+  45  ;
+  46   
+  47  equations
+  48     tcdef 'cost model'
+  49     ydef
+  50  ;
+  51   
+  52  tcdef..  tc =e= k1*T*betareg(y,alpha,beta)
+  53                  - k1*{(delta+a)*betareg(y,alpha,beta)
+  54                        +(b-a)*betareg(y,alpha+1,beta)*g3}
+  55                  + k2*{(delta+a)*[1-betareg(y,alpha,beta)]
+  56                        +(b-a)*[1-betareg(y,alpha+1,beta)*g3]}
+  57                  - k2*T*[1-betareg(y,alpha,beta)];
+  58   
+  59  ydef..   y =e= (T-delta-a)/(b-a);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 3
+Optimal Process Mean (PROCMEAN,SEQ=301)
+C o m p i l a t i o n
+
+
+  60   
+  61  y.lo = 0.0001;
+  62  y.up = 0.9999;
+  63   
+  64  y.l = 0.5;
+  65   
+  66  model m /all/;
+  67  solve m using nlp minimizing tc;
+
+
+COMPILATION TIME     =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 4
+Optimal Process Mean (PROCMEAN,SEQ=301)
+Equation Listing    SOLVE m Using NLP From line 67
+
+
+---- tcdef  =E=  cost model
+
+tcdef..  TC + (1.0625)*delta + (6.25)*y =E= -327 ; (LHS = -340.5625, INFES = 13.5625 ****)
+     
+
+---- ydef  =E=  
+
+ydef..  0.166666666666667*delta + y =E= 0.333333333333333 ; (LHS = 0.5, INFES = 0.166666666666667 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 5
+Optimal Process Mean (PROCMEAN,SEQ=301)
+Column Listing      SOLVE m Using NLP From line 67
+
+
+---- TC  Total expected cost per unit
+
+TC
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       tcdef
+
+
+---- delta  location parameter
+
+delta
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (1.0625) tcdef
+        0.1667  ydef
+
+
+---- y  transformation
+
+y
+                (.LO, .L, .UP, .M = 0.0001, 0.5, 0.9999, 0)
+       (6.25)   tcdef
+        1       ydef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 6
+Optimal Process Mean (PROCMEAN,SEQ=301)
+Model Statistics    SOLVE m Using NLP From line 67
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            2
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             5     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                  53
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:22 Page 7
+Optimal Process Mean (PROCMEAN,SEQ=301)
+Solution Report     SOLVE m Using NLP From line 67
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  TC
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  67
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/procmean/convert.opt"
+>>  pyomo procmean-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/procmean/convert.opt"
+Pyomo     : procmean-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/procmean/procmean.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/procmean/procmean-scalar.py.lst

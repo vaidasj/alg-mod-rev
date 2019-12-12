@@ -1,0 +1,592 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 2
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+C o m p i l a t i o n
+
+
+   3   
+       
+      Maximize the final altitude of a vertically launched rocket, using the
+      thrust as a control and given the initial mass, the fuel mass, and the
+      drag characteristics of the rocket.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of discretization points can be specified using the command
+      line parameter. COPS performance tests have been reported for nh = 50,
+      100, 200, 400
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Bryson, A E, Dynamic Optimization. Addison Wesley, 1999.
+       
+  25   
+  26   
+  29   
+  30  set h intervals / h0 * h50/
+  31   
+  32  scalars
+  33     h_0  Initial height          / 1 /
+  34     v_0  Initial velocity        / 0 /
+  35     m_0  Initial mass            / 1 /
+  36     g_0  Gravity at the surface  / 1 /
+  37     nh   Number of intervals in mesh / 50 /
+  38     t_c  Thrust constant         /3.5/
+  39     v_c  / 620 /
+  40     h_c  / 500 /
+  41     m_c  / 0.6 /
+  42     D_c
+  43     m_f  final mass
+  44     c ;
+  45   
+  46   
+  47  variable   final_velocity
+  48   
+  49  positive
+  50  variables  step   step size
+  51             v(h)   velocity
+  52             ht(h)  height
+  53             g(h)  gravity
+  54             m(h)  mass
+  55             t(h)  thrust
+  56             d(h)  drag
+  57   
+  58  equations  df(h)  Drag function
+  59             gf(h)  Gravity function
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 3
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+C o m p i l a t i o n
+
+
+  60             obj
+  61             h_eqn(h), v_eqn(h), m_eqn(h);
+  62   
+  63   
+  64  obj.. final_velocity =e= ht('h50');
+  65   
+  66  df(h).. d(h) =e= D_c*sqr(v(h))*exp(-h_c*(ht(h)-h_0)/h_0);
+  67   
+  68  gf(h).. g(h) =e= g_0*sqr(h_0/ht(h));
+  69   
+  70  h_eqn(h-1).. ht(h) =e= ht(h-1) + .5*step*(v(h) + v(h-1));
+  71   
+  72  m_eqn(h-1).. m(h) =e= m(h-1) - .5*step*(T(h) + T(h-1))/c;
+  73   
+  74  v_eqn(h-1).. v(h) =e= v(h-1)
+  75                      + .5*step*((T(h)   - D(h)   - m(h)  *g(h))  /m(h)
+  76                                +(T(h-1) - D(h-1) - m(h-1)*g(h-1))/m(h-1));
+  77   
+  78  c   = 0.5*sqrt(g_0*h_0);
+  79  m_f = m_c*m_0;
+  80  D_c = 0.5*v_c*(m_0/g_0);
+  81   
+  82  ht.lo(h) = h_0;
+  83   
+  84  t.lo(h)  = 0.0;
+  85  t.up(h)  = T_c*(m_0*g_0);
+  86   
+  87  m.lo(h)  = m_f;
+  88  m.up(h)  = m_0;
+  89   
+  90  ht.fx('h0')   = h_0;
+  91  v.fx('h0')    = v_0;
+  92  m.fx('h0')    = m_0;
+  93  m.fx('h50') = m_f;
+  94   
+  95  ht.l(h) = 1;
+  96  v.l(h)  = ((ord(h)-1)/nh)*(1 - ((ord(h)-1)/nh));
+  97  m.l(h)  = (m_f - m_0)*((ord(h)-1)/nh) + m_0;
+  98  t.l(h)  = t.up(h)/2;
+  99  step.l  = 1/nh;
+ 100   
+ 101  * Initial values for intermediate variables
+ 102  d.l(h) = D_c*sqr(v.l(h))*exp(-h_c*(ht.l(h)-h_0)/h_0);
+ 103  g.l(h) = g_0*sqr(h_0/ht.l(h));
+ 104   
+ 105  model rocket /all/;
+ 106   
+ 108   
+ 109  solve rocket using nlp maximizing final_velocity;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 4
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Equation Listing    SOLVE rocket Using NLP From line 109
+
+
+---- df  =E=  Drag function
+
+df(h0)..  (0)*v(h0) + (0)*ht(h0) + d(h0) =E= 0 ; (LHS = 0)
+     
+df(h1)..  - (12.152)*v(h1) + (59.5448)*ht(h1) + d(h1) =E= 0 ; (LHS = 0)
+     
+df(h2)..  - (23.808)*v(h2) + (228.5568)*ht(h2) + d(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- gf  =E=  Gravity function
+
+gf(h0)..  (2)*ht(h0) + g(h0) =E= 0 ; (LHS = 0)
+     
+gf(h1)..  (2)*ht(h1) + g(h1) =E= 0 ; (LHS = 0)
+     
+gf(h2)..  (2)*ht(h2) + g(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- obj  =E=  
+
+obj..  final_velocity - ht(h50) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- h_eqn  =E=  
+
+h_eqn(h0)..  - (0.0098)*step - (0.01)*v(h0) - (0.01)*v(h1) - ht(h0) + ht(h1) =E= 0 ; (LHS = -0.000196000000000085, INFES = 0.000196000000000085 ****)
+     
+h_eqn(h1)..  - (0.029)*step - (0.01)*v(h1) - (0.01)*v(h2) - ht(h1) + ht(h2) =E= 0 ; (LHS = -0.000580000000000025, INFES = 0.000580000000000025 ****)
+     
+h_eqn(h2)..  - (0.0474)*step - (0.01)*v(h2) - (0.01)*v(h3) - ht(h2) + ht(h3) =E= 0 ; (LHS = -0.000947999999999949, INFES = 0.000947999999999949 ****)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- v_eqn  =E=  
+
+v_eqn(h0)..  - (0.697031451612903)*step - v(h0) + v(h1) + (0.01)*g(h0) + (0.01)*g(h1) + (0.0175)*m(h0) + (0.0165732147502601)*m(h1) - (0.01)*t(h0) - (0.0100806451612903)*t(h1) + (0.01)*d(h0) + (0.0100806451612903)*d(h1) =E= 0 ;
+     
+      (LHS = 0.00565937096774193, INFES = 0.00565937096774193 ****)
+     
+v_eqn(h1)..  - (0.478985923157619)*step - v(h1) + v(h2) + (0.01)*g(h1) + (0.01)*g(h2) + (0.0165732147502601)*m(h1) + (0.013352733161478)*m(h2) - (0.0100806451612903)*t(h1) - (0.0101626016260163)*t(h2) + (0.0100806451612903)*d(h1)
+     
+      + (0.0101626016260163)*d(h2) =E= 0 ; (LHS = 0.00922028153684763, INFES = 0.00922028153684763 ****)
+     
+v_eqn(h2)..  - (0.0482979141676664)*step - v(h2) + v(h3) + (0.01)*g(h2) + (0.01)*g(h3) + (0.013352733161478)*m(h2) + (0.00801933284063424)*m(h3) - (0.0101626016260163)*t(h2) - (0.0102459016393443)*t(h3) + (0.0101626016260163)*d(h2)
+     
+      + (0.0102459016393443)*d(h3) =E= 0 ; (LHS = 0.0170340417166467, INFES = 0.0170340417166467 ****)
+     
+REMAINING 47 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 5
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Equation Listing    SOLVE rocket Using NLP From line 109
+
+
+---- m_eqn  =E=  
+
+m_eqn(h0)..  (3.5)*step - m(h0) + m(h1) + (0.02)*t(h0) + (0.02)*t(h1) =E= 0 ; (LHS = 0.0620000000000001, INFES = 0.0620000000000001 ****)
+     
+m_eqn(h1)..  (3.5)*step - m(h1) + m(h2) + (0.02)*t(h1) + (0.02)*t(h2) =E= 0 ; (LHS = 0.0620000000000001, INFES = 0.0620000000000001 ****)
+     
+m_eqn(h2)..  (3.5)*step - m(h2) + m(h3) + (0.02)*t(h2) + (0.02)*t(h3) =E= 0 ; (LHS = 0.0620000000000001, INFES = 0.0620000000000001 ****)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 6
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Column Listing      SOLVE rocket Using NLP From line 109
+
+
+---- final_velocity  
+
+final_velocity
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- step  step size
+
+step
+                (.LO, .L, .UP, .M = 0, 0.02, +INF, 0)
+      (-0.0098) h_eqn(h0)
+      (-0.029)  h_eqn(h1)
+      (-0.0474) h_eqn(h2)
+      (-0.065)  h_eqn(h3)
+      (-0.0818) h_eqn(h4)
+      (-0.0978) h_eqn(h5)
+      (-0.113)  h_eqn(h6)
+      (-0.1274) h_eqn(h7)
+      (-0.141)  h_eqn(h8)
+      (-0.1538) h_eqn(h9)
+      (-0.1658) h_eqn(h10)
+      (-0.177)  h_eqn(h11)
+      (-0.1874) h_eqn(h12)
+      (-0.197)  h_eqn(h13)
+      (-0.2058) h_eqn(h14)
+      (-0.2138) h_eqn(h15)
+      (-0.221)  h_eqn(h16)
+      (-0.2274) h_eqn(h17)
+      (-0.233)  h_eqn(h18)
+      (-0.2378) h_eqn(h19)
+      (-0.2418) h_eqn(h20)
+      (-0.245)  h_eqn(h21)
+      (-0.2474) h_eqn(h22)
+      (-0.249)  h_eqn(h23)
+      (-0.2498) h_eqn(h24)
+      (-0.2498) h_eqn(h25)
+      (-0.249)  h_eqn(h26)
+      (-0.2474) h_eqn(h27)
+      (-0.245)  h_eqn(h28)
+      (-0.2418) h_eqn(h29)
+      (-0.2378) h_eqn(h30)
+      (-0.233)  h_eqn(h31)
+      (-0.2274) h_eqn(h32)
+      (-0.221)  h_eqn(h33)
+      (-0.2138) h_eqn(h34)
+      (-0.2058) h_eqn(h35)
+      (-0.197)  h_eqn(h36)
+      (-0.1874) h_eqn(h37)
+      (-0.177)  h_eqn(h38)
+      (-0.1658) h_eqn(h39)
+      (-0.1538) h_eqn(h40)
+      (-0.141)  h_eqn(h41)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 7
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Column Listing      SOLVE rocket Using NLP From line 109
+
+
+     step  step size
+
+      (-0.1274) h_eqn(h42)
+      (-0.113)  h_eqn(h43)
+      (-0.0978) h_eqn(h44)
+      (-0.0818) h_eqn(h45)
+      (-0.065)  h_eqn(h46)
+      (-0.0474) h_eqn(h47)
+      (-0.029)  h_eqn(h48)
+      (-0.0098) h_eqn(h49)
+      (-0.697)  v_eqn(h0)
+      (-0.479)  v_eqn(h1)
+      (-0.0483) v_eqn(h2)
+       (0.5721) v_eqn(h3)
+       (1.3598) v_eqn(h4)
+       (2.2928) v_eqn(h5)
+       (3.3498) v_eqn(h6)
+       (4.5097) v_eqn(h7)
+       (5.7523) v_eqn(h8)
+       (7.0579) v_eqn(h9)
+       (8.4072) v_eqn(h10)
+       (9.7817) v_eqn(h11)
+      (11.1637) v_eqn(h12)
+      (12.536)  v_eqn(h13)
+      (13.8821) v_eqn(h14)
+      (15.1864) v_eqn(h15)
+      (16.434)  v_eqn(h16)
+      (17.6109) v_eqn(h17)
+      (18.704)  v_eqn(h18)
+      (19.7009) v_eqn(h19)
+      (20.5903) v_eqn(h20)
+      (21.3621) v_eqn(h21)
+      (22.0068) v_eqn(h22)
+      (22.5164) v_eqn(h23)
+      (22.8838) v_eqn(h24)
+      (23.1034) v_eqn(h25)
+      (23.1706) v_eqn(h26)
+      (23.0821) v_eqn(h27)
+      (22.8364) v_eqn(h28)
+      (22.4331) v_eqn(h29)
+      (21.8735) v_eqn(h30)
+      (21.1606) v_eqn(h31)
+      (20.299)  v_eqn(h32)
+      (19.2953) v_eqn(h33)
+      (18.1579) v_eqn(h34)
+      (16.8973) v_eqn(h35)
+      (15.5261) v_eqn(h36)
+      (14.0593) v_eqn(h37)
+      (12.5143) v_eqn(h38)
+      (10.9108) v_eqn(h39)
+       (9.2714) v_eqn(h40)
+       (7.6217) v_eqn(h41)
+       (5.9901) v_eqn(h42)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 8
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Column Listing      SOLVE rocket Using NLP From line 109
+
+
+     step  step size
+
+       (4.4084) v_eqn(h43)
+       (2.9116) v_eqn(h44)
+       (1.5386) v_eqn(h45)
+       (0.3319) v_eqn(h46)
+      (-0.6615) v_eqn(h47)
+      (-1.3906) v_eqn(h48)
+      (-1.7995) v_eqn(h49)
+       (3.5)    m_eqn(h0)
+       (3.5)    m_eqn(h1)
+       (3.5)    m_eqn(h2)
+       (3.5)    m_eqn(h3)
+       (3.5)    m_eqn(h4)
+       (3.5)    m_eqn(h5)
+       (3.5)    m_eqn(h6)
+       (3.5)    m_eqn(h7)
+       (3.5)    m_eqn(h8)
+       (3.5)    m_eqn(h9)
+       (3.5)    m_eqn(h10)
+       (3.5)    m_eqn(h11)
+       (3.5)    m_eqn(h12)
+       (3.5)    m_eqn(h13)
+       (3.5)    m_eqn(h14)
+       (3.5)    m_eqn(h15)
+       (3.5)    m_eqn(h16)
+       (3.5)    m_eqn(h17)
+       (3.5)    m_eqn(h18)
+       (3.5)    m_eqn(h19)
+       (3.5)    m_eqn(h20)
+       (3.5)    m_eqn(h21)
+       (3.5)    m_eqn(h22)
+       (3.5)    m_eqn(h23)
+       (3.5)    m_eqn(h24)
+       (3.5)    m_eqn(h25)
+       (3.5)    m_eqn(h26)
+       (3.5)    m_eqn(h27)
+       (3.5)    m_eqn(h28)
+       (3.5)    m_eqn(h29)
+       (3.5)    m_eqn(h30)
+       (3.5)    m_eqn(h31)
+       (3.5)    m_eqn(h32)
+       (3.5)    m_eqn(h33)
+       (3.5)    m_eqn(h34)
+       (3.5)    m_eqn(h35)
+       (3.5)    m_eqn(h36)
+       (3.5)    m_eqn(h37)
+       (3.5)    m_eqn(h38)
+       (3.5)    m_eqn(h39)
+       (3.5)    m_eqn(h40)
+       (3.5)    m_eqn(h41)
+       (3.5)    m_eqn(h42)
+       (3.5)    m_eqn(h43)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 9
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Column Listing      SOLVE rocket Using NLP From line 109
+
+
+     step  step size
+
+       (3.5)    m_eqn(h44)
+       (3.5)    m_eqn(h45)
+       (3.5)    m_eqn(h46)
+       (3.5)    m_eqn(h47)
+       (3.5)    m_eqn(h48)
+       (3.5)    m_eqn(h49)
+
+
+---- v  velocity
+
+v(h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       (0)      df(h0)
+      (-0.01)   h_eqn(h0)
+       -1       v_eqn(h0)
+
+v(h1)
+                (.LO, .L, .UP, .M = 0, 0.0196, +INF, 0)
+     (-12.152)  df(h1)
+      (-0.01)   h_eqn(h0)
+      (-0.01)   h_eqn(h1)
+        1       v_eqn(h0)
+       -1       v_eqn(h1)
+
+v(h2)
+                (.LO, .L, .UP, .M = 0, 0.0384, +INF, 0)
+     (-23.808)  df(h2)
+      (-0.01)   h_eqn(h1)
+      (-0.01)   h_eqn(h2)
+        1       v_eqn(h1)
+       -1       v_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- ht  height
+
+ht(h0)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (0)      df(h0)
+       (2)      gf(h0)
+       -1       h_eqn(h0)
+
+ht(h1)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+      (59.5448) df(h1)
+       (2)      gf(h1)
+        1       h_eqn(h0)
+       -1       h_eqn(h1)
+
+ht(h2)
+                (.LO, .L, .UP, .M = 1, 1, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 10
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Column Listing      SOLVE rocket Using NLP From line 109
+
+
+     ht  height
+
+     (228.5568) df(h2)
+       (2)      gf(h2)
+        1       h_eqn(h1)
+       -1       h_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- g  gravity
+
+g(h0)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       gf(h0)
+       (0.01)   v_eqn(h0)
+
+g(h1)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       gf(h1)
+       (0.01)   v_eqn(h0)
+       (0.01)   v_eqn(h1)
+
+g(h2)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       gf(h2)
+       (0.01)   v_eqn(h1)
+       (0.01)   v_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- m  mass
+
+m(h0)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (0.0175) v_eqn(h0)
+       -1       m_eqn(h0)
+
+m(h1)
+                (.LO, .L, .UP, .M = 0.6, 0.992, 1, 0)
+       (0.0166) v_eqn(h0)
+       (0.0166) v_eqn(h1)
+        1       m_eqn(h0)
+       -1       m_eqn(h1)
+
+m(h2)
+                (.LO, .L, .UP, .M = 0.6, 0.984, 1, 0)
+       (0.0134) v_eqn(h1)
+       (0.0134) v_eqn(h2)
+        1       m_eqn(h1)
+       -1       m_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 11
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Column Listing      SOLVE rocket Using NLP From line 109
+
+
+---- t  thrust
+
+t(h0)
+                (.LO, .L, .UP, .M = 0, 1.75, 3.5, 0)
+      (-0.01)   v_eqn(h0)
+       (0.02)   m_eqn(h0)
+
+t(h1)
+                (.LO, .L, .UP, .M = 0, 1.75, 3.5, 0)
+      (-0.0101) v_eqn(h0)
+      (-0.0101) v_eqn(h1)
+       (0.02)   m_eqn(h0)
+       (0.02)   m_eqn(h1)
+
+t(h2)
+                (.LO, .L, .UP, .M = 0, 1.75, 3.5, 0)
+      (-0.0102) v_eqn(h1)
+      (-0.0102) v_eqn(h2)
+       (0.02)   m_eqn(h1)
+       (0.02)   m_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- d  drag
+
+d(h0)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       df(h0)
+       (0.01)   v_eqn(h0)
+
+d(h1)
+                (.LO, .L, .UP, .M = 0, 0.1190896, +INF, 0)
+        1       df(h1)
+       (0.0101) v_eqn(h0)
+       (0.0101) v_eqn(h1)
+
+d(h2)
+                (.LO, .L, .UP, .M = 0, 0.4571136, +INF, 0)
+        1       df(h2)
+       (0.0102) v_eqn(h1)
+       (0.0102) v_eqn(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 12
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Model Statistics    SOLVE rocket Using NLP From line 109
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS          253
+BLOCKS OF VARIABLES           8     SINGLE VARIABLES          308
+NON ZERO ELEMENTS         1,307     NON LINEAR N-Z            903
+DERIVATIVE POOL              20     CONSTANT POOL              19
+CODE LENGTH               2,769
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 13
+Goddard rocket COPS 2.0 #10 (ROCKET,SEQ=238)
+Solution Report     SOLVE rocket Using NLP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   rocket              OBJECTIVE  final_velocity
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/rocket/convert.opt"
+>>  ampl rocket-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/rocket/convert.opt"
+Ampl      : rocket-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/rocket/rocket.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/rocket/rocket-scalar.mod.lst

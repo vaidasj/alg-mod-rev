@@ -1,0 +1,89 @@
+--- Job transmcp.gms Start 12/13/18 10:30:48 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- transmcp.gms(111) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- transmcp.gms(78) 4 Mb
+--- Generating MCP model fixedqty
+--- transmcp.gms(82) 6 Mb
+---   11 rows  11 columns  24 non-zeroes
+---   0 nl-code  0 nl-non-zeroes
+--- transmcp.gms(82) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+--- Writing Gams      : transmcp-scalar.gms
+
+--- Restarting execution
+--- transmcp.gms(82) 2 Mb
+--- Reading solution for model fixedqty
+--- transmcp.gms(88) 3 Mb
+--- Generating MCP model equilqty
+--- transmcp.gms(91) 5 Mb
+---   11 rows  11 columns  27 non-zeroes
+---   28 nl-code  3 nl-non-zeroes
+--- transmcp.gms(91) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+--- Writing Gams      : transmcp-scalar.gms
+
+--- Restarting execution
+--- transmcp.gms(91) 2 Mb
+--- Reading solution for model equilqty
+--- transmcp.gms(97) 3 Mb
+--- Generating MCP model fixedqty
+--- transmcp.gms(98) 5 Mb
+---   11 rows  11 columns  24 non-zeroes
+---   0 nl-code  0 nl-non-zeroes
+--- transmcp.gms(98) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.041
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+--- Writing Gams      : transmcp-scalar.gms
+
+--- Restarting execution
+--- transmcp.gms(98) 2 Mb
+--- Reading solution for model fixedqty
+--- transmcp.gms(101) 3 Mb
+--- Generating MCP model equilqty
+--- transmcp.gms(104) 5 Mb
+---   11 rows  11 columns  27 non-zeroes
+---   28 nl-code  3 nl-non-zeroes
+--- transmcp.gms(104) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.053
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+>>  gams transmcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/transmcp/convert.opt"
+--- Writing Gams      : transmcp-scalar.gms
+
+--- Restarting execution
+--- transmcp.gms(104) 2 Mb
+--- Reading solution for model equilqty
+--- transmcp.gms(111) 3 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/transmcp/mcpReport.gdx
+*** Status: Normal completion
+--- Job transmcp.gms Stop 12/13/18 10:30:48 elapsed 0:00:00.067

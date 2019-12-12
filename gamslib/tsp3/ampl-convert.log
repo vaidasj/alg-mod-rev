@@ -1,0 +1,50 @@
+--- Job tsp3.gms Start 12/13/18 10:31:11 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- tsp3.gms(25) 2 Mb
+--- .br17.inc(54) 3 Mb
+--- tsp3.gms(108) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- tsp3.gms(144) 4 Mb
+--- Generating MIP model subt1
+--- tsp3.gms(157) 4 Mb
+---   75 rows  37 columns  737 non-zeroes
+---   30 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+>>  ampl tsp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+--- Writing Ampl      : tsp3-scalar.mod
+
+--- Restarting execution
+--- tsp3.gms(157) 2 Mb
+--- Reading solution for model subt1
+--- tsp3.gms(158) 3 Mb
+--- Generating MIP model subt2
+--- tsp3.gms(161) 3 Mb
+---   75 rows  37 columns  581 non-zeroes
+---   30 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.015
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+>>  ampl tsp3-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp3/convert.opt"
+--- Writing Ampl      : tsp3-scalar.mod
+
+--- Restarting execution
+--- tsp3.gms(161) 2 Mb
+--- Reading solution for model subt2
+--- tsp3.gms(161) 3 Mb
+*** Status: Normal completion
+--- Job tsp3.gms Stop 12/13/18 10:31:11 elapsed 0:00:00.026

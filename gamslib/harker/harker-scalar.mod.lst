@@ -1,0 +1,780 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 2
+Models of Spatial Competition (HARKER,SEQ=85)
+C o m p i l a t i o n
+
+
+   3   
+       
+         A spatial equilibrium model is used to demonstrate different
+         ways of modeling market behavior. Competitive and Monopolistic markets
+         are modeled using consumers' and producers' surplus. A Cournot-Nash
+         Oligopoly model is solved by a Diagonalization or Jacobi algorithm.
+       
+       
+      Network structure:
+       
+              one      two     three        demand and supply points
+              /  \       \     /
+             /    \       \   /
+           four -- five -- six              transport nodes
+       
+      linear demand function:        demand(price) = (rho - price)/eta
+       
+      linear marginal cost function: cost(supply) = alpha + 2*beta*supply
+       
+      transport cost:                cost(t(ij)) = kappa(ij)*t(ij) + nu(ij)*t(ij)^3
+       
+       
+      Harker, P T, Alternative Models of Spatial Competition. Operations
+      Research 34, 3 (1986), 410-425.
+       
+  30   
+  31  Sets  n     nodes    / one, two, three, four, five, six /
+  32        l(n)  regions  / one, two, three /
+  33   
+  34  Alias (l,lp),(n,np)
+  35   
+  36  Table coefs(l,*)  demand and supply data
+  37   
+  38           alpha   beta    rho      eta
+  39  one       1.0     .5      19      .2
+  40  two       2.0     .4      27      .01
+  41  three     1.5     .3      30      .3
+  42   
+  43  Table pairs(n,np,*)  transport data
+  44   
+  45             kappa     nu
+  46  one.four     1       .5
+  47  one.five     2       .2
+  48  two.six      3       .3
+  49  three.six    1       .4
+  50  four.one     2       .3
+  51  four.five    1       .1
+  52  four.six     1       .1
+  53  five.one     3       .5
+  54  five.four    2       .2
+  55  five.six     1      1.0
+  56  six.two      2       .25
+  57  six.three    2       .2
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 3
+Models of Spatial Competition (HARKER,SEQ=85)
+C o m p i l a t i o n
+
+
+  58  six.four     1       .9
+  59  six.five     3       .8
+  60   
+  61  Set arc(n,np) active arcs; arc(n,np) = pairs(n,np,"kappa");
+  62   
+  63  Positive
+  64  Variables   t(n,np)  transport
+  65              tt(l,lp) notional o-d flows
+  66              d(n)     demand
+  67              s(n)     supply
+  68  Variables   obj      objective value
+  69   
+  70  Equations bal      supply demand balance
+  71            sbal(l)  supply balance
+  72            dbal(l)  demand balance
+  73            nbal(n)  node balance
+  74            in(l)    inflow balance
+  75            objdef   objective definition
+  76            objoli   objective definition oligopoly   ;
+  77   
+  78  Scalars pm   product market type
+  79          tm   transport market type;
+  80   
+  81  bal..      sum(l, d(l)) =e= sum(l, s(l)) ;
+  82   
+  83  nbal(n)..  s(n)$l(n) + sum(arc(np,n), t(arc)) =e= d(n)$l(n) + sum(arc(n,np), t(arc));
+  84   
+  85  objdef.. obj =e= sum(l, coefs(l,"rho")*d(l) - pm*coefs(l,"eta")*sqr(d(l)) )
+  86   
+  87                 - sum(l, coefs(l,"alpha")*s(l) + coefs(l,"beta")*sqr(s(l)) )
+  88   
+  89                 - sum(arc, pairs(arc,"kappa")*t(arc)
+  90                          + tm*pairs(arc,"nu")*power(t(arc),3) );
+  91   
+  92  Model hark     / bal, nbal, objdef /;
+  93   
+  94  Parameters rep1 transport summary
+  95             rep2 supply demand and price summary;
+  96   
+  97  s.l(l) = 25; d.l(l)=25;
+  98   
+  99  *       1. classical spatial price equilibrium: perfectly competitive
+ 100  *       producers and suppliers facing average cost pricing
+ 101  *       of transportation:
+ 102   
+ 103  pm = .5; tm = 1/3; Solve hark maximizing obj using nlp;
+ 104                     rep1(arc,       "cspe2") = t.l(arc);
+ 105                     rep2("supply",l,"cspe2") = s.l(l);
+ 106                     rep2("demand",l,"cspe2") = d.l(l);
+ 107                     rep2("price ",l,"cspe2") = coefs(l,"rho") - coefs(l,"eta")*d.l(l);
+ 108   
+ 109  *       2. monopoly pricing equilibrium in which the firm owns both
+ 110  *       means of production and distribution network (hence, marginal
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 4
+Models of Spatial Competition (HARKER,SEQ=85)
+C o m p i l a t i o n
+
+
+ 111  *       cost pricing prevails at both the factory and the railhead):
+ 112   
+ 113  pm = 1; tm = 1;    Solve hark maximizing obj using nlp;
+ 114                     rep1(arc,       "monop1") = t.l(arc);
+ 115                     rep2("supply",l,"monop1") = s.l(l);
+ 116                     rep2("demand",l,"monop1") = d.l(l);
+ 117                     rep2("price ",l,"monop1") = coefs(l,"rho") - coefs(l,"eta")*d.l(l);
+ 118   
+ 119  *       3. monopoly pricing equilibrium in which the firm uses the
+ 120  *       distribution network with average cost pricing:
+ 121   
+ 122  pm = 1; tm = 1/3;  Solve hark maximizing obj using nlp;
+ 123                     rep1(arc,       "monop2") = t.l(arc);
+ 124                     rep2("supply",l,"monop2") = s.l(l);
+ 125                     rep2("demand",l,"monop2") = d.l(l);
+ 126                     rep2("price ",l,"monop2") = coefs(l,"rho") - coefs(l,"eta")*d.l(l);
+ 127   
+ 128  *       4. multi-producer oligopoly model with average cost pricing
+ 129  *       of transportation links:
+ 130   
+ 131  pm = 1; tm = 1/3;
+ 132   
+ 133  * Additional equation required to solve the a Cournot-Nash
+ 134  * Oligopoly model by a Diagonalization or Jacobi algorithm.
+ 135  *
+ 136  * note the use of d.l(l)-tt.l(lp,l) which holds the values of the
+ 137  * previous iteration
+ 138   
+ 139   
+ 140  Variable  tt(l,lp) notional o-d flows
+ 141   
+ 142  Equations sbal(l)  supply balance
+ 143            dbal(l)  demand balance
+ 144            in(l)    inflow balance
+ 145            objoli   objective definition oligopoly   ;
+ 146   
+ 147   
+ 148  sbal(l).. s(l) =e= sum(lp, tt(l,lp));
+ 149   
+ 150  dbal(l).. d(l) =e= sum(lp, tt(lp,l));
+ 151   
+ 152  in(l)..   d(l) =e= tt(l,l) + sum(arc(n,l), t(arc));
+ 153   
+ 154  objoli.. obj =e= sum(l, coefs(l,"rho")*d(l) - pm*coefs(l,"eta")*
+ 155                                 sum(lp, (d.l(l)-tt.l(lp,l)+tt(lp,l))*tt(lp,l)) )
+ 156   
+ 157                 - sum(l, coefs(l,"alpha")*s(l) + coefs(l,"beta")*sqr(s(l)) )
+ 158   
+ 159                 - sum(arc, pairs(arc,"kappa")*t(arc)
+ 160                          + tm*pairs(arc,"nu")*power(t(arc),3) );
+ 161   
+ 162  model harkoli  / nbal, sbal, dbal, in, objoli / ;
+ 163   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 5
+Models of Spatial Competition (HARKER,SEQ=85)
+C o m p i l a t i o n
+
+
+ 164  set iter iteration count / iter1*iter20 /;
+ 165  parameters objold previous objective, irep(iter,n,np) iteration summary;
+ 166  option irep:8:1:2;
+ 167   
+ 168   
+ 169   tt.l(l,lp)=1; Option limcol=0,limrow=0;
+ 170   
+ 171  objold=0; harkoli.objval=1;
+ 172  loop(iter$(abs(objold-harkoli.objval) > 1e-5),
+ 173     objold = harkoli.objval;
+ 174     Solve harkoli maximizing obj using nlp;
+ 175     harkoli.solprint=2;
+ 176     irep(iter,arc) = t.l(arc) );
+ 177   
+ 178  Display irep;
+ 179   
+ 180  rep1(arc,       "oligop") = t.l(arc);
+ 181  rep2("supply",l,"oligop") = s.l(l);
+ 182  rep2("demand",l,"oligop") = d.l(l);
+ 183  rep2("price ",l,"oligop") = coefs(l,"rho") - coefs(l,"eta")*d.l(l);
+ 184   
+ 185  Display rep1, rep2;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 6
+Models of Spatial Competition (HARKER,SEQ=85)
+Equation Listing    SOLVE hark Using NLP From line 103
+
+
+---- bal  =E=  supply demand balance
+
+bal..  d(one) + d(two) + d(three) - s(one) - s(two) - s(three) =E= 0 ; (LHS = 0)
+     
+
+---- nbal  =E=  node balance
+
+nbal(one)..  - t(one,four) - t(one,five) + t(four,one) + t(five,one) - d(one) + s(one) =E= 0 ; (LHS = 0)
+     
+nbal(two)..  - t(two,six) + t(six,two) - d(two) + s(two) =E= 0 ; (LHS = 0)
+     
+nbal(three)..  - t(three,six) + t(six,three) - d(three) + s(three) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- objdef  =E=  objective definition
+
+objdef..  (1)*t(one,four) + (2)*t(one,five) + (3)*t(two,six) + (1)*t(three,six) + (2)*t(four,one) + (1)*t(four,five) + (1)*t(four,six) + (3)*t(five,one) + (2)*t(five,four) + (1)*t(five,six) + (2)*t(six,two) + (2)*t(six,three) + (1)*t(six,four)
+     
+      + (3)*t(six,five) - (14)*d(one) - (26.75)*d(two) - (22.5)*d(three) + (26)*s(one) + (22)*s(two) + (16.5)*s(three) + obj =E= 0 ; (LHS = -878.125, INFES = 878.125 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 7
+Models of Spatial Competition (HARKER,SEQ=85)
+Column Listing      SOLVE hark Using NLP From line 103
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(one)
+        1       nbal(four)
+       (1)      objdef
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(one)
+        1       nbal(five)
+       (2)      objdef
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(two)
+        1       nbal(six)
+       (3)      objdef
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- d  demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(one)
+     (-14)      objdef
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(two)
+     (-26.75)   objdef
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(three)
+     (-22.5)    objdef
+
+
+---- s  supply
+
+s(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+       -1       bal
+        1       nbal(one)
+      (26)      objdef
+
+s(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 8
+Models of Spatial Competition (HARKER,SEQ=85)
+Column Listing      SOLVE hark Using NLP From line 103
+
+
+     s  supply
+
+       -1       bal
+        1       nbal(two)
+      (22)      objdef
+
+s(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+       -1       bal
+        1       nbal(three)
+      (16.5)    objdef
+
+
+---- obj  objective value
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 9
+Models of Spatial Competition (HARKER,SEQ=85)
+Model Statistics    SOLVE hark Using NLP From line 103
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           21
+NON ZERO ELEMENTS            61     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              32
+CODE LENGTH                 133
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 10
+Models of Spatial Competition (HARKER,SEQ=85)
+Solution Report     SOLVE hark Using NLP From line 103
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   hark                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  103
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+>>  ampl harker-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+Ampl      : harker-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 11
+Models of Spatial Competition (HARKER,SEQ=85)
+Equation Listing    SOLVE hark Using NLP From line 113
+
+
+---- bal  =E=  supply demand balance
+
+bal..  d(one) + d(two) + d(three) - s(one) - s(two) - s(three) =E= 0 ; (LHS = 0)
+     
+
+---- nbal  =E=  node balance
+
+nbal(one)..  - t(one,four) - t(one,five) + t(four,one) + t(five,one) - d(one) + s(one) =E= 0 ; (LHS = 0)
+     
+nbal(two)..  - t(two,six) + t(six,two) - d(two) + s(two) =E= 0 ; (LHS = 0)
+     
+nbal(three)..  - t(three,six) + t(six,three) - d(three) + s(three) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- objdef  =E=  objective definition
+
+objdef..  (1)*t(one,four) + (2)*t(one,five) + (3)*t(two,six) + (1)*t(three,six) + (2)*t(four,one) + (1)*t(four,five) + (1)*t(four,six) + (3)*t(five,one) + (2)*t(five,four) + (1)*t(five,six) + (2)*t(six,two) + (2)*t(six,three) + (1)*t(six,four)
+     
+      + (3)*t(six,five) - (9)*d(one) - (26.5)*d(two) - (15)*d(three) + (26)*s(one) + (22)*s(two) + (16.5)*s(three) + obj =E= 0 ; (LHS = -718.75, INFES = 718.75 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 12
+Models of Spatial Competition (HARKER,SEQ=85)
+Column Listing      SOLVE hark Using NLP From line 113
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(one)
+        1       nbal(four)
+       (1)      objdef
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(one)
+        1       nbal(five)
+       (2)      objdef
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(two)
+        1       nbal(six)
+       (3)      objdef
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- d  demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(one)
+      (-9)      objdef
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(two)
+     (-26.5)    objdef
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(three)
+     (-15)      objdef
+
+
+---- s  supply
+
+s(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+       -1       bal
+        1       nbal(one)
+      (26)      objdef
+
+s(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 13
+Models of Spatial Competition (HARKER,SEQ=85)
+Column Listing      SOLVE hark Using NLP From line 113
+
+
+     s  supply
+
+       -1       bal
+        1       nbal(two)
+      (22)      objdef
+
+s(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+       -1       bal
+        1       nbal(three)
+      (16.5)    objdef
+
+
+---- obj  objective value
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 14
+Models of Spatial Competition (HARKER,SEQ=85)
+Model Statistics    SOLVE hark Using NLP From line 113
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           21
+NON ZERO ELEMENTS            61     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              26
+CODE LENGTH                 132
+
+
+GENERATION TIME      =        0.092 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.092 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 15
+Models of Spatial Competition (HARKER,SEQ=85)
+Solution Report     SOLVE hark Using NLP From line 113
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   hark                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  113
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+>>  ampl harker-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+Ampl      : harker-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 16
+Models of Spatial Competition (HARKER,SEQ=85)
+Equation Listing    SOLVE hark Using NLP From line 122
+
+
+---- bal  =E=  supply demand balance
+
+bal..  d(one) + d(two) + d(three) - s(one) - s(two) - s(three) =E= 0 ; (LHS = 0)
+     
+
+---- nbal  =E=  node balance
+
+nbal(one)..  - t(one,four) - t(one,five) + t(four,one) + t(five,one) - d(one) + s(one) =E= 0 ; (LHS = 0)
+     
+nbal(two)..  - t(two,six) + t(six,two) - d(two) + s(two) =E= 0 ; (LHS = 0)
+     
+nbal(three)..  - t(three,six) + t(six,three) - d(three) + s(three) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- objdef  =E=  objective definition
+
+objdef..  (1)*t(one,four) + (2)*t(one,five) + (3)*t(two,six) + (1)*t(three,six) + (2)*t(four,one) + (1)*t(four,five) + (1)*t(four,six) + (3)*t(five,one) + (2)*t(five,four) + (1)*t(five,six) + (2)*t(six,two) + (2)*t(six,three) + (1)*t(six,four)
+     
+      + (3)*t(six,five) - (9)*d(one) - (26.5)*d(two) - (15)*d(three) + (26)*s(one) + (22)*s(two) + (16.5)*s(three) + obj =E= 0 ; (LHS = -718.75, INFES = 718.75 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 17
+Models of Spatial Competition (HARKER,SEQ=85)
+Column Listing      SOLVE hark Using NLP From line 122
+
+
+---- t  transport
+
+t(one,four)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(one)
+        1       nbal(four)
+       (1)      objdef
+
+t(one,five)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(one)
+        1       nbal(five)
+       (2)      objdef
+
+t(two,six)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       nbal(two)
+        1       nbal(six)
+       (3)      objdef
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- d  demand
+
+d(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(one)
+      (-9)      objdef
+
+d(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(two)
+     (-26.5)    objdef
+
+d(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+        1       bal
+       -1       nbal(three)
+     (-15)      objdef
+
+
+---- s  supply
+
+s(one)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+       -1       bal
+        1       nbal(one)
+      (26)      objdef
+
+s(two)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 18
+Models of Spatial Competition (HARKER,SEQ=85)
+Column Listing      SOLVE hark Using NLP From line 122
+
+
+     s  supply
+
+       -1       bal
+        1       nbal(two)
+      (22)      objdef
+
+s(three)
+                (.LO, .L, .UP, .M = 0, 25, +INF, 0)
+       -1       bal
+        1       nbal(three)
+      (16.5)    objdef
+
+
+---- obj  objective value
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 19
+Models of Spatial Competition (HARKER,SEQ=85)
+Model Statistics    SOLVE hark Using NLP From line 122
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           21
+NON ZERO ELEMENTS            61     NON LINEAR N-Z             20
+DERIVATIVE POOL              20     CONSTANT POOL              32
+CODE LENGTH                 133
+
+
+GENERATION TIME      =        0.012 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.012 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 20
+Models of Spatial Competition (HARKER,SEQ=85)
+Solution Report     SOLVE hark Using NLP From line 122
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   hark                OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  122
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+>>  ampl harker-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+Ampl      : harker-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 21
+Models of Spatial Competition (HARKER,SEQ=85)
+Model Statistics    SOLVE harkoli Using NLP From line 174
+
+
+LOOPS                                 iter   iter1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           16
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           30
+NON ZERO ELEMENTS            98     NON LINEAR N-Z             26
+DERIVATIVE POOL              20     CONSTANT POOL              30
+CODE LENGTH                 152
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S               iter iter1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 22
+Models of Spatial Competition (HARKER,SEQ=85)
+Solution Report     SOLVE harkoli Using NLP From line 174
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   harkoli             OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  174
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+>>  ampl harker-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harker/convert.opt"
+Ampl      : harker-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 24
+Models of Spatial Competition (HARKER,SEQ=85)
+Model Analysis      SOLVE harkoli Using NLP From line 174
+
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:44 Page 25
+Models of Spatial Competition (HARKER,SEQ=85)
+E x e c u t i o n
+
+
+----    178 PARAMETER irep  iteration summary
+
+                      ( ALL  0.00000000 )
+
+
+----    185 PARAMETER rep1  transport summary
+
+                      ( ALL       0.000 )
+
+
+----    185 PARAMETER rep2  supply demand and price summary
+
+                   cspe2      monop1      monop2      oligop
+
+supply.one        25.000      25.000      25.000      25.000
+supply.two        25.000      25.000      25.000      25.000
+supply.three      25.000      25.000      25.000      25.000
+demand.one        25.000      25.000      25.000      25.000
+demand.two        25.000      25.000      25.000      25.000
+demand.three      25.000      25.000      25.000      25.000
+price .one        14.000      14.000      14.000      14.000
+price .two        26.750      26.750      26.750      26.750
+price .three      22.500      22.500      22.500      22.500
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/harker/harker.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/harker/harker-scalar.mod.lst

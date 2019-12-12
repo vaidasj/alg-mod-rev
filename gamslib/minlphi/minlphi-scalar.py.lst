@@ -1,0 +1,1150 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 2
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+   5   
+       
+         This problem describes a formulation and algorithmic procedure
+         for obtaining heat-integrated distillation sequences for the separation
+         of a given multi component feed stream into its pure components products.
+       
+       
+      Morari, M, and Grossmann, I E, Eds, Chemical Engineering Optimization
+      Models with GAMS. Computer Aids for Chemical Engineering Corporation,
+      1991.
+       
+      Floudas, C A, and Paules IV, G E, A Mixed-Integer Nonlinear Programming
+      Formulation for the Synthesis of Heat Integrated Distillation Sequence.
+      Computers and Chemical Engineering 12, 6 (1988), 531-546.
+       
+      ======================================================================
+       
+           A MATHEMATICAL PROGRAMMING FORMULATION FOR PROCESS SYNTHESIS
+       
+        ===================================================================
+       
+          copyright    G.E. PAULES IV & C.A. FLOUDAS
+       
+                   *** Dept. of Chemical Engineering ***
+                        *** Princeton University ***
+                                May 23, 1987
+       
+       
+          Algorithm:  The Outer Approximation with Equality Relaxation
+                 Full Solution with Starting Point from FIXDT
+       
+      ======================================================================
+       
+               This formulation provides the Optimal Heat Integrated
+           Distillation Sequence with Pressure as a continuous variable
+                       for a three component separation.
+          The Outer Approximation with Equality Relaxation algorithm is
+               used in the automatic solution procedure using gams
+       
+                    Components:     a == Hexane
+                                    b == Benzene
+                                    c == Heptane
+       
+       total feed to superstructure == 396 kgmol/hr
+       
+       multicomponent feed composition:
+                               a = 0.80
+                               b = 0.10
+                               c = 0.10
+       
+      ======================================================================
+       
+       
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 3
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+       A Superstructure of the form ...
+       
+       
+       
+                              _______               _______
+                             _|_    |              _|_    |
+                            /   \  ( )            /   \  ( )
+                            |   |___|__ A         |   |___|___ B
+                            |   |                 |   |
+                  |---------| 1 |                 | 3 |
+                  |         |   |       ----------|   |
+                  |         |   |       |         |   |
+                  |         |   |_______|         |   |
+                  |         \___/  |  BC          \___/_______ C
+           F      |           |   ( )               |     |
+         -------->|           |____|                |----( )
+         (ABC)    |
+                  |           _______               _______
+                  |          _|_    |              _|_    |
+                  |         /   \  ( )            /   \  ( )
+                  |         |   |___| AB          |   |___|___ A
+                  |         |   |   |_____________|   |
+                  |---------| 2 |                 | 4 |
+                            |   |                 |   |
+                            |   |                 |   |
+                            |   |______ C         |   |_______ B
+                            \___/  |              \___/   |
+                              |   ( )               |    ( )
+                              |____|                |_____|
+       
+       
+       
+        is used with binary variables representing :
+           a_  the existence of columns in the sequence.
+           b_  the selection of heat exchangers for heat integration.
+           c_  the selection of hot and cold utilities.
+       
+       
+       Associated Reference:
+       _______________________
+        "A Mixed-Integer Nonlinear Programming formulation for the
+         synthesis of Heat-Integrated Distillation Sequences"
+       
+         C.A. Floudas and G.E. Paules IV,  1988.
+         Computers and Chemical Engineering vol. 12 no. 6 pp. 531-546
+       
+      ======================================================================
+ 110   
+ 111  *======================================================================
+ 112  * Set Options
+ 113  *======================================================================
+ 114  Option limcol=0, limrow=0;
+ 115  Option bratio=1, domlim=1000;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 4
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 116  Option optcr=0;
+ 117  * reduce default factorization frequency of zoom
+ 118   
+ 119  *=====================================================================
+ 120  * Declaration of sets
+ 121  *=====================================================================
+ 122  Sets
+ 123  * the set of all columns and their condensers in the superstructure
+ 124         i   condensers-columns  /c-1*c-4/
+ 125   
+ 126  * the set of all reboilers in the superstructure
+ 127         j   reboilers  /r-1*r-4/
+ 128   
+ 129  * the set of all hot utilities available
+ 130         hu  hot utilities  /lp,ex/
+ 131   
+ 132  * the set of all cold utilities available
+ 133         cu  cold utilities  /cw/
+ 134   
+ 135  * an index for linear fit coefficients
+ 136         n   index  /a,b/
+ 137   
+ 138  * the set of all intermediate products in superstructure
+ 139         m   intermediates  /ab,bc/
+ 140   
+ 141  * this set maps columns to produced intermediate products
+ 142         pm(i,m)  products  /c-1.bc, c-2.ab/
+ 143   
+ 144  * this set maps columns to intermediate product feeds
+ 145         fm(i,m)  feeds  /c-3.bc, c-4.ab/
+ 146   
+ 147  * these sets are for dynamic control of solution algorithm
+ 148         km   static iterations  /k-1*k-100/
+ 149         k(km)  dynamic iterations
+ 150         kiter(km)  dynamic counter
+ 151         kdynmax(km)  dynamic loop control ;
+ 152   
+ 153  * alias sets for condensers and reboilers
+ 154  Alias (ip,i);
+ 155  Alias (jp,j);
+ 156   
+ 157  * alias driving loop index - cant appear in equations
+ 158  Alias (kloop,km);
+ 159   
+ 160  *=====================================================================
+ 161  * Definition of "z" parameters for conditional control of model
+ 162  *  used to map permissible matches between condensers and reboilers
+ 163  *  and the position of columns in the superstructure
+ 164  *=====================================================================
+ 165   
+ 166  * defines the set of leading columns in the superstructure
+ 167  Parameter zlead(i) leading columns in superstructure
+ 168      /c-1   1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 5
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 169       c-2   1 /;
+ 170   
+ 171  * defines allowable matches of heat integration for superstructure
+ 172  *  only permits heat integration between columns in the same sequence
+ 173  Table zcrhx(i,j) condenser to reboiler allowable matches
+ 174   
+ 175         r-1   r-2   r-3   r-4
+ 176   c-1                1
+ 177   c-2                      1
+ 178   c-3    1
+ 179   c-4          1
+ 180   
+ 181  * parameter used in pure integer constraint to permit only one
+ 182  *  direction of heat integration between two columns
+ 183  *  this would yield an infeasible solution but the constraint
+ 184  *  is included explicitly to reduce milp solution time
+ 185  Parameter zlim(i,j)  direction of heat integration;
+ 186    zlim(i,j) = 1$(zcrhx(i,j) and (ord(i) lt ord(j)));
+ 187   
+ 188  * relates appropriate reboiler to the condenser of same column
+ 189  * ( preferably should use an alias rather than a different set )
+ 190  Parameter zcr(i,j)  reboiler-condenser pairs;
+ 191    zcr(i,j) = 1$(ord(i) eq ord(j));
+ 192   
+ 193  *=====================================================================
+ 194  *   binary variables are divided into 4 classes and variable/parameter
+ 195  *   names starting with "y"
+ 196  *       ycol - column selection
+ 197  *       yhx  - heat integration exchanger matches
+ 198  *       yhu  - hot utility matches
+ 199  *       ycup - cold utiltiy matches
+ 200  *=====================================================================
+ 201   
+ 202  *=====================================================================
+ 203  * these parameters store first guess combination of binary variables
+ 204  *  used to initialize minlp algorithm and parameterize the minlp
+ 205  *  primal problem throughout the rest of the iterations
+ 206  *=====================================================================
+ 207  Parameter yhxp(i,j) current proposal for heat integration matches
+ 208    /c-1.r-3   1 /;
+ 209   
+ 210  Parameter yhup(hu,j) current binary proposal for hot utility matches
+ 211    /lp.r-1          1 /;
+ 212   
+ 213  Parameter ycup(i,cu) current binary proposal for cold utility matches
+ 214    /c-1.cw   1
+ 215     c-3.cw   1 /;
+ 216   
+ 217  Parameter ycolp(i) current storage for columns in superstructure
+ 218      /c-1    1
+ 219       c-3    1 /;
+ 220   
+ 221  *=====================================================================
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 6
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 222  * these parameters store the values of the binary proposals
+ 223  *  for all the iterations performed for use in integer cuts
+ 224  *  and recovering optimal solution
+ 225  *=====================================================================
+ 226  Parameter yhxk(i,j,km)  binary storage parameter yhx;
+ 227  Parameter yhuk(hu,j,km)  binary storage parameter yhu;
+ 228  Parameter ycuk(i,cu,km)  binary storage parameter ycu;
+ 229  Parameter ycolk(i,km)  binary storage parameter ycol;
+ 230   
+ 231  *=====================================================================
+ 232  * declaration of parameters for rest of model
+ 233  *=====================================================================
+ 234   
+ 235  * mass balances for each sharp separator
+ 236  Parameter spltfrc(i,m) split fraction of distillation columns
+ 237      /c-1.bc   0.20
+ 238       c-2.ab   0.90/;
+ 239   
+ 240  * minimum condenser temperatures obtained from simulation data
+ 241  Parameter tcmin(i) minimum condenser temperatures
+ 242      /c-1     341.92
+ 243       c-2     343.01
+ 244       c-3     353.54
+ 245       c-4     341.92/;
+ 246   
+ 247  * either hottest hot utility-dtmin or for individual separations
+ 248  *  2*dtmin below critical temperature of bottoms product
+ 249  Parameter trmax(j) maximum reboiler temperatures;
+ 250    trmax(j) = 1000;
+ 251   
+ 252  *====================================================================
+ 253  * scaled cost coefficients for distillation column fits
+ 254  *  nonlinear fixed-charge cost model
+ 255  *   cost = fc*y + vc*flow*temp
+ 256  *  scaling factor = 1000
+ 257  *====================================================================
+ 258  Parameter fc(i)  fixed charge for distillation columns
+ 259      /c-1     151.125
+ 260       c-2     180.003
+ 261       c-3     4.2286
+ 262       c-4     213.42/;
+ 263   
+ 264  Parameter vc(i)  variable charge for distillation columns
+ 265      /c-1     0.003375
+ 266       c-2     0.000893
+ 267       c-3     0.004458
+ 268       c-4     0.003176/;
+ 269   
+ 270  Parameter thu(hu)  hot utility temperatures
+ 271      /lp     421.0
+ 272       ex     373.0/;
+ 273   
+ 274  * hot utility cost coeff - gives cost in thousands of dollars per year
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 7
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 275  *   ucost = q(10e+6 kj/hr)*costhu(hu)
+ 276  Parameter costhu(hu)  hot utility cost coefficients
+ 277     /lp      24.908
+ 278      ex       9.139/;
+ 279   
+ 280  Table kf(i,n) coeff. for heat duty temperature fits
+ 281           a           b
+ 282   c-1   32.4       0.0225
+ 283   c-2   25.0       0.0130
+ 284   c-3   3.76       0.0043
+ 285   c-4   35.1       0.0156
+ 286   
+ 287  Table af(i,n) coeff. for column temperature fits
+ 288   
+ 289           a           b
+ 290   c-1   9.541       1.028
+ 291   c-2   12.24       1.050
+ 292   c-3   8.756       1.029
+ 293   c-4   9.181       1.005
+ 294   
+ 295  *=====================================================================
+ 296  * define scalar quantities for rest of model
+ 297  *=====================================================================
+ 298   
+ 299  Scalars
+ 300     totflow  total flow to superstructure  /396/
+ 301     u  large number for logical constraints  /1500/
+ 302     uint  upper bound for integer logical /20/
+ 303     fchx  fixed charge for heat exchangers scaled /3.392/
+ 304     vchx  variable charge for heat exchangers scaled /0.0893/
+ 305     htc  overall heat transfer coefficient  /0.0028/
+ 306     dtmin  minimum temperature approach  /10.0/
+ 307     tcin  inlet temperature of cold water  /305.0/
+ 308     tcout  outlet temperature of cold water  /325.0/
+ 309     costcw  cooling water cost coefficient  /4.65/
+ 310     beta  income tax correction factor  /0.52/
+ 311     alpha  one over payout time factor in years /0.40/;
+ 312   
+ 313   
+      *=====================================================================
+        the parameters declared here are assigned throughout the
+         algorithmic procedures.
+         they perform the following tasks in the algorithm
+          1) transfer of soluton data between master and subproblem
+          2) storage of solution data
+          3) control of upper and lower bounds in milp master
+          4) storage of optimal solution
+      *=====================================================================
+ 325   
+ 326  * storage of variable levels for each iteration
+ 327  *  identifier derived from name of variable with letter "k" appended
+ 328  Parameter fk(i,km)       storage of flowrates;
+ 329  Parameter qrk(j,km)      storage of reboiler duties;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 8
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 330  Parameter qck(i,km)      storage of condenser duties;
+ 331  Parameter qcrk(i,j,km)   storage of heat integrated exchanges;
+ 332  Parameter qhuk(hu,j,km)  storage of hot utility usage;
+ 333  Parameter qcuk(i,cu,km)  storage of cold utility usage;
+ 334  Parameter tck(i,km)      storage of condenser temperatures;
+ 335  Parameter trk(j,km)      storage of reboiler temperatures;
+ 336  Parameter lmtdk(i,km)    storage of lmtds;
+ 337   
+ 338  Scalar zoaup             single value storage of upper bound /inf/;
+ 339  Scalar zoalo             single value storage of lower bounds /-inf/;
+ 340   
+ 341  * storage of optimal binary variable combination
+ 342  *  continuous variable levels are not stored separately as they
+ 343  *  can be obtained from the xxxk storage parameters above
+ 344  Parameter yhxopt(i,j)    optimal heat integration;
+ 345  Parameter yhuopt(hu,j)   optimal hot utility match;
+ 346  Parameter ycuopt(i,cu)   optimal cold utility match;
+ 347  Parameter ycolopt(i)     optimal superstructure;
+ 348  Scalar kopt              iteration at which optimal solution was found;
+ 349   
+ 350  * storage of sign() of lagrange multiplier from nonlinear equalities
+ 351  Parameter lmtdmar(i,km)  direction matrix for nonlinear equalities;
+ 352   
+ 353  *=====================================================================
+ 354  * declaration of variables
+ 355  *=====================================================================
+ 356   
+ 357  Variables
+ 358          zoau         objective function value of nlp subproblem
+ 359          zoal         objective function value of milp masters
+ 360          vqcr(km)     heat integration contribution to milpcon
+ 361          vqhu(km)     hot utility exchange contribution to milpcon
+ 362          vqcu(km)     cold utility exchange contribution to milpcon;
+ 363   
+ 364  Positive Variables
+ 365          f(i)         flowrates to columns
+ 366          qr(j)        reboiler duties for column with reboiler j
+ 367          qc(i)        condenser duties for column i
+ 368          qcr(i,j)     heat integration heat transfer
+ 369          qhu(hu,j)    hot utility heat transfer
+ 370          qcu(i,cu)    cold utility heat transfer
+ 371          tc(i)        condenser temperature for column with cond. i
+ 372          tr(j)        reboiler temperature for column with reb. j
+ 373          lmtd(i)      lmtd for cooling water exchanges
+ 374          sl1(i)       artificial slack variable for lmtd equalities
+ 375          sl2(i)       artificial slack variable for lmtd equalities
+ 376          s1(i)        artificial slack variable for reb-con equalities
+ 377          s2(i)        artificial slack variable for reb-con equalities
+ 378          s3(i)        artificial slack variable for duty equalities
+ 379          s4(i)        artificial slack variable for duty equalities;
+ 380   
+ 381  Binary Variables
+ 382          yhx(i,j)     heat integration matches condenser i reboiler j
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 9
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 383          yhu(hu,j)    hot utility matches hot utility hu reboiler j
+ 384          ycu(i,cu)    cold utility matches condenser i cold util cu
+ 385          ycol(i)      columns in superstructure;
+ 386   
+ 387  *=====================================================================
+ 388  * declaration of equations
+ 389  *  for solution of the nlp subproblems:
+ 390  *  early versions of gams did not permit binary variables to appear
+ 391  *  in the constraints of a nonlinear programming problem even if
+ 392  *  they appeared in linear constraints and were fixed at a bound
+ 393  *  therefore -
+ 394  *  constraints that contain the binary variables are duplicated:
+ 395  *  one form contains the declared binary variable and the  other
+ 396  *  substitutes a parameter that is assigned the current level of
+ 397  *  the binary variable.  constraints that are duplicated and are to
+ 398  *  appear in the nlp subproblem model have the letter "n" prepended
+ 399  *  to the equation name.
+ 400  *=====================================================================
+ 401   
+ 402  Equations
+ 403      nlpobj            nlp subproblems objective
+ 404      milpcon(km)       nonlinear contribution to milp objective
+ 405      evqcr(km)         heat integration contribution to milpcon
+ 406      evqhu(km)         hot utility exchange contribution to milpcon
+ 407      evqcu(km)         cold utility exchange contribution to milpcon
+ 408      lmtdsn(i)         nonlinear form of lmtd definition
+ 409      lmtdsm(i,km)      linearization of lmtdsn(i) in milp masters
+ 410      ntempset(i)       sets temperatures of inactive columns to 0 (nlp)
+ 411      tempset(i)        sets temperatures of inactive columns to 0 (milp)
+ 412      nartrex1(i)       relaxes artificial slack variables (nlp)
+ 413      artrex1(i)        relaxes artificial slack variables (milp)
+ 414      nartrex2(i)       relaxes artificial slack variables (nlp)
+ 415      artrex2(i)        relaxes artificial slack variables (milp)
+ 416      material(m)       material balances for each intermediate product
+ 417      feed              feed to superstructure
+ 418      nmatlog(i)        material balance logical constraints (nlp)
+ 419      matlog(i)         material balance logical constraints
+ 420      duty(i)           heat duty definition of condenser i
+ 421      rebcon(i,j)       equates condenser and reboiler duties
+ 422      conheat(i)        condenser heat balances
+ 423      rebheat(j)        reboiler heat balances
+ 424      dtminlp(j)        minimum temp approach for low pressure steam
+ 425      ndtminc(i)        minimum temp allowable for each condenser (nlp)
+ 426      dtminc(i)         minimum temp allowable for each condenser
+ 427      trtcdef(i,j)      relates reboiler and condenser temps of columns
+ 428      ndtmincr(i,j)     minimum temp approach for heat integration (nlp)
+ 429      ndtminex(j)       minimum temp approach for exhaust steam (nlp)
+ 430      nhxclog(i,j)      logical constraint for heat balances (nlp)
+ 431      nhxhulog(hu,j)    logical constraint for heat balances (nlp)
+ 432      nhxculog(i,cu)    logical constraint for heat balances (nlp)
+ 433      nqcqrlog(i)       logical constraint for con-reb duties (nlp)
+ 434      dtmincr(i,j)      minimum temp approach for heat integration
+ 435      dtminex(j)        minimum temp approach for exhaust steam
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 10
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 436      hxclog(i,j)       logical constraint for heat balances
+ 437      hxhulog(hu,j)     logical constraint for heat balances
+ 438      hxculog(i,cu)     logical constraint for heat balances
+ 439      qcqrlog(i)        logical constraint for con-reb duties
+ 440      boundup           upper bound on milp objective
+ 441      boundlo           lower bound on milp objective
+ 442   
+ 443  * these are the pure binary constraints of the minlp
+ 444      sequen(m)         restricts superstructure to a single sequence
+ 445      lead              sequence control
+ 446      limutil(j)        limits columns to have a single hot utility
+ 447      hidirect(i,j)     requires a single direction of heat integration
+ 448      heat(i)           logical integer constraint
+ 449      cuts(km)          integer cuts for kth iteration;
+ 450   
+ 451  *=====================================================================
+ 452  * equations for nlp subproblems
+ 453  *  note that some equations are duplicated in structure but
+ 454  *  given different names in the nlp and milp.  these equations
+ 455  *  involve both continuous and binary variables.  in older
+ 456  *  versions of gams, it was not permissible to pose nonlinear
+ 457  *  models with discrete variables present, even when their values
+ 458  *  were held fixed (rmidnlp).  this required two forms of the equation
+ 459  *  two be declared: one with the discrete variables present (milp)
+ 460  *  and one with binary variables replaced by parameters that have
+ 461  *  been assigned the current levels of their associated binary
+ 462  *  variables (nlp).  these equations start with the letter "n"
+ 463  *  in the nlp subproblems.
+ 464  *=====================================================================
+ 465   
+ 466  nlpobj.. zoau =e=
+ 467  * capital costs
+ 468   alpha*(
+ 469      sum(i,fc(i)*ycolp(i) + vc(i)*(tc(i)-tcmin(i))*f(i))
+ 470    + sum((i,j)$zcrhx(i,j),fchx*yhxp(i,j)
+ 471    + (vchx/htc)*(qcr(i,j)/(tc(i)-tr(j)+1-ycolp(i))))
+ 472    + sum((i,cu),fchx*ycup(i,cu)
+ 473    + (vchx/htc)*(qcu(i,cu)/(lmtd(i)+1-ycolp(i))))
+ 474    + sum((hu,j),fchx*yhup(hu,j)
+ 475    + (vchx/htc)*(qhu(hu,j)/(thu(hu)-tr(j)))))
+ 476  * operating costs
+ 477   + beta*(
+ 478      (costcw*sum((i,cu),qcu(i,cu)))
+ 479    + sum((hu,j),costhu(hu)*qhu(hu,j)));
+ 480   
+ 481  lmtdsn(i).. lmtd(i) - (2/3)*sqrt((tc(i)-tcin)*(tc(i)-tcout))
+ 482           - (1/6)*((tc(i)-tcin)+(tc(i)-tcout)) - (sl1(i)-sl2(i)) =e= 0;
+ 483   
+ 484  nartrex1(i).. s1(i) + s2(i) + sl1(i) - u*(1-ycolp(i)) =l= 0;
+ 485   
+ 486  nartrex2(i).. s3(i) + s4(i) + sl2(i) - u*(1-ycolp(i)) =l= 0;
+ 487   
+ 488  ntempset(i)..
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 11
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 489          tc(i) + lmtd(i) + sum(j$zcr(i,j),tr(j)) - u*ycolp(i) =l= 0;
+ 490   
+ 491  material(m)..
+ 492          sum(i$pm(i,m),spltfrc(i,m)*f(i))-sum(i$fm(i,m),f(i)) =e= 0;
+ 493   
+ 494  feed.. sum(i$zlead(i),f(i)) =e= totflow;
+ 495   
+ 496  duty(i)..
+ 497  qc(i) - (kf(i,"a") + kf(i,"b")*(tc(i)-tcmin(i))) - (s3(i)-s4(i)) =e= 0;
+ 498   
+ 499  rebcon(i,j)$zcr(i,j).. qr(j)-qc(i) =e= 0;
+ 500   
+ 501  conheat(i).. qc(i) =e= sum(j$zcrhx(i,j),qcr(i,j)) + sum(cu,qcu(i,cu));
+ 502   
+ 503  rebheat(j).. qr(j) =e= sum(i$zcrhx(i,j),qcr(i,j)) + sum(hu,qhu(hu,j));
+ 504   
+ 505  trtcdef(i,j)$zcr(i,j)..
+ 506   tr(j) - (af(i,"a") + af(i,"b")*(tc(i)-tcmin(i))) - (s1(i)-s2(i)) =e= 0;
+ 507   
+ 508  nmatlog(i).. f(i) - u*ycolp(i) =l= 0;
+ 509   
+ 510  ndtminc(i).. (tcmin(i) - tc(i) - u*(1-ycolp(i))) =l= 0;
+ 511   
+ 512  dtminlp(j).. dtmin - (thu("lp") - tr(j)) =l= 0;
+ 513   
+ 514  ndtmincr(i,j)$zcrhx(i,j).. tr(j)-tc(i) - u*(1-yhxp(i,j)) + dtmin =l= 0;
+ 515   
+ 516  ndtminex(j).. dtmin - (thu("ex") - tr(j)) - u*(1-yhup("ex",j)) =l= 0;
+ 517   
+ 518  nhxclog(i,j)$zcrhx(i,j).. qcr(i,j) =l= u*yhxp(i,j);
+ 519   
+ 520  nhxhulog(hu,j).. qhu(hu,j) =l= u*yhup(hu,j);
+ 521   
+ 522  nhxculog(i,cu).. qcu(i,cu) =l= u*ycup(i,cu);
+ 523   
+ 524  nqcqrlog(i).. qc(i) + sum(j$zcr(i,j),qr(j)) - u*ycolp(i) =l= 0;
+ 525   
+ 526   
+ 527  Model nlpsub  - collection of equations for nlp subproblems
+ 528             /nlpobj,
+ 529              lmtdsn,
+ 530              nartrex1,
+ 531              nartrex2,
+ 532              ntempset,
+ 533              material,
+ 534              feed,
+ 535              nmatlog,
+ 536              duty,
+ 537              rebcon,
+ 538              conheat,
+ 539              rebheat,
+ 540              ndtminc,
+ 541              dtminlp,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 12
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 542              trtcdef,
+ 543              ndtmincr,
+ 544              ndtminex,
+ 545              nhxclog,
+ 546              nhxhulog,
+ 547              nhxculog,
+ 548              nqcqrlog/;
+ 549   
+ 550  nlpsub.solprint=1;
+ 551   
+ 552  *======================================================================
+ 553  * define equations for milp master problems
+ 554  *  note: the nonlinear parts of the objective function related
+ 555  *        to heat exchanger area have been broken out into separate
+ 556  *        constraints to perform their linearizations, only a
+ 557  *        contribution term appears in the linearized objective
+ 558  *        function milpcon.
+ 559  *======================================================================
+ 560   
+ 561  milpcon(k)..
+ 562     zoal =g= alpha*(sum(i,fc(i)*ycol(i))
+ 563            + fchx*(sum((i,j)$zcrhx(i,j),yhx(i,j))
+ 564            + sum((hu,j),yhu(hu,j)) + sum((i,cu),ycu(i,cu)))
+ 565   + sum(i,(vc(i)*((tck(i,k)-tcmin(i))*(f(i)-fk(i,k))
+ 566                                      + fk(i,k)*(tc(i)-tcmin(i)))))
+ 567   
+ 568   + (vchx/htc)*(vqcr(k) + vqhu(k) + vqcu(k)))
+ 569   
+ 570   + beta*((costcw*sum((i,cu),qcu(i,cu)))
+ 571        + sum((hu,j),costhu(hu)*qhu(hu,j)));
+ 572   
+ 573  *==========================================================================
+ 574  * these are the linearized contributions to the objective related
+ 575  *  to heat exchange.  the appearance of the binary variable storage
+ 576  *  parameters in the denominator of some of the expressions is done
+ 577  *  to prevent division by zero during model generation for linearizations
+ 578  *  done at points where the temperatures were set to zero for unused
+ 579  *  columns.  the numerator is zero then also and no error is introduced.
+ 580  *==========================================================================
+ 581  evqcr(k).. vqcr(k) =e=
+ 582    sum((i,j)$zcrhx(i,j),((qcrk(i,j,k)/(tck(i,k)-trk(j,k)+1-ycolk(i,k)))
+ 583     + ((1/(tck(i,k)-trk(j,k)+1-ycolk(i,k)))
+ 584        *(qcr(i,j)-qcrk(i,j,k)))*ycolk(i,k)
+ 585     + ((qcrk(i,j,k)/(sqr(tck(i,k)-trk(j,k))+1-ycolk(i,k)))
+ 586          *((tr(j)-trk(j,k))-(tc(i)-tck(i,k))))));
+ 587   
+ 588  evqhu(k).. vqhu(k) =e=
+ 589     sum((hu,j),((qhuk(hu,j,k)/(thu(hu)-trk(j,k)))
+ 590        + ((1/(thu(hu)-trk(j,k)))
+ 591          *(qhu(hu,j)-qhuk(hu,j,k)))*sum(i$zcr(i,j),ycolk(i,k))
+ 592        + ((qhuk(hu,j,k)/sqr(thu(hu)-trk(j,k)))*(tr(j)-trk(j,k)))));
+ 593   
+ 594  evqcu(k).. vqcu(k) =e=
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 13
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 595     sum((i,cu),((qcuk(i,cu,k)/(lmtdk(i,k)+1-ycolk(i,k)))
+ 596      + ((1/(lmtdk(i,k)+1-ycolk(i,k)))
+ 597        *(qcu(i,cu)-qcuk(i,cu,k)))*ycolk(i,k)
+ 598      - ((qcuk(i,cu,k)/(sqr(lmtdk(i,k))+1-ycolk(i,k)))
+ 599         *(lmtd(i)-lmtdk(i,k)))));
+ 600   
+ 601   
+ 602  lmtdsm(i,k)..
+ 603    lmtdmar(i,k)*(lmtd(i) - (2/3)*sqrt((tck(i,k)-tcin)*(tck(i,k)-tcout))
+ 604     - (1/6)*((tck(i,k)-tcin)+(tck(i,k)-tcout))
+ 605     - ((1/3)*(((2*tck(i,k)-(tcin+tcout))/
+ 606       sqrt(sqr(tck(i,k)) - (tcin+tcout)*tck(i,k) + (tcin*tcout))) + 1))
+ 607        *(tc(i)-tck(i,k)) - (sl1(i)-sl2(i))) =l= 0;
+ 608   
+ 609  artrex1(i).. s1(i) + s2(i) + sl1(i) - u*(1-ycol(i)) =l= 0;
+ 610   
+ 611  artrex2(i).. s3(i) + s4(i) + sl2(i) - u*(1-ycol(i)) =l= 0;
+ 612   
+ 613  tempset(i)..
+ 614      tc(i) + lmtd(i) + sum(j$zcr(i,j),tr(j)) - u*ycol(i) =l= 0;
+ 615   
+ 616  matlog(i).. f(i) - u*ycol(i) =l= 0;
+ 617   
+ 618  dtminc(i).. (tcmin(i) - tc(i) - u*(1-ycol(i))) =l= 0;
+ 619   
+ 620  dtmincr(i,j)$zcrhx(i,j).. tr(j) - tc(i) - u*(1-yhx(i,j)) + dtmin =l= 0;
+ 621   
+ 622  dtminex(j).. dtmin - (thu("ex") - tr(j)) - u*(1-yhu("ex",j)) =l= 0;
+ 623   
+ 624  hxclog(i,j)$zcrhx(i,j).. qcr(i,j) =l= u*yhx(i,j);
+ 625   
+ 626  hxhulog(hu,j).. qhu(hu,j) =l= u*yhu(hu,j);
+ 627   
+ 628  hxculog(i,cu).. qcu(i,cu) =l= u*ycu(i,cu);
+ 629   
+ 630  qcqrlog(i).. qc(i) + sum(j$zcr(i,j),qr(j)) - u*ycol(i) =l= 0;
+ 631   
+ 632  *---
+ 633  * pure binary constraints
+ 634  *---
+ 635  * material balances determine sequence
+ 636  sequen(m).. sum(i$pm(i,m),ycol(i)) - sum(i$fm(i,m),ycol(i)) =e= 0;
+ 637   
+ 638  * select 1 sequence
+ 639  lead.. sum(i$zlead(i),ycol(i)) =e= 1;
+ 640   
+ 641  * limit choice of hot utility to 1
+ 642  limutil(j).. sum(hu,yhu(hu,j)) =l= 1;
+ 643   
+ 644  * only one of the mutual heat integration binaries can be 1
+ 645  hidirect(i,j)$zlim(i,j).. yhx(i,j)
+ 646                + sum((ip,jp)$(ord(ip) eq ord(j)
+ 647                      and ord(jp) eq ord(i)),yhx(ip,jp)) =l= 1;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 14
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 648   
+ 649  * if a column doesn't exist then all binary variables associated
+ 650  *  with it must also be set to zero
+ 651  heat(i)..
+ 652    sum(j$zcrhx(i,j),yhx(i,j)
+ 653  + sum((ip,jp)$((ord(ip) eq ord(j)) and (ord(jp) eq ord(i))),yhx(ip,jp)))
+ 654  + sum((hu,j),yhu(hu,j)$zcr(i,j))
+ 655              + sum(cu,ycu(i,cu)) - uint*ycol(i) =l= 0;
+ 656   
+ 657  * integer cuts
+ 658  cuts(k)..
+ 659     sum(i,sign(ycolk(i,k)-0.5)*ycol(i))
+ 660   + sum((i,j)$zcrhx(i,j),sign(yhxk(i,j,k)-0.5)*yhx(i,j))
+ 661   + sum((hu,j),sign(yhuk(hu,j,k)-0.5)*yhu(hu,j))
+ 662   + sum((i,cu),sign(ycuk(i,cu,k)-0.5)*ycu(i,cu))
+ 663       =l= sum(i,ycolk(i,k)) + sum((i,j)$zcrhx(i,j),yhxk(i,j,k)) +
+ 664           sum((hu,j),yhuk(hu,j,k)) + sum((i,cu),ycuk(i,cu,k)) - 1;
+ 665   
+ 666  *======================================================================
+ 667  *  declare the milp master problem
+ 668  *======================================================================
+ 669  Model master  milp master problem
+ 670             /milpcon,
+ 671              evqcr,
+ 672              evqhu,
+ 673              evqcu,
+ 674              lmtdsm,
+ 675              artrex1,
+ 676              artrex2,
+ 677              tempset,
+ 678              material,
+ 679              feed,
+ 680              matlog,
+ 681              duty,
+ 682              rebcon,
+ 683              conheat,
+ 684              rebheat,
+ 685              dtminc,
+ 686              dtminlp,
+ 687              trtcdef,
+ 688              dtmincr,
+ 689              dtminex,
+ 690              hxclog,
+ 691              hxhulog,
+ 692              hxculog,
+ 693              qcqrlog,
+ 694              sequen,
+ 695              lead,
+ 696              limutil,
+ 697              hidirect,
+ 698              heat,
+ 699              cuts /;
+ 700   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 15
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 701  master.solprint=0;
+ 702   
+ 703  *=====================================================================
+ 704  * all declarations made, start algorithmic procedures
+ 705  *=====================================================================
+ 706   
+ 707  *=====================================================================
+ 708  * initialize the optimal storage parameters to 1st guess
+ 709  *=====================================================================
+ 710  yhxopt(i,j) = yhxp(i,j);
+ 711  yhuopt(hu,j) = yhup(hu,j);
+ 712  ycuopt(i,cu) = ycup(i,cu);
+ 713  ycolopt(i) = ycolp(i);
+ 714   
+ 715  kopt = 1;
+ 716   
+ 717  *======================================================================
+ 718  * assign the initial configuration to the binary proposal parameter
+ 719  *======================================================================
+ 720  kiter("k-1") = yes;
+ 721   
+ 722  yhxk(i,j,kiter) = yhxp(i,j);
+ 723  yhuk(hu,j,kiter) = yhup(hu,j);
+ 724  ycuk(i,cu,kiter) = ycup(i,cu);
+ 725  ycolk(i,kiter) = ycolp(i);
+ 726   
+ 727  yhx.l(i,j) = yhxp(i,j);
+ 728  yhu.l(hu,j) = yhup(hu,j);
+ 729  ycu.l(i,cu) = ycup(i,cu);
+ 730  ycol.l(i) = ycolp(i);
+ 731   
+ 732  * set an arbitrary initial lower bound
+ 733  zoal.l = -10e+6;
+ 734   
+ 735  *======================================================================
+ 736  * give the continuous variables a starting point for 1st nlp
+ 737  *======================================================================
+ 738  tr.l("r-1") = 410;
+ 739  tc.l("c-1") = 390;
+ 740  tc.l("c-3") = 360;
+ 741  tr.l("r-3") = 380;
+ 742  tc.l("c-2") = 0;
+ 743  tr.l("r-2") = 0;
+ 744  tc.l("c-4") = 0;
+ 745  tr.l("r-4") = 0;
+ 746  f.l("c-1") = totflow;
+ 747  lmtd.l("c-1") = 75;
+ 748  lmtd.l("c-3") = 25;
+ 749  lmtd.l("c-2") = 0;
+ 750  lmtd.l("c-4") = 0;
+ 751  qr.l("r-2") = 0;
+ 752  qc.l("c-2") = 0;
+ 753  qr.l("r-4") = 0;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 16
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 754  qc.l("c-4") = 0;
+ 755   
+ 756  *======================================================================
+ 757  * add bounds on tc. A sqrt in equation lmtdsn is defined for tc > tcout
+ 758  * and for tc < tcin. The relevant interval is determined for each
+ 759  * element of tc based on the initial values given above.
+ 760  *======================================================================
+ 761  tc.lo("c-1") = tcout+1;
+ 762  tc.up("c-2") = tcin-1;
+ 763  tc.lo("c-3") = tcout+1;
+ 764  tc.up("c-4") = tcin-1;
+ 765   
+ 766  *======================================================================
+ 767  * bound the reboiler temperatures by their maximum allowable
+ 768  *======================================================================
+ 769  tr.up(j) = trmax(j);
+ 770   
+ 771  *======================================================================
+ 772  * initialize the dynamic sets for algorithm control
+ 773  *======================================================================
+ 774  k(km)       = no;
+ 775  kiter(km)   = no;
+ 776  kdynmax(km) = yes;
+ 777   
+ 778  *======================================================================
+ 779  * major driving loop of algorithm
+ 780  *======================================================================
+ 781  Loop(kloop$kdynmax(kloop),
+ 782   
+ 783  * update the dynamic iteration sets
+ 784  *  -set kiter to contain only the current iteration element
+ 785  *  -add to k the current iteration element
+ 786    kiter(km) = yes$(ord(km) eq ord(kloop));
+ 787    k(kiter) = yes;
+ 788   
+ 789  * store the current binary combination
+ 790    yhxk(i,j,kiter) = yhx.l(i,j);
+ 791    yhuk(hu,j,kiter) = yhu.l(hu,j);
+ 792    ycuk(i,cu,kiter) = ycu.l(i,cu);
+ 793    ycolk(i,kiter) = ycol.l(i);
+ 794   
+ 795  * set the current combination parameters that appear in the nlp constraints
+ 796    yhxp(i,j) = yhx.l(i,j);
+ 797    yhup(hu,j) = yhu.l(hu,j);
+ 798    ycup(i,cu) = ycu.l(i,cu);
+ 799    ycolp(i) = ycol.l(i);
+ 800   
+ 801    zoal.lo = zoal.l;
+ 802   
+ 803  *======================================================================
+ 804  * the current levels of the lmtds are moved away from zero
+ 805  *  to prevent evaluation errors in the next nlp subproblem
+ 806  *======================================================================
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 17
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 807    lmtd.l(i) = lmtd.l(i) + 1;
+ 808   
+ 809    nlpsub.reslim=15;
+ 810  * solve the nlp subproblem
+ 811    Solve nlpsub using nlp minimizing zoau;
+ 812   
+ 813  * resolve with conopt to get marginals for lmtdsn, if not provided by used NLP solver
+ 814    if( nlpsub.marginals = 0,
+ 815      option nlp = conopt;
+ 816      Solve nlpsub using nlp minimizing zoau;
+ 817      option nlp = BARON;
+ 818    );
+ 819   
+ 820  *======================================================================
+ 821  * update the optimal solution storage parameters if new nlp
+ 822  * objective function value is less than the incumbent
+ 823  *======================================================================
+ 824    If ((zoau.l lt zoaup),
+ 825      yhxopt(i,j) = yhx.l(i,j);
+ 826      yhuopt(hu,j) = yhu.l(hu,j);
+ 827      ycuopt(i,cu) = ycu.l(i,cu);
+ 828      ycolopt(i) = ycol.l(i);
+ 829   
+ 830      kopt = ord(kloop);            );
+ 831   
+ 832  *======================================================================
+ 833  * assign the solution levels of the variables that appear in the
+ 834  * nonlinear equations to their corresponding storage parameters
+ 835  *======================================================================
+ 836    fk(i,kiter) = f.l(i);
+ 837    qrk(j,kiter) = qr.l(j);
+ 838    qck(i,kiter) = qc.l(i);
+ 839    qcrk(i,j,kiter) = qcr.l(i,j);
+ 840    qhuk(hu,j,kiter) = qhu.l(hu,j);
+ 841    qcuk(i,cu,kiter) = qcu.l(i,cu);
+ 842    tck(i,kiter) = tc.l(i);
+ 843    trk(j,kiter) = tr.l(j);
+ 844    lmtdk(i,kiter) = lmtd.l(i);
+ 845   
+ 846  *======================================================================
+ 847  * assign the sign of marginal values of the nonlinear equalties
+ 848  * to the storage parameter lmtdmar
+ 849  *======================================================================
+ 850    lmtdmar(i,kiter) = -sign(lmtdsn.m(i))$(lmtdsn.m(i) ne eps);
+ 851   
+ 852  *======================================================================
+ 853  * store the smallest nlp objective value for upper bound on master
+ 854  *======================================================================
+ 855    zoaup = min(zoaup,zoau.l);
+ 856    zoal.up = zoaup;
+ 857  * protect against numerical errors introduced by the solver
+ 858    zoal.lo = min(zoal.lo,zoal.up);
+ 859   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 18
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+C o m p i l a t i o n
+
+
+ 860   
+ 861  * now solve the milp master problem
+ 862    Solve master using mip minimizing zoal;
+ 863   
+ 864    Display "new binary combination", ycol.l,yhx.l,yhu.l,ycu.l;
+ 865   
+ 866  *======================================================================
+ 867  * check stopping criterion:
+ 868  *  master problem integer infeasible
+ 869  *======================================================================
+ 870    If ((master.modelstat=4 OR
+ 871         master.modelstat=10 OR
+ 872         master.modelstat=19),
+ 873      kdynmax(km) = no;
+ 874      Display "stopping criterion met",
+ 875                   zoaup, yhxopt, yhuopt, ycuopt, ycolopt, kopt; );
+ 876                                                                     );
+ 877  * end of file
+ 878   
+ 879   
+
+
+COMPILATION TIME     =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 19
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+Model Statistics    SOLVE nlpsub Using NLP From line 811
+
+
+LOOPS                                kloop   k-1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          21     SINGLE EQUATIONS           80
+BLOCKS OF VARIABLES          16     SINGLE VARIABLES           65
+NON ZERO ELEMENTS           207     NON LINEAR N-Z             36
+DERIVATIVE POOL              20     CONSTANT POOL              35
+CODE LENGTH                 178
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop k-1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 20
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+Solution Report     SOLVE nlpsub Using NLP From line 811
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   nlpsub              OBJECTIVE  zoau
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  811
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000        15.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0          1000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/minlphi/convert.opt"
+>>  pyomo minlphi-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/minlphi/convert.opt"
+Pyomo     : minlphi-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 21
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+Model Statistics    SOLVE master Using MIP From line 862
+
+
+LOOPS                                kloop   k-1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          30     SINGLE EQUATIONS           93
+BLOCKS OF VARIABLES          23     SINGLE VARIABLES           88
+NON ZERO ELEMENTS           320     DISCRETE VARIABLES         20
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S              kloop k-1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 22
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+Solution Report     SOLVE master Using MIP From line 862
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   master              OBJECTIVE  zoal
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  862
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      10 Integer Infeasible       
+**** OBJECTIVE VALUE               NA
+
+ RESOURCE USAGE, LIMIT          0.004      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/minlphi/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+MIP status(103): integer infeasible
+Cplex Time: 0.00sec (det. 0.05 ticks)
+Problem is integer infeasible.
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 23
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+E x e c u t i o n
+
+
+----    864 new binary combination
+
+----    864 VARIABLE ycol.L  columns in superstructure
+
+c-1 1.000,    c-3 1.000
+
+
+----    864 VARIABLE yhx.L  heat integration matches condenser i reboiler j
+
+            r-3
+
+c-1       1.000
+
+
+----    864 VARIABLE yhu.L  hot utility matches hot utility hu reboiler j
+
+           r-1
+
+lp       1.000
+
+
+----    864 VARIABLE ycu.L  cold utility matches condenser i cold util cu
+
+             cw
+
+c-1       1.000
+c-3       1.000
+
+
+----    874 stopping criterion met
+            PARAMETER zoaup                =        0.000  single value storage of upper bound
+
+----    874 PARAMETER yhxopt  optimal heat integration
+
+            r-3
+
+c-1       1.000
+
+
+----    874 PARAMETER yhuopt  optimal hot utility match
+
+           r-1
+
+lp       1.000
+
+
+----    874 PARAMETER ycuopt  optimal cold utility match
+
+             cw
+
+c-1       1.000
+c-3       1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:52 Page 24
+Heat Integrated Distillation Sequences, (MINLPHI,SEQ=118)
+E x e c u t i o n
+
+
+----    874 PARAMETER ycolopt  optimal superstructure
+
+c-1 1.000,    c-3 1.000
+
+
+----    874 PARAMETER kopt                 =        1.000  iteration at which optimal solution was found
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/minlphi/minlphi.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/minlphi/minlphi-scalar.py.lst

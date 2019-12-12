@@ -1,0 +1,525 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIQCP=convert;
+   2  option MIQCP=convert;
+   3  option MIQCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 2
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+C o m p i l a t i o n
+
+
+   5   
+       
+         Minimum and maximum trade constraints are added to the standard
+         mean-variance model. If it is not profitable to trade within these
+         ranges, no trade should take place. A turnover constraint is added
+         to improve stability of the solution to small changes in data. The
+         resulting model is now expressed as a MIQCP and a frontiers is
+         computed.
+       
+      Dahl, H, Meeraus, A, and Zenios, S A, Some Financial Optimization
+      Models: Risk Management. In Zenios, S A, Ed, Financial Optimization.
+      Cambridge University Press, New York, NY, 1993.
+       
+  21   
+  22  Set  i  securities  / cn, fr, gr, jp, sw, uk, us /;  alias (i,j) ;
+  23   
+  24  Parameter  mu(i)  expected return of security /
+  25   
+  26      cn     0.1287
+  27      fr     0.1096
+  28      gr     0.0501
+  29      jp     0.1524
+  30      sw     0.0763
+  31      uk     0.1854
+  32      us     0.0620 /
+  33   
+  34   
+  35  Table  q(i,j)   covariance matrix
+  36   
+  37              cn      fr      gr      jp      sw      uk      us
+  38      cn    42.18
+  39      fr    20.18   70.89
+  40      gr    10.88   21.58   25.51
+  41      jp     5.30   15.41    9.60   22.33
+  42      sw    12.32   23.24   22.63   10.32   30.01
+  43      uk    23.84   23.80   13.22   10.46   16.36   42.23
+  44      us    17.41   12.62    4.70    1.00    7.20    9.90   16.42 ;
+  45   
+  46  *  we will continue to use only the lower triangle of the q-matrix
+  47  *  and adjust the off diagonal entries to give the correct results.
+  48   
+  49  q(i,j) = 2*q(j,i) ;  q(i,i) = q(i,i)/2;
+  50   
+  51   
+  52  Scalars  tau   bounding parameter on turnover of current holdings  /0.3 /;
+  53   
+  54  Set pd  portfolio data labels  /
+  55            old       current holdings fraction of the portfolio
+  56            umin      minimum increase of holdings fraction of security i
+  57            umax      maximum increase of holdings fraction of security i
+  58            lmin      minimum decrease of holdings fraction of security i
+  59            lmax      maximum decrease of holdings fraction of security i  /
+  60   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 3
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+C o m p i l a t i o n
+
+
+  61   
+  62  Table    bdata(i,pd)    portfolio data and trading restrictions
+  63  *                    - increase -        - decrease -
+  64                old    umin    umax        lmin    lmax
+  65          cn    0.2    0.03    0.11        0.02    0.30
+  66          fr    0.2    0.04    0.10        0.02    0.15
+  67          gr    0.0    0.04    0.07        0.04    0.10
+  68          jp    0.0    0.03    0.11        0.04    0.10
+  69          sw    0.2    0.03    0.20        0.04    0.10
+  70          uk    0.2    0.03    0.10        0.04    0.15
+  71          us    0.2    0.03    0.10        0.04    0.30    ;
+  72   
+  73  bdata(i,'lmax') = min(bdata(i,'old'),bdata(i,'lmax')); ! tighten bound
+  74   
+  75  Abort$(abs(sum(i, bdata(i,'old'))-1) >= 1e5) 'error in bdata', bdata;
+  76   
+  77  Variables
+  78      var       variance of portfolio
+  79      ret       return of portfolio
+  80      x(i)      fraction of portfolio of current holdings of i
+  81      xi(i)     fraction of portfolio increase
+  82      xd(i)     fraction of portfolio decrease
+  83      y(i)      binary switch for increasing current holdings of i
+  84      z(i)      binary switch for decreasing current holdings of i
+  85   
+  86  Binary Variables  y,z; positive variables x, xi, xd;
+  87   
+  88   
+  89  Equations  budget     budget constraint
+  90             turnover   restrict maximum turnover of portfolio
+  91             maxinc(i)  bound of maximum lot increase of fraction of i
+  92             mininc(i)  bound of minimum lot increase of fraction of i
+  93             maxdec(i)  bound of maximum lot decrease of fraction of i
+  94             mindec(i)  bound of minimum lot decrease of fraction of i
+  95             binsum(i)  restrict use of binary variables
+  96             xdef(i)    final portfolio definition
+  97             retdef     return definition
+  98             vardef     variance definition;
+  99   
+ 100  budget..   sum(i, x(i))  =e=  1 ;
+ 101   
+ 102  xdef(i)..  x(i) =e= bdata(i,'old') - xd(i) + xi(i);
+ 103   
+ 104  maxinc(i)..  xi(i)  =l=  bdata(i,'umax')*y(i) ;
+ 105  mininc(i)..  xi(i)  =g=  bdata(i,'umin')*y(i) ;
+ 106  maxdec(i)..  xd(i)  =l=  bdata(i,'lmax')*z(i) ;
+ 107  mindec(i)..  xd(i)  =g=  bdata(i,'lmin')*z(i) ;
+ 108  binsum(i).. y(i) + z(i) =l= 1;
+ 109   
+ 110  turnover.. sum(i, xi(i)) =l=  tau ;
+ 111   
+ 112  retdef..  ret =e= sum(i, mu(i)*x(i));
+ 113   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 4
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+C o m p i l a t i o n
+
+
+ 114  vardef..  var =e= sum((i,j), x(i)*q(i,j)*x(j));
+ 115   
+ 116   
+ 117   
+ 118  Models
+ 119  maxret / budget, xdef, turnover, maxinc, mininc, maxdec, mindec, binsum, retdef /
+ 120  minvar / budget, xdef, turnover, maxinc, mininc, maxdec, mindec, binsum, retdef, vardef /;
+ 121   
+ 122  Set  p       efficient frontier points     / oldr, minvar, p1*p4, maxret, oldv /
+ 123       pp(p)   efficient frontier points     /         p1*p4                     /
+ 124   
+ 125  Scalars     rmin     minimum variance
+ 126              rmax     maximum variance ;
+ 127   
+ 128  Parameter Report(p,i,*)  Portfolio Details at different points
+ 129            xres(*,p)      Summary report at different points;
+ 130   
+ 131  Option limcol=0, limrow=0, solprint=off, optcr=0;
+ 132   
+ 133  Loop(p('maxret'),
+ 134     Solve maxret max ret using miqcp ; rmax = ret.l;
+ 135     xres(i,p)         = x.l(i);
+ 136     report(p,i,'inc') = xi.l(i);
+ 137     report(p,i,'dec') = xd.l(i) );
+ 138   
+ 139  xres(i,'oldr')  = bdata(i,'old');
+ 140  xres(i,'oldv')  = bdata(i,'old');
+ 141   
+ 142  Loop(p('minvar'),
+ 143     Solve minvar min var using miqcp ;  rmin = ret.l;
+ 144     xres(i,p)         = x.l(i);
+ 145     report(p,i,'inc') = xi.l(i);
+ 146     report(p,i,'dec') = xd.l(i) );
+ 147   
+ 148  Loop(p(pp),
+ 149     ret.fx = rmin + (rmax-rmin)/(card(pp)+1)*ord(pp) ;
+ 150     Solve minvar min var using miqcp ;
+ 151     xres(i,p)         = x.l(i);
+ 152     report(p,i,'inc') = xi.l(i);
+ 153     report(p,i,'dec') = xd.l(i) );
+ 154   
+ 155  xres('mean',p) = sum(i, mu(i)*xres(i,p));
+ 156  xres('var' ,p) = sum((i,j), xres(i,p)*q(i,j)*xres(j,p));
+ 157  Display xres, report;
+ 158   
+EXIT /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/qmeanvar.gms
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 5
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/qmeanvar.gms
+     2      159 EXIT           1     159  /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/qmeanvar.gms
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 6
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Model Statistics    SOLVE maxret Using MIQCP From line 134
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           9     SINGLE EQUATIONS           45
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           36
+NON ZERO ELEMENTS           111     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 7
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Solution Report     SOLVE maxret Using MIQCP From line 134
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   maxret              OBJECTIVE  ret
+     TYPE    MIQCP               DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  134
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+Pyomo     : qmeanvar-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 8
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Model Statistics    SOLVE minvar Using MIQCP From line 143
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           119     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 115     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 9
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Solution Report     SOLVE minvar Using MIQCP From line 143
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   minvar              OBJECTIVE  var
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  143
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+Pyomo     : qmeanvar-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 10
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Model Statistics    SOLVE minvar Using MIQCP From line 150
+
+
+LOOPS                                   pp   p1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           119     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 115     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 pp p1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 11
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Solution Report     SOLVE minvar Using MIQCP From line 150
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   minvar              OBJECTIVE  var
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  150
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+Pyomo     : qmeanvar-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 12
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Model Statistics    SOLVE minvar Using MIQCP From line 150
+
+
+LOOPS                                   pp   p2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           119     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 115     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 pp p2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 13
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Solution Report     SOLVE minvar Using MIQCP From line 150
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   minvar              OBJECTIVE  var
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  150
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+Pyomo     : qmeanvar-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 14
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Model Statistics    SOLVE minvar Using MIQCP From line 150
+
+
+LOOPS                                   pp   p3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           119     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 115     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 pp p3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 15
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Solution Report     SOLVE minvar Using MIQCP From line 150
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   minvar              OBJECTIVE  var
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  150
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+Pyomo     : qmeanvar-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 16
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Model Statistics    SOLVE minvar Using MIQCP From line 150
+
+
+LOOPS                                   pp   p4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           119     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 115     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 pp p4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 17
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+Solution Report     SOLVE minvar Using MIQCP From line 150
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   minvar              OBJECTIVE  var
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  150
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+>>  pyomo qmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/convert.opt"
+Pyomo     : qmeanvar-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 18
+Financial Optimization: Risk Management using MIQCP (QMEANVAR,SEQ=291)
+E x e c u t i o n
+
+
+----    157 PARAMETER xres  Summary report at different points
+
+            oldr        oldv
+
+cn         0.200       0.200
+fr         0.200       0.200
+sw         0.200       0.200
+uk         0.200       0.200
+us         0.200       0.200
+mean       0.112       0.112
+var       21.419      21.419
+
+
+----    157 PARAMETER Report  Portfolio Details at different points
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/qmeanvar.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvar/qmeanvar-scalar.py.lst

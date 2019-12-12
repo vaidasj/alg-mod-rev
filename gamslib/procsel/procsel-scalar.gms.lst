@@ -1,0 +1,319 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 2
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+C o m p i l a t i o n
+
+
+   4   
+       
+         The goal is the profitable production of chemical C.
+         which can be produced from chemical B where B may be
+         the raw material that can be purchased from the
+         external market or an intermediate that is produced
+         from raw material A. There are two alternative paths
+         of producing B from A. A mixed-integer nonlinear
+         formulation is presented to solve the optimal
+         production and capacity expansion problem.
+       
+       
+      Kocis, G R, and Grossmann, I E, Relaxation Strategy for the Structural
+      Optimization of Process Flow Sheets. Independent Engineering Chemical
+      Research 26, 9 (1987), 1869-1880.
+       
+      Morari, M, and Grossmann, I E, Eds, Chemical Engineering Optimization
+      Models with GAMS. Computer Aids for Chemical Engineering Corporation,
+      1991.
+       
+         Process flowsheet
+       
+       
+               A2    +-----+  B2      BP
+              +----->|  2  |----->+    |
+         A    |      +-----+      |    |  B1    +-----+    C1
+         ---->|                   +----+------->|  1  |-------->
+              |      +-----+      |             +-----+
+              +----->|  3  |----->+
+               A3    +-----+  B3
+       
+       
+  38   
+  40   
+  41   
+  42   Positive Variables
+  43      a2    consumption of chemical a in process 2
+  44      a3    consumption of chemical a in process 3
+  45      b2    production capacity of chemical b in process 2
+  46      b3    production capacity of chemical b in process 3
+  47      bp    amount of chemical b purchased in external market
+  48      b1    consumption of chemical b in process 1
+  49      c1     production capacity of chemical c in process 1 ;
+  50   
+  51   Binary Variables
+  52      y1    denotes potential existence of process 1
+  53      y2    denotes potential existence of process 2
+  54      y3    denotes potential existence of process 3  ;
+  55   
+  56   Variable
+  57      pr    total profit in million $ per year ;
+  58   
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 3
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+C o m p i l a t i o n
+
+
+  60   
+  61   Equations
+  62      inout1   input-output for process 1
+  63      inout2   input-output for process 2
+  64      inout3   input-output for process 3
+  65      mbalb    mass balance for chemical b
+  66      log1     logical constraint for process 1
+  67      log2     logical constraint for process 2
+  68      log3     logical constraint for process 3
+  69      obj      profit objective function ;
+  70   
+  71   
+  72  * the original constraint for inout2 is b2 = log(1+a2)
+  73  * but this has been convexified to the form used below.
+  74  * the same is true for inout3. so b2 and b3 are the
+  75  * output variables from units 2 and 3 respectively
+  76   
+  77   inout1..  c1 =e= 0.9*b1 ;
+  78   inout2..  exp(b2) - 1 =e=  a2 ;
+  79   inout3..  exp(b3/1.2) - 1 =e= a3 ;
+  80   
+  81   mbalb..   b1 =e= b2 + b3 + bp ;
+  82   
+  83   log1..   c1  =l= 2*y1 ;
+  84   log2..   b2  =l= 4*y2 ;
+  85   log3..   b3  =l= 5*y3 ;
+  86   
+  87   obj..    pr =e=   11*c1                 ! sales revenue
+  88                   - 3.5*y1 - y2 - 1.5*y3  ! fixed investment cost
+  89                   - b2 - 1.2*b3           ! operating cost
+  90                   - 1.8*(a2+a3) - 7*bp ;  ! purchases
+  91   
+  92   
+  93  * demand constraint on chemical c based on market requirements
+  94   
+  95    c1.up = 1;
+  96   
+  97   
+  98   Model process /all/ ;
+  99   
+ 100   Solve process maximizing pr using minlp ;
+
+
+COMPILATION TIME     =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 4
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+Equation Listing    SOLVE process Using MINLP From line 100
+
+
+---- inout1  =E=  input-output for process 1
+
+inout1..  - 0.9*b1 + c1 =E= 0 ; (LHS = 0)
+     
+
+---- inout2  =E=  input-output for process 2
+
+inout2..  - a2 + (1)*b2 =E= 1 ; (LHS = 1)
+     
+
+---- inout3  =E=  input-output for process 3
+
+inout3..  - a3 + (0.833333333333333)*b3 =E= 1 ; (LHS = 1)
+     
+
+---- mbalb  =E=  mass balance for chemical b
+
+mbalb..  - b2 - b3 - bp + b1 =E= 0 ; (LHS = 0)
+     
+
+---- log1  =L=  logical constraint for process 1
+
+log1..  c1 - 2*y1 =L= 0 ; (LHS = 0)
+     
+
+---- log2  =L=  logical constraint for process 2
+
+log2..  b2 - 4*y2 =L= 0 ; (LHS = 0)
+     
+
+---- log3  =L=  logical constraint for process 3
+
+log3..  b3 - 5*y3 =L= 0 ; (LHS = 0)
+     
+
+---- obj  =E=  profit objective function
+
+obj..  1.8*a2 + 1.8*a3 + b2 + 1.2*b3 + 7*bp - 11*c1 + 3.5*y1 + y2 + 1.5*y3 + pr =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 5
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+Column Listing      SOLVE process Using MINLP From line 100
+
+
+---- a2  consumption of chemical a in process 2
+
+a2
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       inout2
+        1.8     obj
+
+
+---- a3  consumption of chemical a in process 3
+
+a3
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       inout3
+        1.8     obj
+
+
+---- b2  production capacity of chemical b in process 2
+
+b2
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (1)      inout2
+       -1       mbalb
+        1       log2
+        1       obj
+
+
+---- b3  production capacity of chemical b in process 3
+
+b3
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0.8333) inout3
+       -1       mbalb
+        1       log3
+        1.2     obj
+
+
+---- bp  amount of chemical b purchased in external market
+
+bp
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mbalb
+        7       obj
+
+
+---- b1  consumption of chemical b in process 1
+
+b1
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.9     inout1
+        1       mbalb
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 6
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+Column Listing      SOLVE process Using MINLP From line 100
+
+
+---- c1  production capacity of chemical c in process 1
+
+c1
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       inout1
+        1       log1
+      -11       obj
+
+
+---- y1  denotes potential existence of process 1
+
+y1
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -2       log1
+        3.5     obj
+
+
+---- y2  denotes potential existence of process 2
+
+y2
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -4       log2
+        1       obj
+
+
+---- y3  denotes potential existence of process 3
+
+y3
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       log3
+        1.5     obj
+
+
+---- pr  total profit in million $ per year
+
+pr
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 7
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+Model Statistics    SOLVE process Using MINLP From line 100
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES          11     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            26     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                   9     DISCRETE VARIABLES          3
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 8
+Structural Optimization of Process Flowsheets (PROCSEL,SEQ=116)
+Solution Report     SOLVE process Using MINLP From line 100
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   process             OBJECTIVE  pr
+     TYPE    MINLP               DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  100
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/procsel/convert.opt"
+>>  gams procsel-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/procsel/convert.opt"
+Gams      : procsel-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/procsel/procsel.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/procsel/procsel-scalar.gms.lst

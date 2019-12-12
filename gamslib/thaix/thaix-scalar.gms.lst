@@ -1,0 +1,289 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 2
+Thai Navy Problem Extended (THAIX,SEQ=105)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This model is an extension of the original library model THAI.
+         Multidimensional sets (tuples and maps) are used to allow a more
+         compact representation. MIP priorities are used to speed up the
+         solution process. Data definitions are moved from the beginning to
+         the end of the model definitions. Overall, the model is used to allocate ships to
+         transport personnel from different port to a training center.
+       
+       
+      Choypeng, P, Puakpong, P, and Rosenthal, R E, Optimal Ship Routing and
+      Personnel Assignment for Naval Recruitment in Thailand. Interfaces
+      16, 4 (1986), 356-366.
+       
+  20   
+  21  Sets
+  22     p  ports         / chumphon, surat, nakon, songkhla /
+  23     v  voyages       / v-01* v-15 /
+  24     k  ship classes  / small, medium, large /
+  25   
+  26  Variables
+  27     z(v,k)     number of times voyage vk is used
+  28     y(v,k,p)   number of men transported from port p via voyage vk
+  29     obj        objective function to be minimized
+  30     voyages    the number of voyages
+  31     shipmiles  ship miles
+  32     manmiles   man miles
+  33   
+  34  Integer Variables z; positive variables y ;
+  35   
+  36  Equations
+  37     objdef           objective function definition
+  38     dvoyages         definition of the number of voyages
+  39     dshipmiles       definition of ship miles
+  40     dmanmiles        definition of man miles
+  41     demand(p)        pick up all the men at port p
+  42     voycap(v,k)      observe variable capacity of voyage vk
+  43     shiplim(k)       observe limit of class k
+  44   
+  45  Sets
+  46     vk(v,k)     voyage capability
+  47     vkp(v,k,p)  trips: voyage - ship class - port
+  48   
+  49  Parameters
+  50     d(p)  number of men at port p needing transport
+  51     shipcap(k)  ship capacity in men
+  52     n(k)   number of ships of class k available
+  53     dist(v) voyage distance
+  54   
+  55  Scalars
+  56     w1 ship assignment weight
+  57     w2 ship distance traveled weight
+  58     w3 personnel distance travel weight;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 3
+Thai Navy Problem Extended (THAIX,SEQ=105)
+C o m p i l a t i o n
+
+
+  59   
+  60  demand(p)..        sum(vkp(vk,p), y(vkp))  =g=  d(p) ;
+  61   
+  62  voycap(vk(v,k))..  sum(vkp(vk,p), y(vkp))  =l=  shipcap(k)*z(vk) ;
+  63   
+  64  shiplim(k)..       sum(vk(v,k), z(vk))   =l=  n(k) ;
+  65   
+  66  dvoyages  .. voyages   =e= sum(vk,                 z(vk));
+  67  dshipmiles.. shipmiles =e= sum(vk(v,k),    dist(v)*z(vk));
+  68  dmanmiles .. manmiles  =e= sum(vkp(v,k,p), dist(v)*y(vkp)) ;
+  69   
+  70  objdef..     obj =e= w1*voyages + w2*shipmiles + w3*manmiles ;
+  71   
+  72  Model thainavy /all/;
+  73   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 4
+Thai Navy Problem Extended (THAIX,SEQ=105)
+data
+
+
+  75   
+  76  Set   kp(k,p) port capability / small. (chumphon)
+  77                                  medium.(chumphon,surat,nakon)
+  78                                  large. (chumphon,surat,nakon,songkhla) /
+  79   
+  80  Parameter  d(p)  number of men at port p needing transport
+  81                  / chumphon = 475, surat     = 659
+  82                    nakon    = 672, songkhla = 1123 /
+  83             shipcap(k)  ship capacity in men / small   100
+  84                                                medium  200
+  85                                                large   600 /
+  86             n(k)   number of ships available / small     2
+  87                                                medium    3
+  88                                                large     4  /
+  89   
+  90  Table   a(v,*)   assignment of ports to voyages
+  91   
+  92          dist  chumphon surat nakon songkhla
+  93  v-01     370      1
+  94  v-02     460              1
+  95  v-03     600                    1
+  96  v-04     750                            1
+  97  v-05     515      1       1
+  98  v-06     640      1             1
+  99  v-07     810      1                     1
+ 100  v-08     665              1     1
+ 101  v-09     665              1             1
+ 102  v-10     800                    1       1
+ 103  v-11     720      1       1     1
+ 104  v-12     860      1       1             1
+ 105  v-13     840      1             1       1
+ 106  v-14     865              1     1       1
+ 107  v-15     920      1       1     1       1 ;
+ 108   
+ 109  vk(v,k)         = prod(p$a(v,p), kp(k,p));
+ 110  vkp(vk(v,k),p)  = yes$a(v,p);
+ 111  dist(v)         = a(v,'dist');
+ 112  z.up(vk(v,k))   = n(k) ;
+ 113   
+ 114  z.prior(vk(v,'small'))  = 3;
+ 115  z.prior(vk(v,'medium')) = 2;
+ 116  z.prior(vk(v,'large'))  = 1;
+ 117   
+ 118  thainavy.prioropt = 1;
+ 119  thainavy.limcol   = 0;
+ 120  thainavy.limrow   = 0;
+ 121   
+ 122  w1=1; w2=0; w3=0; Solve thainavy minimizing obj using mip ;
+ 123  w1=0; w2=1; w3=0; Solve thainavy minimizing obj using mip ;
+ 124  w1=0; w2=0; w3=1; Solve thainavy minimizing obj using mip ;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 5
+Thai Navy Problem Extended (THAIX,SEQ=105)
+Model Statistics    SOLVE thainavy Using MIP From line 122
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           34
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           72
+NON ZERO ELEMENTS           232     DISCRETE VARIABLES         23
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 6
+Thai Navy Problem Extended (THAIX,SEQ=105)
+Solution Report     SOLVE thainavy Using MIP From line 122
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   thainavy            OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  122
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/thaix/convert.opt"
+>>  gams thaix-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/thaix/convert.opt"
+Gams      : thaix-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 7
+Thai Navy Problem Extended (THAIX,SEQ=105)
+Model Statistics    SOLVE thainavy Using MIP From line 123
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           34
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           72
+NON ZERO ELEMENTS           232     DISCRETE VARIABLES         23
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 8
+Thai Navy Problem Extended (THAIX,SEQ=105)
+Solution Report     SOLVE thainavy Using MIP From line 123
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   thainavy            OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  123
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/thaix/convert.opt"
+>>  gams thaix-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/thaix/convert.opt"
+Gams      : thaix-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 9
+Thai Navy Problem Extended (THAIX,SEQ=105)
+Model Statistics    SOLVE thainavy Using MIP From line 124
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           34
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           72
+NON ZERO ELEMENTS           232     DISCRETE VARIABLES         23
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 10
+Thai Navy Problem Extended (THAIX,SEQ=105)
+Solution Report     SOLVE thainavy Using MIP From line 124
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   thainavy            OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  124
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/thaix/convert.opt"
+>>  gams thaix-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/thaix/convert.opt"
+Gams      : thaix-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/thaix/thaix.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/thaix/thaix-scalar.gms.lst

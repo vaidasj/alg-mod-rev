@@ -1,0 +1,3087 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 2
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+   5   
+      No description.
+       
+       
+      Hosoe, N, Gasawa, K, and Hashimoto, H
+      Handbook of Computible General Equilibrium Modeling
+      University of Tokyo Press, Tokyo, Japan, 2004
+  14   
+  15   
+  16  * definition of sets for suffix ---------------------------------------
+  17  Set     u       SAM entry     /BRD, MLK, CAP, LAB, IDT, TRF, HOH, GOV,
+  18                                 INV, EXT/
+  19          i(u)    goods         /BRD, MLK/
+  20          h(u)    factor        /CAP, LAB/
+  21          r       country       /JPN, USA/;
+  22   
+  23  Alias (u,v), (i,j), (h,k), (r,rr);
+  24  * ---------------------------------------------------------------------
+  25   
+  26  * loading data --------------------------------------------------------
+  27  Table   SAM(u,v,r)        social accounting matrix
+  28          BRD.JPN MLK.JPN CAP.JPN LAB.JPN IDT.JPN
+  29  BRD     21      8
+  30  MLK     17      9
+  31  CAP     20      30
+  32  LAB     15      25
+  33  IDT     5       4
+  34  TRF     1       2
+  35  HOH                     50      40
+  36  GOV                                     9
+  37  INV
+  38  EXT     13      11
+  39   
+  40  +       TRF.JPN HOH.JPN GOV.JPN INV.JPN EXT.JPN
+  41  BRD             20      19      16      8
+  42  MLK             30      14      15      4
+  43  CAP
+  44  LAB
+  45  IDT
+  46  TRF
+  47  HOH
+  48  GOV     3       23
+  49  INV             17      2               12
+  50  EXT
+  51   
+  52  +       BRD.USA MLK.USA CAP.USA LAB.USA IDT.USA
+  53  BRD     40      1
+  54  MLK     17      29
+  55  CAP     33      30
+  56  LAB     15      31
+  57  IDT     10      20
+  58  TRF     1       1
+  59  HOH                     63      46
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 3
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+  60  GOV                                     30
+  61  INV
+  62  EXT     8       4
+  63   
+  64  +       TRF.USA HOH.USA GOV.USA INV.USA EXT.USA
+  65  BRD             30      20      20      13
+  66  MLK             30      14      15      11
+  67  CAP
+  68  LAB
+  69  IDT
+  70  TRF
+  71  HOH
+  72  GOV     2       29
+  73  INV             20      27              -12
+  74  EXT
+  75  ;
+  76   
+  77  * loading the initial values ------------------------------------------
+  78  Parameter       Y0(j,r)         composite factor
+  79                  F0(h,j,r)       the h-th factor input by the j-th firm
+  80                  X0(i,j,r)       intermediate input
+  81                  Z0(j,r)         output of the j-th good
+  82                  Xp0(i,r)        household consumption of the i-th good
+  83                  Xg0(i,r)        government consumption
+  84                  Xv0(i,r)        investment demand
+  85                  E0(i,r)         exports
+  86                  M0(i,r)         imports
+  87                  Q0(i,r)         Armington's composite good
+  88                  D0(i,r)         domestic good
+  89                  Sp0(r)          private saving
+  90                  Sg0(r)          government saving
+  91                  Td0(r)          direct tax
+  92                  Tz0(j,r)        production tax
+  93                  Tm0(j,r)        import tariff
+  94   
+  95                  FF(h,r)         factor endowment of the h-th factor
+  96                  Sf(r)           foreign saving in US dollars
+  97                  tauz(i,r)       indirect tax rate
+  98                  taum(i,r)       import tariff rate
+  99  ;
+ 100  Td0(r)    =SAM("GOV","HOH",r);
+ 101  Tz0(j,r)  =SAM("IDT",j,r);
+ 102  Tm0(j,r)  =SAM("TRF",J,r);
+ 103   
+ 104  F0(h,j,r) =SAM(h,j,r);
+ 105  Y0(j,r)   =sum(h, F0(h,j,r));
+ 106  X0(i,j,r) =SAM(i,j,r);
+ 107  Z0(j,r)   =Y0(j,r) +sum(i, X0(i,j,r));
+ 108  M0(i,r)   =SAM("EXT",i,r);
+ 109   
+ 110  tauz(j,r) =Tz0(j,r)/Z0(j,r);
+ 111  taum(j,r) =Tm0(j,r)/M0(j,r);
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 4
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 113  Xp0(i,r)  =SAM(i,"HOH",r);
+ 114  FF(h,r)   =SAM("HOH",h,r);
+ 115   
+ 116  Xg0(i,r)  =SAM(i,"GOV",r);
+ 117  Xv0(i,r)  =SAM(i,"INV",r);
+ 118  E0(i,r)   =SAM(i,"EXT",r);
+ 119  Q0(i,r)   =(Xp0(i,r)+Xg0(i,r)+Xv0(i,r)+sum(j, X0(i,j,r)));
+ 120  D0(i,r)   =(1+tauz(i,r))*Z0(i,r)-E0(i,r);
+ 121  Sp0(r)    =SAM("INV","HOH",r);
+ 122  Sg0(r)    =SAM("INV","GOV",r);
+ 123  Sf(r)     =SAM("INV","EXT",r);
+ 124   
+ 125  Display Y0,F0,Z0,X0,Xp0,Xg0,Xv0,E0,M0,Q0,D0,Sp0,Sg0,Td0,Tz0,Tm0,
+ 126          FF,Sf,tauz,taum;
+ 127  * calibration ---------------------------------------------------------
+ 128  Parameter       sigma(i)        elasticity of substitution
+ 129                  psi(i)          elasticity of transformation
+ 130                  eta(i)          substitution elasticity parameter
+ 131                  phi(i)          transformation elasticity parameter
+ 132  ;
+ 133  sigma(i)=2;
+ 134  psi(i)  =2;
+ 135  eta(i)  =(sigma(i)-1)/sigma(i);
+ 136  phi(i)  =(psi(i)+1)/psi(i);
+ 137   
+ 138  Parameter       alpha(i,r)      share parameter in utility function
+ 139                  beta(h,j,r)     share parameter in production function
+ 140                  b(j,r)          scale parameter in production function
+ 141                  ax(i,j,r)       intermediate input requirement coeff.
+ 142                  ay(j,r)         composite fact. input req. coeff.
+ 143                  mu(i,r)         government consumption share
+ 144                  lambda(i,r)     investment demand share
+ 145                  deltam(i,r)     share parameter in Armington function
+ 146                  deltad(i,r)     share parameter in Armington function
+ 147                  gamma(i,r)      scale parameter in Armington function
+ 148                  xid(i,r)        share parameter in transformation func.
+ 149                  xie(i,r)        share parameter in transformation func.
+ 150                  theta(i,r)      scale parameter in transformation func.
+ 151                  ssp(r)          average propensity for private saving
+ 152                  ssg(r)          average propensity for gov. saving
+ 153                  taud(r)         direct tax rate
+ 154  ;
+ 155   
+ 156  alpha(i,r)=Xp0(i,r)/sum(j, Xp0(j,r));
+ 157  beta(h,j,r)=F0(h,j,r)/sum(k, F0(k,j,r));
+ 158  b(j,r)    =Y0(j,r)/prod(h, F0(h,j,r)**beta(h,j,r));
+ 159   
+ 160  ax(i,j,r) =X0(i,j,r)/Z0(j,r);
+ 161  ay(j,r)   =Y0(j,r)/Z0(j,r);
+ 162  mu(i,r)   =Xg0(i,r)/sum(j, Xg0(j,r));
+ 163  lambda(i,r)=Xv0(i,r)/(Sp0(r)+Sg0(r)+Sf(r));
+ 164   
+ 165  deltam(i,r)=(1+taum(i,r))*M0(i,r)**(1-eta(i))
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 5
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 166          /((1+taum(i,r))*M0(i,r)**(1-eta(i)) +D0(i,r)**(1-eta(i)));
+ 167  deltad(i,r)=D0(i,r)**(1-eta(i))
+ 168          /((1+taum(i,r))*M0(i,r)**(1-eta(i)) +D0(i,r)**(1-eta(i)));
+ 169  gamma(i,r) =Q0(i,r)/(deltam(i,r)*M0(i,r)**eta(i)
+ 170          +deltad(i,r)*D0(i,r)**eta(i))**(1/eta(i));
+ 171   
+ 172  xie(i,r)=E0(i,r)**(1-phi(i))/(E0(i,r)**(1-phi(i))+D0(i,r)**(1-phi(i)));
+ 173  xid(i,r)=D0(i,r)**(1-phi(i))/(E0(i,r)**(1-phi(i))+D0(i,r)**(1-phi(i)));
+ 174  theta(i,r)=Z0(i,r)/(xie(i,r)*E0(i,r)**phi(i)
+ 175          +xid(i,r)*D0(i,r)**phi(i))**(1/phi(i));
+ 176   
+ 177  ssp(r)  =Sp0(r)/sum(h, FF(h,r));
+ 178  ssg(r)  =Sg0(r)/(Td0(r)+sum(j, Tz0(j,r))+sum(j, Tm0(j,r)));
+ 179  taud(r) =Td0(r)/sum(h, FF(h,r));
+ 180   
+ 181   
+ 182  Display alpha,beta,b,ax,ay,mu,lambda,deltam,deltad,gamma,xie,
+ 183          xid,theta,ssp,ssg,taud;
+ 184  * ---------------------------------------------------------------------
+ 185   
+ 186  * defining model system -----------------------------------------------
+ 187  Variable        Y(j,r)          composite factor
+ 188                  F(h,j,r)        the h-th factor input by the j-th firm
+ 189                  X(i,j,r)        intermediate input
+ 190                  Z(j,r)          output of the j-th good
+ 191                  Xp(i,r)         household cons. of the i-th good
+ 192                  Xg(i,r)         government consumption
+ 193                  Xv(i,r)         investment demand
+ 194                  E(i,r)          exports
+ 195                  M(i,r)          imports
+ 196                  Q(i,r)          Armington's composite good
+ 197                  D(i,r)          domestic good
+ 198   
+ 199                  pf(h,r)         the h-th factor price
+ 200                  py(j,r)         composite factor price
+ 201                  pz(i,r)         supply price of the i-th good
+ 202                  pq(i,r)         Armington's composite good price
+ 203                  pe(i,r)         export price in local currency
+ 204                  pm(i,r)         import price in local currency
+ 205                  pd(i,r)         the i-th domestic good price
+ 206                  epsilon(r)      exchange rate
+ 207                  pWe(i,r)        export price in US dollars
+ 208                  pWm(i,r)        import price in US dollars
+ 209   
+ 210                  Sp(r)           private saving
+ 211                  Sg(r)           government saving
+ 212                  Td(r)           direct tax
+ 213                  Tz(j,r)         production tax
+ 214                  Tm(i,r)         import tariff
+ 215   
+ 216                  UU(r)           utility
+ 217                  SW              Social Welfare [fictitious obj. func.]
+ 218  ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 6
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 219   
+ 220  Equation        eqpy(j,r)       composite factor aggregation func.
+ 221                  eqX(i,j,r)      intermediate demand function
+ 222                  eqY(j,r)        composite factor demand func.
+ 223                  eqF(h,j,r)      factor demand function
+ 224                  eqpzs(j,r)      unit cost function
+ 225   
+ 226                  eqTd(r)         direct tax revenue function
+ 227                  eqTz(j,r)       production tax revenue function
+ 228                  eqTm(i,r)       import tariff revenue function
+ 229                  eqXg(i,r)       government demand function
+ 230   
+ 231                  eqXv(i,r)       investment demand function
+ 232                  eqSp(r)         private saving function
+ 233                  eqSg(r)         government saving function
+ 234   
+ 235                  eqXp(i,r)       household demand function
+ 236   
+ 237                  eqpe(i,r)       world export price equation
+ 238                  eqpm(i,r)       world import price equation
+ 239                  eqepsilon(r)    balance of payments
+ 240   
+ 241                  eqpqs(i,r)      Armington function
+ 242                  eqM(i,r)        import demand function
+ 243                  eqD(i,r)        domestic good demand function
+ 244   
+ 245                  eqpzd(i,r)      transformation function
+ 246                  eqDs(i,r)       domestic good supply function
+ 247                  eqE(i,r)        export supply function
+ 248   
+ 249                  eqpw(i,r,rr)    international price equilibrium
+ 250                  eqw(i,r,rr)     international quantity equilibrium
+ 251   
+ 252                  eqpqd(i,r)      market clearing cond. for comp. good
+ 253                  eqpf(h,r)       factor market clearing condition
+ 254   
+ 255                  eqUU(r)         utility function
+ 256                  obj             social welfare function [fictitious]
+ 257  ;
+ 258   
+ 259  *[domestic production] ----
+ 260  eqpy(j,r)..     Y(j,r)  =e= b(j,r)*prod(h, F(h,j,r)**beta(h,j,r));
+ 261  eqX(i,j,r)..    X(i,j,r)=e= ax(i,j,r)*Z(j,r);
+ 262  eqY(j,r)..      Y(j,r)  =e= ay(j,r)*Z(j,r);
+ 263  eqF(h,j,r)..    F(h,j,r)=e= beta(h,j,r)*py(j,r)*Y(j,r)/pf(h,r);
+ 264  eqpzs(j,r)..    pz(j,r) =e= ay(j,r)*py(j,r) +sum(i, ax(i,j,r)*pq(i,r));
+ 265   
+ 266  *[government behavior] ----
+ 267  eqTd(r)..       Td(r)   =e= taud(r)*sum(h, pf(h,r)*FF(h,r));
+ 268  eqTz(i,r)..     Tz(i,r) =e= tauz(i,r)*pz(i,r)*Z(i,r);
+ 269  eqTm(i,r)..     Tm(i,r) =e= taum(i,r)*pm(i,r)*M(i,r);
+ 270  eqXg(i,r)..     Xg(i,r) =e= mu(i,r)*(Td(r)+sum(j, Tz(j,r))
+ 271                              +sum(j, Tm(j,r))-Sg(r))/pq(i,r);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 7
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 272   
+ 273  *[investment behavior] ----
+ 274  eqXv(i,r)..     Xv(i,r) =e= lambda(i,r)*(Sp(r) +Sg(r)
+ 275                              +epsilon(r)*Sf(r))/pq(i,r);
+ 276   
+ 277  *[savings] ----------------
+ 278  eqSp(r)..       Sp(r)   =e= ssp(r)*sum(h, pf(h,r)*FF(h,r));
+ 279  eqSg(r)..       Sg(r)   =e= ssg(r)*(Td(r) +sum(j, Tz(j,r))
+ 280                              +sum(j, Tm(j,r)));
+ 281   
+ 282  *[household consumption] --
+ 283  eqXp(i,r)..     Xp(i,r) =e= alpha(i,r)*(sum(h, pf(h,r)*FF(h,r))
+ 284                              -Sp(r) -Td(r))/pq(i,r);
+ 285   
+ 286  *[international trade] ----
+ 287  eqpe(i,r)..     pe(i,r) =e= epsilon(r)*pWe(i,r);
+ 288  eqpm(i,r)..     pm(i,r) =e= epsilon(r)*pWm(i,r);
+ 289  eqepsilon(r)..  sum(i, pWe(i,r)*E(i,r)) +Sf(r)
+ 290                          =e= sum(i, pWm(i,r)*M(i,r));
+ 291   
+ 292  *[Armington function] -----
+ 293  eqpqs(i,r)..    Q(i,r)  =e= gamma(i,r)*(deltam(i,r)*M(i,r)**eta(i)
+ 294                              +deltad(i,r)*D(i,r)**eta(i))**(1/eta(i));
+ 295  eqM(i,r)..      M(i,r)  =e= (gamma(i,r)**eta(i)*deltam(i,r)*pq(i,r)
+ 296                              /((1+taum(i,r))*pm(i,r)))**(1/(1-eta(i)))
+ 297                              *Q(i,r);
+ 298  eqD(i,r)..      D(i,r)  =e= (gamma(i,r)**eta(i)*deltad(i,r)*pq(i,r)
+ 299                              /pd(i,r))**(1/(1-eta(i)))*Q(i,r);
+ 300   
+ 301  *[transformation function] -----
+ 302  eqpzd(i,r)..    Z(i,r)  =e= theta(i,r)*(xie(i,r)*E(i,r)**phi(i)
+ 303                              +xid(i,r)*D(i,r)**phi(i))**(1/phi(i));
+ 304  eqE(i,r)..      E(i,r)  =e= (theta(i,r)**phi(i)*xie(i,r)*(1+tauz(i,r))
+ 305                              *pz(i,r)/pe(i,r))**(1/(1-phi(i)))*Z(i,r);
+ 306  eqDs(i,r)..     D(i,r)  =e= (theta(i,r)**phi(i)*xid(i,r)*(1+tauz(i,r))
+ 307                              *pz(i,r)/pd(i,r))**(1/(1-phi(i)))*Z(i,r);
+ 308   
+ 309  *[market clearing condition]
+ 310  eqpqd(i,r)..    Q(i,r)  =e= Xp(i,r)+Xg(i,r)+Xv(i,r)+sum(j, X(i,j,r));
+ 311  eqpf(h,r)..     FF(h,r) =e= sum(j, F(h,j,r));
+ 312   
+ 313  *[international market clearing condition]
+ 314  eqpw(i,r,rr)..  (pWe(i,r) -pWm(i,rr))$(ord(r) ne ord(rr)) =e= 0;
+ 315  eqw(i,r,rr)..   (E(i,r) -M(i,rr))$(ord(r) ne ord(rr)) =e= 0;
+ 316   
+ 317  *[fictitious objective function]
+ 318  eqUU(r)..       UU(r)   =e= prod(i, Xp(i,r)**alpha(i,r));
+ 319  obj..           SW      =e= sum(r, UU(r));
+ 320  * ---------------------------------------------------------------------
+ 321   
+ 322  * Initializing variables ----------------------------------------------
+ 323  Y.l(j,r)  =Y0(j,r);
+ 324  F.l(h,j,r)=F0(h,j,r);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 8
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 325  X.l(i,j,r)=X0(i,j,r);
+ 326  Z.l(j,r)  =Z0(j,r);
+ 327  Xp.l(i,r) =Xp0(i,r);
+ 328  Xg.l(i,r) =Xg0(i,r);
+ 329  Xv.l(i,r) =Xv0(i,r);
+ 330  Q.l(i,r)  =Q0(i,r);
+ 331  E.l(i,r)  =E0(i,r);
+ 332  M.l(i,r)  =M0(i,r);
+ 333  D.l(i,r)  =D0(i,r);
+ 334  pf.l(h,r) =1;
+ 335  py.l(j,r) =1;
+ 336  pz.l(i,r) =1;
+ 337  pq.l(i,r) =1;
+ 338  pe.l(i,r) =1;
+ 339  pm.l(i,r) =1;
+ 340  pd.l(i,r) =1;
+ 341  epsilon.l(r)=1;
+ 342  pWe.l(i,r)=1;
+ 343  pWm.l(i,r)=1;
+ 344  Sp.l(r)   =Sp0(r);
+ 345  Sg.l(r)   =Sg0(r);
+ 346  Td.l(r)   =Td0(r);
+ 347  Tz.l(i,r) =Tz0(i,r);
+ 348  Tm.l(i,r) =Tm0(i,r);
+ 349  * ---------------------------------------------------------------------
+ 350  * setting lower bounds to avoid division by zero ----------------------
+ 351  Y.lo(j,r) =0.00001;
+ 352  F.lo(h,j,r)=0.00001;
+ 353  X.lo(i,j,r)=0.00001;
+ 354  Z.lo(j,r) =0.00001;
+ 355  Xp.lo(i,r)=0.00001;
+ 356  Xg.lo(i,r)=0.00001;
+ 357  Xv.lo(i,r)=0.00001;
+ 358  Q.lo(i,r) =0.00001;
+ 359  E.lo(i,r) =0.00001;
+ 360  M.lo(i,r) =0.00001;
+ 361  D.lo(i,r) =0.00001;
+ 362  pf.lo(h,r)=0.00001;
+ 363  py.lo(j,r)=0.00001;
+ 364  pz.lo(i,r)=0.00001;
+ 365  pq.lo(i,r)=0.00001;
+ 366  pe.lo(i,r)=0.00001;
+ 367  pm.lo(i,r)=0.00001;
+ 368  pd.lo(i,r)=0.00001;
+ 369  epsilon.lo(r)=0.00001;
+ 370  pWe.lo(i,r)=0.00001;
+ 371  pWm.lo(i,r)=0.00001;
+ 372  Sp.lo(r)   =0.00001;
+ 373  Sg.lo(r)   =0.00001;
+ 374  Td.lo(r)   =0.00001;
+ 375  Tz.lo(i,r) =0.0000;
+ 376  Tm.lo(i,r) =0.0000;
+ 377   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 9
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 378  * ---------------------------------------------------------------------
+ 379  * numeraire ---
+ 380  pf.fx("LAB",r)=1;
+ 381  * fixing the redundant variable
+ 382  epsilon.fx("USA")=1;
+ 383  * ---------------------------------------------------------------------
+ 384  * Defining and solving the model --------------------------------------
+ 385  Model twocge /all/;
+ 386  Solve twocge maximizing SW using nlp;
+ 387  * ---------------------------------------------------------------------
+ 388   
+ 389  * ---------------------------------------------------------------------
+ 390  * Simulation Runs: Abolition of Import Tariffs
+ 391  taum(i,r)=0; option bratio=1;
+ 392  Solve twocge maximizing SW using nlp;
+ 393  * ---------------------------------------------------------------------
+ 394   
+ 395  * Display changes -----------------------------------------------------
+ 396  Parameter
+ 397  dY(j,r),dF(h,j,r),dX(i,j,r),dZ(j,r),dXp(i,r),dXg(i,r),dXv(i,r),
+ 398  dQ(i,r),dE(i,r),dM(i,r),dD(i,r),dpf(h,r),dpy(j,r),dpz(i,r),dpq(i,r),
+ 399  dpe(i,r),dpm(i,r),dpd(i,r),depsilon(r),dpWe(i,r),dpWm(i,r),
+ 400  dSp(r),dSg(r),dTd(r),dTz(i,r),dTm(i,r);
+ 401   
+ 402  dY(j,r)  =(Y.l(j,r)  /Y0(j,r)  -1)*100;
+ 403  dF(h,j,r)=(F.l(h,j,r)/F0(h,j,r)-1)*100;
+ 404  dX(i,j,r)=(X.l(i,j,r)/X0(i,j,r)-1)*100;
+ 405  dZ(j,r)  =(Z.l(j,r)  /Z0(j,r)  -1)*100;
+ 406  dXp(i,r) =(Xp.l(i,r) /Xp0(i,r) -1)*100;
+ 407  dXg(i,r) =(Xg.l(i,r) /Xg0(i,r) -1)*100;
+ 408  dXv(i,r) =(Xv.l(i,r) /Xv0(i,r) -1)*100;
+ 409  dQ(i,r)  =(Q.l(i,r)  /Q0(i,r)  -1)*100;
+ 410  dE(i,r)  =(E.l(i,r)  /E0(i,r)  -1)*100;
+ 411  dM(i,r)  =(M.l(i,r)  /M0(i,r)  -1)*100;
+ 412  dD(i,r)  =(D.l(i,r)  /D0(i,r)  -1)*100;
+ 413  dpf(h,r) =(pf.l(h,r) /1 -1)*100;
+ 414  dpy(j,r) =(py.l(j,r) /1 -1)*100;
+ 415  dpz(i,r) =(pz.l(i,r) /1 -1)*100;
+ 416  dpq(i,r) =(pq.l(i,r) /1 -1)*100;
+ 417  dpe(i,r) =(pe.l(i,r) /1 -1)*100;
+ 418  dpm(i,r) =(pm.l(i,r) /1 -1)*100;
+ 419  dpd(i,r) =(pd.l(i,r) /1 -1)*100;
+ 420  dpWe(i,r)=(pWe.l(i,r)/1 -1)*100;
+ 421  dpWm(i,r)=(pWm.l(i,r)/1 -1)*100;
+ 422  depsilon(r)=(epsilon.l(r)/1 -1)*100;
+ 423  dSp(r)   =(Sp.l(r)   /Sp0(r)   -1)*100;
+ 424  dSg(r)   =(Sg.l(r)   /Sg0(r)   -1)*100;
+ 425  dTd(r)   =(Td.l(r)   /Td0(r)   -1)*100;
+ 426  dTz(i,r) =(Tz.l(i,r) /Tz0(i,r) -1)*100;
+ 427  dTm(i,r) =(Tm.l(i,r) /Tm0(i,r) -1)*100;
+ 428   
+ 429  Display
+ 430  dY,dF,dX,dZ,dXp,dXg,dXv,dQ,dE,dM,dD,dpf,dpy,dpz,dpq,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 10
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+C o m p i l a t i o n
+
+
+ 431  dpe,dpm,dpd,dpWe,dpWm,depsilon,dTd,dTz,dTm,dSp,dSg;
+ 432   
+ 433  * ---------------------------------------------------------------------
+ 434  * end of model --------------------------------------------------------
+ 435  * ---------------------------------------------------------------------
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 11
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    125 PARAMETER Y0  composite factor
+
+            JPN         USA
+
+BRD      35.000      48.000
+MLK      55.000      61.000
+
+
+----    125 PARAMETER F0  the h-th factor input by the j-th firm
+
+                JPN         USA
+
+CAP.BRD      20.000      33.000
+CAP.MLK      30.000      30.000
+LAB.BRD      15.000      15.000
+LAB.MLK      25.000      31.000
+
+
+----    125 PARAMETER Z0  output of the j-th good
+
+            JPN         USA
+
+BRD      73.000     105.000
+MLK      72.000      91.000
+
+
+----    125 PARAMETER X0  intermediate input
+
+                JPN         USA
+
+BRD.BRD      21.000      40.000
+BRD.MLK       8.000       1.000
+MLK.BRD      17.000      17.000
+MLK.MLK       9.000      29.000
+
+
+----    125 PARAMETER Xp0  household consumption of the i-th good
+
+            JPN         USA
+
+BRD      20.000      30.000
+MLK      30.000      30.000
+
+
+----    125 PARAMETER Xg0  government consumption
+
+            JPN         USA
+
+BRD      19.000      20.000
+MLK      14.000      14.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 12
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    125 PARAMETER Xv0  investment demand
+
+            JPN         USA
+
+BRD      16.000      20.000
+MLK      15.000      15.000
+
+
+----    125 PARAMETER E0  exports
+
+            JPN         USA
+
+BRD       8.000      13.000
+MLK       4.000      11.000
+
+
+----    125 PARAMETER M0  imports
+
+            JPN         USA
+
+BRD      13.000       8.000
+MLK      11.000       4.000
+
+
+----    125 PARAMETER Q0  Armington's composite good
+
+            JPN         USA
+
+BRD      84.000     111.000
+MLK      85.000     105.000
+
+
+----    125 PARAMETER D0  domestic good
+
+            JPN         USA
+
+BRD      70.000     102.000
+MLK      72.000     100.000
+
+
+----    125 PARAMETER Sp0  private saving
+
+JPN 17.000,    USA 20.000
+
+
+----    125 PARAMETER Sg0  government saving
+
+JPN  2.000,    USA 27.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 13
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    125 PARAMETER Td0  direct tax
+
+JPN 23.000,    USA 29.000
+
+
+----    125 PARAMETER Tz0  production tax
+
+            JPN         USA
+
+BRD       5.000      10.000
+MLK       4.000      20.000
+
+
+----    125 PARAMETER Tm0  import tariff
+
+            JPN         USA
+
+BRD       1.000       1.000
+MLK       2.000       1.000
+
+
+----    125 PARAMETER FF  factor endowment of the h-th factor
+
+            JPN         USA
+
+CAP      50.000      63.000
+LAB      40.000      46.000
+
+
+----    125 PARAMETER Sf  foreign saving in US dollars
+
+JPN  12.000,    USA -12.000
+
+
+----    125 PARAMETER tauz  indirect tax rate
+
+            JPN         USA
+
+BRD       0.068       0.095
+MLK       0.056       0.220
+
+
+----    125 PARAMETER taum  import tariff rate
+
+            JPN         USA
+
+BRD       0.077       0.125
+MLK       0.182       0.250
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 14
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    182 PARAMETER alpha  share parameter in utility function
+
+            JPN         USA
+
+BRD       0.400       0.500
+MLK       0.600       0.500
+
+
+----    182 PARAMETER beta  share parameter in production function
+
+                JPN         USA
+
+CAP.BRD       0.571       0.687
+CAP.MLK       0.545       0.492
+LAB.BRD       0.429       0.312
+LAB.MLK       0.455       0.508
+
+
+----    182 PARAMETER b  scale parameter in production function
+
+            JPN         USA
+
+BRD       1.980       1.861
+MLK       1.992       2.000
+
+
+----    182 PARAMETER ax  intermediate input requirement coeff.
+
+                JPN         USA
+
+BRD.BRD       0.288       0.381
+BRD.MLK       0.111       0.011
+MLK.BRD       0.233       0.162
+MLK.MLK       0.125       0.319
+
+
+----    182 PARAMETER ay  composite fact. input req. coeff.
+
+            JPN         USA
+
+BRD       0.479       0.457
+MLK       0.764       0.670
+
+
+----    182 PARAMETER mu  government consumption share
+
+            JPN         USA
+
+BRD       0.576       0.588
+MLK       0.424       0.412
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 15
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    182 PARAMETER lambda  investment demand share
+
+            JPN         USA
+
+BRD       0.516       0.571
+MLK       0.484       0.429
+
+
+----    182 PARAMETER deltam  share parameter in Armington function
+
+            JPN         USA
+
+BRD       0.317       0.240
+MLK       0.316       0.200
+
+
+----    182 PARAMETER deltad  share parameter in Armington function
+
+            JPN         USA
+
+BRD       0.683       0.760
+MLK       0.684       0.800
+
+
+----    182 PARAMETER gamma  scale parameter in Armington function
+
+            JPN         USA
+
+BRD       1.786       1.589
+MLK       1.810       1.488
+
+
+----    182 PARAMETER xie  share parameter in transformation func.
+
+            JPN         USA
+
+BRD       0.747       0.737
+MLK       0.809       0.751
+
+
+----    182 PARAMETER xid  share parameter in transformation func.
+
+            JPN         USA
+
+BRD       0.253       0.263
+MLK       0.191       0.249
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 16
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    182 PARAMETER theta  scale parameter in transformation func.
+
+            JPN         USA
+
+BRD       2.428       2.315
+MLK       2.911       2.144
+
+
+----    182 PARAMETER ssp  average propensity for private saving
+
+JPN 0.189,    USA 0.183
+
+
+----    182 PARAMETER ssg  average propensity for gov. saving
+
+JPN 0.057,    USA 0.443
+
+
+----    182 PARAMETER taud  direct tax rate
+
+JPN 0.256,    USA 0.266
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 17
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 386
+
+
+---- eqpy  =E=  composite factor aggregation func.
+
+eqpy(BRD,JPN)..  Y(BRD,JPN) - (1)*F(CAP,BRD,JPN) - (1)*F(LAB,BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpy(BRD,USA)..  Y(BRD,USA) - (1)*F(CAP,BRD,USA) - (1)*F(LAB,BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpy(MLK,JPN)..  Y(MLK,JPN) - (1)*F(CAP,MLK,JPN) - (1)*F(LAB,MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqX  =E=  intermediate demand function
+
+eqX(BRD,BRD,JPN)..  X(BRD,BRD,JPN) - 0.287671232876712*Z(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,BRD,USA)..  X(BRD,BRD,USA) - 0.380952380952381*Z(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,MLK,JPN)..  X(BRD,MLK,JPN) - 0.111111111111111*Z(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- eqY  =E=  composite factor demand func.
+
+eqY(BRD,JPN)..  Y(BRD,JPN) - 0.479452054794521*Z(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqY(BRD,USA)..  Y(BRD,USA) - 0.457142857142857*Z(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqY(MLK,JPN)..  Y(MLK,JPN) - 0.763888888888889*Z(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD,JPN)..  - (0.571428571428571)*Y(BRD,JPN) + F(CAP,BRD,JPN) + (20)*pf(CAP,JPN) - (20)*py(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,BRD,USA)..  - (0.6875)*Y(BRD,USA) + F(CAP,BRD,USA) + (33)*pf(CAP,USA) - (33)*py(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK,JPN)..  - (0.545454545454545)*Y(MLK,JPN) + F(CAP,MLK,JPN) + (30)*pf(CAP,JPN) - (30)*py(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- eqpzs  =E=  unit cost function
+
+eqpzs(BRD,JPN)..  - 0.479452054794521*py(BRD,JPN) + pz(BRD,JPN) - 0.287671232876712*pq(BRD,JPN) - 0.232876712328767*pq(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+eqpzs(BRD,USA)..  - 0.457142857142857*py(BRD,USA) + pz(BRD,USA) - 0.380952380952381*pq(BRD,USA) - 0.161904761904762*pq(MLK,USA) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 18
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 386
+
+
+     eqpzs  =E=  unit cost function
+
+eqpzs(MLK,JPN)..  - 0.763888888888889*py(MLK,JPN) + pz(MLK,JPN) - 0.111111111111111*pq(BRD,JPN) - 0.125*pq(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqTd  =E=  direct tax revenue function
+
+eqTd(JPN)..  - 12.7777777777778*pf(CAP,JPN) - 10.2222222222222*pf(LAB,JPN) + Td(JPN) =E= 0 ; (LHS = 0)
+     
+eqTd(USA)..  - 16.7614678899083*pf(CAP,USA) - 12.2385321100917*pf(LAB,USA) + Td(USA) =E= 0 ; (LHS = 0)
+     
+
+---- eqTz  =E=  production tax revenue function
+
+eqTz(BRD,JPN)..  - (0.0684931506849315)*Z(BRD,JPN) - (5)*pz(BRD,JPN) + Tz(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqTz(BRD,USA)..  - (0.0952380952380952)*Z(BRD,USA) - (10)*pz(BRD,USA) + Tz(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqTz(MLK,JPN)..  - (0.0555555555555556)*Z(MLK,JPN) - (4)*pz(MLK,JPN) + Tz(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqTm  =E=  import tariff revenue function
+
+eqTm(BRD,JPN)..  - (0.0769230769230769)*M(BRD,JPN) - (1)*pm(BRD,JPN) + Tm(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqTm(BRD,USA)..  - (0.125)*M(BRD,USA) - (1)*pm(BRD,USA) + Tm(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqTm(MLK,JPN)..  - (0.181818181818182)*M(MLK,JPN) - (2)*pm(MLK,JPN) + Tm(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqXg  =E=  government demand function
+
+eqXg(BRD,JPN)..  Xg(BRD,JPN) + (19)*pq(BRD,JPN) + (0.575757575757576)*Sg(JPN) - (0.575757575757576)*Td(JPN) - (0.575757575757576)*Tz(BRD,JPN) - (0.575757575757576)*Tz(MLK,JPN) - (0.575757575757576)*Tm(BRD,JPN) - (0.575757575757576)*Tm(MLK,JPN) =E= 0 ;
+     
+      (LHS = 0)
+     
+eqXg(BRD,USA)..  Xg(BRD,USA) + (20)*pq(BRD,USA) + (0.588235294117647)*Sg(USA) - (0.588235294117647)*Td(USA) - (0.588235294117647)*Tz(BRD,USA) - (0.588235294117647)*Tz(MLK,USA) - (0.588235294117647)*Tm(BRD,USA) - (0.588235294117647)*Tm(MLK,USA) =E= 0 ;
+     
+      (LHS = 0)
+     
+eqXg(MLK,JPN)..  Xg(MLK,JPN) + (14)*pq(MLK,JPN) + (0.424242424242424)*Sg(JPN) - (0.424242424242424)*Td(JPN) - (0.424242424242424)*Tz(BRD,JPN) - (0.424242424242424)*Tz(MLK,JPN) - (0.424242424242424)*Tm(BRD,JPN) - (0.424242424242424)*Tm(MLK,JPN) =E= 0 ;
+     
+      (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 19
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 386
+
+
+---- eqXv  =E=  investment demand function
+
+eqXv(BRD,JPN)..  Xv(BRD,JPN) + (16)*pq(BRD,JPN) - (6.19354838709677)*epsilon(JPN) - (0.516129032258065)*Sp(JPN) - (0.516129032258065)*Sg(JPN) =E= 0 ; (LHS = 0)
+     
+eqXv(BRD,USA)..  Xv(BRD,USA) + (20)*pq(BRD,USA) + (6.85714285714286)*epsilon(USA) - (0.571428571428571)*Sp(USA) - (0.571428571428571)*Sg(USA) =E= 0 ; (LHS = 0)
+     
+eqXv(MLK,JPN)..  Xv(MLK,JPN) + (15)*pq(MLK,JPN) - (5.80645161290323)*epsilon(JPN) - (0.483870967741935)*Sp(JPN) - (0.483870967741935)*Sg(JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqSp  =E=  private saving function
+
+eqSp(JPN)..  - 9.44444444444444*pf(CAP,JPN) - 7.55555555555556*pf(LAB,JPN) + Sp(JPN) =E= 0 ; (LHS = 0)
+     
+eqSp(USA)..  - 11.5596330275229*pf(CAP,USA) - 8.44036697247707*pf(LAB,USA) + Sp(USA) =E= 0 ; (LHS = 0)
+     
+
+---- eqSg  =E=  government saving function
+
+eqSg(JPN)..  Sg(JPN) - 0.0571428571428571*Td(JPN) - 0.0571428571428571*Tz(BRD,JPN) - 0.0571428571428571*Tz(MLK,JPN) - 0.0571428571428571*Tm(BRD,JPN) - 0.0571428571428571*Tm(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+eqSg(USA)..  Sg(USA) - 0.442622950819672*Td(USA) - 0.442622950819672*Tz(BRD,USA) - 0.442622950819672*Tz(MLK,USA) - 0.442622950819672*Tm(BRD,USA) - 0.442622950819672*Tm(MLK,USA) =E= 0 ; (LHS = 0)
+     
+
+---- eqXp  =E=  household demand function
+
+eqXp(BRD,JPN)..  Xp(BRD,JPN) - (20)*pf(CAP,JPN) - (16)*pf(LAB,JPN) + (20)*pq(BRD,JPN) + (0.4)*Sp(JPN) + (0.4)*Td(JPN) =E= 0 ; (LHS = 0)
+     
+eqXp(BRD,USA)..  Xp(BRD,USA) - (31.5)*pf(CAP,USA) - (23)*pf(LAB,USA) + (30)*pq(BRD,USA) + (0.5)*Sp(USA) + (0.5)*Td(USA) =E= 0 ; (LHS = 0)
+     
+eqXp(MLK,JPN)..  Xp(MLK,JPN) - (30)*pf(CAP,JPN) - (24)*pf(LAB,JPN) + (30)*pq(MLK,JPN) + (0.6)*Sp(JPN) + (0.6)*Td(JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpe  =E=  world export price equation
+
+eqpe(BRD,JPN)..  pe(BRD,JPN) - (1)*epsilon(JPN) - (1)*pWe(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpe(BRD,USA)..  pe(BRD,USA) - (1)*epsilon(USA) - (1)*pWe(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpe(MLK,JPN)..  pe(MLK,JPN) - (1)*epsilon(JPN) - (1)*pWe(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpm  =E=  world import price equation
+
+eqpm(BRD,JPN)..  pm(BRD,JPN) - (1)*epsilon(JPN) - (1)*pWm(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 20
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 386
+
+
+     eqpm  =E=  world import price equation
+
+eqpm(BRD,USA)..  pm(BRD,USA) - (1)*epsilon(USA) - (1)*pWm(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpm(MLK,JPN)..  pm(MLK,JPN) - (1)*epsilon(JPN) - (1)*pWm(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqepsilon  =E=  balance of payments
+
+eqepsilon(JPN)..  (1)*E(BRD,JPN) + (1)*E(MLK,JPN) - (1)*M(BRD,JPN) - (1)*M(MLK,JPN) + (8)*pWe(BRD,JPN) + (4)*pWe(MLK,JPN) - (13)*pWm(BRD,JPN) - (11)*pWm(MLK,JPN) =E= -12 ; (LHS = -12)
+     
+eqepsilon(USA)..  (1)*E(BRD,USA) + (1)*E(MLK,USA) - (1)*M(BRD,USA) - (1)*M(MLK,USA) + (13)*pWe(BRD,USA) + (11)*pWe(MLK,USA) - (8)*pWm(BRD,USA) - (4)*pWm(MLK,USA) =E= 12 ; (LHS = 12)
+     
+
+---- eqpqs  =E=  Armington function
+
+eqpqs(BRD,JPN)..  - (1.07692307692308)*M(BRD,JPN) + Q(BRD,JPN) - (1)*D(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpqs(BRD,USA)..  - (1.125)*M(BRD,USA) + Q(BRD,USA) - (1)*D(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpqs(MLK,JPN)..  - (1.18181818181818)*M(MLK,JPN) + Q(MLK,JPN) - (1)*D(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqM  =E=  import demand function
+
+eqM(BRD,JPN)..  M(BRD,JPN) - (0.154761904761905)*Q(BRD,JPN) - (26)*pq(BRD,JPN) + (26)*pm(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqM(BRD,USA)..  M(BRD,USA) - (0.0720720720720719)*Q(BRD,USA) - (16)*pq(BRD,USA) + (16)*pm(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqM(MLK,JPN)..  M(MLK,JPN) - (0.129411764705882)*Q(MLK,JPN) - (22)*pq(MLK,JPN) + (22)*pm(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqD  =E=  domestic good demand function
+
+eqD(BRD,JPN)..  - (0.833333333333333)*Q(BRD,JPN) + D(BRD,JPN) - (140)*pq(BRD,JPN) + (140)*pd(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqD(BRD,USA)..  - (0.918918918918918)*Q(BRD,USA) + D(BRD,USA) - (204)*pq(BRD,USA) + (204)*pd(BRD,USA) =E= 0 ; (LHS = 1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+eqD(MLK,JPN)..  - (0.847058823529412)*Q(MLK,JPN) + D(MLK,JPN) - (144)*pq(MLK,JPN) + (144)*pd(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 21
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 386
+
+
+---- eqpzd  =E=  transformation function
+
+eqpzd(BRD,JPN)..  Z(BRD,JPN) - (0.935897435897435)*E(BRD,JPN) - (0.935897435897436)*D(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpzd(BRD,USA)..  Z(BRD,USA) - (0.913043478260869)*E(BRD,USA) - (0.91304347826087)*D(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpzd(MLK,JPN)..  Z(MLK,JPN) - (0.947368421052632)*E(MLK,JPN) - (0.947368421052632)*D(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqDs  =E=  domestic good supply function
+
+eqDs(BRD,JPN)..  - (0.958904109589043)*Z(BRD,JPN) + D(BRD,JPN) + (140)*pz(BRD,JPN) - (140)*pd(BRD,JPN) =E= 0 ; (LHS = -1.4210854715202E-13, INFES = 1.4210854715202E-13 ****)
+     
+eqDs(BRD,USA)..  - (0.971428571428573)*Z(BRD,USA) + D(BRD,USA) + (204)*pz(BRD,USA) - (204)*pd(BRD,USA) =E= 0 ; (LHS = -1.27897692436818E-13, INFES = 1.27897692436818E-13 ****)
+     
+eqDs(MLK,JPN)..  - (0.999999999999997)*Z(MLK,JPN) + D(MLK,JPN) + (144)*pz(MLK,JPN) - (144)*pd(MLK,JPN) =E= 0 ; (LHS = 1.98951966012828E-13, INFES = 1.98951966012828E-13 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqE  =E=  export supply function
+
+eqE(BRD,JPN)..  - (0.109589041095891)*Z(BRD,JPN) + E(BRD,JPN) + (16)*pz(BRD,JPN) - (16)*pe(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqE(BRD,USA)..  - (0.123809523809524)*Z(BRD,USA) + E(BRD,USA) + (26)*pz(BRD,USA) - (26)*pe(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqE(MLK,JPN)..  - (0.0555555555555554)*Z(MLK,JPN) + E(MLK,JPN) + (7.99999999999998)*pz(MLK,JPN) - (7.99999999999998)*pe(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpw  =E=  international price equilibrium
+
+eqpw(BRD,JPN,USA)..  pWe(BRD,JPN) - pWm(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpw(BRD,USA,JPN)..  pWe(BRD,USA) - pWm(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpw(MLK,JPN,USA)..  pWe(MLK,JPN) - pWm(MLK,USA) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqw  =E=  international quantity equilibrium
+
+eqw(BRD,JPN,USA)..  E(BRD,JPN) - M(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqw(BRD,USA,JPN)..  E(BRD,USA) - M(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 22
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 386
+
+
+     eqw  =E=  international quantity equilibrium
+
+eqw(MLK,JPN,USA)..  E(MLK,JPN) - M(MLK,USA) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpqd  =E=  market clearing cond. for comp. good
+
+eqpqd(BRD,JPN)..  - X(BRD,BRD,JPN) - X(BRD,MLK,JPN) - Xp(BRD,JPN) - Xg(BRD,JPN) - Xv(BRD,JPN) + Q(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpqd(BRD,USA)..  - X(BRD,BRD,USA) - X(BRD,MLK,USA) - Xp(BRD,USA) - Xg(BRD,USA) - Xv(BRD,USA) + Q(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpqd(MLK,JPN)..  - X(MLK,BRD,JPN) - X(MLK,MLK,JPN) - Xp(MLK,JPN) - Xg(MLK,JPN) - Xv(MLK,JPN) + Q(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP,JPN)..  - F(CAP,BRD,JPN) - F(CAP,MLK,JPN) =E= -50 ; (LHS = -50)
+     
+eqpf(CAP,USA)..  - F(CAP,BRD,USA) - F(CAP,MLK,USA) =E= -63 ; (LHS = -63)
+     
+eqpf(LAB,JPN)..  - F(LAB,BRD,JPN) - F(LAB,MLK,JPN) =E= -40 ; (LHS = -40)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqUU  =E=  utility function
+
+eqUU(JPN)..  - (0.510169800250316)*Xp(BRD,JPN) - (0.510169800250316)*Xp(MLK,JPN) + UU(JPN) =E= 0 ; (LHS = -25.5084900125158, INFES = 25.5084900125158 ****)
+     
+eqUU(USA)..  - (0.5)*Xp(BRD,USA) - (0.5)*Xp(MLK,USA) + UU(USA) =E= 0 ; (LHS = -30, INFES = 30 ****)
+     
+
+---- obj  =E=  social welfare function [fictitious]
+
+obj..  - UU(JPN) - UU(USA) + SW =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 23
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+---- Y  composite factor
+
+Y(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 35, +INF, 0)
+        1       eqpy(BRD,JPN)
+        1       eqY(BRD,JPN)
+      (-0.5714) eqF(CAP,BRD,JPN)
+      (-0.4286) eqF(LAB,BRD,JPN)
+
+Y(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 48, +INF, 0)
+        1       eqpy(BRD,USA)
+        1       eqY(BRD,USA)
+      (-0.6875) eqF(CAP,BRD,USA)
+      (-0.3125) eqF(LAB,BRD,USA)
+
+Y(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 55, +INF, 0)
+        1       eqpy(MLK,JPN)
+        1       eqY(MLK,JPN)
+      (-0.5455) eqF(CAP,MLK,JPN)
+      (-0.4545) eqF(LAB,MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+      (-1)      eqpy(BRD,JPN)
+        1       eqF(CAP,BRD,JPN)
+       -1       eqpf(CAP,JPN)
+
+F(CAP,BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 33, +INF, 0)
+      (-1)      eqpy(BRD,USA)
+        1       eqF(CAP,BRD,USA)
+       -1       eqpf(CAP,USA)
+
+F(CAP,MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+      (-1)      eqpy(MLK,JPN)
+        1       eqF(CAP,MLK,JPN)
+       -1       eqpf(CAP,JPN)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- X  intermediate input
+
+X(BRD,BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 21, +INF, 0)
+        1       eqX(BRD,BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 24
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     X  intermediate input
+
+
+X(BRD,BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 40, +INF, 0)
+        1       eqX(BRD,BRD,USA)
+       -1       eqpqd(BRD,USA)
+
+X(BRD,MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqX(BRD,MLK,JPN)
+       -1       eqpqd(BRD,JPN)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 73, +INF, 0)
+       -0.2877  eqX(BRD,BRD,JPN)
+       -0.2329  eqX(MLK,BRD,JPN)
+       -0.4795  eqY(BRD,JPN)
+      (-0.0685) eqTz(BRD,JPN)
+        1       eqpzd(BRD,JPN)
+      (-0.9589) eqDs(BRD,JPN)
+      (-0.1096) eqE(BRD,JPN)
+
+Z(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 105, +INF, 0)
+       -0.381   eqX(BRD,BRD,USA)
+       -0.1619  eqX(MLK,BRD,USA)
+       -0.4571  eqY(BRD,USA)
+      (-0.0952) eqTz(BRD,USA)
+        1       eqpzd(BRD,USA)
+      (-0.9714) eqDs(BRD,USA)
+      (-0.1238) eqE(BRD,USA)
+
+Z(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+       -0.1111  eqX(BRD,MLK,JPN)
+       -0.125   eqX(MLK,MLK,JPN)
+       -0.7639  eqY(MLK,JPN)
+      (-0.0556) eqTz(MLK,JPN)
+        1       eqpzd(MLK,JPN)
+      (-1)      eqDs(MLK,JPN)
+      (-0.0556) eqE(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 25
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+---- Xp  household cons. of the i-th good
+
+Xp(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXp(BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+      (-0.5102) eqUU(JPN)
+
+Xp(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(BRD,USA)
+       -1       eqpqd(BRD,USA)
+      (-0.5)    eqUU(USA)
+
+Xp(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(MLK,JPN)
+       -1       eqpqd(MLK,JPN)
+      (-0.5102) eqUU(JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Xg  government consumption
+
+Xg(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 19, +INF, 0)
+        1       eqXg(BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+
+Xg(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXg(BRD,USA)
+       -1       eqpqd(BRD,USA)
+
+Xg(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 14, +INF, 0)
+        1       eqXg(MLK,JPN)
+       -1       eqpqd(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Xv  investment demand
+
+Xv(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 16, +INF, 0)
+        1       eqXv(BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+
+Xv(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXv(BRD,USA)
+       -1       eqpqd(BRD,USA)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 26
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     Xv  investment demand
+
+Xv(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+        1       eqXv(MLK,JPN)
+       -1       eqpqd(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- E  exports
+
+E(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+       (1)      eqepsilon(JPN)
+      (-0.9359) eqpzd(BRD,JPN)
+        1       eqE(BRD,JPN)
+        1       eqw(BRD,JPN,USA)
+
+E(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+       (1)      eqepsilon(USA)
+      (-0.913)  eqpzd(BRD,USA)
+        1       eqE(BRD,USA)
+        1       eqw(BRD,USA,JPN)
+
+E(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 4, +INF, 0)
+       (1)      eqepsilon(JPN)
+      (-0.9474) eqpzd(MLK,JPN)
+        1       eqE(MLK,JPN)
+        1       eqw(MLK,JPN,USA)
+
+REMAINING ENTRY SKIPPED
+
+---- M  imports
+
+M(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+      (-0.0769) eqTm(BRD,JPN)
+      (-1)      eqepsilon(JPN)
+      (-1.0769) eqpqs(BRD,JPN)
+        1       eqM(BRD,JPN)
+       -1       eqw(BRD,USA,JPN)
+
+M(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+      (-0.125)  eqTm(BRD,USA)
+      (-1)      eqepsilon(USA)
+      (-1.125)  eqpqs(BRD,USA)
+        1       eqM(BRD,USA)
+       -1       eqw(BRD,JPN,USA)
+
+M(MLK,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 27
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     M  imports
+
+                (.LO, .L, .UP, .M = 1E-5, 11, +INF, 0)
+      (-0.1818) eqTm(MLK,JPN)
+      (-1)      eqepsilon(JPN)
+      (-1.1818) eqpqs(MLK,JPN)
+        1       eqM(MLK,JPN)
+       -1       eqw(MLK,USA,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Q  Armington's composite good
+
+Q(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 84, +INF, 0)
+        1       eqpqs(BRD,JPN)
+      (-0.1548) eqM(BRD,JPN)
+      (-0.8333) eqD(BRD,JPN)
+        1       eqpqd(BRD,JPN)
+
+Q(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 111, +INF, 0)
+        1       eqpqs(BRD,USA)
+      (-0.0721) eqM(BRD,USA)
+      (-0.9189) eqD(BRD,USA)
+        1       eqpqd(BRD,USA)
+
+Q(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 85, +INF, 0)
+        1       eqpqs(MLK,JPN)
+      (-0.1294) eqM(MLK,JPN)
+      (-0.8471) eqD(MLK,JPN)
+        1       eqpqd(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- D  domestic good
+
+D(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 70, +INF, 0)
+      (-1)      eqpqs(BRD,JPN)
+        1       eqD(BRD,JPN)
+      (-0.9359) eqpzd(BRD,JPN)
+        1       eqDs(BRD,JPN)
+
+D(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 102, +INF, 0)
+      (-1)      eqpqs(BRD,USA)
+        1       eqD(BRD,USA)
+      (-0.913)  eqpzd(BRD,USA)
+        1       eqDs(BRD,USA)
+
+D(MLK,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 28
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     D  domestic good
+
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+      (-1)      eqpqs(MLK,JPN)
+        1       eqD(MLK,JPN)
+      (-0.9474) eqpzd(MLK,JPN)
+        1       eqDs(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pf  the h-th factor price
+
+pf(CAP,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (20)      eqF(CAP,BRD,JPN)
+      (30)      eqF(CAP,MLK,JPN)
+      -12.7778  eqTd(JPN)
+       -9.4444  eqSp(JPN)
+     (-20)      eqXp(BRD,JPN)
+     (-30)      eqXp(MLK,JPN)
+
+pf(CAP,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (33)      eqF(CAP,BRD,USA)
+      (30)      eqF(CAP,MLK,USA)
+      -16.7615  eqTd(USA)
+      -11.5596  eqSp(USA)
+     (-31.5)    eqXp(BRD,USA)
+     (-31.5)    eqXp(MLK,USA)
+
+pf(LAB,JPN)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (15)      eqF(LAB,BRD,JPN)
+      (25)      eqF(LAB,MLK,JPN)
+      -10.2222  eqTd(JPN)
+       -7.5556  eqSp(JPN)
+     (-16)      eqXp(BRD,JPN)
+     (-24)      eqXp(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- py  composite factor price
+
+py(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-20)      eqF(CAP,BRD,JPN)
+     (-15)      eqF(LAB,BRD,JPN)
+       -0.4795  eqpzs(BRD,JPN)
+
+py(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-33)      eqF(CAP,BRD,USA)
+     (-15)      eqF(LAB,BRD,USA)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 29
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     py  composite factor price
+
+       -0.4571  eqpzs(BRD,USA)
+
+py(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-30)      eqF(CAP,MLK,JPN)
+     (-25)      eqF(LAB,MLK,JPN)
+       -0.7639  eqpzs(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pz  supply price of the i-th good
+
+pz(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD,JPN)
+      (-5)      eqTz(BRD,JPN)
+     (140)      eqDs(BRD,JPN)
+      (16)      eqE(BRD,JPN)
+
+pz(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD,USA)
+     (-10)      eqTz(BRD,USA)
+     (204)      eqDs(BRD,USA)
+      (26)      eqE(BRD,USA)
+
+pz(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(MLK,JPN)
+      (-4)      eqTz(MLK,JPN)
+     (144)      eqDs(MLK,JPN)
+       (8)      eqE(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pq  Armington's composite good price
+
+pq(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2877  eqpzs(BRD,JPN)
+       -0.1111  eqpzs(MLK,JPN)
+      (19)      eqXg(BRD,JPN)
+      (16)      eqXv(BRD,JPN)
+      (20)      eqXp(BRD,JPN)
+     (-26)      eqM(BRD,JPN)
+    (-140)      eqD(BRD,JPN)
+
+pq(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.381   eqpzs(BRD,USA)
+       -0.011   eqpzs(MLK,USA)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 30
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     pq  Armington's composite good price
+
+      (20)      eqXg(BRD,USA)
+      (20)      eqXv(BRD,USA)
+      (30)      eqXp(BRD,USA)
+     (-16)      eqM(BRD,USA)
+    (-204)      eqD(BRD,USA)
+
+pq(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2329  eqpzs(BRD,JPN)
+       -0.125   eqpzs(MLK,JPN)
+      (14)      eqXg(MLK,JPN)
+      (15)      eqXv(MLK,JPN)
+      (30)      eqXp(MLK,JPN)
+     (-22)      eqM(MLK,JPN)
+    (-144)      eqD(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pe  export price in local currency
+
+pe(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD,JPN)
+     (-16)      eqE(BRD,JPN)
+
+pe(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD,USA)
+     (-26)      eqE(BRD,USA)
+
+pe(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(MLK,JPN)
+      (-8)      eqE(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pm  import price in local currency
+
+pm(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqTm(BRD,JPN)
+        1       eqpm(BRD,JPN)
+      (26)      eqM(BRD,JPN)
+
+pm(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqTm(BRD,USA)
+        1       eqpm(BRD,USA)
+      (16)      eqM(BRD,USA)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 31
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     pm  import price in local currency
+
+pm(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-2)      eqTm(MLK,JPN)
+        1       eqpm(MLK,JPN)
+      (22)      eqM(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pd  the i-th domestic good price
+
+pd(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (140)      eqD(BRD,JPN)
+    (-140)      eqDs(BRD,JPN)
+
+pd(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (204)      eqD(BRD,USA)
+    (-204)      eqDs(BRD,USA)
+
+pd(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (144)      eqD(MLK,JPN)
+    (-144)      eqDs(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- epsilon  exchange rate
+
+epsilon(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.1935) eqXv(BRD,JPN)
+      (-5.8065) eqXv(MLK,JPN)
+      (-1)      eqpe(BRD,JPN)
+      (-1)      eqpe(MLK,JPN)
+      (-1)      eqpm(BRD,JPN)
+      (-1)      eqpm(MLK,JPN)
+
+epsilon(USA)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (6.8571) eqXv(BRD,USA)
+       (5.1429) eqXv(MLK,USA)
+      (-1)      eqpe(BRD,USA)
+      (-1)      eqpe(MLK,USA)
+      (-1)      eqpm(BRD,USA)
+      (-1)      eqpm(MLK,USA)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 32
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+---- pWe  export price in US dollars
+
+pWe(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpe(BRD,JPN)
+       (8)      eqepsilon(JPN)
+        1       eqpw(BRD,JPN,USA)
+
+pWe(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpe(BRD,USA)
+      (13)      eqepsilon(USA)
+        1       eqpw(BRD,USA,JPN)
+
+pWe(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpe(MLK,JPN)
+       (4)      eqepsilon(JPN)
+        1       eqpw(MLK,JPN,USA)
+
+REMAINING ENTRY SKIPPED
+
+---- pWm  import price in US dollars
+
+pWm(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpm(BRD,JPN)
+     (-13)      eqepsilon(JPN)
+       -1       eqpw(BRD,USA,JPN)
+
+pWm(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpm(BRD,USA)
+      (-8)      eqepsilon(USA)
+       -1       eqpw(BRD,JPN,USA)
+
+pWm(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpm(MLK,JPN)
+     (-11)      eqepsilon(JPN)
+       -1       eqpw(MLK,USA,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Sp  private saving
+
+Sp(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+      (-0.5161) eqXv(BRD,JPN)
+      (-0.4839) eqXv(MLK,JPN)
+        1       eqSp(JPN)
+       (0.4)    eqXp(BRD,JPN)
+       (0.6)    eqXp(MLK,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 33
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+     Sp  private saving
+
+
+Sp(USA)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+      (-0.5714) eqXv(BRD,USA)
+      (-0.4286) eqXv(MLK,USA)
+        1       eqSp(USA)
+       (0.5)    eqXp(BRD,USA)
+       (0.5)    eqXp(MLK,USA)
+
+
+---- Sg  government saving
+
+Sg(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 2, +INF, 0)
+       (0.5758) eqXg(BRD,JPN)
+       (0.4242) eqXg(MLK,JPN)
+      (-0.5161) eqXv(BRD,JPN)
+      (-0.4839) eqXv(MLK,JPN)
+        1       eqSg(JPN)
+
+Sg(USA)
+                (.LO, .L, .UP, .M = 1E-5, 27, +INF, 0)
+       (0.5882) eqXg(BRD,USA)
+       (0.4118) eqXg(MLK,USA)
+      (-0.5714) eqXv(BRD,USA)
+      (-0.4286) eqXv(MLK,USA)
+        1       eqSg(USA)
+
+
+---- Td  direct tax
+
+Td(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 23, +INF, 0)
+        1       eqTd(JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+       (0.4)    eqXp(BRD,JPN)
+       (0.6)    eqXp(MLK,JPN)
+
+Td(USA)
+                (.LO, .L, .UP, .M = 1E-5, 29, +INF, 0)
+        1       eqTd(USA)
+      (-0.5882) eqXg(BRD,USA)
+      (-0.4118) eqXg(MLK,USA)
+       -0.4426  eqSg(USA)
+       (0.5)    eqXp(BRD,USA)
+       (0.5)    eqXp(MLK,USA)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 34
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+---- Tz  production tax
+
+Tz(BRD,JPN)
+                (.LO, .L, .UP, .M = 0, 5, +INF, 0)
+        1       eqTz(BRD,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+Tz(BRD,USA)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       eqTz(BRD,USA)
+      (-0.5882) eqXg(BRD,USA)
+      (-0.4118) eqXg(MLK,USA)
+       -0.4426  eqSg(USA)
+
+Tz(MLK,JPN)
+                (.LO, .L, .UP, .M = 0, 4, +INF, 0)
+        1       eqTz(MLK,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Tm  import tariff
+
+Tm(BRD,JPN)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+Tm(BRD,USA)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD,USA)
+      (-0.5882) eqXg(BRD,USA)
+      (-0.4118) eqXg(MLK,USA)
+       -0.4426  eqSg(USA)
+
+Tm(MLK,JPN)
+                (.LO, .L, .UP, .M = 0, 2, +INF, 0)
+        1       eqTm(MLK,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 35
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 386
+
+
+---- UU  utility
+
+UU(JPN)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       eqUU(JPN)
+       -1       obj
+
+UU(USA)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       eqUU(USA)
+       -1       obj
+
+
+---- SW  Social Welfare [fictitious obj. func.]
+
+SW
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 36
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Model Statistics    SOLVE twocge Using NLP From line 386
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          28     SINGLE EQUATIONS          107
+BLOCKS OF VARIABLES          28     SINGLE VARIABLES          107
+NON ZERO ELEMENTS           393     NON LINEAR N-Z            212
+DERIVATIVE POOL              20     CONSTANT POOL             107
+CODE LENGTH                 682
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 37
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Solution Report     SOLVE twocge Using NLP From line 386
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   twocge              OBJECTIVE  SW
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  386
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/twocge/convert.opt"
+>>  pyomo twocge-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/twocge/convert.opt"
+Pyomo     : twocge-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 38
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 392
+
+
+---- eqpy  =E=  composite factor aggregation func.
+
+eqpy(BRD,JPN)..  Y(BRD,JPN) - (1)*F(CAP,BRD,JPN) - (1)*F(LAB,BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpy(BRD,USA)..  Y(BRD,USA) - (1)*F(CAP,BRD,USA) - (1)*F(LAB,BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpy(MLK,JPN)..  Y(MLK,JPN) - (1)*F(CAP,MLK,JPN) - (1)*F(LAB,MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqX  =E=  intermediate demand function
+
+eqX(BRD,BRD,JPN)..  X(BRD,BRD,JPN) - 0.287671232876712*Z(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,BRD,USA)..  X(BRD,BRD,USA) - 0.380952380952381*Z(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,MLK,JPN)..  X(BRD,MLK,JPN) - 0.111111111111111*Z(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- eqY  =E=  composite factor demand func.
+
+eqY(BRD,JPN)..  Y(BRD,JPN) - 0.479452054794521*Z(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqY(BRD,USA)..  Y(BRD,USA) - 0.457142857142857*Z(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqY(MLK,JPN)..  Y(MLK,JPN) - 0.763888888888889*Z(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD,JPN)..  - (0.571428571428571)*Y(BRD,JPN) + F(CAP,BRD,JPN) + (20)*pf(CAP,JPN) - (20)*py(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,BRD,USA)..  - (0.6875)*Y(BRD,USA) + F(CAP,BRD,USA) + (33)*pf(CAP,USA) - (33)*py(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK,JPN)..  - (0.545454545454545)*Y(MLK,JPN) + F(CAP,MLK,JPN) + (30)*pf(CAP,JPN) - (30)*py(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- eqpzs  =E=  unit cost function
+
+eqpzs(BRD,JPN)..  - 0.479452054794521*py(BRD,JPN) + pz(BRD,JPN) - 0.287671232876712*pq(BRD,JPN) - 0.232876712328767*pq(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+eqpzs(BRD,USA)..  - 0.457142857142857*py(BRD,USA) + pz(BRD,USA) - 0.380952380952381*pq(BRD,USA) - 0.161904761904762*pq(MLK,USA) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 39
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 392
+
+
+     eqpzs  =E=  unit cost function
+
+eqpzs(MLK,JPN)..  - 0.763888888888889*py(MLK,JPN) + pz(MLK,JPN) - 0.111111111111111*pq(BRD,JPN) - 0.125*pq(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqTd  =E=  direct tax revenue function
+
+eqTd(JPN)..  - 12.7777777777778*pf(CAP,JPN) - 10.2222222222222*pf(LAB,JPN) + Td(JPN) =E= 0 ; (LHS = 0)
+     
+eqTd(USA)..  - 16.7614678899083*pf(CAP,USA) - 12.2385321100917*pf(LAB,USA) + Td(USA) =E= 0 ; (LHS = 0)
+     
+
+---- eqTz  =E=  production tax revenue function
+
+eqTz(BRD,JPN)..  - (0.0684931506849315)*Z(BRD,JPN) - (5)*pz(BRD,JPN) + Tz(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqTz(BRD,USA)..  - (0.0952380952380952)*Z(BRD,USA) - (10)*pz(BRD,USA) + Tz(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqTz(MLK,JPN)..  - (0.0555555555555556)*Z(MLK,JPN) - (4)*pz(MLK,JPN) + Tz(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqTm  =E=  import tariff revenue function
+
+eqTm(BRD,JPN)..  Tm(BRD,JPN) =E= 0 ; (LHS = 1, INFES = 1 ****)
+     
+eqTm(BRD,USA)..  Tm(BRD,USA) =E= 0 ; (LHS = 1, INFES = 1 ****)
+     
+eqTm(MLK,JPN)..  Tm(MLK,JPN) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqXg  =E=  government demand function
+
+eqXg(BRD,JPN)..  Xg(BRD,JPN) + (19)*pq(BRD,JPN) + (0.575757575757576)*Sg(JPN) - (0.575757575757576)*Td(JPN) - (0.575757575757576)*Tz(BRD,JPN) - (0.575757575757576)*Tz(MLK,JPN) - (0.575757575757576)*Tm(BRD,JPN) - (0.575757575757576)*Tm(MLK,JPN) =E= 0 ;
+     
+      (LHS = 0)
+     
+eqXg(BRD,USA)..  Xg(BRD,USA) + (20)*pq(BRD,USA) + (0.588235294117647)*Sg(USA) - (0.588235294117647)*Td(USA) - (0.588235294117647)*Tz(BRD,USA) - (0.588235294117647)*Tz(MLK,USA) - (0.588235294117647)*Tm(BRD,USA) - (0.588235294117647)*Tm(MLK,USA) =E= 0 ;
+     
+      (LHS = 0)
+     
+eqXg(MLK,JPN)..  Xg(MLK,JPN) + (14)*pq(MLK,JPN) + (0.424242424242424)*Sg(JPN) - (0.424242424242424)*Td(JPN) - (0.424242424242424)*Tz(BRD,JPN) - (0.424242424242424)*Tz(MLK,JPN) - (0.424242424242424)*Tm(BRD,JPN) - (0.424242424242424)*Tm(MLK,JPN) =E= 0 ;
+     
+      (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 40
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 392
+
+
+---- eqXv  =E=  investment demand function
+
+eqXv(BRD,JPN)..  Xv(BRD,JPN) + (16)*pq(BRD,JPN) - (6.19354838709677)*epsilon(JPN) - (0.516129032258065)*Sp(JPN) - (0.516129032258065)*Sg(JPN) =E= 0 ; (LHS = 0)
+     
+eqXv(BRD,USA)..  Xv(BRD,USA) + (20)*pq(BRD,USA) + (6.85714285714286)*epsilon(USA) - (0.571428571428571)*Sp(USA) - (0.571428571428571)*Sg(USA) =E= 0 ; (LHS = 0)
+     
+eqXv(MLK,JPN)..  Xv(MLK,JPN) + (15)*pq(MLK,JPN) - (5.80645161290323)*epsilon(JPN) - (0.483870967741935)*Sp(JPN) - (0.483870967741935)*Sg(JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqSp  =E=  private saving function
+
+eqSp(JPN)..  - 9.44444444444444*pf(CAP,JPN) - 7.55555555555556*pf(LAB,JPN) + Sp(JPN) =E= 0 ; (LHS = 0)
+     
+eqSp(USA)..  - 11.5596330275229*pf(CAP,USA) - 8.44036697247707*pf(LAB,USA) + Sp(USA) =E= 0 ; (LHS = 0)
+     
+
+---- eqSg  =E=  government saving function
+
+eqSg(JPN)..  Sg(JPN) - 0.0571428571428571*Td(JPN) - 0.0571428571428571*Tz(BRD,JPN) - 0.0571428571428571*Tz(MLK,JPN) - 0.0571428571428571*Tm(BRD,JPN) - 0.0571428571428571*Tm(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+eqSg(USA)..  Sg(USA) - 0.442622950819672*Td(USA) - 0.442622950819672*Tz(BRD,USA) - 0.442622950819672*Tz(MLK,USA) - 0.442622950819672*Tm(BRD,USA) - 0.442622950819672*Tm(MLK,USA) =E= 0 ; (LHS = 0)
+     
+
+---- eqXp  =E=  household demand function
+
+eqXp(BRD,JPN)..  Xp(BRD,JPN) - (20)*pf(CAP,JPN) - (16)*pf(LAB,JPN) + (20)*pq(BRD,JPN) + (0.4)*Sp(JPN) + (0.4)*Td(JPN) =E= 0 ; (LHS = 0)
+     
+eqXp(BRD,USA)..  Xp(BRD,USA) - (31.5)*pf(CAP,USA) - (23)*pf(LAB,USA) + (30)*pq(BRD,USA) + (0.5)*Sp(USA) + (0.5)*Td(USA) =E= 0 ; (LHS = 0)
+     
+eqXp(MLK,JPN)..  Xp(MLK,JPN) - (30)*pf(CAP,JPN) - (24)*pf(LAB,JPN) + (30)*pq(MLK,JPN) + (0.6)*Sp(JPN) + (0.6)*Td(JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpe  =E=  world export price equation
+
+eqpe(BRD,JPN)..  pe(BRD,JPN) - (1)*epsilon(JPN) - (1)*pWe(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpe(BRD,USA)..  pe(BRD,USA) - (1)*epsilon(USA) - (1)*pWe(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpe(MLK,JPN)..  pe(MLK,JPN) - (1)*epsilon(JPN) - (1)*pWe(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpm  =E=  world import price equation
+
+eqpm(BRD,JPN)..  pm(BRD,JPN) - (1)*epsilon(JPN) - (1)*pWm(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 41
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 392
+
+
+     eqpm  =E=  world import price equation
+
+eqpm(BRD,USA)..  pm(BRD,USA) - (1)*epsilon(USA) - (1)*pWm(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpm(MLK,JPN)..  pm(MLK,JPN) - (1)*epsilon(JPN) - (1)*pWm(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqepsilon  =E=  balance of payments
+
+eqepsilon(JPN)..  (1)*E(BRD,JPN) + (1)*E(MLK,JPN) - (1)*M(BRD,JPN) - (1)*M(MLK,JPN) + (8)*pWe(BRD,JPN) + (4)*pWe(MLK,JPN) - (13)*pWm(BRD,JPN) - (11)*pWm(MLK,JPN) =E= -12 ; (LHS = -12)
+     
+eqepsilon(USA)..  (1)*E(BRD,USA) + (1)*E(MLK,USA) - (1)*M(BRD,USA) - (1)*M(MLK,USA) + (13)*pWe(BRD,USA) + (11)*pWe(MLK,USA) - (8)*pWm(BRD,USA) - (4)*pWm(MLK,USA) =E= 12 ; (LHS = 12)
+     
+
+---- eqpqs  =E=  Armington function
+
+eqpqs(BRD,JPN)..  - (1.07692307692308)*M(BRD,JPN) + Q(BRD,JPN) - (1)*D(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpqs(BRD,USA)..  - (1.125)*M(BRD,USA) + Q(BRD,USA) - (1)*D(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpqs(MLK,JPN)..  - (1.18181818181818)*M(MLK,JPN) + Q(MLK,JPN) - (1)*D(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqM  =E=  import demand function
+
+eqM(BRD,JPN)..  M(BRD,JPN) - (0.179487179487179)*Q(BRD,JPN) - (30.1538461538461)*pq(BRD,JPN) + (30.1538461538461)*pm(BRD,JPN) =E= 0 ; (LHS = -2.07692307692306, INFES = 2.07692307692306 ****)
+     
+eqM(BRD,USA)..  M(BRD,USA) - (0.0912162162162161)*Q(BRD,USA) - (20.25)*pq(BRD,USA) + (20.25)*pm(BRD,USA) =E= 0 ; (LHS = -2.12499999999999, INFES = 2.12499999999999 ****)
+     
+eqM(MLK,JPN)..  M(MLK,JPN) - (0.180748663101604)*Q(MLK,JPN) - (30.7272727272727)*pq(MLK,JPN) + (30.7272727272727)*pm(MLK,JPN) =E= 0 ; (LHS = -4.36363636363637, INFES = 4.36363636363637 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqD  =E=  domestic good demand function
+
+eqD(BRD,JPN)..  - (0.833333333333333)*Q(BRD,JPN) + D(BRD,JPN) - (140)*pq(BRD,JPN) + (140)*pd(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqD(BRD,USA)..  - (0.918918918918918)*Q(BRD,USA) + D(BRD,USA) - (204)*pq(BRD,USA) + (204)*pd(BRD,USA) =E= 0 ; (LHS = 1.13686837721616E-13, INFES = 1.13686837721616E-13 ****)
+     
+eqD(MLK,JPN)..  - (0.847058823529412)*Q(MLK,JPN) + D(MLK,JPN) - (144)*pq(MLK,JPN) + (144)*pd(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 42
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 392
+
+
+---- eqpzd  =E=  transformation function
+
+eqpzd(BRD,JPN)..  Z(BRD,JPN) - (0.935897435897435)*E(BRD,JPN) - (0.935897435897436)*D(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpzd(BRD,USA)..  Z(BRD,USA) - (0.913043478260869)*E(BRD,USA) - (0.91304347826087)*D(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpzd(MLK,JPN)..  Z(MLK,JPN) - (0.947368421052632)*E(MLK,JPN) - (0.947368421052632)*D(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqDs  =E=  domestic good supply function
+
+eqDs(BRD,JPN)..  - (0.958904109589043)*Z(BRD,JPN) + D(BRD,JPN) + (140)*pz(BRD,JPN) - (140)*pd(BRD,JPN) =E= 0 ; (LHS = -1.4210854715202E-13, INFES = 1.4210854715202E-13 ****)
+     
+eqDs(BRD,USA)..  - (0.971428571428573)*Z(BRD,USA) + D(BRD,USA) + (204)*pz(BRD,USA) - (204)*pd(BRD,USA) =E= 0 ; (LHS = -1.27897692436818E-13, INFES = 1.27897692436818E-13 ****)
+     
+eqDs(MLK,JPN)..  - (0.999999999999997)*Z(MLK,JPN) + D(MLK,JPN) + (144)*pz(MLK,JPN) - (144)*pd(MLK,JPN) =E= 0 ; (LHS = 1.98951966012828E-13, INFES = 1.98951966012828E-13 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqE  =E=  export supply function
+
+eqE(BRD,JPN)..  - (0.109589041095891)*Z(BRD,JPN) + E(BRD,JPN) + (16)*pz(BRD,JPN) - (16)*pe(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqE(BRD,USA)..  - (0.123809523809524)*Z(BRD,USA) + E(BRD,USA) + (26)*pz(BRD,USA) - (26)*pe(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqE(MLK,JPN)..  - (0.0555555555555554)*Z(MLK,JPN) + E(MLK,JPN) + (7.99999999999998)*pz(MLK,JPN) - (7.99999999999998)*pe(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpw  =E=  international price equilibrium
+
+eqpw(BRD,JPN,USA)..  pWe(BRD,JPN) - pWm(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpw(BRD,USA,JPN)..  pWe(BRD,USA) - pWm(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpw(MLK,JPN,USA)..  pWe(MLK,JPN) - pWm(MLK,USA) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqw  =E=  international quantity equilibrium
+
+eqw(BRD,JPN,USA)..  E(BRD,JPN) - M(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqw(BRD,USA,JPN)..  E(BRD,USA) - M(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 43
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Equation Listing    SOLVE twocge Using NLP From line 392
+
+
+     eqw  =E=  international quantity equilibrium
+
+eqw(MLK,JPN,USA)..  E(MLK,JPN) - M(MLK,USA) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpqd  =E=  market clearing cond. for comp. good
+
+eqpqd(BRD,JPN)..  - X(BRD,BRD,JPN) - X(BRD,MLK,JPN) - Xp(BRD,JPN) - Xg(BRD,JPN) - Xv(BRD,JPN) + Q(BRD,JPN) =E= 0 ; (LHS = 0)
+     
+eqpqd(BRD,USA)..  - X(BRD,BRD,USA) - X(BRD,MLK,USA) - Xp(BRD,USA) - Xg(BRD,USA) - Xv(BRD,USA) + Q(BRD,USA) =E= 0 ; (LHS = 0)
+     
+eqpqd(MLK,JPN)..  - X(MLK,BRD,JPN) - X(MLK,MLK,JPN) - Xp(MLK,JPN) - Xg(MLK,JPN) - Xv(MLK,JPN) + Q(MLK,JPN) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP,JPN)..  - F(CAP,BRD,JPN) - F(CAP,MLK,JPN) =E= -50 ; (LHS = -50)
+     
+eqpf(CAP,USA)..  - F(CAP,BRD,USA) - F(CAP,MLK,USA) =E= -63 ; (LHS = -63)
+     
+eqpf(LAB,JPN)..  - F(LAB,BRD,JPN) - F(LAB,MLK,JPN) =E= -40 ; (LHS = -40)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqUU  =E=  utility function
+
+eqUU(JPN)..  - (0.510169800250316)*Xp(BRD,JPN) - (0.510169800250316)*Xp(MLK,JPN) + UU(JPN) =E= 0 ; (LHS = -25.5084900125158, INFES = 25.5084900125158 ****)
+     
+eqUU(USA)..  - (0.5)*Xp(BRD,USA) - (0.5)*Xp(MLK,USA) + UU(USA) =E= 0 ; (LHS = -30, INFES = 30 ****)
+     
+
+---- obj  =E=  social welfare function [fictitious]
+
+obj..  - UU(JPN) - UU(USA) + SW =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 44
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+---- Y  composite factor
+
+Y(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 35, +INF, 0)
+        1       eqpy(BRD,JPN)
+        1       eqY(BRD,JPN)
+      (-0.5714) eqF(CAP,BRD,JPN)
+      (-0.4286) eqF(LAB,BRD,JPN)
+
+Y(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 48, +INF, 0)
+        1       eqpy(BRD,USA)
+        1       eqY(BRD,USA)
+      (-0.6875) eqF(CAP,BRD,USA)
+      (-0.3125) eqF(LAB,BRD,USA)
+
+Y(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 55, +INF, 0)
+        1       eqpy(MLK,JPN)
+        1       eqY(MLK,JPN)
+      (-0.5455) eqF(CAP,MLK,JPN)
+      (-0.4545) eqF(LAB,MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+      (-1)      eqpy(BRD,JPN)
+        1       eqF(CAP,BRD,JPN)
+       -1       eqpf(CAP,JPN)
+
+F(CAP,BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 33, +INF, 0)
+      (-1)      eqpy(BRD,USA)
+        1       eqF(CAP,BRD,USA)
+       -1       eqpf(CAP,USA)
+
+F(CAP,MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+      (-1)      eqpy(MLK,JPN)
+        1       eqF(CAP,MLK,JPN)
+       -1       eqpf(CAP,JPN)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- X  intermediate input
+
+X(BRD,BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 21, +INF, 0)
+        1       eqX(BRD,BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 45
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     X  intermediate input
+
+
+X(BRD,BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 40, +INF, 0)
+        1       eqX(BRD,BRD,USA)
+       -1       eqpqd(BRD,USA)
+
+X(BRD,MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqX(BRD,MLK,JPN)
+       -1       eqpqd(BRD,JPN)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 73, +INF, 0)
+       -0.2877  eqX(BRD,BRD,JPN)
+       -0.2329  eqX(MLK,BRD,JPN)
+       -0.4795  eqY(BRD,JPN)
+      (-0.0685) eqTz(BRD,JPN)
+        1       eqpzd(BRD,JPN)
+      (-0.9589) eqDs(BRD,JPN)
+      (-0.1096) eqE(BRD,JPN)
+
+Z(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 105, +INF, 0)
+       -0.381   eqX(BRD,BRD,USA)
+       -0.1619  eqX(MLK,BRD,USA)
+       -0.4571  eqY(BRD,USA)
+      (-0.0952) eqTz(BRD,USA)
+        1       eqpzd(BRD,USA)
+      (-0.9714) eqDs(BRD,USA)
+      (-0.1238) eqE(BRD,USA)
+
+Z(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+       -0.1111  eqX(BRD,MLK,JPN)
+       -0.125   eqX(MLK,MLK,JPN)
+       -0.7639  eqY(MLK,JPN)
+      (-0.0556) eqTz(MLK,JPN)
+        1       eqpzd(MLK,JPN)
+      (-1)      eqDs(MLK,JPN)
+      (-0.0556) eqE(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 46
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+---- Xp  household cons. of the i-th good
+
+Xp(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXp(BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+      (-0.5102) eqUU(JPN)
+
+Xp(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(BRD,USA)
+       -1       eqpqd(BRD,USA)
+      (-0.5)    eqUU(USA)
+
+Xp(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(MLK,JPN)
+       -1       eqpqd(MLK,JPN)
+      (-0.5102) eqUU(JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Xg  government consumption
+
+Xg(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 19, +INF, 0)
+        1       eqXg(BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+
+Xg(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXg(BRD,USA)
+       -1       eqpqd(BRD,USA)
+
+Xg(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 14, +INF, 0)
+        1       eqXg(MLK,JPN)
+       -1       eqpqd(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Xv  investment demand
+
+Xv(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 16, +INF, 0)
+        1       eqXv(BRD,JPN)
+       -1       eqpqd(BRD,JPN)
+
+Xv(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXv(BRD,USA)
+       -1       eqpqd(BRD,USA)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 47
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     Xv  investment demand
+
+Xv(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+        1       eqXv(MLK,JPN)
+       -1       eqpqd(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- E  exports
+
+E(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+       (1)      eqepsilon(JPN)
+      (-0.9359) eqpzd(BRD,JPN)
+        1       eqE(BRD,JPN)
+        1       eqw(BRD,JPN,USA)
+
+E(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+       (1)      eqepsilon(USA)
+      (-0.913)  eqpzd(BRD,USA)
+        1       eqE(BRD,USA)
+        1       eqw(BRD,USA,JPN)
+
+E(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 4, +INF, 0)
+       (1)      eqepsilon(JPN)
+      (-0.9474) eqpzd(MLK,JPN)
+        1       eqE(MLK,JPN)
+        1       eqw(MLK,JPN,USA)
+
+REMAINING ENTRY SKIPPED
+
+---- M  imports
+
+M(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+      (-1)      eqepsilon(JPN)
+      (-1.0769) eqpqs(BRD,JPN)
+        1       eqM(BRD,JPN)
+       -1       eqw(BRD,USA,JPN)
+
+M(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+      (-1)      eqepsilon(USA)
+      (-1.125)  eqpqs(BRD,USA)
+        1       eqM(BRD,USA)
+       -1       eqw(BRD,JPN,USA)
+
+M(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 11, +INF, 0)
+      (-1)      eqepsilon(JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 48
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     M  imports
+
+      (-1.1818) eqpqs(MLK,JPN)
+        1       eqM(MLK,JPN)
+       -1       eqw(MLK,USA,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Q  Armington's composite good
+
+Q(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 84, +INF, 0)
+        1       eqpqs(BRD,JPN)
+      (-0.1795) eqM(BRD,JPN)
+      (-0.8333) eqD(BRD,JPN)
+        1       eqpqd(BRD,JPN)
+
+Q(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 111, +INF, 0)
+        1       eqpqs(BRD,USA)
+      (-0.0912) eqM(BRD,USA)
+      (-0.9189) eqD(BRD,USA)
+        1       eqpqd(BRD,USA)
+
+Q(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 85, +INF, 0)
+        1       eqpqs(MLK,JPN)
+      (-0.1807) eqM(MLK,JPN)
+      (-0.8471) eqD(MLK,JPN)
+        1       eqpqd(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- D  domestic good
+
+D(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 70, +INF, 0)
+      (-1)      eqpqs(BRD,JPN)
+        1       eqD(BRD,JPN)
+      (-0.9359) eqpzd(BRD,JPN)
+        1       eqDs(BRD,JPN)
+
+D(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 102, +INF, 0)
+      (-1)      eqpqs(BRD,USA)
+        1       eqD(BRD,USA)
+      (-0.913)  eqpzd(BRD,USA)
+        1       eqDs(BRD,USA)
+
+D(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+      (-1)      eqpqs(MLK,JPN)
+        1       eqD(MLK,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 49
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     D  domestic good
+
+      (-0.9474) eqpzd(MLK,JPN)
+        1       eqDs(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pf  the h-th factor price
+
+pf(CAP,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (20)      eqF(CAP,BRD,JPN)
+      (30)      eqF(CAP,MLK,JPN)
+      -12.7778  eqTd(JPN)
+       -9.4444  eqSp(JPN)
+     (-20)      eqXp(BRD,JPN)
+     (-30)      eqXp(MLK,JPN)
+
+pf(CAP,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (33)      eqF(CAP,BRD,USA)
+      (30)      eqF(CAP,MLK,USA)
+      -16.7615  eqTd(USA)
+      -11.5596  eqSp(USA)
+     (-31.5)    eqXp(BRD,USA)
+     (-31.5)    eqXp(MLK,USA)
+
+pf(LAB,JPN)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (15)      eqF(LAB,BRD,JPN)
+      (25)      eqF(LAB,MLK,JPN)
+      -10.2222  eqTd(JPN)
+       -7.5556  eqSp(JPN)
+     (-16)      eqXp(BRD,JPN)
+     (-24)      eqXp(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- py  composite factor price
+
+py(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-20)      eqF(CAP,BRD,JPN)
+     (-15)      eqF(LAB,BRD,JPN)
+       -0.4795  eqpzs(BRD,JPN)
+
+py(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-33)      eqF(CAP,BRD,USA)
+     (-15)      eqF(LAB,BRD,USA)
+       -0.4571  eqpzs(BRD,USA)
+
+py(MLK,JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 50
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     py  composite factor price
+
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-30)      eqF(CAP,MLK,JPN)
+     (-25)      eqF(LAB,MLK,JPN)
+       -0.7639  eqpzs(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pz  supply price of the i-th good
+
+pz(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD,JPN)
+      (-5)      eqTz(BRD,JPN)
+     (140)      eqDs(BRD,JPN)
+      (16)      eqE(BRD,JPN)
+
+pz(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD,USA)
+     (-10)      eqTz(BRD,USA)
+     (204)      eqDs(BRD,USA)
+      (26)      eqE(BRD,USA)
+
+pz(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(MLK,JPN)
+      (-4)      eqTz(MLK,JPN)
+     (144)      eqDs(MLK,JPN)
+       (8)      eqE(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pq  Armington's composite good price
+
+pq(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2877  eqpzs(BRD,JPN)
+       -0.1111  eqpzs(MLK,JPN)
+      (19)      eqXg(BRD,JPN)
+      (16)      eqXv(BRD,JPN)
+      (20)      eqXp(BRD,JPN)
+     (-30.1538) eqM(BRD,JPN)
+    (-140)      eqD(BRD,JPN)
+
+pq(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.381   eqpzs(BRD,USA)
+       -0.011   eqpzs(MLK,USA)
+      (20)      eqXg(BRD,USA)
+      (20)      eqXv(BRD,USA)
+      (30)      eqXp(BRD,USA)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 51
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     pq  Armington's composite good price
+
+     (-20.25)   eqM(BRD,USA)
+    (-204)      eqD(BRD,USA)
+
+pq(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2329  eqpzs(BRD,JPN)
+       -0.125   eqpzs(MLK,JPN)
+      (14)      eqXg(MLK,JPN)
+      (15)      eqXv(MLK,JPN)
+      (30)      eqXp(MLK,JPN)
+     (-30.7273) eqM(MLK,JPN)
+    (-144)      eqD(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pe  export price in local currency
+
+pe(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD,JPN)
+     (-16)      eqE(BRD,JPN)
+
+pe(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD,USA)
+     (-26)      eqE(BRD,USA)
+
+pe(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(MLK,JPN)
+      (-8)      eqE(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- pm  import price in local currency
+
+pm(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpm(BRD,JPN)
+      (30.1538) eqM(BRD,JPN)
+
+pm(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpm(BRD,USA)
+      (20.25)   eqM(BRD,USA)
+
+pm(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpm(MLK,JPN)
+      (30.7273) eqM(MLK,JPN)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 52
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     pm  import price in local currency
+
+REMAINING ENTRY SKIPPED
+
+---- pd  the i-th domestic good price
+
+pd(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (140)      eqD(BRD,JPN)
+    (-140)      eqDs(BRD,JPN)
+
+pd(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (204)      eqD(BRD,USA)
+    (-204)      eqDs(BRD,USA)
+
+pd(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (144)      eqD(MLK,JPN)
+    (-144)      eqDs(MLK,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- epsilon  exchange rate
+
+epsilon(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.1935) eqXv(BRD,JPN)
+      (-5.8065) eqXv(MLK,JPN)
+      (-1)      eqpe(BRD,JPN)
+      (-1)      eqpe(MLK,JPN)
+      (-1)      eqpm(BRD,JPN)
+      (-1)      eqpm(MLK,JPN)
+
+epsilon(USA)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (6.8571) eqXv(BRD,USA)
+       (5.1429) eqXv(MLK,USA)
+      (-1)      eqpe(BRD,USA)
+      (-1)      eqpe(MLK,USA)
+      (-1)      eqpm(BRD,USA)
+      (-1)      eqpm(MLK,USA)
+
+
+---- pWe  export price in US dollars
+
+pWe(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpe(BRD,JPN)
+       (8)      eqepsilon(JPN)
+        1       eqpw(BRD,JPN,USA)
+
+pWe(BRD,USA)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 53
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     pWe  export price in US dollars
+
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpe(BRD,USA)
+      (13)      eqepsilon(USA)
+        1       eqpw(BRD,USA,JPN)
+
+pWe(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpe(MLK,JPN)
+       (4)      eqepsilon(JPN)
+        1       eqpw(MLK,JPN,USA)
+
+REMAINING ENTRY SKIPPED
+
+---- pWm  import price in US dollars
+
+pWm(BRD,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpm(BRD,JPN)
+     (-13)      eqepsilon(JPN)
+       -1       eqpw(BRD,USA,JPN)
+
+pWm(BRD,USA)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpm(BRD,USA)
+      (-8)      eqepsilon(USA)
+       -1       eqpw(BRD,JPN,USA)
+
+pWm(MLK,JPN)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqpm(MLK,JPN)
+     (-11)      eqepsilon(JPN)
+       -1       eqpw(MLK,USA,JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Sp  private saving
+
+Sp(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+      (-0.5161) eqXv(BRD,JPN)
+      (-0.4839) eqXv(MLK,JPN)
+        1       eqSp(JPN)
+       (0.4)    eqXp(BRD,JPN)
+       (0.6)    eqXp(MLK,JPN)
+
+Sp(USA)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+      (-0.5714) eqXv(BRD,USA)
+      (-0.4286) eqXv(MLK,USA)
+        1       eqSp(USA)
+       (0.5)    eqXp(BRD,USA)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 54
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     Sp  private saving
+
+       (0.5)    eqXp(MLK,USA)
+
+
+---- Sg  government saving
+
+Sg(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 2, +INF, 0)
+       (0.5758) eqXg(BRD,JPN)
+       (0.4242) eqXg(MLK,JPN)
+      (-0.5161) eqXv(BRD,JPN)
+      (-0.4839) eqXv(MLK,JPN)
+        1       eqSg(JPN)
+
+Sg(USA)
+                (.LO, .L, .UP, .M = 1E-5, 27, +INF, 0)
+       (0.5882) eqXg(BRD,USA)
+       (0.4118) eqXg(MLK,USA)
+      (-0.5714) eqXv(BRD,USA)
+      (-0.4286) eqXv(MLK,USA)
+        1       eqSg(USA)
+
+
+---- Td  direct tax
+
+Td(JPN)
+                (.LO, .L, .UP, .M = 1E-5, 23, +INF, 0)
+        1       eqTd(JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+       (0.4)    eqXp(BRD,JPN)
+       (0.6)    eqXp(MLK,JPN)
+
+Td(USA)
+                (.LO, .L, .UP, .M = 1E-5, 29, +INF, 0)
+        1       eqTd(USA)
+      (-0.5882) eqXg(BRD,USA)
+      (-0.4118) eqXg(MLK,USA)
+       -0.4426  eqSg(USA)
+       (0.5)    eqXp(BRD,USA)
+       (0.5)    eqXp(MLK,USA)
+
+
+---- Tz  production tax
+
+Tz(BRD,JPN)
+                (.LO, .L, .UP, .M = 0, 5, +INF, 0)
+        1       eqTz(BRD,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 55
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     Tz  production tax
+
+
+Tz(BRD,USA)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       eqTz(BRD,USA)
+      (-0.5882) eqXg(BRD,USA)
+      (-0.4118) eqXg(MLK,USA)
+       -0.4426  eqSg(USA)
+
+Tz(MLK,JPN)
+                (.LO, .L, .UP, .M = 0, 4, +INF, 0)
+        1       eqTz(MLK,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- Tm  import tariff
+
+Tm(BRD,JPN)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+Tm(BRD,USA)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD,USA)
+      (-0.5882) eqXg(BRD,USA)
+      (-0.4118) eqXg(MLK,USA)
+       -0.4426  eqSg(USA)
+
+Tm(MLK,JPN)
+                (.LO, .L, .UP, .M = 0, 2, +INF, 0)
+        1       eqTm(MLK,JPN)
+      (-0.5758) eqXg(BRD,JPN)
+      (-0.4242) eqXg(MLK,JPN)
+       -0.0571  eqSg(JPN)
+
+REMAINING ENTRY SKIPPED
+
+---- UU  utility
+
+UU(JPN)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       eqUU(JPN)
+       -1       obj
+
+UU(USA)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 56
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Column Listing      SOLVE twocge Using NLP From line 392
+
+
+     UU  utility
+
+        1       eqUU(USA)
+       -1       obj
+
+
+---- SW  Social Welfare [fictitious obj. func.]
+
+SW
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 57
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Model Statistics    SOLVE twocge Using NLP From line 392
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          28     SINGLE EQUATIONS          107
+BLOCKS OF VARIABLES          28     SINGLE VARIABLES          107
+NON ZERO ELEMENTS           385     NON LINEAR N-Z            204
+DERIVATIVE POOL              20     CONSTANT POOL             100
+CODE LENGTH                 654
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 58
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+Solution Report     SOLVE twocge Using NLP From line 392
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   twocge              OBJECTIVE  SW
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  392
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/twocge/convert.opt"
+>>  pyomo twocge-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/twocge/convert.opt"
+Pyomo     : twocge-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 59
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    430 PARAMETER dY  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dF  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dX  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dZ  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dXp  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dXg  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dXv  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dQ  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dE  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dM  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dD  
+
+                      ( ALL       0.000 )
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 60
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    430 PARAMETER dpf  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpy  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpz  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpq  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpe  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpm  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpd  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpWe  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dpWm  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER depsilon  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dTd  
+
+                      ( ALL       0.000 )
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 61
+A Two-country CGE Model in Ch. 10.3 (TWOCGE,SEQ=278)
+E x e c u t i o n
+
+
+----    430 PARAMETER dTz  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dTm  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dSp  
+
+                      ( ALL       0.000 )
+
+
+----    430 PARAMETER dSg  
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/twocge/twocge.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/twocge/twocge-scalar.py.lst

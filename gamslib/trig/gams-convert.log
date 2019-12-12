@@ -1,0 +1,31 @@
+--- Job trig.gms Start 12/13/18 11:23:05 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- trig.gms(24) 2 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- trig.gms(18) 3 Mb
+--- Generating NLP model m
+--- trig.gms(20) 5 Mb
+---   2 rows  2 columns  3 non-zeroes
+---   25 nl-code  2 nl-non-zeroes
+--- trig.gms(20) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/trig/convert.opt"
+>>  gams trig-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/trig/convert.opt"
+--- Writing Gams      : trig-scalar.gms
+
+--- Restarting execution
+--- trig.gms(20) 2 Mb
+--- Reading solution for model m
+--- trig.gms(24) 2 Mb
+*** Status: Normal completion
+--- Job trig.gms Stop 12/13/18 11:23:05 elapsed 0:00:00.018

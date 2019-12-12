@@ -1,0 +1,445 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+   2  option MCP=convert;
+   3  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 2
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+C o m p i l a t i o n
+
+
+      Hansen's Activity Analysis Example
+       
+       
+      Scarf, H, and Hansen, T, The Computation of Economic Equilibria.
+      Yale University Press, 1973.
+       
+  13   
+  14  sets    c       commodities
+  15   
+  16     /    agric, food, textiles, hserv, entert, houseop, capeop, steel,
+  17          coal, lumber, housbop, capbop, labor, exchange/
+  18   
+  19   
+  20          h       consumers
+  21    /     agent1, agent2, agent3, agent4  /
+  22   
+  23   
+  24          s       sectors
+  25    /     dom1, dom2, dom3, dom4, dom5, dom6, dom7,
+  26          dom8, dom9, dom10, dom11, dom12,
+  27          imp1, imp2, imp3, imp4, imp5, imp6, imp7,
+  28          exp1, exp2, exp3, exp4, exp5, exp6, exp7 /
+  29   
+  30  alias (c,cc);
+  31   
+  32  table e(c,h)  commodity endowments
+  33   
+  34             agent1    agent2  agent3    agent4
+  35  housbop         2       0.4               0.8
+  36  capbop          3         2               7.5
+  37  labor         0.6       0.8       1       0.6
+  38   
+  39   
+  40  table d(c,h) reference demands
+  41   
+  42                      agent1     agent2     agent3     agent4
+  43      agric              0.1        0.2        0.3        0.1
+  44      food               0.2        0.2        0.2        0.2
+  45      textiles           0.1        0.1        0.3        0.1
+  46      hserv              0.1        0.1        0.1        0.1
+  47      entert             0.1        0.1        0.1        0.1
+  48      houseop            0.3        0.1                   0.1
+  49      capeop             0.1        0.2                   0.3
+  50   
+  51  parameter  esub(h)  elasticities in demand
+  52   
+  53      /   agent1          1,        agent2          1,
+  54          agent3          1,        agent4          1 /;
+  55   
+  56  table data(*,c,s)  activity analysis matrix
+  57   
+  58                         dom1        dom2        dom3        dom4        dom5
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 3
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+C o m p i l a t i o n
+
+
+  60  output.agric           5.00
+  61  output.food                        5.00
+  62  output.textiles                                2.00
+  63  output.hserv                                               2.00
+  64  output.entert                                                          4.00
+  65  output.houseop                                             0.32
+  66  output.capeop          0.40        1.30        1.20
+  67  input .agric                       3.50        0.10                    0.70
+  68  input .food            0.90                    0.10                    0.80
+  69  input .textiles        0.20        0.50                    0.10        0.10
+  70  input .hserv           1.00        2.00        2.00                    2.00
+  71  input .steel           0.20        0.40        0.20        0.10
+  72  input .coal            1.00        0.10        0.10        1.00
+  73  input .lumber          0.50        0.40        0.30        0.30
+  74  input .housbop                                             0.40
+  75  input .capbop          0.50        1.50        1.50        0.10        0.10
+  76  input .labor           0.40        0.20        0.20        0.02        0.40
+  77   
+  78                +        dom6        dom7        dom8        dom9       dom10
+  79   
+  80  output.houseop         0.80
+  81  output.capeop          1.10        6.00        1.80        1.20        0.40
+  82  output.steel                                   2.00
+  83  output.coal                                                2.00
+  84  output.lumber                                                          1.00
+  85  input .textiles        0.80        0.40        0.10        0.10        0.10
+  86  input .hserv           0.40        1.80        1.60        0.80        0.20
+  87  input .steel           1.00        2.00                    0.50        0.20
+  88  input .coal                        0.20        1.00                    0.20
+  89  input .lumber          3.00        0.20        0.20        0.50
+  90  input .capbop          1.50        2.50        2.50        1.50        0.50
+  91  input .labor           0.30        0.10        0.10        0.40        0.40
+  92   
+  93                +       dom11       dom12        imp1        imp2        imp3
+  94   
+  95  output.agric                                   1.00
+  96  output.food                                                1.00
+  97  output.textiles                                                        1.00
+  98  output.houseop                     0.36
+  99  output.capeop          0.90
+ 100  input .hserv                                   0.40        0.20        0.20
+ 101  input .housbop                     0.40
+ 102  input .capbop          1.00                    0.20        0.10        0.10
+ 103  input .labor                                   0.04        0.02        0.02
+ 104  input .exchange                                0.50        0.40        0.80
+ 105   
+ 106                +        imp4        imp5        imp6        imp7        exp1
+ 107   
+ 108  output.capeop          1.00
+ 109  output.steel                       1.00
+ 110  output.coal                                    1.00
+ 111  output.lumber                                              1.00
+ 112  output.exchange                                                        0.50
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 4
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+C o m p i l a t i o n
+
+
+ 113  input .agric                                                           1.00
+ 114  input .hserv           0.40        0.40        0.40        0.40        0.20
+ 115  input .capbop          0.20        0.20        0.20        0.20        0.20
+ 116  input .labor           0.04        0.04        0.04        0.04        0.04
+ 117  input .exchange        1.20        0.60        0.70        0.40
+ 118   
+ 119                +        exp2        exp3        exp4        exp5        exp6
+ 120   
+ 121  output.exchange        0.40        0.80        1.20        0.60        0.70
+ 122  input .food            1.00
+ 123  input .textiles                    1.00
+ 124  input .hserv           0.20        0.20        0.40        0.40        0.40
+ 125  input .capeop                                  1.00
+ 126  input .steel                                               1.00
+ 127  input .coal                                                            1.00
+ 128  input .capbop          0.10        0.10        0.20        0.20        0.20
+ 129  input .labor           0.02        0.02        0.04        0.04        0.04
+ 130   
+ 131                +        exp7
+ 132   
+ 133  output.exchange        0.40
+ 134  input .hserv           0.40
+ 135  input .lumber          1.00
+ 136  input .capbop          0.20
+ 137  input .labor           0.04
+ 138   
+ 139   
+ 140  parameter       alpha(c,h)      demand function share parameter;
+ 141  alpha(c,h) = d(c,h) / sum(cc, d(cc,h));
+ 142   
+ 143  parameter  a(c,s)  activity analysis matrix;
+ 144  a(c,s) = data("output",c,s) - data("input",c,s);
+ 145   
+ 146  positive
+ 147  variables
+ 148          p(c)    commodity price,
+ 149          y(s)    production,
+ 150          i(h)    income;
+ 151   
+ 152  equations
+ 153          mkt(c)          commodity market,
+ 154          profit(s)       zero profit,
+ 155          income(h)       income index;
+ 156   
+ 157  *       distinguish ces and cobb-douglas demand functions:
+ 158   
+ 159  mkt(c)..        sum(s, a(c,s) * y(s)) + sum(h, e(c,h)) =g=
+ 160   
+ 161                  sum(h$(esub(h) ne 1),
+ 162                  (i(h)/sum(cc, alpha(cc,h) * p(cc)**(1-esub(h)))) *
+ 163                  alpha(c,h) * (1/p(c))**esub(h)) +
+ 164   
+ 165                  sum(h$(esub(h) eq 1),
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 5
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+C o m p i l a t i o n
+
+
+ 166                  i(h) * alpha(c,h) / p(c));
+ 167   
+ 168  profit(s)..     -sum(c, a(c,s) * p(c)) =g= 0;
+ 169   
+ 170  income(h)..     i(h) =g= sum(c, p(c) * e(c,h));
+ 171   
+ 172  model hansen / mkt.p, profit.y, income.i/;
+ 173   
+ 174  p.l(c) = 1;
+ 175  y.l(s) = 1;
+ 176  i.l(h) = 1;
+ 177   
+ 178  p.lo(c)  = 0.00001$(smax(h, alpha(c,h)) gt eps);
+ 179   
+ 180  *       fix the price of numeraire commodity:
+ 181   
+ 182  p.fx(c)$(ord(c) eq 1) = 1;
+ 183   
+ 184  solve hansen using mcp;
+ 185   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 6
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+Equation Listing    SOLVE hansen Using MCP From line 184
+
+
+---- mkt  =G=  commodity market
+
+mkt(agric)..  (0.7)*p(agric) + 5*y(dom1) - 3.5*y(dom2) - 0.1*y(dom3) - 0.7*y(dom5) + y(imp1) - y(exp1) - (0.1)*i(agent1) - (0.2)*i(agent2) - (0.3)*i(agent3) - (0.1)*i(agent4) =G= 0 ; (LHS = 0)
+     
+mkt(food)..  (0.8)*p(food) - 0.9*y(dom1) + 5*y(dom2) - 0.1*y(dom3) - 0.8*y(dom5) + y(imp2) - y(exp2) - (0.2)*i(agent1) - (0.2)*i(agent2) - (0.2)*i(agent3) - (0.2)*i(agent4) =G= 0 ; (LHS = 2.4)
+     
+mkt(textiles)..  (0.6)*p(textiles) - 0.2*y(dom1) - 0.5*y(dom2) + 2*y(dom3) - 0.1*y(dom4) - 0.1*y(dom5) - 0.8*y(dom6) - 0.4*y(dom7) - 0.1*y(dom8) - 0.1*y(dom9) - 0.1*y(dom10) + y(imp3) - y(exp3) - (0.1)*i(agent1) - (0.1)*i(agent2) - (0.3)*i(agent3)
+     
+      - (0.1)*i(agent4) =G= 0 ; (LHS = -1, INFES = 1 ****)
+     
+REMAINING 11 ENTRIES SKIPPED
+
+
+---- profit  =G=  zero profit
+
+profit(dom1)..  - 5*p(agric) + 0.9*p(food) + 0.2*p(textiles) + p(hserv) - 0.4*p(capeop) + 0.2*p(steel) + p(coal) + 0.5*p(lumber) + 0.5*p(capbop) + 0.4*p(labor) =G= 0 ; (LHS = -0.699999999999999, INFES = 0.699999999999999 ****)
+     
+profit(dom2)..  3.5*p(agric) - 5*p(food) + 0.5*p(textiles) + 2*p(hserv) - 1.3*p(capeop) + 0.4*p(steel) + 0.1*p(coal) + 0.4*p(lumber) + 1.5*p(capbop) + 0.2*p(labor) =G= 0 ; (LHS = 2.3)
+     
+profit(dom3)..  0.1*p(agric) + 0.1*p(food) - 2*p(textiles) + 2*p(hserv) - 1.2*p(capeop) + 0.2*p(steel) + 0.1*p(coal) + 0.3*p(lumber) + 1.5*p(capbop) + 0.2*p(labor) =G= 0 ; (LHS = 1.3)
+     
+REMAINING 23 ENTRIES SKIPPED
+
+
+---- income  =G=  income index
+
+income(agent1)..  - 2*p(housbop) - 3*p(capbop) - 0.6*p(labor) + i(agent1) =G= 0 ; (LHS = -4.6, INFES = 4.6 ****)
+     
+income(agent2)..  - 0.4*p(housbop) - 2*p(capbop) - 0.8*p(labor) + i(agent2) =G= 0 ; (LHS = -2.2, INFES = 2.2 ****)
+     
+income(agent3)..  - p(labor) + i(agent3) =G= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 7
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+Column Listing      SOLVE hansen Using MCP From line 184
+
+
+---- p  commodity price
+
+p(agric)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (0.7)    mkt(agric)
+       -5       profit(dom1)
+        3.5     profit(dom2)
+        0.1     profit(dom3)
+        0.7     profit(dom5)
+       -1       profit(imp1)
+        1       profit(exp1)
+
+p(food)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       (0.8)    mkt(food)
+        0.9     profit(dom1)
+       -5       profit(dom2)
+        0.1     profit(dom3)
+        0.8     profit(dom5)
+       -1       profit(imp2)
+        1       profit(exp2)
+
+p(textiles)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       (0.6)    mkt(textiles)
+        0.2     profit(dom1)
+        0.5     profit(dom2)
+       -2       profit(dom3)
+        0.1     profit(dom4)
+        0.1     profit(dom5)
+        0.8     profit(dom6)
+        0.4     profit(dom7)
+        0.1     profit(dom8)
+        0.1     profit(dom9)
+        0.1     profit(dom10)
+       -1       profit(imp3)
+        1       profit(exp3)
+
+REMAINING 11 ENTRIES SKIPPED
+
+---- y  production
+
+y(dom1)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        5       mkt(agric)
+       -0.9     mkt(food)
+       -0.2     mkt(textiles)
+       -1       mkt(hserv)
+        0.4     mkt(capeop)
+       -0.2     mkt(steel)
+       -1       mkt(coal)
+       -0.5     mkt(lumber)
+       -0.5     mkt(capbop)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 8
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+Column Listing      SOLVE hansen Using MCP From line 184
+
+
+     y  production
+
+       -0.4     mkt(labor)
+
+y(dom2)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -3.5     mkt(agric)
+        5       mkt(food)
+       -0.5     mkt(textiles)
+       -2       mkt(hserv)
+        1.3     mkt(capeop)
+       -0.4     mkt(steel)
+       -0.1     mkt(coal)
+       -0.4     mkt(lumber)
+       -1.5     mkt(capbop)
+       -0.2     mkt(labor)
+
+y(dom3)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+       -0.1     mkt(agric)
+       -0.1     mkt(food)
+        2       mkt(textiles)
+       -2       mkt(hserv)
+        1.2     mkt(capeop)
+       -0.2     mkt(steel)
+       -0.1     mkt(coal)
+       -0.3     mkt(lumber)
+       -1.5     mkt(capbop)
+       -0.2     mkt(labor)
+
+REMAINING 23 ENTRIES SKIPPED
+
+---- i  income
+
+i(agent1)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      (-0.1)    mkt(agric)
+      (-0.2)    mkt(food)
+      (-0.1)    mkt(textiles)
+      (-0.1)    mkt(hserv)
+      (-0.1)    mkt(entert)
+      (-0.3)    mkt(houseop)
+      (-0.1)    mkt(capeop)
+        1       income(agent1)
+
+i(agent2)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      (-0.2)    mkt(agric)
+      (-0.2)    mkt(food)
+      (-0.1)    mkt(textiles)
+      (-0.1)    mkt(hserv)
+      (-0.1)    mkt(entert)
+      (-0.1)    mkt(houseop)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:50 Page 9
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+Column Listing      SOLVE hansen Using MCP From line 184
+
+
+     i  income
+
+      (-0.2)    mkt(capeop)
+        1       income(agent2)
+
+i(agent3)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      (-0.3)    mkt(agric)
+      (-0.2)    mkt(food)
+      (-0.3)    mkt(textiles)
+      (-0.1)    mkt(hserv)
+      (-0.1)    mkt(entert)
+        1       income(agent3)
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 10
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+Model Statistics    SOLVE hansen Using MCP From line 184
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           44
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           44
+NON ZERO ELEMENTS           367     NON LINEAR N-Z             33
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                 144
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:50 Page 11
+Hansen's Activity Analysis Example (HANSMCP,SEQ=135)
+Solution Report     SOLVE hansen Using MCP From line 184
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   hansen              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  184
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/hansmcp/convert.opt"
+>>  pyomo hansmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/hansmcp/convert.opt"
+Pyomo     : hansmcp-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/hansmcp/hansmcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/hansmcp/hansmcp-scalar.py.lst

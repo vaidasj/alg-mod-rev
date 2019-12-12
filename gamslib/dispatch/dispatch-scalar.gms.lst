@@ -1,0 +1,310 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 2
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+C o m p i l a t i o n
+
+
+        The economic dispatch problem can be defined as determining the
+        least-cost power generation schedule from a set of on-line generating
+        units to meet the total power demand at a given point of time. The
+        generating unit cost and the network transmission losses are modeled
+        as quadratic function of the power generation.
+       
+        In the present problem, both the cost-minimizing and loss-minimizing
+        solutions have been obtained.
+       
+       
+      Wood, A J, and Wollenberg, B F, Example Problem 4e. In Power Generation,
+      Operation and Control. John Wiley and Sons, 1984, pp. 85-88.
+       
+  19   
+  20  sets  i        generators                 / p1*p3 /
+  21        genchar  generator characteristics  / a,b,c,upplim,lowlim /
+  22        cg(genchar) cost categories         / a,b,c /
+  23   
+  24  alias (i,j) ;
+  25   
+  26  table gendata(i,genchar) generator cost characteristics and limits
+  27   
+  28                a        b         c         upplim      lowlim
+  29  p1        213.1   11.669   0.00533            200          50
+  30  p2        200.0   10.333   0.00889            150        37.5
+  31  p3        240.0   10.833   0.00741            180          45
+  32   
+  33  parameter pexp(cg) exponent for cost function / a 0, b 1, c 2 /;
+  34   
+  35  table b(i,j)  the b-matrix loss coefficients - squared components
+  36   
+  37                p1            p2           p3
+  38     p1     0.0676       0.00953     -0.00507
+  39     p2    0.00953        0.0521      0.00901
+  40     p3   -0.00507       0.00901      0.0294
+  41   
+  42  parameter b0(i) linear loss coefficients /
+  43     p1   -0.0766
+  44     p2   -0.00342
+  45     p3    0.0189 /;
+  46   
+  47  scalar b00  loss equation constant / 0.040357 / ;
+  48   
+  49  scalar  demand    total power demand in MW / 210 / ;
+  50   
+  51  variables
+  52     p(i)     power generation level in MW
+  53     loss     total transmission loss in MW
+  54     cost     total generation cost - the objective function
+  55  positive variables p;
+  56   
+  57  p.up(i) = gendata(i,"upplim") ;
+  58  p.lo(i) = gendata(i,"lowlim") ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 3
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+C o m p i l a t i o n
+
+
+  59   
+  60  equations
+  61     costfn        total cost calculation
+  62     lossfn        total loss calculation
+  63     demcons       total generation must equal demand and loss ;
+  64   
+  65   
+  66  costfn.. cost =e= sum((i,cg), gendata(i,cg)*power(p(i),pexp(cg)));
+  67   
+  68  lossfn.. loss =e= b00 + sum(i, b0(i)*p(i))/100
+  69                        + sum((i,j), p(i)*b(i,j)*p(j))/100;
+  70   
+  71  demcons.. sum(i, p(i)) =g= demand + loss ;
+  72   
+  73  model edc /all/ ;
+  74   
+  75  solve edc minimizing cost using nlp ;
+  76   
+  77  *  trace a trade-off frontier
+  78   
+  79  set s      trade-off points  / min-loss, s1*s4, min-cost /
+  80      st(s)  in between points / s1*s4 /
+  81   
+  82  parameter trace  trace report ;
+  83   
+  84  trace('cost','min-cost') = cost.l;
+  85  trace('loss','min-cost') = loss.l;
+  86   
+  87  option limrow=0,limcol=0;
+  88  solve edc minimizing loss using nlp ;
+  89   
+  90  trace('cost','min-loss') = cost.l;
+  91  trace('loss','min-loss') = loss.l;
+  92   
+  93  edc.solprint=2;
+  94   
+  95  loop(st,
+  96     loss.fx = trace('loss','min-loss')
+  97             + ord(st)/(card(st)+1)*(trace('loss','min-cost')
+  98                                    -trace('loss','min-loss'));
+  99     solve edc minimizing cost using nlp ;
+ 100     trace('cost',st) = cost.l;
+ 101     trace('loss',st) = loss.l);
+ 102   
+ 103  display trace;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 4
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Equation Listing    SOLVE edc Using NLP From line 75
+
+
+---- costfn  =E=  total cost calculation
+
+costfn..  - (12.202)*p(p1) - (10.99975)*p(p2) - (11.4999)*p(p3) + cost =E= 0 ; (LHS = -2152.3543125, INFES = 2152.3543125 ****)
+     
+
+---- lossfn  =E=  total loss calculation
+
+lossfn..  - (0.0694185)*p(p1) - (0.0566798)*p(p2) - (0.0283365)*p(p3) + loss =E= 0.040357 ; (LHS = -3.42024125, INFES = 3.46059825 ****)
+     
+
+---- demcons  =G=  total generation must equal demand and loss
+
+demcons..  p(p1) + p(p2) + p(p3) - loss =G= 210 ; (LHS = 132.5, INFES = 77.5 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 5
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Column Listing      SOLVE edc Using NLP From line 75
+
+
+---- p  power generation level in MW
+
+p(p1)
+                (.LO, .L, .UP, .M = 50, 50, 200, 0)
+     (-12.202)  costfn
+      (-0.0694) lossfn
+        1       demcons
+        0       (OLD LEVEL ****)
+
+p(p2)
+                (.LO, .L, .UP, .M = 37.5, 37.5, 150, 0)
+     (-10.9998) costfn
+      (-0.0567) lossfn
+        1       demcons
+        0       (OLD LEVEL ****)
+
+p(p3)
+                (.LO, .L, .UP, .M = 45, 45, 180, 0)
+     (-11.4999) costfn
+      (-0.0283) lossfn
+        1       demcons
+        0       (OLD LEVEL ****)
+
+
+---- loss  total transmission loss in MW
+
+loss
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       lossfn
+       -1       demcons
+
+
+---- cost  total generation cost - the objective function
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       costfn
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 6
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Model Statistics    SOLVE edc Using NLP From line 75
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            5  3 projected
+NON ZERO ELEMENTS            12     NON LINEAR N-Z              6
+DERIVATIVE POOL              20     CONSTANT POOL              35
+CODE LENGTH                  81
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 7
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Solution Report     SOLVE edc Using NLP From line 75
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   edc                 OBJECTIVE  cost
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  75
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  gams dispatch-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+Gams      : dispatch-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 8
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Model Statistics    SOLVE edc Using NLP From line 88
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            5  3 projected
+NON ZERO ELEMENTS            12     NON LINEAR N-Z              6
+DERIVATIVE POOL              20     CONSTANT POOL              35
+CODE LENGTH                  81
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 9
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Solution Report     SOLVE edc Using NLP From line 88
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   edc                 OBJECTIVE  loss
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  88
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+>>  gams dispatch-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/dispatch/convert.opt"
+Gams      : dispatch-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:52 Page 11
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+Model Analysis      SOLVE edc Using NLP From line 99
+
+
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:52 Page 15
+Economic Load Dispatch Including Transmission Losses (DISPATCH,SEQ=166)
+E x e c u t i o n
+
+
+----    103 PARAMETER trace  trace report
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/dispatch/dispatch.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/dispatch/dispatch-scalar.gms.lst

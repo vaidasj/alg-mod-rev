@@ -1,0 +1,260 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 2
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+C o m p i l a t i o n
+
+
+   5   
+       
+      Given n electrons, find the equilibrium state distribution (of
+      minimal Coulomb potential) of the electrons positioned on a
+      conducting sphere.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of electrons can be specified using the command line
+      parameter --np. COPS performance tests have been reported for np = 25,
+      50, 100, 200
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Morris, J R, Deaven, D M, and Ho, K M, Genetic Algorithm
+      Energy Minimization for Point Charges on a Sphere. Phys.
+      Rev. B. 53 (1996), R1740-R1743.
+       
+      Saff, E B, and Kuijlaars, A, Distributing Many Points on
+      the Sphere. Math. Intelligencer 19 (1997), 5-11.
+       
+  32   
+  35   
+  36  Set i       electrons /i1 * i25/
+  37      ut(i,i) upper triangular part;
+  38   
+  39  Alias (i,j);
+  40  ut(i,j)$(ord(j) > ord(i)) = yes;
+  41   
+  42  Variables   x(i) x-coordinate of the electron
+  43              y(i) y-coordinate of the electron
+  44              z(i) z-coordinate of the electron
+  45              potential Coulomb potential;
+  46   
+  47  Equations   obj     objective
+  48              ball(i) points on unit ball;
+  49   
+  50  obj.. potential =e=
+  51    sum{ut(i,j), 1.0/sqrt(sqr(x[i]-x[j]) + sqr(y[i]-y[j]) + sqr(z[i]-z[j]))};
+  52   
+  53  ball(i).. sqr(x(i)) + sqr(y(i)) + sqr(z(i)) =e= 1;
+  54   
+  55   
+  56  * Set the starting point to a quasi-uniform distribution
+  57  * of electrons on a unit sphere
+  58   
+  59  scalar pi a famous constant;
+  60  pi = 2*arctan(inf);
+  61   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 3
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+C o m p i l a t i o n
+
+
+  62  parameter theta(i), phi(i);
+  63  theta(i) = 2*pi*uniform(0,1);
+  64  phi(i)   = pi*uniform(0,1);
+  65   
+  66  x.l(i) = cos(theta(i))*sin(phi(i));
+  67  y.l(i) = sin(theta(i))*sin(phi(i));
+  68  z.l(i) =               cos(phi(i));
+  69   
+  70  model elec /all/;
+  71   
+  72  elec.workfactor = 5;
+  73  solve elec using nlp minimizing potential;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 4
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+Equation Listing    SOLVE elec Using NLP From line 73
+
+
+---- obj  =E=  objective
+
+obj..  - (15.9340760673634)*x(i1) + (10.778854108288)*x(i2) - (4.81432455464749)*x(i3) - (5.47815152866016)*x(i4) - (19.904206256294)*x(i5) - (39.243298895876)*x(i6) - (6.90214364569937)*x(i7) + (1.24186049295496)*x(i8) + (4.32069529300396)*x(i9)
+     
+      - (9.72489770584968)*x(i10) + (11.5780206127698)*x(i11) - (6.81085414726408)*x(i12) + (9.57036961800038)*x(i13) + (1.91252483051646)*x(i14) + (8.20531290948922)*x(i15) - (2.68890241217959)*x(i16) + (54.9375574798348)*x(i17)
+     
+      + (21.2285783593599)*x(i18) - (4.43738882210767)*x(i19) - (12.3352025374998)*x(i20) - (10.0753453814839)*x(i21) - (7.4699220541987)*x(i22) + (7.24764193405287)*x(i23) + (21.0730528526184)*x(i24) - (6.27575448176493)*x(i25)
+     
+      - (0.733033027512768)*y(i1) - (24.0107493690448)*y(i2) + (5.20183620991416)*y(i3) + (4.52894197156498)*y(i4) + (8.57027494048194)*y(i5) + (14.1677296681446)*y(i6) + (8.15973902662666)*y(i7) + (3.95224100336475)*y(i8) - (14.6334627423581)*y(i9)
+     
+      - (3.31359470500558)*y(i10) - (1.10160583861127)*y(i11) - (12.1639418904876)*y(i12) - (6.14751064329865)*y(i13) - (7.16011306788287)*y(i14) + (5.42786378481148)*y(i15) - (11.5332106981612)*y(i16) - (6.42268239124804)*y(i17)
+     
+      + (15.9134971719286)*y(i18) - (7.98844289283852)*y(i19) + (6.2252268116293)*y(i20) + (3.8314293490867)*y(i21) + (5.07251782776131)*y(i22) + (5.49202396101825)*y(i23) + (17.2171978092861)*y(i24) - (8.55217226916948)*y(i25) - (19.1863388437594)*z(i1)
+     
+      - (8.18071643099558)*z(i2) - (14.8642721124416)*z(i3) - (8.666573837009)*z(i4) + (3.25139003450046)*z(i5) + (12.887945045776)*z(i6) + (0.14183362242164)*z(i7) + (14.9260178197118)*z(i8) - (12.5809574921081)*z(i9) + (6.57418201616661)*z(i10)
+     
+      + (1.18351631508037)*z(i11) + (3.81003656857314)*z(i12) - (2.50819426962533)*z(i13) - (3.51048920083071)*z(i14) + (10.0474381912225)*z(i15) - (1.6490920923983)*z(i16) + (5.93284780135242)*z(i17) - (1.34861176944012)*z(i18)
+     
+      + (10.7271742656987)*z(i19) - (1.56255434799072)*z(i20) + (8.95312979750992)*z(i21) - (6.29883314092633)*z(i22) - (10.0054971639802)*z(i23) + (7.05166275922458)*z(i24) + (4.87495646426734)*z(i25) + potential =E= 0 ;
+     
+      (LHS = -280.877337140142, INFES = 280.877337140142 ****)
+     
+
+---- ball  =E=  points on unit ball
+
+ball(i1)..  (0.47836068318198)*x(i1) + (0.893222972979166)*y(i1) - (1.72433284992426)*z(i1) =E= 1 ; (LHS = 1)
+     
+ball(i2)..  (0.733591411390978)*x(i2) - (1.10514725574174)*y(i2) + (1.49682770693887)*z(i2) =E= 1 ; (LHS = 1)
+     
+ball(i3)..  - (1.64878738869002)*x(i3) - (0.540025879508377)*y(i3) - (0.994923211287165)*z(i3) =E= 1 ; (LHS = 1)
+     
+REMAINING 22 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 5
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+Column Listing      SOLVE elec Using NLP From line 73
+
+
+---- x  x-coordinate of the electron
+
+x(i1)
+                (.LO, .L, .UP, .M = -INF, 0.23918034159099, +INF, 0)
+     (-15.9341) obj
+       (0.4784) ball(i1)
+
+x(i2)
+                (.LO, .L, .UP, .M = -INF, 0.366795705695489, +INF, 0)
+      (10.7789) obj
+       (0.7336) ball(i2)
+
+x(i3)
+                (.LO, .L, .UP, .M = -INF, -0.824393694345008, +INF, 0)
+      (-4.8143) obj
+      (-1.6488) ball(i3)
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- y  y-coordinate of the electron
+
+y(i1)
+                (.LO, .L, .UP, .M = -INF, 0.446611486489583, +INF, 0)
+      (-0.733)  obj
+       (0.8932) ball(i1)
+
+y(i2)
+                (.LO, .L, .UP, .M = -INF, -0.552573627870872, +INF, 0)
+     (-24.0107) obj
+      (-1.1051) ball(i2)
+
+y(i3)
+                (.LO, .L, .UP, .M = -INF, -0.270012939754189, +INF, 0)
+       (5.2018) obj
+      (-0.54)   ball(i3)
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- z  z-coordinate of the electron
+
+z(i1)
+                (.LO, .L, .UP, .M = -INF, -0.862166424962131, +INF, 0)
+     (-19.1863) obj
+      (-1.7243) ball(i1)
+
+z(i2)
+                (.LO, .L, .UP, .M = -INF, 0.748413853469436, +INF, 0)
+      (-8.1807) obj
+       (1.4968) ball(i2)
+
+z(i3)
+                (.LO, .L, .UP, .M = -INF, -0.497461605643583, +INF, 0)
+     (-14.8643) obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 6
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+Column Listing      SOLVE elec Using NLP From line 73
+
+
+     z  z-coordinate of the electron
+
+      (-0.9949) ball(i3)
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- potential  Coulomb potential
+
+potential
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 7
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+Model Statistics    SOLVE elec Using NLP From line 73
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           26
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           76
+NON ZERO ELEMENTS           151     NON LINEAR N-Z            150
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH               4,753
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:32 Page 8
+Distribution of electrons on a sphere COPS 2.0 #2 (ELEC,SEQ=230)
+Solution Report     SOLVE elec Using NLP From line 73
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   elec                OBJECTIVE  potential
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  73
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/elec/convert.opt"
+>>  pyomo elec-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/elec/convert.opt"
+Pyomo     : elec-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/elec/elec.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/elec/elec-scalar.py.lst

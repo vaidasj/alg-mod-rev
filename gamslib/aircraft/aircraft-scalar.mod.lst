@@ -1,0 +1,562 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 2
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+C o m p i l a t i o n
+
+
+   3   
+       
+      The objective of this model is to allocate aircrafts to routes to maximize
+      the expected profit when traffic demand is uncertain. Two different
+      formulations are used, the delta and the lambda formulation.
+       
+       
+      Dantzig, G B, Chapter 28. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  15   
+  16   
+  17   Set i     aircraft types and unassigned passengers / a, b, c, d /
+  18       j     assigned and unassigned routes           / route-1, route-2, route-3, route-4, route-5 /
+  19       h     demand states                            /    1*5     /
+  20   
+  21   Alias(h,hp);
+  22   
+  23   Table  dd(j,h)     demand distribution on route j
+  24   
+  25                1       2      3      4      5
+  26   route-1    200     220    250    270    300
+  27   route-2     50     150
+  28   route-3    140     160    180    200    220
+  29   route-4     10      50     80    100    340
+  30   route-5    580     600    620
+  31   
+  32   Table  lambda(j,h)  probability of demand state h on route j
+  33   
+  34                 1      2      3      4      5
+  35   route-1      .2     .05    .35    .2     .2
+  36   route-2      .3     .7
+  37   route-3      .1     .2     .4     .2     .1
+  38   route-4      .2     .2     .3     .2     .1
+  39   route-5      .1     .8     .1
+  40   
+  41   Table  c(i,j)       costs per aircraft (1000s)
+  42   
+  43            route-1    route-2    route-3     route-4     route-5
+  44   a          18         21         18          16           10
+  45   b                     15         16          14            9
+  46   c                     10                      9            6
+  47   d          17         16         17          15           10
+  48   
+  49   Table  p(i,j)    passenger capacity of aircraft i on route j
+  50   
+  51           route-1     route-2     route-3     route-4     route-5
+  52   a          16         15          28          23          81
+  53   b                     10          14          15          57
+  54   c                      5                       7          29
+  55   d           9         11          22          17          55
+  56   
+  57   Parameter aa(i)      aircraft availability              / a   10, b   19, c   25, d   15 /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 3
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+C o m p i l a t i o n
+
+
+  58             k(j)       revenue lost (1000 per 100  bumped) / (route-1,route-2) 13, (route-3,route-4) 7, route-5 1 /
+  59             ed(j)      expected demand
+  60             gamma(j,h) probability of exceeding demand increment h on route j
+  61             deltb(j,h) incremental passenger load in demand states;
+  62   
+  63   ed(j)      = sum(h, lambda(j,h)*dd(j,h));
+  64   gamma(j,h) = sum(hp$(ord(hp) ge ord(h)), lambda(j,hp));
+  65   deltb(j,h) = (dd(j,h)-dd(j,h-1))$dd(j,h);
+  66   
+  67   Display ed, gamma, deltb;
+  68   
+  69   Positive Variables
+  70     x(i,j)  number of aircraft type i assigned to route j
+  71     y(j,h)  passengers actually carried
+  72     b(j,h)  passengers bumped
+  73     oc      operating cost
+  74     bc      bumping cost
+  75   
+  76   Variable phi     total expected costs
+  77   
+  78   Equations
+  79     ab(i)   aircraft balance
+  80     db(j)   demand balance
+  81     yd(j,h) definition of boarded passengers
+  82     bd(j,h) definition of bumped passengers
+  83     ocd     operating cost definition
+  84     bcd1    bumping cost definition: version 1
+  85     bcd2    bumping cost definition: version 2
+  86     obj     objective function;
+  87   
+  88   ab(i)..   sum(j, x(i,j)) =l= aa(i);
+  89   
+  90   db(j)..   sum(i, p(i,j)*x(i,j)) =g= sum(h$deltb(j,h), y(j,h));
+  91   
+  92   yd(j,h).. y(j,h) =l= sum(i, p(i,j)*x(i,j));
+  93   
+  94   bd(j,h).. b(j,h) =e= dd(j,h) - y(j,h);
+  95   
+  96   ocd..     oc =e= sum((i,j), c(i,j)*x(i,j));
+  97   
+  98   bcd1..    bc =e= sum(j, k(j)*(ed(j)-sum(h, gamma(j,h)*y(j,h))));
+  99   
+ 100   bcd2..    bc =e= sum((j,h), k(j)*lambda(j,h)*b(j,h));
+ 101   
+ 102   obj..     phi =e= oc + bc ;
+ 103   
+ 104   Model  alloc1 aircraft allocation version 1 / ab, db, ocd, bcd1, obj /
+ 105          alloc2 aircraft allocation version 2 / ab, yd, bd, ocd, bcd2, obj / ;
+ 106   
+ 107  * version 1 requires upper bounds on y
+ 108   
+ 109     y.up(j,h) = deltb(j,h)
+ 110   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 4
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+C o m p i l a t i o n
+
+
+ 111   Solve alloc1 minimizing phi using lp; Display y.l;
+ 112   
+ 113     y.up(j,h) = +inf;
+ 114   
+ 115    Solve alloc2 minimizing phi using lp; Display y.l;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 5
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+E x e c u t i o n
+
+
+----     67 PARAMETER ed  expected demand
+
+route-1 252.500,    route-2 120.000,    route-3 180.000,    route-4  90.000,    route-5 600.000
+
+
+----     67 PARAMETER gamma  probability of exceeding demand increment h on route j
+
+                  1           2           3           4           5
+
+route-1       1.000       0.800       0.750       0.400       0.200
+route-2       1.000       0.700
+route-3       1.000       0.900       0.700       0.300       0.100
+route-4       1.000       0.800       0.600       0.300       0.100
+route-5       1.000       0.900       0.100
+
+
+----     67 PARAMETER deltb  incremental passenger load in demand states
+
+                  1           2           3           4           5
+
+route-1     200.000      20.000      30.000      20.000      30.000
+route-2      50.000     100.000
+route-3     140.000      20.000      20.000      20.000      20.000
+route-4      10.000      40.000      30.000      20.000     240.000
+route-5     580.000      20.000      20.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 6
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Equation Listing    SOLVE alloc1 Using LP From line 111
+
+
+---- ab  =L=  aircraft balance
+
+ab(a)..  x(a,route-1) + x(a,route-2) + x(a,route-3) + x(a,route-4) + x(a,route-5) =L= 10 ; (LHS = 0)
+     
+ab(b)..  x(b,route-1) + x(b,route-2) + x(b,route-3) + x(b,route-4) + x(b,route-5) =L= 19 ; (LHS = 0)
+     
+ab(c)..  x(c,route-1) + x(c,route-2) + x(c,route-3) + x(c,route-4) + x(c,route-5) =L= 25 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- db  =G=  demand balance
+
+db(route-1)..  16*x(a,route-1) + 9*x(d,route-1) - y(route-1,1) - y(route-1,2) - y(route-1,3) - y(route-1,4) - y(route-1,5) =G= 0 ; (LHS = 0)
+     
+db(route-2)..  15*x(a,route-2) + 10*x(b,route-2) + 5*x(c,route-2) + 11*x(d,route-2) - y(route-2,1) - y(route-2,2) =G= 0 ; (LHS = 0)
+     
+db(route-3)..  28*x(a,route-3) + 14*x(b,route-3) + 22*x(d,route-3) - y(route-3,1) - y(route-3,2) - y(route-3,3) - y(route-3,4) - y(route-3,5) =G= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- ocd  =E=  operating cost definition
+
+ocd..  - 18*x(a,route-1) - 21*x(a,route-2) - 18*x(a,route-3) - 16*x(a,route-4) - 10*x(a,route-5) - 15*x(b,route-2) - 16*x(b,route-3) - 14*x(b,route-4) - 9*x(b,route-5) - 10*x(c,route-2) - 9*x(c,route-4) - 6*x(c,route-5) - 17*x(d,route-1) - 16*x(d,route-2)
+     
+      - 17*x(d,route-3) - 15*x(d,route-4) - 10*x(d,route-5) + oc =E= 0 ; (LHS = 0)
+     
+
+---- bcd1  =E=  bumping cost definition: version 1
+
+bcd1..  13*y(route-1,1) + 10.4*y(route-1,2) + 9.75*y(route-1,3) + 5.2*y(route-1,4) + 2.6*y(route-1,5) + 13*y(route-2,1) + 9.1*y(route-2,2) + 7*y(route-3,1) + 6.3*y(route-3,2) + 4.9*y(route-3,3) + 2.1*y(route-3,4) + 0.7*y(route-3,5) + 7*y(route-4,1)
+     
+      + 5.6*y(route-4,2) + 4.2*y(route-4,3) + 2.1*y(route-4,4) + 0.7*y(route-4,5) + y(route-5,1) + 0.9*y(route-5,2) + 0.1*y(route-5,3) + bc =E= 7332.5 ; (LHS = 0, INFES = 7332.5 ****)
+     
+
+---- obj  =E=  objective function
+
+obj..  - oc - bc + phi =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 7
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Column Listing      SOLVE alloc1 Using LP From line 111
+
+
+---- x  number of aircraft type i assigned to route j
+
+x(a,route-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(a)
+       16       db(route-1)
+      -18       ocd
+
+x(a,route-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(a)
+       15       db(route-2)
+      -21       ocd
+
+x(a,route-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(a)
+       28       db(route-3)
+      -18       ocd
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- y  passengers actually carried
+
+y(route-1,1)
+                (.LO, .L, .UP, .M = 0, 0, 200, 0)
+       -1       db(route-1)
+       13       bcd1
+
+y(route-1,2)
+                (.LO, .L, .UP, .M = 0, 0, 20, 0)
+       -1       db(route-1)
+       10.4     bcd1
+
+y(route-1,3)
+                (.LO, .L, .UP, .M = 0, 0, 30, 0)
+       -1       db(route-1)
+        9.75    bcd1
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- oc  operating cost
+
+oc
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ocd
+       -1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 8
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Column Listing      SOLVE alloc1 Using LP From line 111
+
+
+---- bc  bumping cost
+
+bc
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bcd1
+       -1       obj
+
+
+---- phi  total expected costs
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 9
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Model Statistics    SOLVE alloc1 Using LP From line 111
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           12
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           43
+NON ZERO ELEMENTS            99
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 10
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Solution Report     SOLVE alloc1 Using LP From line 111
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloc1              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  111
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/aircraft/convert.opt"
+>>  ampl aircraft-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/aircraft/convert.opt"
+Ampl      : aircraft-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 11
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+E x e c u t i o n
+
+
+----    111 VARIABLE y.L  passengers actually carried
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 12
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Equation Listing    SOLVE alloc2 Using LP From line 115
+
+
+---- ab  =L=  aircraft balance
+
+ab(a)..  x(a,route-1) + x(a,route-2) + x(a,route-3) + x(a,route-4) + x(a,route-5) =L= 10 ; (LHS = 0)
+     
+ab(b)..  x(b,route-1) + x(b,route-2) + x(b,route-3) + x(b,route-4) + x(b,route-5) =L= 19 ; (LHS = 0)
+     
+ab(c)..  x(c,route-1) + x(c,route-2) + x(c,route-3) + x(c,route-4) + x(c,route-5) =L= 25 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- yd  =L=  definition of boarded passengers
+
+yd(route-1,1)..  - 16*x(a,route-1) - 9*x(d,route-1) + y(route-1,1) =L= 0 ; (LHS = 0)
+     
+yd(route-1,2)..  - 16*x(a,route-1) - 9*x(d,route-1) + y(route-1,2) =L= 0 ; (LHS = 0)
+     
+yd(route-1,3)..  - 16*x(a,route-1) - 9*x(d,route-1) + y(route-1,3) =L= 0 ; (LHS = 0)
+     
+REMAINING 22 ENTRIES SKIPPED
+
+
+---- bd  =E=  definition of bumped passengers
+
+bd(route-1,1)..  y(route-1,1) + b(route-1,1) =E= 200 ; (LHS = 0, INFES = 200 ****)
+     
+bd(route-1,2)..  y(route-1,2) + b(route-1,2) =E= 220 ; (LHS = 0, INFES = 220 ****)
+     
+bd(route-1,3)..  y(route-1,3) + b(route-1,3) =E= 250 ; (LHS = 0, INFES = 250 ****)
+     
+REMAINING 22 ENTRIES SKIPPED
+
+
+---- ocd  =E=  operating cost definition
+
+ocd..  - 18*x(a,route-1) - 21*x(a,route-2) - 18*x(a,route-3) - 16*x(a,route-4) - 10*x(a,route-5) - 15*x(b,route-2) - 16*x(b,route-3) - 14*x(b,route-4) - 9*x(b,route-5) - 10*x(c,route-2) - 9*x(c,route-4) - 6*x(c,route-5) - 17*x(d,route-1) - 16*x(d,route-2)
+     
+      - 17*x(d,route-3) - 15*x(d,route-4) - 10*x(d,route-5) + oc =E= 0 ; (LHS = 0)
+     
+
+---- bcd2  =E=  bumping cost definition: version 2
+
+bcd2..  - 2.6*b(route-1,1) - 0.65*b(route-1,2) - 4.55*b(route-1,3) - 2.6*b(route-1,4) - 2.6*b(route-1,5) - 3.9*b(route-2,1) - 9.1*b(route-2,2) - 0.7*b(route-3,1) - 1.4*b(route-3,2) - 2.8*b(route-3,3) - 1.4*b(route-3,4) - 0.7*b(route-3,5)
+     
+      - 1.4*b(route-4,1) - 1.4*b(route-4,2) - 2.1*b(route-4,3) - 1.4*b(route-4,4) - 0.7*b(route-4,5) - 0.1*b(route-5,1) - 0.8*b(route-5,2) - 0.1*b(route-5,3) + bc =E= 0 ; (LHS = 0)
+     
+
+---- obj  =E=  objective function
+
+obj..  - oc - bc + phi =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 13
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Column Listing      SOLVE alloc2 Using LP From line 115
+
+
+---- x  number of aircraft type i assigned to route j
+
+x(a,route-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(a)
+      -16       yd(route-1,1)
+      -16       yd(route-1,2)
+      -16       yd(route-1,3)
+      -16       yd(route-1,4)
+      -16       yd(route-1,5)
+      -18       ocd
+
+x(a,route-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(a)
+      -15       yd(route-2,1)
+      -15       yd(route-2,2)
+      -15       yd(route-2,3)
+      -15       yd(route-2,4)
+      -15       yd(route-2,5)
+      -21       ocd
+
+x(a,route-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ab(a)
+      -28       yd(route-3,1)
+      -28       yd(route-3,2)
+      -28       yd(route-3,3)
+      -28       yd(route-3,4)
+      -28       yd(route-3,5)
+      -18       ocd
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- y  passengers actually carried
+
+y(route-1,1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       yd(route-1,1)
+        1       bd(route-1,1)
+
+y(route-1,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       yd(route-1,2)
+        1       bd(route-1,2)
+
+y(route-1,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       yd(route-1,3)
+        1       bd(route-1,3)
+
+REMAINING 22 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 14
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Column Listing      SOLVE alloc2 Using LP From line 115
+
+
+---- b  passengers bumped
+
+b(route-1,1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bd(route-1,1)
+       -2.6     bcd2
+
+b(route-1,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bd(route-1,2)
+       -0.65    bcd2
+
+b(route-1,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bd(route-1,3)
+       -4.55    bcd2
+
+REMAINING 22 ENTRIES SKIPPED
+
+---- oc  operating cost
+
+oc
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       ocd
+       -1       obj
+
+
+---- bc  bumping cost
+
+bc
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bcd2
+       -1       obj
+
+
+---- phi  total expected costs
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 15
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Model Statistics    SOLVE alloc2 Using LP From line 115
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           57
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           73
+NON ZERO ELEMENTS           222
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 16
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+Solution Report     SOLVE alloc2 Using LP From line 115
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   alloc2              OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  115
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/aircraft/convert.opt"
+>>  ampl aircraft-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/aircraft/convert.opt"
+Ampl      : aircraft-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:29 Page 17
+Aircraft allocation under uncertain demand  (AIRCRAF,SEQ=8)
+E x e c u t i o n
+
+
+----    115 VARIABLE y.L  passengers actually carried
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/aircraft/aircraft.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/aircraft/aircraft-scalar.mod.lst

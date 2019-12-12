@@ -1,0 +1,213 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 2
+Simple Warehouse Problem (WHOUSE,SEQ=4)
+C o m p i l a t i o n
+
+
+   4   
+       
+      A warehouse can store limited units of a commodity. Given an
+      initial stock, the manager has to decide when to buy or sell in
+      order to minimize total cost.
+       
+       
+      Dantzig, G B, Chapter 3.6. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  16   
+  17  Set t  time in quarters / q-1 * q-4 /
+  18   
+  19  Parameters
+  20     price(t)  selling price ($ per unit) / q-1 10, q-2 12, q-3 8, q-4 9 /
+  21     istock(t) initial stock (units)      / q-1 50 /
+  22   
+  23  Scalars
+  24     storecost storage cost ($ per quarter per unit)   /  1 /
+  25     storecap  stocking capacity of warehouse (units) / 100 /
+  26   
+  27  Variables
+  28     stock(t)    stock stored at time t     (units)
+  29     sell(t)     stock sold at time t       (units)
+  30     buy(t)      stock bought at time t     (units)
+  31     cost        total cost                   ( $ )
+  32   
+  33  Positive Variables stock,sell,buy
+  34   
+  35  Equations
+  36     sb(t)       stock balance at time t    (units)
+  37     at          accounting: total cost       ( $ );
+  38   
+  39  sb(t)..    stock(t) =e= stock(t-1) + buy(t) - sell(t) + istock(t);
+  40   
+  41  at..  cost =e= sum(t, price(t)*(buy(t)-sell(t)) + storecost*stock(t));
+  42   
+  43  stock.up(t) = storecap;
+  44   
+  45  Model swp simple warehouse problem / all /;
+  46   
+  47  Solve swp minimizing cost using lp;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 3
+Simple Warehouse Problem (WHOUSE,SEQ=4)
+Equation Listing    SOLVE swp Using LP From line 47
+
+
+---- sb  =E=  stock balance at time t    (units)
+
+sb(q-1)..  stock(q-1) + sell(q-1) - buy(q-1) =E= 50 ; (LHS = 0, INFES = 50 ****)
+     
+sb(q-2)..  - stock(q-1) + stock(q-2) + sell(q-2) - buy(q-2) =E= 0 ; (LHS = 0)
+     
+sb(q-3)..  - stock(q-2) + stock(q-3) + sell(q-3) - buy(q-3) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- at  =E=  accounting: total cost       ( $ )
+
+at..  - stock(q-1) - stock(q-2) - stock(q-3) - stock(q-4) + 10*sell(q-1) + 12*sell(q-2) + 8*sell(q-3) + 9*sell(q-4) - 10*buy(q-1) - 12*buy(q-2) - 8*buy(q-3) - 9*buy(q-4) + cost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 4
+Simple Warehouse Problem (WHOUSE,SEQ=4)
+Column Listing      SOLVE swp Using LP From line 47
+
+
+---- stock  stock stored at time t     (units)
+
+stock(q-1)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        1       sb(q-1)
+       -1       sb(q-2)
+       -1       at
+
+stock(q-2)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        1       sb(q-2)
+       -1       sb(q-3)
+       -1       at
+
+stock(q-3)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        1       sb(q-3)
+       -1       sb(q-4)
+       -1       at
+
+REMAINING ENTRY SKIPPED
+
+---- sell  stock sold at time t       (units)
+
+sell(q-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       sb(q-1)
+       10       at
+
+sell(q-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       sb(q-2)
+       12       at
+
+sell(q-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       sb(q-3)
+        8       at
+
+REMAINING ENTRY SKIPPED
+
+---- buy  stock bought at time t     (units)
+
+buy(q-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       sb(q-1)
+      -10       at
+
+buy(q-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       sb(q-2)
+      -12       at
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 5
+Simple Warehouse Problem (WHOUSE,SEQ=4)
+Column Listing      SOLVE swp Using LP From line 47
+
+
+     buy  stock bought at time t     (units)
+
+buy(q-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       sb(q-3)
+       -8       at
+
+REMAINING ENTRY SKIPPED
+
+---- cost  total cost                   ( $ )
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       at
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 6
+Simple Warehouse Problem (WHOUSE,SEQ=4)
+Model Statistics    SOLVE swp Using LP From line 47
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            28
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:28 Page 7
+Simple Warehouse Problem (WHOUSE,SEQ=4)
+Solution Report     SOLVE swp Using LP From line 47
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   swp                 OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  47
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/whouse/convert.opt"
+>>  gams whouse-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/whouse/convert.opt"
+Gams      : whouse-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/whouse/whouse.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/whouse/whouse-scalar.gms.lst

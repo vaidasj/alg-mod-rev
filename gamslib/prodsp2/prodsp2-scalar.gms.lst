@@ -1,0 +1,1406 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 2
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+C o m p i l a t i o n
+
+
+       
+      The problem consists of determining the product mix for a furniture shop with two
+      workstations: carpentry and finishing. The availability of labor in man-hours at
+      the two stations is limited. There are four product classes, each consuming a
+      certain number of man-hours at the two stations. Each product earns a certain
+      profit and the shop has the option to purchase labor from outside. The objective
+      is to maximize the profit.
+       
+      The problem is solved for 300 scenarios.
+       
+      See also PRODSP.
+       
+       
+      King, A J, Stochastic Programming Problems: Examples from the
+      Literature. In Ermoliev, Y, and Wets, R J, Eds, Numerical
+      Techniques for Stochastic Optimization Problems. Springer Verlag,
+      1988, pp. 543-567.
+       
+  24   
+  26   
+  27   
+  28  Sets i product class / class-1*class-4 /
+  29       j workstation   / work-1 *work-2  /
+  30       s Nodes         / s1*s300 /
+  31   
+  32  Parameters c(i) profit / class-1 12,class-2 20, class-3 18, class-4 40 /
+  33             q(j) cost   / work-1 5, work-2 10 /
+  34             h(j,s)   available labor
+  35             t(j,i,s) labor required
+  36   
+  37  table trand(j,*,i) min and max values
+  38              class-1 class-2 class-3 class-4
+  39  work-1.min    3.5    8         6      9
+  40  work-1.max    4.5   10         8     11
+  41  work-2.min     .8     .8       2.5   36
+  42  work-2.max    1.2    1.2       3.5   44 ;
+  43   
+  44  t(j,i,s) = uniform(trand(j,'min',i),trand(j,'max',i));
+  45   
+  46  h('work-1',s) = normal(6000,100);
+  47  h('work-2',s) = normal(4000, 50);
+  48   
+  49   
+  50  *--------------------------------------------------------------------------
+  51  * first the original deterministic equivalent
+  52  * this is a straight LP
+  53  *--------------------------------------------------------------------------
+  54   
+  55  Variables EProfit  expected profit
+  56            x(i)     products sold
+  57            v(j,s)   labor purchased
+  58  positive variable x,v
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 3
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+C o m p i l a t i o n
+
+
+  60  Equations obj       expected cost definition
+  61            lbal(j,s) labor balance;
+  62   
+  63  obj.. EProfit =e=  sum(i, c(i)*x(i)) - 1/card(s)*sum((j,s), q(j)*v(j,s));
+  64   
+  65  lbal(j,s).. sum(i, t(j,i,s)*x(i)) =l= h(j,s) + v(j,s);
+  66   
+  67   
+  68  model mix universe model / obj, lbal /;
+  69   
+  70  mix.solprint$(card(s) > 10) = 2;
+  71   
+  72  solve mix using lp maximizing eprofit;
+  73   
+  74  display eprofit.l,x.l;
+  75   
+  76  parameter stage1(*,i) hold the stage 1 results;
+  77   
+  78  stage1('deterministic',i) = x.l(i);
+  79   
+  80  *--------------------------------------------------------------------------
+  81  * Now the DECIS formulation
+  82  *--------------------------------------------------------------------------
+  83   
+  84  Equations
+  85    obj2      cost function
+  86    lbal2(j)  labor balance
+  87    extra     prevent unbounded relaxed master problem
+  88  ;
+  89   
+  90  variables
+  91    profit    to be maximized
+  92    v2(j)     labor purchased
+  93  ;
+  94  positive variable v2;
+  95   
+  96  parameter t2(j,i) mean values;
+  97  t2(j,i) = (trand(j,'min',i) + trand(j,'max',i))/2;
+  98   
+  99  parameter h2(j) mean values / work-1 6000, work-2 4000 /;
+ 100   
+ 101   
+ 102  obj2.. profit =e= sum(i, c(i)*x(i)) - sum(j, q(j)*v2(j));
+ 103  lbal2(j).. sum(i, t2(j,i)*x(i)) =l= h2(j) + v2(j);
+ 104   
+ 105  extra.. sum(i, c(i)*x(i)) =l= 1000000;
+ 106   
+ 107  model mix2 decis model /obj2,lbal2, extra/;
+ 108   
+ 109  * output the stochastic file using the scenarios
+ 110  * calculated above. This generates a large stochastic file.
+ 111  file stg / MODEL.STG /;
+ 112  put stg;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 4
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+C o m p i l a t i o n
+
+
+ 113  put 'BLOCKS DISCRETE'/;
+ 114  loop(s,
+ 115       put 'BL BLOCK1 PERIOD2 ',(1/card(s)):8:6/;
+ 116       loop((i,j),
+ 117            put 'x ',i.tl,' lbal2 ',j.tl,' ',t(j,i,s):12:6/;
+ 118       );
+ 119       loop(j,
+ 120           put 'RHS lbal2 ',j.tl,' ',h(j,s):12:6/;
+ 121       );
+ 122  );
+ 123  putclose;
+ 124   
+ 125   
+ 126  *output a MINOS option file
+ 127   
+ 128  file mopt / MINOS.SPC /;
+ 129  put mopt;
+ 130  put "begin"/;
+ 131  put "rows 1000"/;
+ 132  put "columns 1000"/;
+ 133  put "elements 100000"/;
+ 134  put "end"/;
+ 135  putclose;
+ 136   
+ 137  *assign stages
+ 138  x.stage(i) = 1;
+ 139  v2.stage(j) = 2;
+ 140  lbal2.stage(j) = 2;
+ 141  extra.stage=1;
+ 142   
+ 143  option lp=decism;
+ 144  solve mix2 using lp maximizing profit;
+ 145   
+ 146   
+ 147  stage1('decis using scenarios',i) = x.l(i);
+ 148   
+ 149  *--------------------------------------------------------------------------
+ 150  * Let DECIS solve the model exactly
+ 151  * Stochastic Universe option: 4 "ISTRAT"
+ 152  *--------------------------------------------------------------------------
+ 153   
+ 154  file decopt / decism.opt /;
+ 155  put decopt;
+ 156  put '4 "ISTRAT"'/;
+ 157  putclose;
+ 158   
+ 159  mix2.optfile=1;
+ 160   
+ 161  solve mix2 using lp maximizing profit;
+ 162   
+ 163   
+ 164  stage1('decis using scenarios, exact',i) = x.l(i);
+ 165   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 5
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+C o m p i l a t i o n
+
+
+ 166   
+ 167   
+ 168   
+ 169  *--------------------------------------------------------------------------
+ 170  * Better use of the stochastic file: independent distributions
+ 171  *--------------------------------------------------------------------------
+ 172   
+ 173  scalar p;
+ 174  p = 1/card(s);
+ 175   
+ 176  put stg;
+ 177  put 'INDEP DISCRETE'/;
+ 178  loop((i,j),
+ 179       loop(s,
+ 180            put 'x ',i.tl,' lbal2 ',j.tl,' ',t(j,i,s):12:6,' PERIOD2 ',p:8:6/;
+ 181      );
+ 182  );
+ 183  loop(j,
+ 184       loop(s,
+ 185            put 'RHS lbal2 ',j.tl,' ',h(j,s):12:6,' PERIOD2 ',p:8:6/;
+ 186       );
+ 187  );
+ 188  putclose;
+ 189   
+ 190   
+ 191  * this problem is way too big to solve exactly so turn off the
+ 192  * option strategy 4.
+ 193  mix2.optfile=0;
+ 194   
+ 195  solve mix2 using lp maximizing profit;
+ 196   
+ 197  stage1('decis indep. dist.',i) = x.l(i);
+ 198   
+ 199  display stage1;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 7
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Model Analysis      SOLVE mix Using LP From line 72
+
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 8
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+E x e c u t i o n
+
+
+----     74 VARIABLE EProfit.L             =        0.000  expected profit
+
+----     74 VARIABLE x.L  products sold
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:22 Page 9
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Equation Listing    SOLVE mix2 Using LP From line 144
+
+
+---- obj2  =E=  cost function
+
+obj2..  - 12*x(class-1) - 20*x(class-2) - 18*x(class-3) - 40*x(class-4) + profit + 5*v2(work-1) + 10*v2(work-2) =E= 0 ; (LHS = 0)
+     
+
+---- lbal2  =L=  labor balance
+
+lbal2(work-1)..  4*x(class-1) + 9*x(class-2) + 7*x(class-3) + 10*x(class-4) - v2(work-1) =L= 6000 ; (LHS = 0)
+     
+lbal2(work-2)..  x(class-1) + x(class-2) + 3*x(class-3) + 40*x(class-4) - v2(work-2) =L= 4000 ; (LHS = 0)
+     
+
+---- extra  =L=  prevent unbounded relaxed master problem
+
+extra..  12*x(class-1) + 20*x(class-2) + 18*x(class-3) + 40*x(class-4) =L= 1000000 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 10
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Column Listing      SOLVE mix2 Using LP From line 144
+
+
+---- x  products sold
+
+x(class-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -12       obj2
+        4       lbal2(work-1)
+        1       lbal2(work-2)
+       12       extra
+
+x(class-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -20       obj2
+        9       lbal2(work-1)
+        1       lbal2(work-2)
+       20       extra
+
+x(class-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -18       obj2
+        7       lbal2(work-1)
+        3       lbal2(work-2)
+       18       extra
+
+REMAINING ENTRY SKIPPED
+
+---- profit  to be maximized
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj2
+
+
+---- v2  labor purchased
+
+v2(work-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        5       obj2
+       -1       lbal2(work-1)
+
+v2(work-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       10       obj2
+       -1       lbal2(work-2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 11
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Model Statistics    SOLVE mix2 Using LP From line 144
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            4
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            21
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 12
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 144
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mix2                OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  DECISM              FROM LINE  144
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            17869.1561
+
+ RESOURCE USAGE, LIMIT          0.090      1000.000
+ ITERATION COUNT, LIMIT        20    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  4
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 13
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 144
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   1
+ jsum:   300
+ itoc:   300
+ itele:  3000
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000005  R0000003   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     1000
+ columss:  1000
+ elements: 100000
+
+ nwcore1:  9019019
+ nwcore2:  3075
+ nwcore :  9025169
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 4 cols 6 nonz 20
+ master: rows 2 cols 5 nonz 8
+ B:      rows 3 cols 4 nonz 8
+ sub:    rows 3 cols 2 nonz 4
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 3 cols: 4 nonz: 8
+ Successful input of stochastic file:
+ Independent random parameters:  1
+ Total number of outcomes     :  3000
+ Universe scenarios           :   300.
+ start benders universe solution
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.001E+09
+ objm -1000000.
+ theta : -1.E+09
+ evaluating w/ universe
+ solve master, iteration:  1
+ master objective:  -70055.1871
+ lower bnd.: -70055.1871  var.:  0.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 14
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 144
+
+
+ upper bnd.:  1408804.8  var.:  0.
+ objm -7.8100129E-08
+ evaluating w/ universe
+ solve master, iteration:  2
+ master objective:  -28261.0504
+ lower bnd.: -28261.0504  var.:  0.
+ upper bnd.: -7.8100129E-08  var.:  0.
+ objm -28261.0504
+ evaluating w/ universe
+ solve master, iteration:  3
+ master objective:  -18839.5609
+ lower bnd.: -18839.5609  var.:  0.
+ upper bnd.: -11663.9343  var.:  0.
+ objm -18839.5609
+ evaluating w/ universe
+ solve master, iteration:  4
+ master objective:  -18748.8023
+ lower bnd.: -18748.8023  var.:  0.
+ upper bnd.: -17084.5723  var.:  0.
+ objm -18748.8023
+ evaluating w/ universe
+ solve master, iteration:  5
+ master objective:  -18137.2135
+ lower bnd.: -18137.2135  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -18295.6259
+ evaluating w/ universe
+ solve master, iteration:  6
+ master objective:  -17958.8782
+ lower bnd.: -17958.8782  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -19874.4827
+ evaluating w/ universe
+ solve master, iteration:  7
+ master objective:  -17910.2979
+ lower bnd.: -17910.2979  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -19325.062
+ evaluating w/ universe
+ solve master, iteration:  8
+ master objective:  -17884.281
+ lower bnd.: -17884.281  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -19030.822
+ evaluating w/ universe
+ solve master, iteration:  9
+ master objective:  -17881.904
+ lower bnd.: -17881.904  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19210.5418
+ evaluating w/ universe
+ solve master, iteration:  10
+ master objective:  -17876.7903
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 15
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 144
+
+
+ lower bnd.: -17876.7903  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19068.2105
+ evaluating w/ universe
+ solve master, iteration:  11
+ master objective:  -17873.4324
+ lower bnd.: -17873.4324  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -18974.7497
+ evaluating w/ universe
+ solve master, iteration:  12
+ master objective:  -17872.3009
+ lower bnd.: -17872.3009  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19175.5995
+ evaluating w/ universe
+ solve master, iteration:  13
+ master objective:  -17871.1264
+ lower bnd.: -17871.1264  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19056.8008
+ evaluating w/ universe
+ solve master, iteration:  14
+ master objective:  -17870.2659
+ lower bnd.: -17870.2659  var.:  0.
+ upper bnd.: -17868.7017  var.:  0.
+ objm -18969.7623
+ evaluating w/ universe
+ solve master, iteration:  15
+ master objective:  -17869.9822
+ lower bnd.: -17869.9822  var.:  0.
+ upper bnd.: -17868.9032  var.:  0.
+ objm -19018.7716
+ evaluating w/ universe
+ solve master, iteration:  16
+ master objective:  -17869.2444
+ lower bnd.: -17869.2444  var.:  0.
+ upper bnd.: -17869.1289  var.:  0.
+ objm -18983.2142
+ evaluating w/ universe
+ solve master, iteration:  17
+ master objective:  -17869.2246
+ lower bnd.: -17869.2246  var.:  0.
+ upper bnd.: -17869.1289  var.:  0.
+ objm -19010.1332
+ evaluating w/ universe
+ solve master, iteration:  18
+ master objective:  -17869.1563
+ lower bnd.: -17869.1563  var.:  0.
+ upper bnd.: -17869.1289  var.:  0.
+ objm -18987.9317
+ evaluating w/ universe
+ solve master, iteration:  19
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 16
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 144
+
+
+ master objective:  -17869.1561
+ lower bnd.: -17869.1561  var.:  0.
+ upper bnd.: -17869.1444  var.:  0.
+ objm -18990.0919
+ evaluating w/ universe
+ solve master, iteration:  20
+ master objective:  -17869.1561
+ lower bnd.: -17869.1561  var.:  0.
+ upper bnd.: -17869.1561  var.:  0.
+ objm -18990.0919
+ re-evaluating best solution for upper bnd
+ evaluating w/ universe
+ upper bnd.: -17869.1561 var.:  0.
+  solution :
+  obj :  -17869.1561
+ x1p( 1):   1395.39641
+ x1p( 4):   56.1333751
+ x1p( 5):   1120.93582
+ theta:   1120.93582 zsub:   1120.93582
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obj2                .              .              .             1.0000      
+
+  obj2  cost function
+
+---- EQU lbal2  labor balance
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+work-1        -INF         -222.7778      6000.0000        -2.7831      
+work-2        -INF           -0.7047      4000.0000        -0.2666      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU extra             -INF        18990.0919   1000000.0000          .          
+
+  extra  prevent unbounded relaxed master problem
+
+---- VAR x  products sold
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+class-1          .          1395.3964        +INF             .          
+class-2          .              .            +INF            5.3899      
+class-3          .              .            +INF            2.4284      
+class-4          .            56.1334        +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 17
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 144
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR profit            -INF        17869.1561        +INF           -1.0000      
+
+  profit  to be maximized
+
+---- VAR v2  labor purchased
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+work-1          .           222.7778        +INF            2.2164      
+work-2          .             0.7047        +INF            9.7324      
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 18
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Equation Listing    SOLVE mix2 Using LP From line 161
+
+
+---- obj2  =E=  cost function
+
+obj2..  - 12*x(class-1) - 20*x(class-2) - 18*x(class-3) - 40*x(class-4) + profit + 5*v2(work-1) + 10*v2(work-2) =E= 0 ; (LHS = -1.94426174857654E-5, INFES = 1.94426174857654E-5 ****)
+     
+
+---- lbal2  =L=  labor balance
+
+lbal2(work-1)..  4*x(class-1) + 9*x(class-2) + 7*x(class-3) + 10*x(class-4) - v2(work-1) =L= 6000 ; (LHS = 5920.1416420911)
+     
+lbal2(work-2)..  x(class-1) + x(class-2) + 3*x(class-3) + 40*x(class-4) - v2(work-2) =L= 4000 ; (LHS = 3640.02670997255)
+     
+
+---- extra  =L=  prevent unbounded relaxed master problem
+
+extra..  12*x(class-1) + 20*x(class-2) + 18*x(class-3) + 40*x(class-4) =L= 1000000 ; (LHS = 18990.0919395296)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 19
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Column Listing      SOLVE mix2 Using LP From line 161
+
+
+---- x  products sold
+
+x(class-1)
+                (.LO, .L, .UP, .M = 0, 1395.396411328, +INF, 0)
+      -12       obj2
+        4       lbal2(work-1)
+        1       lbal2(work-2)
+       12       extra
+
+x(class-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 5.389904589628)
+      -20       obj2
+        9       lbal2(work-1)
+        1       lbal2(work-2)
+       20       extra
+
+x(class-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 2.4283553462)
+      -18       obj2
+        7       lbal2(work-1)
+        3       lbal2(work-2)
+       18       extra
+
+REMAINING ENTRY SKIPPED
+
+---- profit  to be maximized
+
+profit
+                (.LO, .L, .UP, .M = -INF, 17869.1561, +INF, -1)
+        1       obj2
+
+
+---- v2  labor purchased
+
+v2(work-1)
+                (.LO, .L, .UP, .M = 0, 222.7777541193, +INF, 2.216445)
+        5       obj2
+       -1       lbal2(work-1)
+
+v2(work-2)
+                (.LO, .L, .UP, .M = 0, 0.7047049490481, +INF, 9.73236)
+       10       obj2
+       -1       lbal2(work-2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 20
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Model Statistics    SOLVE mix2 Using LP From line 161
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            4
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            21
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 21
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 161
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mix2                OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  DECISM              FROM LINE  161
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            17869.1561
+
+ RESOURCE USAGE, LIMIT          0.080      1000.000
+ ITERATION COUNT, LIMIT        20    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  4
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 22
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 161
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   1
+ jsum:   300
+ itoc:   300
+ itele:  3000
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000005  R0000003   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     1000
+ columss:  1000
+ elements: 100000
+
+ nwcore1:  9019019
+ nwcore2:  3075
+ nwcore :  9025169
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 4 cols 6 nonz 20
+ master: rows 2 cols 5 nonz 8
+ B:      rows 3 cols 4 nonz 8
+ sub:    rows 3 cols 2 nonz 4
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 3 cols: 4 nonz: 8
+ Successful input of stochastic file:
+ Independent random parameters:  1
+ Total number of outcomes     :  3000
+ Universe scenarios           :   300.
+ start benders universe solution
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.001E+09
+ objm -1000000.
+ theta : -1.E+09
+ evaluating w/ universe
+ solve master, iteration:  1
+ master objective:  -70055.1871
+ lower bnd.: -70055.1871  var.:  0.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 23
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 161
+
+
+ upper bnd.:  1408804.8  var.:  0.
+ objm -7.8100129E-08
+ evaluating w/ universe
+ solve master, iteration:  2
+ master objective:  -28261.0504
+ lower bnd.: -28261.0504  var.:  0.
+ upper bnd.: -7.8100129E-08  var.:  0.
+ objm -28261.0504
+ evaluating w/ universe
+ solve master, iteration:  3
+ master objective:  -18839.5609
+ lower bnd.: -18839.5609  var.:  0.
+ upper bnd.: -11663.9343  var.:  0.
+ objm -18839.5609
+ evaluating w/ universe
+ solve master, iteration:  4
+ master objective:  -18748.8023
+ lower bnd.: -18748.8023  var.:  0.
+ upper bnd.: -17084.5723  var.:  0.
+ objm -18748.8023
+ evaluating w/ universe
+ solve master, iteration:  5
+ master objective:  -18137.2135
+ lower bnd.: -18137.2135  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -18295.6259
+ evaluating w/ universe
+ solve master, iteration:  6
+ master objective:  -17958.8782
+ lower bnd.: -17958.8782  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -19874.4827
+ evaluating w/ universe
+ solve master, iteration:  7
+ master objective:  -17910.2979
+ lower bnd.: -17910.2979  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -19325.062
+ evaluating w/ universe
+ solve master, iteration:  8
+ master objective:  -17884.281
+ lower bnd.: -17884.281  var.:  0.
+ upper bnd.: -17853.8691  var.:  0.
+ objm -19030.822
+ evaluating w/ universe
+ solve master, iteration:  9
+ master objective:  -17881.904
+ lower bnd.: -17881.904  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19210.5418
+ evaluating w/ universe
+ solve master, iteration:  10
+ master objective:  -17876.7903
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 24
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 161
+
+
+ lower bnd.: -17876.7903  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19068.2105
+ evaluating w/ universe
+ solve master, iteration:  11
+ master objective:  -17873.4324
+ lower bnd.: -17873.4324  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -18974.7497
+ evaluating w/ universe
+ solve master, iteration:  12
+ master objective:  -17872.3009
+ lower bnd.: -17872.3009  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19175.5995
+ evaluating w/ universe
+ solve master, iteration:  13
+ master objective:  -17871.1264
+ lower bnd.: -17871.1264  var.:  0.
+ upper bnd.: -17868.463  var.:  0.
+ objm -19056.8008
+ evaluating w/ universe
+ solve master, iteration:  14
+ master objective:  -17870.2659
+ lower bnd.: -17870.2659  var.:  0.
+ upper bnd.: -17868.7017  var.:  0.
+ objm -18969.7623
+ evaluating w/ universe
+ solve master, iteration:  15
+ master objective:  -17869.9822
+ lower bnd.: -17869.9822  var.:  0.
+ upper bnd.: -17868.9032  var.:  0.
+ objm -19018.7716
+ evaluating w/ universe
+ solve master, iteration:  16
+ master objective:  -17869.2444
+ lower bnd.: -17869.2444  var.:  0.
+ upper bnd.: -17869.1289  var.:  0.
+ objm -18983.2142
+ evaluating w/ universe
+ solve master, iteration:  17
+ master objective:  -17869.2246
+ lower bnd.: -17869.2246  var.:  0.
+ upper bnd.: -17869.1289  var.:  0.
+ objm -19010.1332
+ evaluating w/ universe
+ solve master, iteration:  18
+ master objective:  -17869.1563
+ lower bnd.: -17869.1563  var.:  0.
+ upper bnd.: -17869.1289  var.:  0.
+ objm -18987.9317
+ evaluating w/ universe
+ solve master, iteration:  19
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 25
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 161
+
+
+ master objective:  -17869.1561
+ lower bnd.: -17869.1561  var.:  0.
+ upper bnd.: -17869.1444  var.:  0.
+ objm -18990.0919
+ evaluating w/ universe
+ solve master, iteration:  20
+ master objective:  -17869.1561
+ lower bnd.: -17869.1561  var.:  0.
+ upper bnd.: -17869.1561  var.:  0.
+ objm -18990.0919
+ re-evaluating best solution for upper bnd
+ evaluating w/ universe
+ upper bnd.: -17869.1561 var.:  0.
+  solution :
+  obj :  -17869.1561
+ x1p( 1):   1395.39641
+ x1p( 4):   56.1333751
+ x1p( 5):   1120.93582
+ theta:   1120.93582 zsub:   1120.93582
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obj2                .              .              .             1.0000      
+
+  obj2  cost function
+
+---- EQU lbal2  labor balance
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+work-1        -INF         -222.7778      6000.0000        -2.7831      
+work-2        -INF           -0.7047      4000.0000        -0.2666      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU extra             -INF        18990.0919   1000000.0000          .          
+
+  extra  prevent unbounded relaxed master problem
+
+---- VAR x  products sold
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+class-1          .          1395.3964        +INF             .          
+class-2          .              .            +INF            5.3899      
+class-3          .              .            +INF            2.4284      
+class-4          .            56.1334        +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 26
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 161
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR profit            -INF        17869.1561        +INF           -1.0000      
+
+  profit  to be maximized
+
+---- VAR v2  labor purchased
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+work-1          .           222.7778        +INF            2.2164      
+work-2          .             0.7047        +INF            9.7324      
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 27
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Equation Listing    SOLVE mix2 Using LP From line 195
+
+
+---- obj2  =E=  cost function
+
+obj2..  - 12*x(class-1) - 20*x(class-2) - 18*x(class-3) - 40*x(class-4) + profit + 5*v2(work-1) + 10*v2(work-2) =E= 0 ; (LHS = -1.94426174857654E-5, INFES = 1.94426174857654E-5 ****)
+     
+
+---- lbal2  =L=  labor balance
+
+lbal2(work-1)..  4*x(class-1) + 9*x(class-2) + 7*x(class-3) + 10*x(class-4) - v2(work-1) =L= 6000 ; (LHS = 5920.1416420911)
+     
+lbal2(work-2)..  x(class-1) + x(class-2) + 3*x(class-3) + 40*x(class-4) - v2(work-2) =L= 4000 ; (LHS = 3640.02670997255)
+     
+
+---- extra  =L=  prevent unbounded relaxed master problem
+
+extra..  12*x(class-1) + 20*x(class-2) + 18*x(class-3) + 40*x(class-4) =L= 1000000 ; (LHS = 18990.0919395296)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 28
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Column Listing      SOLVE mix2 Using LP From line 195
+
+
+---- x  products sold
+
+x(class-1)
+                (.LO, .L, .UP, .M = 0, 1395.396411328, +INF, 0)
+      -12       obj2
+        4       lbal2(work-1)
+        1       lbal2(work-2)
+       12       extra
+
+x(class-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 5.389904589628)
+      -20       obj2
+        9       lbal2(work-1)
+        1       lbal2(work-2)
+       20       extra
+
+x(class-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 2.4283553462)
+      -18       obj2
+        7       lbal2(work-1)
+        3       lbal2(work-2)
+       18       extra
+
+REMAINING ENTRY SKIPPED
+
+---- profit  to be maximized
+
+profit
+                (.LO, .L, .UP, .M = -INF, 17869.1561, +INF, -1)
+        1       obj2
+
+
+---- v2  labor purchased
+
+v2(work-1)
+                (.LO, .L, .UP, .M = 0, 222.7777541193, +INF, 2.216445)
+        5       obj2
+       -1       lbal2(work-1)
+
+v2(work-2)
+                (.LO, .L, .UP, .M = 0, 0.7047049490481, +INF, 9.73236)
+       10       obj2
+       -1       lbal2(work-2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 29
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Model Statistics    SOLVE mix2 Using LP From line 195
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            4
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            21
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.012 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 30
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 195
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mix2                OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  DECISM              FROM LINE  195
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            17845.6087
+
+ RESOURCE USAGE, LIMIT          0.140      1000.000
+ ITERATION COUNT, LIMIT         8    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  3
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 31
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 195
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   10
+ jsum:   3000
+ itoc:   300
+ itele:  3000
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000005  R0000003   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     1000
+ columss:  1000
+ elements: 100000
+
+ nwcore1:  9019019
+ nwcore2:  3075
+ nwcore :  9025169
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 4 cols 6 nonz 20
+ master: rows 2 cols 5 nonz 8
+ B:      rows 3 cols 4 nonz 8
+ sub:    rows 3 cols 2 nonz 4
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 3 cols: 4 nonz: 8
+ Successful input of stochastic file:
+ Independent random parameters:  10
+ Total number of outcomes     :  3000
+ Universe scenarios           :   5.9049E+24
+ start deterministic benders (exp.values)
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.001E+09
+ objm -1000000.
+ theta : -1.E+09
+ evaluating w/ expected values
+ sub obj:  2408804.8
+ solve master, iteration:  1
+ master objective:  -70055.1871
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 32
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 195
+
+
+ lower bnd.: -70055.1871  var.:  0.
+ upper bnd.:  1408804.8  var.:  0.
+ objm -7.83911673E-08
+ evaluating w/ expected values
+ sub obj:  0.
+ solve master, iteration:  2
+ master objective:  -28261.0504
+ lower bnd.: -28261.0504  var.:  0.
+ upper bnd.: -7.83911673E-08  var.:  0.
+ objm -28261.0504
+ evaluating w/ expected values
+ sub obj:  16597.1161
+ solve master, iteration:  3
+ master objective:  -18839.5609
+ lower bnd.: -18839.5609  var.:  0.
+ upper bnd.: -11663.9343  var.:  0.
+ objm -18839.5609
+ evaluating w/ expected values
+ sub obj:  0.
+ solve master, iteration:  4
+ master objective:  -18839.5609
+ lower bnd.: -18839.5609  var.:  0.
+ upper bnd.: -18839.5609  var.:  0.
+ objm -18839.5609
+ re-evaluating best solution for upper bnd
+ evaluating w/ expected values
+ sub obj:  0.
+ upper bnd.: -18839.5609 var.:  0.
+  solution :
+  obj :  -18839.5609
+ x1p( 1):   1347.34046
+ x1p( 4):   66.7868865
+ theta:   0. zsub:   0.
+ start benders w/ importance sampling
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -18839.5609
+ objm -18839.5609
+ theta :  0.
+ evaluating w/ importance sampling
+ solve master, iteration:  5
+ master objective:  -18751.8309
+ lower bnd.: -18751.8309  var.:  20.0996427
+ upper bnd.: -17002.9493  var.:  8808.98798
+ objm -18751.8309
+ evaluating w/ importance sampling
+ solve master, iteration:  6
+ master objective:  -18141.64
+ lower bnd.: -18141.64  var.:  648.326159
+ upper bnd.: -17918.5013  var.:  1181.84073
+ objm -19720.9969
+ evaluating w/ importance sampling
+ solve master, iteration:  7
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 33
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 195
+
+
+ master objective:  -18072.7764
+ lower bnd.: -18072.7764  var.:  712.295921
+ upper bnd.: -17918.5013  var.:  1181.84073
+ objm -19621.7077
+ evaluating w/ importance sampling
+ solve master, iteration:  8
+ master objective:  -17888.7849
+ lower bnd.: -17888.7849  var.:  606.302281
+ upper bnd.: -17918.5013  var.:  1181.84073
+ objm -18490.8696
+ nzrows, irm, imax: 100 2 8
+ number of binding cuts: 3
+ number of cuts: 8
+ sigma estimated:  1181.84073
+ kalpha:  .983047572
+ kt:  2.12304688
+ lbworst:  72.9859156
+ re-evaluating best solution for upper bnd
+ evaluating w/ importance sampling
+ upper bnd.: -17845.6087 var.:  1849.21271
+  solution :
+  obj :  -17845.6087
+ x1p( 1):   1370.54793
+ x1p( 4):   57.631391
+ theta:   602.084652 zsub:   906.222112
+ 95% confidence interval   : -17961.7708 -17774.6547
+ 95% confidence interval % :   .650928151 -.397599662
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obj2                .              .              .             1.0000      
+
+  obj2  cost function
+
+---- EQU lbal2  labor balance
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+work-1        -INF         -179.8521      6000.0000        -2.1840      
+work-2        -INF           -0.6962      4000.0000        -0.2372      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU extra             -INF        18751.8309   1000000.0000          .          
+
+  extra  prevent unbounded relaxed master problem
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 34
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+Solution Report     SOLVE mix2 Using LP From line 195
+
+
+---- VAR x  products sold
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+class-1          .          1370.5479        +INF             .          
+class-2          .              .            +INF            6.7620      
+class-3          .              .            +INF            3.4476      
+class-4          .            57.6314        +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR profit            -INF        17845.6087        +INF           -1.0000      
+
+  profit  to be maximized
+
+---- VAR v2  labor purchased
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+work-1          .           179.8521        +INF            0.2544      
+work-2          .             0.6962        +INF            4.6395      
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:22 Page 35
+Stochastic Programming Example, reformulated for GAMS/DECIS (PRODSP2,SEQ=200)
+E x e c u t i o n
+
+
+----    199 PARAMETER stage1  hold the stage 1 results
+
+                                 class-1     class-4
+
+decis using scenarios           1395.396      56.133
+decis using scenarios, exact    1395.396      56.133
+decis indep. dist.              1370.548      57.631
+
+
+**** REPORT FILE SUMMARY
+
+stg /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/MODEL.STG
+mopt /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/MINOS.SPC
+decopt /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/decism.opt
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/prodsp2.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/prodsp2/prodsp2-scalar.gms.lst

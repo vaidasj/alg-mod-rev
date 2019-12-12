@@ -1,0 +1,562 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 2
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+C o m p i l a t i o n
+
+
+      Given a sequence of 0 & 1 observations,  {c(t)},
+      We wish to find the linear recursive sequence defined by:
+       
+         k(t) = k(t-n) xor k(t-(n-r))    (mod 2),   for t = n+1,2, ... t
+       
+      that minimizes the number of disagreements between c(t) and k(t).
+       
+      note, once k(1), k(2), ..., k(n) are specified, then
+      k(n+1), ..., k(t) are uniquely determined by the lrs.
+       
+      Thus, this model declares k(1), k(2), ..., k(n) as binary
+      and k(t), t > n as continuous variables that will automatically
+      assume binary values when k(1) thru k(n) are binary.
+       
+      This model is based on a client model from the area of cryptography.
+       
+      The model demonstrates the use of variablename.prior=INF to relax some elements
+      of a discrete variable to fractional variable elements. Moreover, it shows how
+      to formulate the logical XOR operator using mixed-integer linear programming.
+  25   
+  26  SET t    time horizon  /1*350/,
+  27      f(t) first N steps /1*48/;
+  28   
+  29  PARAMETER c(t);
+  30  c(t) = uniform(0,1) > .3 ;
+  31   
+  32  SCALAR n, r /8/, n_minus_r; n = card(f); n_minus_r=n-r;
+  33   
+  34  VARIABLES
+  35    k(t)    recursive sequence
+  36    z       objective min differences
+  37   
+  38  Binary variable k(t)
+  39   
+  40  Equations
+  41    obj        Objective
+  42    modup1(t)  XOR upper bounding constraint for combination false false
+  43    modup2(t)  XOR upper bounding constraint for combination true  false
+  44    modlo1(t)  XOR lower bounding constraint for combination false true
+  45    modlo2(t)  XOR lower bounding constraint for combination true  true
+  46  ;
+  47   
+  48  obj..      z =e= sum(t, k(t)$(c(t)=0) + (1-k(t))$(c(t)=1)) ;
+  49   
+      The following four constraints model an k(t) = k(t-n) XOR k(t-(n-r))
+      Here is a table of possible combinations and the binding constraint:
+                                    binding constraint
+      k(t-n) k(t-(n-r)) result XORup1 XORup2 XORlo1 XORlo2
+        0        0        0      x
+        1        0        1                    x
+        0        1        1                           x
+        1        1        0             x
+  60   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 3
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+C o m p i l a t i o n
+
+
+  61  modup1(t-n) ..  k(t) =l=     k(t-n) + k(t-n_minus_r);
+  62  modup2(t-n) ..  k(t) =l= 2 - k(t-n) - k(t-n_minus_r);
+  63  modlo1(t-n) ..  k(t) =g=   - k(t-n) + k(t-n_minus_r);
+  64  modlo2(t-n) ..  k(t) =g=     k(t-n) - k(t-n_minus_r);
+  65   
+  66  model lrs /all/;
+  67   
+  68  * The first n variables of k are binary, the remaining are fractional.
+  69  * We do not need to set prioropt=1 since the relaxation of the binary
+  70  * variables is done independently of prioropt
+  71  k.prior(t) = inf; k.prior(f) = 1;
+  72  option optcr=0.0, optca=0.99, limrow=0, limcol=0;
+  73   
+  74  * In case mod(n,r)=0 we can decompose in r independent subproblems
+  75  Equation objsub; scalar modnum;
+  76  objsub .. z =e= sum(t$(mod(ord(t)-1,r)=modnum), k(t)$(c(t)=0) + (1-k(t))$(c(t)=1)) ;
+  77   
+  78  model lrssub /objsub, modup1, modup2, modlo1, modlo2/;
+  79   
+  80  if (mod(n,r),
+  81    solve lrs using mip minimizing z;
+  82  else
+  83    for(modnum = 0 to r-1,
+  84      solve lrssub using mip minimizing z;
+  85      k.fx(t)$(mod(ord(t)-1,r)=modnum) = k.l(t);
+  86    );
+  87    solve lrs using mip minimizing z;
+  88  );
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 4
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,669     DISCRETE VARIABLES         48
+                                    RELAXED VARIABLES         302 ****
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 5
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 6
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,669     DISCRETE VARIABLES         42
+                                    RELAXED VARIABLES         264 ****
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 7
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 8
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,669     DISCRETE VARIABLES         36
+                                    RELAXED VARIABLES         226 ****
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:23 Page 9
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 10
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,669     DISCRETE VARIABLES         30
+                                    RELAXED VARIABLES         188 ****
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 11
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 12
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,669     DISCRETE VARIABLES         24
+                                    RELAXED VARIABLES         150 ****
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 13
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 14
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   6
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,669     DISCRETE VARIABLES         18
+                                    RELAXED VARIABLES         112 ****
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 6
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 15
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 16
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   7
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,668     DISCRETE VARIABLES         12
+                                    RELAXED VARIABLES          74 ****
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 7
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 17
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 18
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrssub Using MIP From line 84
+
+
+LOOPS                            FOR/WHILE   8
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,668     DISCRETE VARIABLES          6
+                                    RELAXED VARIABLES          37 ****
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 8
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 19
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrssub Using MIP From line 84
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrssub              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  84
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 20
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Model Statistics    SOLVE lrs Using MIP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS        1,209
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          351
+NON ZERO ELEMENTS         3,975
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 21
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+Solution Report     SOLVE lrs Using MIP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   lrs                 OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+>>  gams lrs-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lrs/convert.opt"
+Gams      : lrs-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:23 Page 22
+Linear Recursive Sequence Optimization Model  (LRS,SEQ=312)
+E x e c u t i o n
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/lrs/lrs.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/lrs/lrs-scalar.gms.lst

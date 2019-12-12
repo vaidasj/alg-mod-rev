@@ -1,0 +1,358 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 2
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+C o m p i l a t i o n
+
+
+       
+       This is the first problem in a series of traveling salesman
+       problems. In this problem we first solve an assignment
+       problem as a relaxation of the TSP. Subtours of this solution
+       are detected and printed. The subtours are then eliminated via
+       cuts (constraints that eliminate solution with subtours).
+       
+       Note: we deal here with an unsymmetric TSP. If symmetric
+             one can add 2 cuts in each cycle: forward and
+             backward.
+       
+       Additional information can be found at:
+       
+       http://www.gams.com/modlib/adddocs/tsp1doc.htm
+       
+       
+      Kalvelagen, E, Model Building with GAMS. forthcoming
+       
+      de Wetering, A V, private communication.
+       
+  27   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/tsp1/br17.inc
+  29   
+  30  * TSP data and incomplete TSP model. The data is problem br17 from TSPLIB.
+  31  * (http://www.iwr.uni-heidelberg.de/iwr/comopt/soft/TSPLIB95/TSPLIB.html)
+  32   
+  33  set ii    cities / i1*i17 /
+  34      i(ii) subset of cities
+  35  alias (ii,jj),(i,j,k);
+  36   
+  37  table c(ii,jj) cost coefficients (br17 from TSPLIB)
+  38       i1  i2  i3  i4  i5  i6  i7  i8  i9  i10 i11 i12 i13 i14 i15 i16 i17
+  39  i1        3   5  48  48   8   8   5   5   3   3   0   3   5   8   8   5
+  40  i2    3       3  48  48   8   8   5   5   0   0   3   0   3   8   8   5
+  41  i3    5   3      72  72  48  48  24  24   3   3   5   3   0  48  48  24
+  42  i4   48  48  74       0   6   6  12  12  48  48  48  48  74   6   6  12
+  43  i5   48  48  74   0       6   6  12  12  48  48  48  48  74   6   6  12
+  44  i6    8   8  50   6   6       0   8   8   8   8   8   8  50   0   0   8
+  45  i7    8   8  50   6   6   0       8   8   8   8   8   8  50   0   0   8
+  46  i8    5   5  26  12  12   8   8       0   5   5   5   5  26   8   8   0
+  47  i9    5   5  26  12  12   8   8   0       5   5   5   5  26   8   8   0
+  48  i10   3   0   3  48  48   8   8   5   5       0   3   0   3   8   8   5
+  49  i11   3   0   3  48  48   8   8   5   5   0       3   0   3   8   8   5
+  50  i12   0   3   5  48  48   8   8   5   5   3   3       3   5   8   8   5
+  51  i13   3   0   3  48  48   8   8   5   5   0   0   3       3   8   8   5
+  52  i14   5   3   0  72  72  48  48  24  24   3   3   5   3      48  48  24
+  53  i15   8   8  50   6   6   0   0   8   8   8   8   8   8  50       0   8
+  54  i16   8   8  50   6   6   0   0   8   8   8   8   8   8  50   0       8
+  55  i17   5   5  26  12  12   8   8   0   0   5   5   5   5  26   8   8
+  56  *
+  57  * for computational work with simple minded
+  58  * algorithm we can restrict size of problem
+  59  * and define the model over a subset of all cities.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 3
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+C o m p i l a t i o n
+
+
+  60  *
+  61  *
+  62  variables x(ii,jj)  decision variables - leg of trip
+  63            z         objective variable;
+  64  binary variable x;
+  65   
+  66  equations objective   total cost
+  67            rowsum(ii)  leave each city only once
+  68            colsum(jj)  arrive at each city only once;
+  69  *
+  70  *
+  71  * the assignment problem is a relaxation of the TSP
+  72  *
+  73  objective.. z =e= sum((i,j), c(i,j)*x(i,j));
+  74   
+  75  rowsum(i).. sum(j, x(i,j)) =e= 1;
+  76  colsum(j).. sum(i, x(i,j)) =e= 1;
+  77   
+  78  * exclude diagonal
+  79  *
+  80  x.fx(ii,ii) = 0;
+  81   
+  82   
+  83  *
+  84  * For this simple algorithm the problem is too difficult
+  85  * so we consider only the first 6 cities.
+  86   
+  87  set i(ii) / i1*i6 /;
+  88   
+  89  *  options. Make sure MIP solver finds global optima.
+  90  option optcr=0;
+  91   
+  92   
+  93  model assign /objective, rowsum, colsum/;
+  94   
+  95  solve assign using mip minimizing z;
+  96   
+  97  * find and display tours
+  98  *
+  99  set t tours  /t1*t17/; abort$(card(t) < card(i)) "Set t is possibly too small"
+ 100  parameter tour(i,j,t)  subtours;
+ 101  Singleton Sets
+ 102            from(i)      contains always one element: the from city
+ 103            next(j)      contains always one element: the to city
+ 104            tt(t)        contains always one element: the current subtour;
+ 105       Sets visited(i)   flag whether a city is already visited;
+ 106     scalar goon         go on flag used to control loop;
+ 107   
+ 108  * initialize
+ 109  from(i)$(ord(i)=1) = yes;    // turn first element on
+ 110  tt(t)$(ord(t)=1)   = yes;    // turn first element on
+ 111   
+ 112  loop(i,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 4
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+C o m p i l a t i o n
+
+
+ 113     next(j)$(x.l(from,j)>0.5) = yes;    // check x.l(from,j)=1 would be dangerous
+ 114     tour(from,next,tt) = yes;           // store in table
+ 115     visited(from) = yes;                // mark city 'from' as visited
+ 116     from(j) = next(j);
+ 117     if(sum(visited(next),1)>0,          // if already visited...
+ 118        tt(t) = tt(t-1);
+ 119        loop(k$(not visited(k)),         // find starting point of new subtour
+ 120           from(k) = yes;
+ 121        )
+ 122     )
+ 123  )
+ 124   
+ 125  display tour;
+ 126   
+ 127  * subtour elimination by adding cuts
+ 128  *
+ 129  * the logic to detect if there are subtours is similar
+ 130  * to the code above
+ 131   
+ 132  set cc /c1*c100/; alias(cc,ccc); // we allow up to 100 cuts
+ 133   
+ 134  set curcut(cc)  current cut always one element
+ 135      allcuts(cc) total cuts;
+ 136   
+ 137  parameter cutcoeff(cc, i, j);
+ 138   
+ 139  equations cut(cc) dynamic cuts;
+ 140   
+ 141  cut(allcuts).. sum((i,j), cutcoeff(allcuts,i,j)*x(i,j)) =l= card(i)-1;
+ 142   
+ 143  model tspcut /objective, rowsum, colsum, cut/;
+ 144   
+ 145  curcut(cc)$(ord(cc)=1) = yes;
+ 146  scalar ok;
+ 147  goon = 1;
+ 148  loop(ccc$goon,
+ 149     from(i)    = ord(i) eq 1;      // initialize from to first city
+ 150     visited(i) = no;
+ 151     ok = 1;
+ 152     loop(i$((ord(i) < card(i)) and ok),       // last city can be ignored
+ 153        next(j) = x.l(from,j)>0.5;             // find next city
+ 154        visited(from) = yes;
+ 155        from(j)       = next(j);
+ 156        ok$sum(visited(next),1) = 0 );         // we have detected a subtour
+ 157   
+ 158     if(ok = 1,
+ 159        goon = 0;           // done: no subtours
+ 160     else                   // else: introduce cut
+ 161        cutcoeff(curcut, i, j)$(x.l(i,j) > 0.5) = 1;
+ 162            // next one is needed in the general case but not for TSP
+ 163            // cutcoeff(curcut, i, j)$(x.l(i,j) < 0.5) = -1;
+ 164        allcuts(curcut) = yes;   // include this cut in set
+ 165        curcut(cc) = curcut(cc-1);  // get next element
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 5
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+C o m p i l a t i o n
+
+
+ 166        solve tspcut using mip minimizing z;
+ 167        tspcut.solprint=2 ); );
+ 168   
+ 169  * print solution in proper order
+ 170  set xtour ordered tour;
+ 171  from(i)    = ord(i) eq 1;      // initialize from to first city
+ 172  visited(i) = no;
+ 173  ok=1;
+ 174  loop(t$ok,
+ 175     next(j) = x.l(from,j)>0.5;  // find next city
+ 176     xtour(t,from,next) = yes;
+ 177     visited(from) = yes;
+ 178     from(j)       = next(j);
+ 179     ok$sum(visited(next),1) = 0 );         // we have detected a subtour
+ 180   
+ 181  option xtour:0:0:1; display xtour,x.l;
+ 182   
+ 183  abort$(goon = 1) "Too many cuts needed";
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 6
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/tsp1/tsp1.gms
+     2       28 INCLUDE        1      28  ./home/renigijus/gams/opt-mod-lib/gamslib/tsp1/br17.inc
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 7
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+Equation Listing    SOLVE assign Using MIP From line 95
+
+
+---- objective  =E=  total cost
+
+objective..  - 3*x(i1,i2) - 5*x(i1,i3) - 48*x(i1,i4) - 48*x(i1,i5) - 8*x(i1,i6) - 3*x(i2,i1) - 3*x(i2,i3) - 48*x(i2,i4) - 48*x(i2,i5) - 8*x(i2,i6) - 5*x(i3,i1) - 3*x(i3,i2) - 72*x(i3,i4) - 72*x(i3,i5) - 48*x(i3,i6) - 48*x(i4,i1) - 48*x(i4,i2)
+     
+      - 74*x(i4,i3) - 6*x(i4,i6) - 48*x(i5,i1) - 48*x(i5,i2) - 74*x(i5,i3) - 6*x(i5,i6) - 8*x(i6,i1) - 8*x(i6,i2) - 50*x(i6,i3) - 6*x(i6,i4) - 6*x(i6,i5) + z =E= 0 ; (LHS = 0)
+     
+
+---- rowsum  =E=  leave each city only once
+
+rowsum(i1)..  x(i1,i1) + x(i1,i2) + x(i1,i3) + x(i1,i4) + x(i1,i5) + x(i1,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+rowsum(i2)..  x(i2,i1) + x(i2,i2) + x(i2,i3) + x(i2,i4) + x(i2,i5) + x(i2,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+rowsum(i3)..  x(i3,i1) + x(i3,i2) + x(i3,i3) + x(i3,i4) + x(i3,i5) + x(i3,i6) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- colsum  =E=  arrive at each city only once
+
+colsum(i1)..  x(i1,i1) + x(i2,i1) + x(i3,i1) + x(i4,i1) + x(i5,i1) + x(i6,i1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+colsum(i2)..  x(i1,i2) + x(i2,i2) + x(i3,i2) + x(i4,i2) + x(i5,i2) + x(i6,i2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+colsum(i3)..  x(i1,i3) + x(i2,i3) + x(i3,i3) + x(i4,i3) + x(i5,i3) + x(i6,i3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 8
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+Column Listing      SOLVE assign Using MIP From line 95
+
+
+---- x  decision variables - leg of trip
+
+x(i1,i1)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+        1       rowsum(i1)
+        1       colsum(i1)
+
+x(i1,i2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -3       objective
+        1       rowsum(i1)
+        1       colsum(i2)
+
+x(i1,i3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       objective
+        1       rowsum(i1)
+        1       colsum(i3)
+
+REMAINING 33 ENTRIES SKIPPED
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objective
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:11 Page 9
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+Model Statistics    SOLVE assign Using MIP From line 95
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           101     DISCRETE VARIABLES         30
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:11 Page 10
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+Solution Report     SOLVE assign Using MIP From line 95
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   assign              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  95
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp1/convert.opt"
+>>  gams tsp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tsp1/convert.opt"
+Gams      : tsp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:31:11 Page 11
+Traveling Salesman Problem - One (TSP1,SEQ=177)
+E x e c u t i o n
+
+
+----    125 PARAMETER tour  subtours
+
+                      ( ALL       0.000 )
+
+
+----    181 SET xtour  ordered tour
+
+                                                      ( EMPTY )
+
+
+----    181 VARIABLE x.L  decision variables - leg of trip
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tsp1/tsp1.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tsp1/tsp1-scalar.gms.lst

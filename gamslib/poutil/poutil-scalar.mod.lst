@@ -1,0 +1,962 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 2
+Portfolio Optimization for Electric Utilities  (POUTIL,SEQ=342)
+C o m p i l a t i o n
+
+
+   3   
+       
+         We discuss a portfolio optimization problem occurring in the energy
+         market. Energy distributing public services have to decide how much 
+         of the requested energy demand has to be produced in their own power 
+         plant, and which complementary amount has to be bought from the spot 
+         market and from load following contracts.
+       
+         This problem is formulated as a mixed-integer linear programming
+         problem and implemented in GAMS. The formulation is applied to real data 
+         of a German electricity distributor.
+       
+         Most equations contain the reference number of the formula in the
+         publication.
+       
+       
+         Rebennack, S, Kallrath, J, and Pardalos, P M, Energy Portfolio
+         Optimization for Electric Utilities: Case Study for Germany. In
+         Bjørndal, E, Bjørndal, M, Pardalos, P.M. and Rönnqvist, M Eds,.
+         Springer, pp. 221-246, 2010.
+  25   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 3
+Energy
+C o m p i l a t i o n
+
+
+  27  Sets
+  28     t          time slices (quarter-hour)   / t1*t96 /
+  29   
+  30  Parameter
+  31     PowerForecast(t)   electric power forecast /
+  32                t1  287, t2  275, t3  262, t4  250, t5  255, t6  260, t7  265,
+  33                t8  270, t9  267, t10 265, t11 262, t12 260, t13 262, t14 265,
+  34                t15 267, t16 270, t17 277, t18 285, t19 292, t20 300, t21 310,
+  35                t22 320, t23 330, t24 340, t25 357, t26 375, t27 392, t28 410,
+  36                t29 405, t30 400, t31 395, t32 390, t33 400, t34 410, t35 420,
+  37                t36 430, t37 428, t38 427, t39 426, t40 425, t41 432, t42 440,
+  38                t43 447, t44 455, t45 458, t46 462, t47 466, t48 470, t49 466,
+  39                t50 462, t51 458, t52 455, t53 446, t54 437, t55 428, t56 420,
+  40                t57 416, t58 412, t59 408, t60 405, t61 396, t62 387, t63 378,
+  41                t64 370, t65 375, t66 380, t67 385, t68 390, t69 383, t70 377,
+  42                t71 371, t72 365, t73 368, t74 372, t75 376, t76 380, t77 386,
+  43                t78 392, t79 398, t80 405, t81 408, t82 412, t83 416, t84 420,
+  44                t85 413, t86 407, t87 401, t88 395, t89 386, t90 377, t91 368,
+  45                t92 360, t93 345, t94 330, t95 315, t96 300 /;
+  46   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 4
+Power Plant (PP)
+C o m p i l a t i o n
+
+
+  48   
+  49  Scalars
+  50     cPPvar     'variable cost of power plant [ euro / MWh ]'   /  25.0 /
+  51     pPPMax     'maximal capacity of power plant [MW]'          / 300.0 /;
+  52   
+  53  Sets
+  54     m          stage of the power plant             / m1*m8 /
+  55     iS         interval for constant PP operation   / iS0*iS8 /
+  56     iI         length of idle time period           / iI0*iI16 /;
+  57   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 5
+spot market (SM)
+C o m p i l a t i o n
+
+
+  59   
+  60  Scalars
+  61     cBL        'cost for one base load contract [ euro / MWh ]' / 32.0 /
+  62     cPL        'cost for one peak load contract [ euro / MWh ]' / 41.0 /;
+  63   
+  64  Parameter
+  65     IPL(t)     indicator function for peak load contracts;
+  66  IPL(t) = ord(t)>=33 and ord(t)<=80;
+  67   
+  68   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 6
+load following contract (LFC)
+C o m p i l a t i o n
+
+
+  70   
+  71  Scalar
+  72     pLFCref    power reference level for the LFC / 400 /
+  73   
+  74  Set
+  75     b          support points of the zone prices / b1*b3 /
+  76   
+  77  Parameter
+  78     eLFCbY(b)  amount of energy at support point b / b1 54750, b2 182500, b3 9000000 /
+  79     cLFCvar(b) specific energy price in segment b  / b1 80.0,  b2 65.0,   b3 52.0 /;
+  80   
+  81  Parameters
+  82     eLFCb(b)   daily border of energy volumes for LFC
+  83     cLFCs(b)   accumulated cost for LFC up to segment b;
+  84   
+  85  * calculate the daily borders of the energy volumes for the zones
+  86  eLFCb(b) = eLFCbY(b) / 365;
+  87   
+  88  * calculate the accumulated cost
+  89  cLFCs("b1")         = 0;
+  90  cLFCs("b2")         = cLFCvar("b1") * eLFCb("b1");
+  91  cLFCs(b)$(ord(b)>2) = cLFCs(b-1) + cLFCvar(b-1) * ( eLFCb(b-1) - eLFCb(b-2) );
+  92   
+  93  Variables
+  94     c          total cost
+  95     cPP        cost of PP usage
+  96     pPP(t)     power withdrawn from power plant
+  97     delta(m,t) indicate if the PP is in stage m at time t
+  98     chiS(t)    indicate if there is a PP stage change
+  99     chiI(t)    indicate if the PP left the idle stage
+ 100     cSM        cost of energy from SM
+ 101     pSM(t)     power from the spot market
+ 102     alpha      quantity of base load contracts
+ 103     beta       quantity of peak load contracts
+ 104     cLFC       cost of LFC which is the enery rate
+ 105     eLFCtot    total energy amount of LFC
+ 106     eLFCs(b)   energy from LFC in segment b
+ 107     pLFC(t)    power from the LFC
+ 108     mu(b)      indicator for segment b (for zone prices)
+ 109   
+ 110  Positive variables cPP, pPP, chiS, chiI, cSM, pSM, cLFC, eLFCtot, eLFCs, pLFC;
+ 111  Binary variables delta, mu;
+ 112  Integer variables alpha, beta;
+ 113   
+ 114  alpha.up = smax(t, PowerForecast(t));
+ 115  beta.up  = alpha.up;
+ 116   
+ 117  pLFC.up(t) = pLFCref;
+ 118  Equations
+ 119     obj                  objective function
+ 120     demand(t)            demand constraint for energy forcast
+ 121     PPcost               power plant cost
+ 122     PPpower(t)           power of power plant at time t
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 7
+load following contract (LFC)
+C o m p i l a t i o n
+
+
+ 123     PPstage(t)           exactly one stage of power plant at any time
+ 124     PPchiS1(t,m)         relate chi and delta variables first constraint
+ 125     PPchiS2(t,m)         relate chi and delta variables second constraint
+ 126     PPstageChange(t)     restrict the number of stage changes
+ 127     PPstarted(t)         connect chiZ and chi variables
+ 128     PPidleTime(t)        control the idle time of the plant
+ 129     SMcost               cost associated with spot market
+ 130     SMpower              power from the spot market
+ 131     LFCcost              cost for the LFC
+ 132     LFCenergy            total energy from the LFC
+ 133     LFCmu                exactly one price segment b
+ 134     LFCenergyS           connect the mu variables with the total energy
+ 135     LFCemuo              accumulated energy amount for segement b1
+ 136     LFCemug(b)           accumulated energy amount for all other segements;
+ 137   
+ 138  * the objective function: total cost; eq. (6)
+ 139  obj..          c =e= cPP + cSM + cLFC;
+ 140   
+ 141  * meet the power demand for each time period exactly; eq. (23)
+ 142  demand(t)..    pPP(t) + pSM(t) + pLFC(t) =e= PowerForecast(t);
+ 143   
+ 144  * (fix cost +) variable cost * energy amount produced; eq. (7) & (8)
+ 145  PPcost..       cPP =e= cPPVar * sum(t, 0.25 * pPP(t) );
+ 146   
+ 147  * power produced by the power plant; eq. (26)
+ 148  PPpower(t)..   pPP(t) =e= pPPMax * sum(m$(ord(m)>1), 0.1*(ord(m) + 2)*delta(m,t));
+ 149   
+ 150  * the power plant is in exactly one stage at any time; eq. (25)
+ 151  PPstage(t)..   sum(m, delta(m,t)) =e= 1;
+ 152   
+ 153  * next constraints model the minimum time period a power plant is in the
+ 154  * same state and the constraint of the minimum idle time
+ 155  * we need variable 'chiS' to find out when a status change takes place
+ 156  * eq. (27)
+ 157  PPchiS1(t,m)$(ord(t)>1)..    chiS(t) =g= delta(m,t) - delta(m,t-1);
+ 158   
+ 159  * second constraint for 'chiS' variable; eq. (28)
+ 160  PPchiS2(t,m)$(ord(t)>1)..    chiS(t) =g= delta(m,t-1) - delta(m,t);
+ 161   
+ 162  * control the minimum change time period; eq. (29)
+ 163  PPstageChange(t)$(ord(t) < card(t)-card(iS)+2).. sum(iS, chiS(t+ord(iS))) =l= 1;
+ 164   
+ 165  * indicate if the plant left the idle state; eq. (30)
+ 166  PPstarted(t).. chiI(t) =g= delta("m1",t-1) - delta("m1",t);
+ 167   
+ 168  * control the minimum idle time period:
+ 169  * it has to be at least Nk2 time periods long; eq. (31)
+ 170  PPidleTime(t)$(ord(t) < card(t)-card(iI)+2).. sum(iI, chiI(t+ord(iI))) =l= 1;
+ 171   
+ 172  * cost for the spot market; eq. (12)
+ 173  * consistent of the base load (alpha) and peak load (beta) contracts
+ 174  SMcost..       cSM =e= 24 * cBL * alpha + 12 * cPL * beta;
+ 175   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 8
+load following contract (LFC)
+C o m p i l a t i o n
+
+
+ 176  * Spot Market power contribution; eq. (9)
+ 177  SMpower(t)..   pSM(t) =e= alpha + IPL(t) * beta;
+ 178   
+ 179  * cost of the LFC is given by the energy rate; eq. (14) & (21)
+ 180  LFCcost..      cLFC =e= sum(b, cLFCs(b) * mu(b) + cLFCvar(b) * eLFCs(b));
+ 181   
+ 182  * total energy from the LFC; eq. (16)
+ 183  * connect the eLFC(t) variables with eLFCtot
+ 184  LFCenergy..    eLFCtot =e= sum(t, 0.25 * pLFC(t));
+ 185   
+ 186  * indicator variable 'mu':
+ 187  * we are in exactly one price segment b; eq. (18)
+ 188  LFCmu..        sum(b, mu(b)) =e= 1;
+ 189   
+ 190  * connect the 'mu' variables with the total energy amount; eq. (19)
+ 191  LFCenergyS..   eLFCtot =e= sum(b$(ord(b)>1), eLFCb(b-1) * mu(b)) + sum(b, eLFCs(b));
+ 192   
+ 193  * accumulated energy amount for segment "b1"; eq. (20)
+ 194  LFCemuo..      eLFCs("b1") =l= eLFCb("b1") * mu("b1");
+ 195   
+ 196  * accumulated energy amount for all other segments (then "b1"); eq. (20)
+ 197  LFCemug(b)$(ord(b)>1)..  eLFCs(b) =l= (eLFCb(b) - eLFCb(b-1)) * mu(b);
+ 198   
+ 199  model energy / all /;
+ 200   
+ 201  * relative termination criterion for MIP (relative gap)
+ 202  Option optcr = 0.000001;
+ 203   
+ 204  solve energy using MIP minimizing c;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:32 Page 9
+load following contract (LFC)
+Equation Listing    SOLVE energy Using MIP From line 204
+
+
+---- obj  =E=  objective function
+
+obj..  c - cPP - cSM - cLFC =E= 0 ; (LHS = 0)
+     
+
+---- demand  =E=  demand constraint for energy forcast
+
+demand(t1)..  pPP(t1) + pSM(t1) + pLFC(t1) =E= 287 ; (LHS = 0, INFES = 287 ****)
+     
+demand(t2)..  pPP(t2) + pSM(t2) + pLFC(t2) =E= 275 ; (LHS = 0, INFES = 275 ****)
+     
+demand(t3)..  pPP(t3) + pSM(t3) + pLFC(t3) =E= 262 ; (LHS = 0, INFES = 262 ****)
+     
+REMAINING 93 ENTRIES SKIPPED
+
+
+---- PPcost  =E=  power plant cost
+
+PPcost..  cPP - 6.25*pPP(t1) - 6.25*pPP(t2) - 6.25*pPP(t3) - 6.25*pPP(t4) - 6.25*pPP(t5) - 6.25*pPP(t6) - 6.25*pPP(t7) - 6.25*pPP(t8) - 6.25*pPP(t9) - 6.25*pPP(t10) - 6.25*pPP(t11) - 6.25*pPP(t12) - 6.25*pPP(t13) - 6.25*pPP(t14) - 6.25*pPP(t15)
+     
+      - 6.25*pPP(t16) - 6.25*pPP(t17) - 6.25*pPP(t18) - 6.25*pPP(t19) - 6.25*pPP(t20) - 6.25*pPP(t21) - 6.25*pPP(t22) - 6.25*pPP(t23) - 6.25*pPP(t24) - 6.25*pPP(t25) - 6.25*pPP(t26) - 6.25*pPP(t27) - 6.25*pPP(t28) - 6.25*pPP(t29) - 6.25*pPP(t30)
+     
+      - 6.25*pPP(t31) - 6.25*pPP(t32) - 6.25*pPP(t33) - 6.25*pPP(t34) - 6.25*pPP(t35) - 6.25*pPP(t36) - 6.25*pPP(t37) - 6.25*pPP(t38) - 6.25*pPP(t39) - 6.25*pPP(t40) - 6.25*pPP(t41) - 6.25*pPP(t42) - 6.25*pPP(t43) - 6.25*pPP(t44) - 6.25*pPP(t45)
+     
+      - 6.25*pPP(t46) - 6.25*pPP(t47) - 6.25*pPP(t48) - 6.25*pPP(t49) - 6.25*pPP(t50) - 6.25*pPP(t51) - 6.25*pPP(t52) - 6.25*pPP(t53) - 6.25*pPP(t54) - 6.25*pPP(t55) - 6.25*pPP(t56) - 6.25*pPP(t57) - 6.25*pPP(t58) - 6.25*pPP(t59) - 6.25*pPP(t60)
+     
+      - 6.25*pPP(t61) - 6.25*pPP(t62) - 6.25*pPP(t63) - 6.25*pPP(t64) - 6.25*pPP(t65) - 6.25*pPP(t66) - 6.25*pPP(t67) - 6.25*pPP(t68) - 6.25*pPP(t69) - 6.25*pPP(t70) - 6.25*pPP(t71) - 6.25*pPP(t72) - 6.25*pPP(t73) - 6.25*pPP(t74) - 6.25*pPP(t75)
+     
+      - 6.25*pPP(t76) - 6.25*pPP(t77) - 6.25*pPP(t78) - 6.25*pPP(t79) - 6.25*pPP(t80) - 6.25*pPP(t81) - 6.25*pPP(t82) - 6.25*pPP(t83) - 6.25*pPP(t84) - 6.25*pPP(t85) - 6.25*pPP(t86) - 6.25*pPP(t87) - 6.25*pPP(t88) - 6.25*pPP(t89) - 6.25*pPP(t90)
+     
+      - 6.25*pPP(t91) - 6.25*pPP(t92) - 6.25*pPP(t93) - 6.25*pPP(t94) - 6.25*pPP(t95) - 6.25*pPP(t96) =E= 0 ; (LHS = 0)
+     
+
+---- PPpower  =E=  power of power plant at time t
+
+PPpower(t1)..  pPP(t1) - 120*delta(m2,t1) - 150*delta(m3,t1) - 180*delta(m4,t1) - 210*delta(m5,t1) - 240*delta(m6,t1) - 270*delta(m7,t1) - 300*delta(m8,t1) =E= 0 ; (LHS = 0)
+     
+PPpower(t2)..  pPP(t2) - 120*delta(m2,t2) - 150*delta(m3,t2) - 180*delta(m4,t2) - 210*delta(m5,t2) - 240*delta(m6,t2) - 270*delta(m7,t2) - 300*delta(m8,t2) =E= 0 ; (LHS = 0)
+     
+PPpower(t3)..  pPP(t3) - 120*delta(m2,t3) - 150*delta(m3,t3) - 180*delta(m4,t3) - 210*delta(m5,t3) - 240*delta(m6,t3) - 270*delta(m7,t3) - 300*delta(m8,t3) =E= 0 ; (LHS = 0)
+     
+REMAINING 93 ENTRIES SKIPPED
+
+
+---- PPstage  =E=  exactly one stage of power plant at any time
+
+PPstage(t1)..  delta(m1,t1) + delta(m2,t1) + delta(m3,t1) + delta(m4,t1) + delta(m5,t1) + delta(m6,t1) + delta(m7,t1) + delta(m8,t1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+PPstage(t2)..  delta(m1,t2) + delta(m2,t2) + delta(m3,t2) + delta(m4,t2) + delta(m5,t2) + delta(m6,t2) + delta(m7,t2) + delta(m8,t2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 10
+load following contract (LFC)
+Equation Listing    SOLVE energy Using MIP From line 204
+
+
+     PPstage  =E=  exactly one stage of power plant at any time
+
+PPstage(t3)..  delta(m1,t3) + delta(m2,t3) + delta(m3,t3) + delta(m4,t3) + delta(m5,t3) + delta(m6,t3) + delta(m7,t3) + delta(m8,t3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 93 ENTRIES SKIPPED
+
+
+---- PPchiS1  =G=  relate chi and delta variables first constraint
+
+PPchiS1(t2,m1)..  delta(m1,t1) - delta(m1,t2) + chiS(t2) =G= 0 ; (LHS = 0)
+     
+PPchiS1(t2,m2)..  delta(m2,t1) - delta(m2,t2) + chiS(t2) =G= 0 ; (LHS = 0)
+     
+PPchiS1(t2,m3)..  delta(m3,t1) - delta(m3,t2) + chiS(t2) =G= 0 ; (LHS = 0)
+     
+REMAINING 757 ENTRIES SKIPPED
+
+
+---- PPchiS2  =G=  relate chi and delta variables second constraint
+
+PPchiS2(t2,m1)..  - delta(m1,t1) + delta(m1,t2) + chiS(t2) =G= 0 ; (LHS = 0)
+     
+PPchiS2(t2,m2)..  - delta(m2,t1) + delta(m2,t2) + chiS(t2) =G= 0 ; (LHS = 0)
+     
+PPchiS2(t2,m3)..  - delta(m3,t1) + delta(m3,t2) + chiS(t2) =G= 0 ; (LHS = 0)
+     
+REMAINING 757 ENTRIES SKIPPED
+
+
+---- PPstageChange  =L=  restrict the number of stage changes
+
+PPstageChange(t1)..  chiS(t2) + chiS(t3) + chiS(t4) + chiS(t5) + chiS(t6) + chiS(t7) + chiS(t8) + chiS(t9) + chiS(t10) =L= 1 ; (LHS = 0)
+     
+PPstageChange(t2)..  chiS(t3) + chiS(t4) + chiS(t5) + chiS(t6) + chiS(t7) + chiS(t8) + chiS(t9) + chiS(t10) + chiS(t11) =L= 1 ; (LHS = 0)
+     
+PPstageChange(t3)..  chiS(t4) + chiS(t5) + chiS(t6) + chiS(t7) + chiS(t8) + chiS(t9) + chiS(t10) + chiS(t11) + chiS(t12) =L= 1 ; (LHS = 0)
+     
+REMAINING 85 ENTRIES SKIPPED
+
+
+---- PPstarted  =G=  connect chiZ and chi variables
+
+PPstarted(t1)..  delta(m1,t1) + chiI(t1) =G= 0 ; (LHS = 0)
+     
+PPstarted(t2)..  - delta(m1,t1) + delta(m1,t2) + chiI(t2) =G= 0 ; (LHS = 0)
+     
+PPstarted(t3)..  - delta(m1,t2) + delta(m1,t3) + chiI(t3) =G= 0 ; (LHS = 0)
+     
+REMAINING 93 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 11
+load following contract (LFC)
+Equation Listing    SOLVE energy Using MIP From line 204
+
+
+---- PPidleTime  =L=  control the idle time of the plant
+
+PPidleTime(t1)..  chiI(t2) + chiI(t3) + chiI(t4) + chiI(t5) + chiI(t6) + chiI(t7) + chiI(t8) + chiI(t9) + chiI(t10) + chiI(t11) + chiI(t12) + chiI(t13) + chiI(t14) + chiI(t15) + chiI(t16) + chiI(t17) + chiI(t18) =L= 1 ; (LHS = 0)
+     
+PPidleTime(t2)..  chiI(t3) + chiI(t4) + chiI(t5) + chiI(t6) + chiI(t7) + chiI(t8) + chiI(t9) + chiI(t10) + chiI(t11) + chiI(t12) + chiI(t13) + chiI(t14) + chiI(t15) + chiI(t16) + chiI(t17) + chiI(t18) + chiI(t19) =L= 1 ; (LHS = 0)
+     
+PPidleTime(t3)..  chiI(t4) + chiI(t5) + chiI(t6) + chiI(t7) + chiI(t8) + chiI(t9) + chiI(t10) + chiI(t11) + chiI(t12) + chiI(t13) + chiI(t14) + chiI(t15) + chiI(t16) + chiI(t17) + chiI(t18) + chiI(t19) + chiI(t20) =L= 1 ; (LHS = 0)
+     
+REMAINING 77 ENTRIES SKIPPED
+
+
+---- SMcost  =E=  cost associated with spot market
+
+SMcost..  cSM - 768*alpha - 492*beta =E= 0 ; (LHS = 0)
+     
+
+---- SMpower  =E=  power from the spot market
+
+SMpower(t1)..  pSM(t1) - alpha =E= 0 ; (LHS = 0)
+     
+SMpower(t2)..  pSM(t2) - alpha =E= 0 ; (LHS = 0)
+     
+SMpower(t3)..  pSM(t3) - alpha =E= 0 ; (LHS = 0)
+     
+REMAINING 93 ENTRIES SKIPPED
+
+
+---- LFCcost  =E=  cost for the LFC
+
+LFCcost..  cLFC - 80*eLFCs(b1) - 65*eLFCs(b2) - 52*eLFCs(b3) - 12000*mu(b2) - 34750*mu(b3) =E= 0 ; (LHS = 0)
+     
+
+---- LFCenergy  =E=  total energy from the LFC
+
+LFCenergy..  eLFCtot - 0.25*pLFC(t1) - 0.25*pLFC(t2) - 0.25*pLFC(t3) - 0.25*pLFC(t4) - 0.25*pLFC(t5) - 0.25*pLFC(t6) - 0.25*pLFC(t7) - 0.25*pLFC(t8) - 0.25*pLFC(t9) - 0.25*pLFC(t10) - 0.25*pLFC(t11) - 0.25*pLFC(t12) - 0.25*pLFC(t13) - 0.25*pLFC(t14)
+     
+      - 0.25*pLFC(t15) - 0.25*pLFC(t16) - 0.25*pLFC(t17) - 0.25*pLFC(t18) - 0.25*pLFC(t19) - 0.25*pLFC(t20) - 0.25*pLFC(t21) - 0.25*pLFC(t22) - 0.25*pLFC(t23) - 0.25*pLFC(t24) - 0.25*pLFC(t25) - 0.25*pLFC(t26) - 0.25*pLFC(t27) - 0.25*pLFC(t28)
+     
+      - 0.25*pLFC(t29) - 0.25*pLFC(t30) - 0.25*pLFC(t31) - 0.25*pLFC(t32) - 0.25*pLFC(t33) - 0.25*pLFC(t34) - 0.25*pLFC(t35) - 0.25*pLFC(t36) - 0.25*pLFC(t37) - 0.25*pLFC(t38) - 0.25*pLFC(t39) - 0.25*pLFC(t40) - 0.25*pLFC(t41) - 0.25*pLFC(t42)
+     
+      - 0.25*pLFC(t43) - 0.25*pLFC(t44) - 0.25*pLFC(t45) - 0.25*pLFC(t46) - 0.25*pLFC(t47) - 0.25*pLFC(t48) - 0.25*pLFC(t49) - 0.25*pLFC(t50) - 0.25*pLFC(t51) - 0.25*pLFC(t52) - 0.25*pLFC(t53) - 0.25*pLFC(t54) - 0.25*pLFC(t55) - 0.25*pLFC(t56)
+     
+      - 0.25*pLFC(t57) - 0.25*pLFC(t58) - 0.25*pLFC(t59) - 0.25*pLFC(t60) - 0.25*pLFC(t61) - 0.25*pLFC(t62) - 0.25*pLFC(t63) - 0.25*pLFC(t64) - 0.25*pLFC(t65) - 0.25*pLFC(t66) - 0.25*pLFC(t67) - 0.25*pLFC(t68) - 0.25*pLFC(t69) - 0.25*pLFC(t70)
+     
+      - 0.25*pLFC(t71) - 0.25*pLFC(t72) - 0.25*pLFC(t73) - 0.25*pLFC(t74) - 0.25*pLFC(t75) - 0.25*pLFC(t76) - 0.25*pLFC(t77) - 0.25*pLFC(t78) - 0.25*pLFC(t79) - 0.25*pLFC(t80) - 0.25*pLFC(t81) - 0.25*pLFC(t82) - 0.25*pLFC(t83) - 0.25*pLFC(t84)
+     
+      - 0.25*pLFC(t85) - 0.25*pLFC(t86) - 0.25*pLFC(t87) - 0.25*pLFC(t88) - 0.25*pLFC(t89) - 0.25*pLFC(t90) - 0.25*pLFC(t91) - 0.25*pLFC(t92) - 0.25*pLFC(t93) - 0.25*pLFC(t94) - 0.25*pLFC(t95) - 0.25*pLFC(t96) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 12
+load following contract (LFC)
+Equation Listing    SOLVE energy Using MIP From line 204
+
+
+---- LFCmu  =E=  exactly one price segment b
+
+LFCmu..  mu(b1) + mu(b2) + mu(b3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- LFCenergyS  =E=  connect the mu variables with the total energy
+
+LFCenergyS..  eLFCtot - eLFCs(b1) - eLFCs(b2) - eLFCs(b3) - 150*mu(b2) - 500*mu(b3) =E= 0 ; (LHS = 0)
+     
+
+---- LFCemuo  =L=  accumulated energy amount for segement b1
+
+LFCemuo..  eLFCs(b1) - 150*mu(b1) =L= 0 ; (LHS = 0)
+     
+
+---- LFCemug  =L=  accumulated energy amount for all other segements
+
+LFCemug(b2)..  eLFCs(b2) - 350*mu(b2) =L= 0 ; (LHS = 0)
+     
+LFCemug(b3)..  eLFCs(b3) - 24157.5342465753*mu(b3) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 13
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+---- c  total cost
+
+c
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- cPP  cost of PP usage
+
+cPP
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       obj
+        1       PPcost
+
+
+---- pPP  power withdrawn from power plant
+
+pPP(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       demand(t1)
+       -6.25    PPcost
+        1       PPpower(t1)
+
+pPP(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       demand(t2)
+       -6.25    PPcost
+        1       PPpower(t2)
+
+pPP(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       demand(t3)
+       -6.25    PPcost
+        1       PPpower(t3)
+
+REMAINING 93 ENTRIES SKIPPED
+
+---- delta  indicate if the PP is in stage m at time t
+
+delta(m1,t1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       PPstage(t1)
+        1       PPchiS1(t2,m1)
+       -1       PPchiS2(t2,m1)
+        1       PPstarted(t1)
+       -1       PPstarted(t2)
+
+delta(m1,t2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       PPstage(t2)
+       -1       PPchiS1(t2,m1)
+        1       PPchiS1(t3,m1)
+        1       PPchiS2(t2,m1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 14
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     delta  indicate if the PP is in stage m at time t
+
+       -1       PPchiS2(t3,m1)
+        1       PPstarted(t2)
+       -1       PPstarted(t3)
+
+delta(m1,t3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       PPstage(t3)
+       -1       PPchiS1(t3,m1)
+        1       PPchiS1(t4,m1)
+        1       PPchiS2(t3,m1)
+       -1       PPchiS2(t4,m1)
+        1       PPstarted(t3)
+       -1       PPstarted(t4)
+
+REMAINING 765 ENTRIES SKIPPED
+
+---- chiS  indicate if there is a PP stage change
+
+chiS(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       PPchiS1(t2,m1)
+        1       PPchiS1(t2,m2)
+        1       PPchiS1(t2,m3)
+        1       PPchiS1(t2,m4)
+        1       PPchiS1(t2,m5)
+        1       PPchiS1(t2,m6)
+        1       PPchiS1(t2,m7)
+        1       PPchiS1(t2,m8)
+        1       PPchiS2(t2,m1)
+        1       PPchiS2(t2,m2)
+        1       PPchiS2(t2,m3)
+        1       PPchiS2(t2,m4)
+        1       PPchiS2(t2,m5)
+        1       PPchiS2(t2,m6)
+        1       PPchiS2(t2,m7)
+        1       PPchiS2(t2,m8)
+        1       PPstageChange(t1)
+
+chiS(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       PPchiS1(t3,m1)
+        1       PPchiS1(t3,m2)
+        1       PPchiS1(t3,m3)
+        1       PPchiS1(t3,m4)
+        1       PPchiS1(t3,m5)
+        1       PPchiS1(t3,m6)
+        1       PPchiS1(t3,m7)
+        1       PPchiS1(t3,m8)
+        1       PPchiS2(t3,m1)
+        1       PPchiS2(t3,m2)
+        1       PPchiS2(t3,m3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 15
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     chiS  indicate if there is a PP stage change
+
+        1       PPchiS2(t3,m4)
+        1       PPchiS2(t3,m5)
+        1       PPchiS2(t3,m6)
+        1       PPchiS2(t3,m7)
+        1       PPchiS2(t3,m8)
+        1       PPstageChange(t1)
+        1       PPstageChange(t2)
+
+chiS(t4)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       PPchiS1(t4,m1)
+        1       PPchiS1(t4,m2)
+        1       PPchiS1(t4,m3)
+        1       PPchiS1(t4,m4)
+        1       PPchiS1(t4,m5)
+        1       PPchiS1(t4,m6)
+        1       PPchiS1(t4,m7)
+        1       PPchiS1(t4,m8)
+        1       PPchiS2(t4,m1)
+        1       PPchiS2(t4,m2)
+        1       PPchiS2(t4,m3)
+        1       PPchiS2(t4,m4)
+        1       PPchiS2(t4,m5)
+        1       PPchiS2(t4,m6)
+        1       PPchiS2(t4,m7)
+        1       PPchiS2(t4,m8)
+        1       PPstageChange(t1)
+        1       PPstageChange(t2)
+        1       PPstageChange(t3)
+
+REMAINING 92 ENTRIES SKIPPED
+
+---- chiI  indicate if the PP left the idle stage
+
+chiI(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       PPstarted(t1)
+
+chiI(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       PPstarted(t2)
+        1       PPidleTime(t1)
+
+chiI(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       PPstarted(t3)
+        1       PPidleTime(t1)
+        1       PPidleTime(t2)
+
+REMAINING 93 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 16
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+---- cSM  cost of energy from SM
+
+cSM
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       obj
+        1       SMcost
+
+
+---- pSM  power from the spot market
+
+pSM(t1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       demand(t1)
+        1       SMpower(t1)
+
+pSM(t2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       demand(t2)
+        1       SMpower(t2)
+
+pSM(t3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       demand(t3)
+        1       SMpower(t3)
+
+REMAINING 93 ENTRIES SKIPPED
+
+---- alpha  quantity of base load contracts
+
+alpha
+                (.LO, .L, .UP, .M = 0, 0, 470, 0)
+     -768       SMcost
+       -1       SMpower(t1)
+       -1       SMpower(t2)
+       -1       SMpower(t3)
+       -1       SMpower(t4)
+       -1       SMpower(t5)
+       -1       SMpower(t6)
+       -1       SMpower(t7)
+       -1       SMpower(t8)
+       -1       SMpower(t9)
+       -1       SMpower(t10)
+       -1       SMpower(t11)
+       -1       SMpower(t12)
+       -1       SMpower(t13)
+       -1       SMpower(t14)
+       -1       SMpower(t15)
+       -1       SMpower(t16)
+       -1       SMpower(t17)
+       -1       SMpower(t18)
+       -1       SMpower(t19)
+       -1       SMpower(t20)
+       -1       SMpower(t21)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 17
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     alpha  quantity of base load contracts
+
+       -1       SMpower(t22)
+       -1       SMpower(t23)
+       -1       SMpower(t24)
+       -1       SMpower(t25)
+       -1       SMpower(t26)
+       -1       SMpower(t27)
+       -1       SMpower(t28)
+       -1       SMpower(t29)
+       -1       SMpower(t30)
+       -1       SMpower(t31)
+       -1       SMpower(t32)
+       -1       SMpower(t33)
+       -1       SMpower(t34)
+       -1       SMpower(t35)
+       -1       SMpower(t36)
+       -1       SMpower(t37)
+       -1       SMpower(t38)
+       -1       SMpower(t39)
+       -1       SMpower(t40)
+       -1       SMpower(t41)
+       -1       SMpower(t42)
+       -1       SMpower(t43)
+       -1       SMpower(t44)
+       -1       SMpower(t45)
+       -1       SMpower(t46)
+       -1       SMpower(t47)
+       -1       SMpower(t48)
+       -1       SMpower(t49)
+       -1       SMpower(t50)
+       -1       SMpower(t51)
+       -1       SMpower(t52)
+       -1       SMpower(t53)
+       -1       SMpower(t54)
+       -1       SMpower(t55)
+       -1       SMpower(t56)
+       -1       SMpower(t57)
+       -1       SMpower(t58)
+       -1       SMpower(t59)
+       -1       SMpower(t60)
+       -1       SMpower(t61)
+       -1       SMpower(t62)
+       -1       SMpower(t63)
+       -1       SMpower(t64)
+       -1       SMpower(t65)
+       -1       SMpower(t66)
+       -1       SMpower(t67)
+       -1       SMpower(t68)
+       -1       SMpower(t69)
+       -1       SMpower(t70)
+       -1       SMpower(t71)
+       -1       SMpower(t72)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 18
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     alpha  quantity of base load contracts
+
+       -1       SMpower(t73)
+       -1       SMpower(t74)
+       -1       SMpower(t75)
+       -1       SMpower(t76)
+       -1       SMpower(t77)
+       -1       SMpower(t78)
+       -1       SMpower(t79)
+       -1       SMpower(t80)
+       -1       SMpower(t81)
+       -1       SMpower(t82)
+       -1       SMpower(t83)
+       -1       SMpower(t84)
+       -1       SMpower(t85)
+       -1       SMpower(t86)
+       -1       SMpower(t87)
+       -1       SMpower(t88)
+       -1       SMpower(t89)
+       -1       SMpower(t90)
+       -1       SMpower(t91)
+       -1       SMpower(t92)
+       -1       SMpower(t93)
+       -1       SMpower(t94)
+       -1       SMpower(t95)
+       -1       SMpower(t96)
+
+
+---- beta  quantity of peak load contracts
+
+beta
+                (.LO, .L, .UP, .M = 0, 0, 470, 0)
+     -492       SMcost
+       -1       SMpower(t33)
+       -1       SMpower(t34)
+       -1       SMpower(t35)
+       -1       SMpower(t36)
+       -1       SMpower(t37)
+       -1       SMpower(t38)
+       -1       SMpower(t39)
+       -1       SMpower(t40)
+       -1       SMpower(t41)
+       -1       SMpower(t42)
+       -1       SMpower(t43)
+       -1       SMpower(t44)
+       -1       SMpower(t45)
+       -1       SMpower(t46)
+       -1       SMpower(t47)
+       -1       SMpower(t48)
+       -1       SMpower(t49)
+       -1       SMpower(t50)
+       -1       SMpower(t51)
+       -1       SMpower(t52)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 19
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     beta  quantity of peak load contracts
+
+       -1       SMpower(t53)
+       -1       SMpower(t54)
+       -1       SMpower(t55)
+       -1       SMpower(t56)
+       -1       SMpower(t57)
+       -1       SMpower(t58)
+       -1       SMpower(t59)
+       -1       SMpower(t60)
+       -1       SMpower(t61)
+       -1       SMpower(t62)
+       -1       SMpower(t63)
+       -1       SMpower(t64)
+       -1       SMpower(t65)
+       -1       SMpower(t66)
+       -1       SMpower(t67)
+       -1       SMpower(t68)
+       -1       SMpower(t69)
+       -1       SMpower(t70)
+       -1       SMpower(t71)
+       -1       SMpower(t72)
+       -1       SMpower(t73)
+       -1       SMpower(t74)
+       -1       SMpower(t75)
+       -1       SMpower(t76)
+       -1       SMpower(t77)
+       -1       SMpower(t78)
+       -1       SMpower(t79)
+       -1       SMpower(t80)
+
+
+---- cLFC  cost of LFC which is the enery rate
+
+cLFC
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       obj
+        1       LFCcost
+
+
+---- eLFCtot  total energy amount of LFC
+
+eLFCtot
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       LFCenergy
+        1       LFCenergyS
+
+
+---- eLFCs  energy from LFC in segment b
+
+eLFCs(b1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -80       LFCcost
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 20
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     eLFCs  energy from LFC in segment b
+
+       -1       LFCenergyS
+        1       LFCemuo
+
+eLFCs(b2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -65       LFCcost
+       -1       LFCenergyS
+        1       LFCemug(b2)
+
+eLFCs(b3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -52       LFCcost
+       -1       LFCenergyS
+        1       LFCemug(b3)
+
+
+---- pLFC  power from the LFC
+
+pLFC(t1)
+                (.LO, .L, .UP, .M = 0, 0, 400, 0)
+        1       demand(t1)
+       -0.25    LFCenergy
+
+pLFC(t2)
+                (.LO, .L, .UP, .M = 0, 0, 400, 0)
+        1       demand(t2)
+       -0.25    LFCenergy
+
+pLFC(t3)
+                (.LO, .L, .UP, .M = 0, 0, 400, 0)
+        1       demand(t3)
+       -0.25    LFCenergy
+
+REMAINING 93 ENTRIES SKIPPED
+
+---- mu  indicator for segment b (for zone prices)
+
+mu(b1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       LFCmu
+     -150       LFCemuo
+
+mu(b2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+   -12000       LFCcost
+        1       LFCmu
+     -150       LFCenergyS
+     -350       LFCemug(b2)
+
+mu(b3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 21
+load following contract (LFC)
+Column Listing      SOLVE energy Using MIP From line 204
+
+
+     mu  indicator for segment b (for zone prices)
+
+   -34750       LFCcost
+        1       LFCmu
+     -500       LFCenergyS
+   -24157.5342  LFCemug(b3)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 22
+load following contract (LFC)
+Model Statistics    SOLVE energy Using MIP From line 204
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          18     SINGLE EQUATIONS        2,178
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES        1,260
+NON ZERO ELEMENTS         9,283     DISCRETE VARIABLES        773
+
+
+GENERATION TIME      =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.008 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:32 Page 23
+load following contract (LFC)
+Solution Report     SOLVE energy Using MIP From line 204
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   energy              OBJECTIVE  c
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  204
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/poutil/convert.opt"
+>>  ampl poutil-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/poutil/convert.opt"
+Ampl      : poutil-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/poutil/poutil.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/poutil/poutil-scalar.mod.lst

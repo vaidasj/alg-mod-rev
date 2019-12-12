@@ -1,0 +1,87 @@
+--- Job pmeanvar.gms Start 12/13/18 11:34:56 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- pmeanvar.gms(34) 3 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mvdata.gdx
+--- pmeanvar.gms(151) 3 Mb
+--- Starting execution: elapsed 0:00:00.006
+--- pmeanvar.gms(46) 4 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mv.gdx
+--- pmeanvar.gms(47) 4 Mb
+--- pmeanvar.gms(49) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mvout.gdx
+--- pmeanvar.gms(52) 4 Mb
+--- pmeanvar.gms(54) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mvout.gdx
+--- pmeanvar.gms(56) 4 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mv.gdx
+--- pmeanvar.gms(57) 4 Mb
+--- pmeanvar.gms(59) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mvout.gdx
+--- pmeanvar.gms(87) 4 Mb
+--- Generating MIQCP model basic_mv
+--- pmeanvar.gms(90) 6 Mb
+---   23 rows  21 columns  71 non-zeroes
+---   388 nl-code  10 nl-non-zeroes
+---   10 discrete-columns
+--- pmeanvar.gms(90) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.029
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+>>  pyomo pmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+--- Writing Pyomo     : pmeanvar-scalar.py
+
+--- Restarting execution
+--- pmeanvar.gms(90) 2 Mb
+--- Reading solution for model basic_mv
+--- pmeanvar.gms(106) 3 Mb
+--- Generating MIQCP model basic_socp_mv
+--- pmeanvar.gms(118) 5 Mb
+---   33 rows  32 columns  92 non-zeroes
+---   35 nl-code  12 nl-non-zeroes
+---   10 discrete-columns
+--- pmeanvar.gms(118) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.049
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+>>  pyomo pmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+--- Writing Pyomo     : pmeanvar-scalar.py
+
+--- Restarting execution
+--- pmeanvar.gms(118) 2 Mb
+--- Reading solution for model basic_socp_mv
+--- pmeanvar.gms(121) 3 Mb
+--- Generating MIQCP model p_socp_mv
+--- pmeanvar.gms(146) 5 Mb
+---   44 rows  43 columns  179 non-zeroes
+---   115 nl-code  42 nl-non-zeroes
+---   10 discrete-columns
+--- pmeanvar.gms(146) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.064
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+>>  pyomo pmeanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+--- Writing Pyomo     : pmeanvar-scalar.py
+
+--- Restarting execution
+--- pmeanvar.gms(146) 2 Mb
+--- Reading solution for model p_socp_mv
+--- pmeanvar.gms(151) 3 Mb
+*** Status: Normal completion
+--- Job pmeanvar.gms Stop 12/13/18 11:34:56 elapsed 0:00:00.074

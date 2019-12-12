@@ -1,0 +1,172 @@
+--- Job mathopt5.gms Start 12/13/18 11:23:00 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- mathopt5.gms(127) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- mathopt5.gms(96) 4 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 6 Mb
+--- LOOPS* = f1
+---   1 rows  2 columns  2 non-zeroes
+---   11 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f2
+---   1 rows  2 columns  2 non-zeroes
+---   10 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.019
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f3
+---   1 rows  2 columns  2 non-zeroes
+---   13 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.036
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f4
+---   1 rows  2 columns  2 non-zeroes
+---   24 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.051
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f5
+---   1 rows  2 columns  2 non-zeroes
+---   28 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.065
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f6
+---   1 rows  2 columns  2 non-zeroes
+---   13 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.082
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f7
+---   1 rows  2 columns  2 non-zeroes
+---   24 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.098
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(96) 3 Mb
+--- Generating DNLP model m
+--- mathopt5.gms(106) 5 Mb
+--- LOOPS* = f8
+---   1 rows  2 columns  2 non-zeroes
+---   19 nl-code  1 nl-non-zeroes
+--- mathopt5.gms(106) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.110
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  pyomo mathopt5-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+--- Writing Pyomo     : mathopt5-scalar.py
+
+--- Restarting execution
+--- mathopt5.gms(106) 2 Mb
+--- Reading solution for model m
+--- mathopt5.gms(127) 3 Mb
+*** Status: Normal completion
+--- Job mathopt5.gms Stop 12/13/18 11:23:00 elapsed 0:00:00.123

@@ -1,0 +1,128 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 2
+Peacefully Coexisting Armies of Queens (COEX,SEQ=219)
+C o m p i l a t i o n
+
+
+       Two armies of queens (black and white) peacefully coexist on a
+       chessboard when they are placed on the board in such a way that
+       no two queens from opposing armies can attack each other. The
+       problem is to find the maximum two equal-sized armies.
+       
+       
+      Bosch, R, Mind Sharpener. OPTIMA MPS Newsletter (2000).
+       
+  13   
+  14  Sets i  size of chess board  / 1*8 /
+  15   
+  16  Alias (i,j,ii,jj)
+  17   
+  18  set M(i,j,ii,jj) shared positions on the board;
+  19   
+  20  M(i,j,ii,jj) = (ord(i)=ord(ii)) or
+  21                 (ord(j)=ord(jj)) or
+  22                 (abs(ord(i)-ord(ii))=abs(ord(j)-ord(jj)));
+  23   
+  24  Binary Variables b(i,j) square occupied by a black Queen
+  25                   w(i,j) square occupied by a white Queen
+  26         Variable  tot    total queens in each army;
+  27   
+  28  Equations eq1(i,j,ii,jj) keeps armies at peace
+  29            eq2            add up all the black queens
+  30            eq3            add up all the white queens;
+  31   
+  32   
+  33  eq1(m(i,j,ii,jj)).. b(i,j) + w(ii,jj) =l= 1;
+  34   
+  35  eq2.. tot =e= sum((i,j), b(i,j));
+  36   
+  37  eq3.. tot =e= sum((i,j), w(i,j));
+  38   
+  39  model armies / all /;
+  40   
+  41  option limcol=0,limrow=0;
+  42   
+      * solution reported in OPTIMA
+      b.fx('6','2') = 1;
+      b.fx('7','2') = 1;
+      b.fx('8','2') = 1;
+      b.fx('7','1') = 1;
+      b.fx('8','1') = 1;
+      b.fx('7','6') = 1;
+      b.fx('8','6') = 1;
+      b.fx('7','7') = 1;
+      b.fx('8','7') = 1;
+  55   
+  56  solve armies maximizing tot using mip;
+  57   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 3
+Peacefully Coexisting Armies of Queens (COEX,SEQ=219)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 4
+Peacefully Coexisting Armies of Queens (COEX,SEQ=219)
+Model Statistics    SOLVE armies Using MIP From line 56
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS        1,522
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          129
+NON ZERO ELEMENTS         3,170     DISCRETE VARIABLES        128
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.006 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:28 Page 5
+Peacefully Coexisting Armies of Queens (COEX,SEQ=219)
+Solution Report     SOLVE armies Using MIP From line 56
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   armies              OBJECTIVE  tot
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  56
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/coex/convert.opt"
+>>  ampl coex-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/coex/convert.opt"
+Ampl      : coex-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/coex/coex.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/coex/coex-scalar.mod.lst

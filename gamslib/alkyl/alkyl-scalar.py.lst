@@ -1,0 +1,341 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 2
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+C o m p i l a t i o n
+
+
+       
+        This model describes a simplified alkylation process. Note the
+        modeling of error bounds on the estimated equations. This formulation
+        is very efficient in terms of problem comprehension and solution. The
+        additional nonlinearities are bounded in a narrow range and
+        introduce no additional computational burden.
+       
+       
+      Berna, T, Locke, M, and Westerberg, A, Simplified Alkylation Process.
+      AIChE Journal 26 (1980), 37.
+       
+  18   
+  19  variables
+  20     F            Objective variable
+  21     OlefinFeed   Olefins Feed
+  22     IsobutRec    Isobutane Recycle
+  23     AcidFeed     Acid Feed
+  24     AlkylYld     Alkylate Yield
+  25     IsobutMak    Isobutane Makeup
+  26     AcidStren    Acid Strength
+  27     Octane       Octane Number
+  28     Ratio        iC4 olefin Ratio
+  29     AcidDilut    Acid Dilution Factor
+  30     F4Perf       F4 Performance Number
+  31   
+  32     alkerr, octerr, aciderr, F4err;
+  33   
+  34  equations
+  35     Objective    Objective Function
+  36     AlkylShrnk   Alkylate Volumetric Shrinkage Equation
+  37     AcidBal      Acid Material Balance
+  38     IsobutBal    Isobutane Component Balance
+  39   
+  40     AlkylDef, OctDef, AcidDef, F4Def;
+  41   
+  42  Objective..  F =e= - 6.3*AlkylYld*Octane  + 5.04*OlefinFeed + 0.35*IsobutRec
+  43                     + AcidFeed + 3.36*IsobutMak;
+  44  AlkylShrnk.. AlkylYld =e= (OlefinFeed+IsobutMak)/1.22;
+  45  AcidBal..    0.98*AcidFeed =e= AcidStren*((AlkylYld*AcidDilut)/100.0+AcidFeed);
+  46  IsoButBal..  10.0*IsobutRec + IsobutMak =e= OlefinFeed*Ratio;
+  47  AlkylDef..   AlkylYld*AlkErr    =e= OlefinFeed*(1.12+0.13167*Ratio-0.0067*Ratio*Ratio);
+  48  OctDef..     Octane*OctErr      =e= 0.8635+(1.098*Ratio-0.038*Ratio*Ratio)/100 + 0.325*(AcidStren-0.89);
+  49  AcidDef..    AcidDilut*AcidErr  =e= 35.82-22.2*F4Perf;
+  50  F4Def..      F4Perf*F4Err       =e= -1.33+3*Octane;
+  51   
+  52  alkerr.lo  = .99;    alkerr.up  = 1/.99;   alkerr.l  = 1;
+  53  octerr.lo  = .99;    octerr.up  = 1/.99;   octerr.l  = 1;
+  54  aciderr.lo = .90;    aciderr.up = 1/.90;   aciderr.l = 1;
+  55  F4err.lo   = .99;    F4err.up   = 1/.99;   F4err.l   = 1;
+  56   
+  57  F.L = -0.90;
+  58   
+  59  OlefinFeed.lo = 0;    OlefinFeed.up = 2.00;  OlefinFeed.l = 1.745;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 3
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+C o m p i l a t i o n
+
+
+  60  IsobutRec.lo  = 0;    IsobutRec.up  = 1.60;  IsobutRec.l  = 1.2;
+  61  AcidFeed.lo   = 0;    AcidFeed.up   = 1.20;  AcidFeed.l   = 1.10;
+  62  AlkylYld.lo   = 0;    AlkylYld.up   = 5.00;  AlkylYld.l   = 3.048;
+  63  IsobutMak.lo  = 0;    IsobutMak.up  = 2.00;  IsobutMak.l  = 1.974;
+  64  AcidStren.lo  = 0.85; AcidStren.up  = 0.93;  AcidStren.l  = 0.893;
+  65  Octane.lo     = 0.90; Octane.up     = 0.95;  Octane.l     = 0.928;
+  66  Ratio.lo      = 3;    Ratio.up      = 12;    Ratio.l      = 8;
+  67  AcidDilut.lo  = 1.2;  AcidDilut.up  = 4;     AcidDilut.l  = 3.6;
+  68  F4Perf.lo     = 1.45; F4Perf.up     = 1.62;  F4Perf.l     = 1.45;
+  69   
+  70  model m /all/;
+  71   
+       
+         OlefinFeed.fx  =  1.70368 ;
+         IsobutRec.fx   =  1.58449 ;
+         AcidFeed.fx    =   .543165;
+         AlkylYld.fx    =  3.03581 ;
+         IsobutMak.fx   =  2.0     ;
+         AcidStren.fx   =   .90133 ;
+         Octane.fx      =   .950   ;
+         Ratio.fx       = 10.4743  ;
+         AcidDilut.fx   =  1.56164 ;
+         F4Perf.fx      =  1.53535 ;
+       
+      m.holdfixed=1;
+  87   
+  88  solve m using nlp minimizing f;
+  89   
+
+
+COMPILATION TIME     =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 4
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+Equation Listing    SOLVE m Using NLP From line 88
+
+
+---- Objective  =E=  Objective Function
+
+Objective..  F - 5.04*OlefinFeed - 0.35*IsobutRec - AcidFeed + (5.8464)*AlkylYld - 3.36*IsobutMak + (19.2024)*Octane =E= 0 ; (LHS = -0.027612799999997, INFES = 0.027612799999997 ****)
+     
+
+---- AlkylShrnk  =E=  Alkylate Volumetric Shrinkage Equation
+
+AlkylShrnk..  - 0.819672131147541*OlefinFeed + AlkylYld - 0.819672131147541*IsobutMak =E= 0 ; (LHS = -0.000360655737705162, INFES = 0.000360655737705162 ****)
+     
+
+---- AcidBal  =E=  Acid Material Balance
+
+AcidBal..  (0.087)*AcidFeed - (0.032148)*AlkylYld - (1.209728)*AcidStren - (0.02721864)*AcidDilut =E= 0 ; (LHS = -0.0022871040000001, INFES = 0.0022871040000001 ****)
+     
+
+---- IsobutBal  =E=  Isobutane Component Balance
+
+IsobutBal..  - (8)*OlefinFeed + 10*IsobutRec + IsobutMak - (1.745)*Ratio =E= 0 ; (LHS = 0.0139999999999993, INFES = 0.0139999999999993 ****)
+     
+
+---- AlkylDef  =E=  
+
+AlkylDef..  - (1.74456)*OlefinFeed + (1)*AlkylYld - (0.04270015)*Ratio + (3.048)*alkerr =E= 0 ; (LHS = 0.00374279999999949, INFES = 0.00374279999999949 ****)
+     
+
+---- OctDef  =E=  
+
+OctDef..  - 0.325*AcidStren + (1)*Octane - (0.0049)*Ratio + (0.928)*octerr =E= 0.57425 ; (LHS = 0.574255, INFES = 5.00000000003276E-6 ****)
+     
+
+---- AcidDef  =E=  
+
+AcidDef..  (1)*AcidDilut + 22.2*F4Perf + (3.6)*aciderr =E= 35.82 ; (LHS = 35.79, INFES = 0.0300000000000025 ****)
+     
+
+---- F4Def  =E=  
+
+F4Def..  - 3*Octane + (1)*F4Perf + (1.45)*F4err =E= -1.33 ; (LHS = -1.334, INFES = 0.00400000000000023 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 5
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+Column Listing      SOLVE m Using NLP From line 88
+
+
+---- F  Objective variable
+
+F
+                (.LO, .L, .UP, .M = -INF, -0.9, +INF, 0)
+        1       Objective
+
+
+---- OlefinFeed  Olefins Feed
+
+OlefinFeed
+                (.LO, .L, .UP, .M = 0, 1.745, 2, 0)
+       -5.04    Objective
+       -0.8197  AlkylShrnk
+      (-8)      IsobutBal
+      (-1.7446) AlkylDef
+
+
+---- IsobutRec  Isobutane Recycle
+
+IsobutRec
+                (.LO, .L, .UP, .M = 0, 1.2, 1.6, 0)
+       -0.35    Objective
+       10       IsobutBal
+
+
+---- AcidFeed  Acid Feed
+
+AcidFeed
+                (.LO, .L, .UP, .M = 0, 1.1, 1.2, 0)
+       -1       Objective
+       (0.087)  AcidBal
+
+
+---- AlkylYld  Alkylate Yield
+
+AlkylYld
+                (.LO, .L, .UP, .M = 0, 3.048, 5, 0)
+       (5.8464) Objective
+        1       AlkylShrnk
+      (-0.0321) AcidBal
+       (1)      AlkylDef
+
+
+---- IsobutMak  Isobutane Makeup
+
+IsobutMak
+                (.LO, .L, .UP, .M = 0, 1.974, 2, 0)
+       -3.36    Objective
+       -0.8197  AlkylShrnk
+        1       IsobutBal
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 6
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+Column Listing      SOLVE m Using NLP From line 88
+
+
+---- AcidStren  Acid Strength
+
+AcidStren
+                (.LO, .L, .UP, .M = 0.85, 0.893, 0.93, 0)
+      (-1.2097) AcidBal
+       -0.325   OctDef
+
+
+---- Octane  Octane Number
+
+Octane
+                (.LO, .L, .UP, .M = 0.9, 0.928, 0.95, 0)
+      (19.2024) Objective
+       (1)      OctDef
+       -3       F4Def
+
+
+---- Ratio  iC4 olefin Ratio
+
+Ratio
+                (.LO, .L, .UP, .M = 3, 8, 12, 0)
+      (-1.745)  IsobutBal
+      (-0.0427) AlkylDef
+      (-0.0049) OctDef
+
+
+---- AcidDilut  Acid Dilution Factor
+
+AcidDilut
+                (.LO, .L, .UP, .M = 1.2, 3.6, 4, 0)
+      (-0.0272) AcidBal
+       (1)      AcidDef
+
+
+---- F4Perf  F4 Performance Number
+
+F4Perf
+                (.LO, .L, .UP, .M = 1.45, 1.45, 1.62, 0)
+       22.2     AcidDef
+       (1)      F4Def
+
+
+---- alkerr  
+
+alkerr
+                (.LO, .L, .UP, .M = 0.99, 1, 1.01010101010101, 0)
+       (3.048)  AlkylDef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 7
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+Column Listing      SOLVE m Using NLP From line 88
+
+
+---- octerr  
+
+octerr
+                (.LO, .L, .UP, .M = 0.99, 1, 1.01010101010101, 0)
+       (0.928)  OctDef
+
+
+---- aciderr  
+
+aciderr
+                (.LO, .L, .UP, .M = 0.9, 1, 1.11111111111111, 0)
+       (3.6)    AcidDef
+
+
+---- F4err  
+
+F4err
+                (.LO, .L, .UP, .M = 0.99, 1, 1.01010101010101, 0)
+       (1.45)   F4Def
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 8
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+Model Statistics    SOLVE m Using NLP From line 88
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES           15
+NON ZERO ELEMENTS            32     NON LINEAR N-Z             19
+DERIVATIVE POOL              20     CONSTANT POOL              24
+CODE LENGTH                  54
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:52 Page 9
+Simplified Alkylation Process  (ALKYL,SEQ=165)
+Solution Report     SOLVE m Using NLP From line 88
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  F
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  88
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/alkyl/convert.opt"
+>>  pyomo alkyl-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/alkyl/convert.opt"
+Pyomo     : alkyl-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/alkyl/alkyl.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/alkyl/alkyl-scalar.py.lst

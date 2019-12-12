@@ -1,0 +1,348 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 2
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+C o m p i l a t i o n
+
+
+        A latin square is an arrangement of objects such that no object
+        is repeated in a row or column. Two latin squares are orthogonal
+        if all entries are different. For example,
+       
+                one     two
+               1 3 2   2 1 3
+               3 2 1   1 3 2
+               2 1 3   3 2 1
+       
+        The case of n=10 has historical interest and was only settled in 1952.
+       
+        The original formulation is not correct. A new formulation
+        is presented which generates a correct solution. Also note that the
+        solution time is very sensitive to formulation details and depends on
+        the kind of algorithm used.
+       
+        The size of the square can easily by changed by editing the lines
+        containing the definitions of the rows, columns and values in the.
+        set definition below. This kind of assignment problem can be very
+        difficult to solve for general purpose MIP codes.
+       
+       
+      Dantzig, G B, Chapter 26.3. In Linear Programming and Extensions. Princeton University Press, Princeton, New Jersey, 1963.
+       
+  32   
+  33  sets k  rows    / row-1*row-4/      ! change row-4 to new size
+  34       l  columns / col-1*col-4/      ! change col-4 to new size
+  35       v  values  / val-1*val-4/      ! change val-4 to new size
+  36   
+  37  alias (i,j,v);
+  38   
+  39  *  ORIGINAL FORMULATION
+  40  *
+  41  *  Note that the squares use k,l for row and column indexes. The first
+  42  *  index position (i) is for the values of square one and the second
+  43  *  index position (j) is for square two. For example, the cell 2,3
+  44  *  in the latin square shown above would be defined by the value of
+  45  *  one for the following index values:
+  46  *
+  47  *      x.fx('val-1','val-2','row-2',col-3') = 1;
+  48  *
+  49  *  The original formulation is not correct. For example, you can pick
+  50  *  any cell (k,l) and pick and make the cell values equal and the
+  51  *  model will find a feasible solution. For example, you could set:
+  52  *
+  53  *      x.fx('val-1','val-1','row-1','col-1') = 1;
+  54  *
+  55  *  and get a feasible solution. Both the original and a new formulation
+  56  *  are given.
+  57   
+  58  variables x(i,j,k,l)  'pairs (i,j) allocated to cell(k,l)'
+  59            z           some objective
+  60  binary variable x;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 3
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+C o m p i l a t i o n
+
+
+  61   
+  62  equations
+  63     c1(i,j)   for each cell pick only one item pair
+  64     c2(k,l)   an item pair can show up only once
+  65     c3(i,l)   items have to be unique in each column for square one
+  66     c4(j,l)   items have to be unique in each column for square two
+  67     c5(i,k)   items have to be unique in each row for square one
+  68     c6(j,k)   items have to be unique in each row for square two
+  69     obj       some objective function;
+  70   
+  71  c1(i,j)..     sum((k,l), x(i,j,k,l)) =e= 1;
+  72  c2(k,l)..     sum((i,j), x(i,j,k,l)) =e= 1;
+  73  c3(i,l)..     sum((j,k), x(i,j,k,l)) =e= 1;
+  74  c4(j,l)..     sum((i,k), x(i,j,k,l)) =e= 1;
+  75  c5(i,k)..     sum((j,l), x(i,j,k,l)) =e= 1;
+  76  c6(j,k)..     sum((i,l), x(i,j,k,l)) =e= 1;
+  77  obj..   z =e= sum((i,j,k,l), x(i,j,k,l));
+  78   
+  79  model latin / all /;
+  80   
+  81  parameter report(*,k,l); option report:0:1:1;
+  82   
+       
+      * force an incorrect solution
+      x.fx('val-1','val-1','row-1','col-1') = 1;
+       
+      solve latin minimizing z using mip;
+       
+       
+      loop((i,j,k,l)$x.l(i,j,k,l),
+         report('one',k,l) = ord(i);
+         report('two',k,l) = ord(j); );
+       
+      display report;
+       
+  98   
+  99  *   NEW FORMULATION
+ 100   
+ 101  set  s  square  / one, two /
+ 102   
+ 103  variables  y(s,v,k,l)  'square s has value v in cell(k,l)'
+ 104             dev(v,k,l)  deviation from correct formulation
+ 105             w           some objective
+ 106  binary variable y;
+ 107   
+ 108  equations
+ 109   
+ 110     n2(s,k,l)   exactly one value for each cell
+ 111     n3(s,v,l)   columns entries have to be unique
+ 112     n5(s,v,k)   row entries have to be unique
+ 113     n6(v,k,l)   entries in squares have to be different
+ 114     nobj        definition of objective - anything ;
+ 115   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 4
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+C o m p i l a t i o n
+
+
+ 116  n2(s,k,l)..   sum(v, y(s,v,k,l)) =e= 1;
+ 117  n3(s,v,l)..   sum(k, y(s,v,k,l)) =e= 1;
+ 118  n5(s,v,k)..   sum(l, y(s,v,k,l)) =e= 1;
+ 119  n6(v,k,l)..   sum(s, y(s,v,k,l)) =l= 1;
+ 120  nobj..        w =e= sum((s,v,k,l), y(s,v,k,l));
+ 121   
+ 122  model newlatin / nobj,n2,n3,n5,n6 /;
+ 123   
+ 124  * position the solution
+ 125  y.fx('one','val-1','row-1','col-1') = 1;
+ 126   
+ 127  solve newlatin min w us mip;
+ 128   
+ 129  loop((s,v,k,l)$y.l(s,v,k,l),
+ 130     report(s,k,l) = ord(v);
+ 131     report(s,k,l) = ord(v); );
+ 132   
+ 133  display report;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 5
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+Equation Listing    SOLVE newlatin Using MIP From line 127
+
+
+---- nobj  =E=  definition of objective - anything
+
+nobj..  - y(one,val-1,row-1,col-1) - y(one,val-1,row-1,col-2) - y(one,val-1,row-1,col-3) - y(one,val-1,row-1,col-4) - y(one,val-1,row-2,col-1) - y(one,val-1,row-2,col-2) - y(one,val-1,row-2,col-3) - y(one,val-1,row-2,col-4) - y(one,val-1,row-3,col-1)
+     
+      - y(one,val-1,row-3,col-2) - y(one,val-1,row-3,col-3) - y(one,val-1,row-3,col-4) - y(one,val-1,row-4,col-1) - y(one,val-1,row-4,col-2) - y(one,val-1,row-4,col-3) - y(one,val-1,row-4,col-4) - y(one,val-2,row-1,col-1) - y(one,val-2,row-1,col-2)
+     
+      - y(one,val-2,row-1,col-3) - y(one,val-2,row-1,col-4) - y(one,val-2,row-2,col-1) - y(one,val-2,row-2,col-2) - y(one,val-2,row-2,col-3) - y(one,val-2,row-2,col-4) - y(one,val-2,row-3,col-1) - y(one,val-2,row-3,col-2) - y(one,val-2,row-3,col-3)
+     
+      - y(one,val-2,row-3,col-4) - y(one,val-2,row-4,col-1) - y(one,val-2,row-4,col-2) - y(one,val-2,row-4,col-3) - y(one,val-2,row-4,col-4) - y(one,val-3,row-1,col-1) - y(one,val-3,row-1,col-2) - y(one,val-3,row-1,col-3) - y(one,val-3,row-1,col-4)
+     
+      - y(one,val-3,row-2,col-1) - y(one,val-3,row-2,col-2) - y(one,val-3,row-2,col-3) - y(one,val-3,row-2,col-4) - y(one,val-3,row-3,col-1) - y(one,val-3,row-3,col-2) - y(one,val-3,row-3,col-3) - y(one,val-3,row-3,col-4) - y(one,val-3,row-4,col-1)
+     
+      - y(one,val-3,row-4,col-2) - y(one,val-3,row-4,col-3) - y(one,val-3,row-4,col-4) - y(one,val-4,row-1,col-1) - y(one,val-4,row-1,col-2) - y(one,val-4,row-1,col-3) - y(one,val-4,row-1,col-4) - y(one,val-4,row-2,col-1) - y(one,val-4,row-2,col-2)
+     
+      - y(one,val-4,row-2,col-3) - y(one,val-4,row-2,col-4) - y(one,val-4,row-3,col-1) - y(one,val-4,row-3,col-2) - y(one,val-4,row-3,col-3) - y(one,val-4,row-3,col-4) - y(one,val-4,row-4,col-1) - y(one,val-4,row-4,col-2) - y(one,val-4,row-4,col-3)
+     
+      - y(one,val-4,row-4,col-4) - y(two,val-1,row-1,col-1) - y(two,val-1,row-1,col-2) - y(two,val-1,row-1,col-3) - y(two,val-1,row-1,col-4) - y(two,val-1,row-2,col-1) - y(two,val-1,row-2,col-2) - y(two,val-1,row-2,col-3) - y(two,val-1,row-2,col-4)
+     
+      - y(two,val-1,row-3,col-1) - y(two,val-1,row-3,col-2) - y(two,val-1,row-3,col-3) - y(two,val-1,row-3,col-4) - y(two,val-1,row-4,col-1) - y(two,val-1,row-4,col-2) - y(two,val-1,row-4,col-3) - y(two,val-1,row-4,col-4) - y(two,val-2,row-1,col-1)
+     
+      - y(two,val-2,row-1,col-2) - y(two,val-2,row-1,col-3) - y(two,val-2,row-1,col-4) - y(two,val-2,row-2,col-1) - y(two,val-2,row-2,col-2) - y(two,val-2,row-2,col-3) - y(two,val-2,row-2,col-4) - y(two,val-2,row-3,col-1) - y(two,val-2,row-3,col-2)
+     
+      - y(two,val-2,row-3,col-3) - y(two,val-2,row-3,col-4) - y(two,val-2,row-4,col-1) - y(two,val-2,row-4,col-2) - y(two,val-2,row-4,col-3) - y(two,val-2,row-4,col-4) - y(two,val-3,row-1,col-1) - y(two,val-3,row-1,col-2) - y(two,val-3,row-1,col-3)
+     
+      - y(two,val-3,row-1,col-4) - y(two,val-3,row-2,col-1) - y(two,val-3,row-2,col-2) - y(two,val-3,row-2,col-3) - y(two,val-3,row-2,col-4) - y(two,val-3,row-3,col-1) - y(two,val-3,row-3,col-2) - y(two,val-3,row-3,col-3) - y(two,val-3,row-3,col-4)
+     
+      - y(two,val-3,row-4,col-1) - y(two,val-3,row-4,col-2) - y(two,val-3,row-4,col-3) - y(two,val-3,row-4,col-4) - y(two,val-4,row-1,col-1) - y(two,val-4,row-1,col-2) - y(two,val-4,row-1,col-3) - y(two,val-4,row-1,col-4) - y(two,val-4,row-2,col-1)
+     
+      - y(two,val-4,row-2,col-2) - y(two,val-4,row-2,col-3) - y(two,val-4,row-2,col-4) - y(two,val-4,row-3,col-1) - y(two,val-4,row-3,col-2) - y(two,val-4,row-3,col-3) - y(two,val-4,row-3,col-4) - y(two,val-4,row-4,col-1) - y(two,val-4,row-4,col-2)
+     
+      - y(two,val-4,row-4,col-3) - y(two,val-4,row-4,col-4) + w =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- n2  =E=  exactly one value for each cell
+
+n2(one,row-1,col-1)..  y(one,val-1,row-1,col-1) + y(one,val-2,row-1,col-1) + y(one,val-3,row-1,col-1) + y(one,val-4,row-1,col-1) =E= 1 ; (LHS = 1)
+     
+n2(one,row-1,col-2)..  y(one,val-1,row-1,col-2) + y(one,val-2,row-1,col-2) + y(one,val-3,row-1,col-2) + y(one,val-4,row-1,col-2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+n2(one,row-1,col-3)..  y(one,val-1,row-1,col-3) + y(one,val-2,row-1,col-3) + y(one,val-3,row-1,col-3) + y(one,val-4,row-1,col-3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 29 ENTRIES SKIPPED
+
+
+---- n3  =E=  columns entries have to be unique
+
+n3(one,val-1,col-1)..  y(one,val-1,row-1,col-1) + y(one,val-1,row-2,col-1) + y(one,val-1,row-3,col-1) + y(one,val-1,row-4,col-1) =E= 1 ; (LHS = 1)
+     
+n3(one,val-1,col-2)..  y(one,val-1,row-1,col-2) + y(one,val-1,row-2,col-2) + y(one,val-1,row-3,col-2) + y(one,val-1,row-4,col-2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 6
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+Equation Listing    SOLVE newlatin Using MIP From line 127
+
+
+     n3  =E=  columns entries have to be unique
+
+n3(one,val-1,col-3)..  y(one,val-1,row-1,col-3) + y(one,val-1,row-2,col-3) + y(one,val-1,row-3,col-3) + y(one,val-1,row-4,col-3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 29 ENTRIES SKIPPED
+
+
+---- n5  =E=  row entries have to be unique
+
+n5(one,val-1,row-1)..  y(one,val-1,row-1,col-1) + y(one,val-1,row-1,col-2) + y(one,val-1,row-1,col-3) + y(one,val-1,row-1,col-4) =E= 1 ; (LHS = 1)
+     
+n5(one,val-1,row-2)..  y(one,val-1,row-2,col-1) + y(one,val-1,row-2,col-2) + y(one,val-1,row-2,col-3) + y(one,val-1,row-2,col-4) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+n5(one,val-1,row-3)..  y(one,val-1,row-3,col-1) + y(one,val-1,row-3,col-2) + y(one,val-1,row-3,col-3) + y(one,val-1,row-3,col-4) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 29 ENTRIES SKIPPED
+
+
+---- n6  =L=  entries in squares have to be different
+
+n6(val-1,row-1,col-1)..  y(one,val-1,row-1,col-1) + y(two,val-1,row-1,col-1) =L= 1 ; (LHS = 1)
+     
+n6(val-1,row-1,col-2)..  y(one,val-1,row-1,col-2) + y(two,val-1,row-1,col-2) =L= 1 ; (LHS = 0)
+     
+n6(val-1,row-1,col-3)..  y(one,val-1,row-1,col-3) + y(two,val-1,row-1,col-3) =L= 1 ; (LHS = 0)
+     
+REMAINING 61 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 7
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+Column Listing      SOLVE newlatin Using MIP From line 127
+
+
+---- y  square s has value v in cell(k,l)
+
+y(one,val-1,row-1,col-1)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       -1       nobj
+        1       n2(one,row-1,col-1)
+        1       n3(one,val-1,col-1)
+        1       n5(one,val-1,row-1)
+        1       n6(val-1,row-1,col-1)
+
+y(one,val-1,row-1,col-2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       nobj
+        1       n2(one,row-1,col-2)
+        1       n3(one,val-1,col-2)
+        1       n5(one,val-1,row-1)
+        1       n6(val-1,row-1,col-2)
+
+y(one,val-1,row-1,col-3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       nobj
+        1       n2(one,row-1,col-3)
+        1       n3(one,val-1,col-3)
+        1       n5(one,val-1,row-1)
+        1       n6(val-1,row-1,col-3)
+
+REMAINING 125 ENTRIES SKIPPED
+
+---- w  some objective
+
+w
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       nobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 8
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+Model Statistics    SOLVE newlatin Using MIP From line 127
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS          161
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES          129
+NON ZERO ELEMENTS           641     DISCRETE VARIABLES        127
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 9
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+Solution Report     SOLVE newlatin Using MIP From line 127
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   newlatin            OBJECTIVE  w
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  127
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/latin/convert.opt"
+>>  pyomo latin-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/latin/convert.opt"
+Pyomo     : latin-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 10
+The Orthogonal Latin-Square Problem (LATIN,SEQ=159)
+E x e c u t i o n
+
+
+----    133 PARAMETER report  
+
+INDEX 1 = one
+
+            col-1
+
+row-1           1
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/latin/latin.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/latin/latin-scalar.py.lst

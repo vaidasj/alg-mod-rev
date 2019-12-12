@@ -1,0 +1,2073 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 2
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Set definitions
+
+
+   4   
+       
+         This model evaluates the effects of credit pricing on farm
+         production mix and technology choice and thus on employment
+         and income distribution.
+       
+       
+      Husain, T, and Inman, R, A Model for Estimating the Effects of Credit
+      pricing on Farm level employment and income distribution. Tech. rep.,
+      The World Bank, 1977.
+       
+  17   
+  18   
+  19   Set c       crop commodities   / wheat , soy-beans , maize-for , alfalfa , sugar-beet , cotton /
+  20   
+  21       s       cropping schedules / sch-1*sch-8 /
+  22   
+  23       w       irrigation levels  / normal , stress-1*stress-3 /
+  24   
+  25       t       time periods (in fortnights) / 01*24 /
+  26   
+  27       g       agricultural tasks /
+  28   
+  29               plough
+  30               disce
+  31               harrow
+  32               spray
+  33               drill
+  34               plant
+  35               fertilize  spreading
+  36               cultivate
+  37               beet-lift   ing
+  38               mow
+  39               windrow
+  40               bale
+  41               harvest-g   grain harvesting
+  42               harvest-f   forage harvesting
+  43               harvest-c   cotton harvesting
+  44               transport                    /
+  45   
+  46       mn      implements and power sources  /
+  47   
+  48  *            power sources:
+  49               tractor-l    large
+  50               tractor-s    small
+  51               draft-unit   pair of oxen
+  52               self-prop    self-propelled units
+  53               manual       operation
+  54   
+  55  *            self-propelled units:
+  56               combine-h    combine harvester
+  57               forage-h     forage harvester
+  58               cotton-p     self-propelled cotton picker
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 3
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Set definitions
+
+
+  59   
+  60  *            implements:
+  61               f-plow-6     5 to 6 furrow plow
+  62               f-plow-3     3 furrow plow
+  63               f-plow-1     1 furrow plow
+  64               harrow-o-d   offset disc harrow
+  65               harrow-s-t   spike tooth harrow
+  66               harrow-s     small harrow
+  67               sprayer-l    large sprayer
+  68               sprayer-s    small sprayer
+  69               drill        for tractor use
+  70               drill-s      small drill
+  71               planter      precision planter
+  72               planter-s    small precision planter
+  73               spreader-l   large fertilizer spreader
+  74               spreader-s   small fertilizer spreader
+  75               cult-l       large cultivator
+  76               cult-s       small cultivator
+  77               beet-lift    er
+  78               mower
+  79               baler
+  80               rake
+  81               trailer-4t    4 ton trailer
+  82               trailer-ht    half ton trailer
+  83               sprayer-k     knapsack sprayer for manual operation /
+  84   
+  85       m(mn)   implements   / combine-h  , forage-h   , cotton-p  , f-plow-6  , f-plow-3 , f-plow-1 , harrow-o-d
+  86                              harrow-s-t , harrow-s   , sprayer-l , sprayer-s , drill    , drill-s  , planter
+  87                              planter-s  , spreader-l , spreader-s, cult-l    , cult-s   , beet-lift, mower
+  88                              baler      , rake       , trailer-4t, trailer-ht, sprayer-k, manual   /
+  89   
+  90       n(mn)   power sources/ tractor-l , tractor-s , draft-unit , self-prop , manual /
+  91   
+  92       cposs(c,s)        crop possibilities
+  93   
+  94       taskposs(g,t)     task possibilities
+  95   
+  96       equipposs(mn,t)   equipment use possibilities
+  97   
+  98       cc                cost classifications in model / misc-input , water , operating , wages , capital /
+  99   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 4
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+data: task and technology data
+
+
+ 101   
+ 102   Table equip(mn,*)  equipment costs and operating costs
+ 103   
+ 104  * cost    :   purchase price (1000 rials)
+ 105  * life    :   expected life for amortization of capital cost (years)
+ 106  * opcost  :   operating cost (rials / hour)
+ 107  * avail   :   hours of utilization available per fortnight (hours)
+ 108   
+ 109                cost   life   opcost   avail
+ 110   
+ 111   tractor-l    1000     5      220     140
+ 112   tractor-s     540     5      113     140
+ 113   draft-unit    100     6       18     100
+ 114   combine-h    1500     6      770     140
+ 115   forage-h     1500    10     1310     140
+ 116   cotton-p     4000     8      770      80
+ 117   f-plow-6      140     5       38     140
+ 118   f-plow-3      100    10       11     140
+ 119   f-plow-1        3     3              100
+ 120   harrow-o-d    200     5       54     140
+ 121   harrow-s-t     35     8        5     140
+ 122   harrow-s        3     3              100
+ 123   sprayer-l     112     4       11     140
+ 124   sprayer-s      11     3              100
+ 125   drill         200     6       72     140
+ 126   drill-s        13     3              100
+ 127   planter       200     6       46     140
+ 128   planter-s      20     3              100
+ 129   spreader-l     27     3        5     140
+ 130   spreader-s      3     3              100
+ 131   cult-l        125     5       30     140
+ 132   cult-s         13     3              100
+ 133   beet-lift      30    10       25     140
+ 134   mower          65     3       15     140
+ 135   rake           50     4       12     140
+ 136   baler         280     4       70     140
+ 137   trailer-4t    180     5       28     140
+ 138   trailer-ht     25     5              100
+ 139   sprayer-k      11     2               84
+ 140   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 5
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+data: task and technology data
+
+
+ 142   
+ 143   Table tech(g,mn,mn)  task technologies (hours per ha)
+ 144   
+ 145  * first index   : agricultural task
+ 146  * second index  : implement/tool
+ 147  * third index   : power source
+ 148  *
+ 149  * transport requirements are in hours per ton
+ 150   
+ 151                          tractor-l    tractor-s    draft-unit   manual   self-prop
+ 152   
+ 153   plough.f-plow-6           2
+ 154   plough.f-plow-3           3            3
+ 155   plough.f-plow-1                                      45
+ 156   disce.harrow-o-d           .6
+ 157   disce.harrow-s-t                       1
+ 158   disce.harrow-s                                        6
+ 159   harrow.harrow-s-t                      1.6
+ 160   harrow.harrow-s                                       2
+ 161   
+ 162   harrow.manual                                                  50
+ 163   spray.sprayer-l            .5           .5
+ 164   spray.sprayer-s                                       8
+ 165   spray.sprayer-k                                                 8
+ 166   drill.drill                .5           .5
+ 167   drill.drill-s                                         8
+ 168   plant.planter             1.5          1.5
+ 169   plant.planter-s                                      20
+ 170   
+ 171   fertilize.spreader-l     4            4
+ 172   fertilize.spreader-s                                 8
+ 173   fertilize.manual                                               8
+ 174   cultivate.cult-l           .5          1
+ 175   cultivate.cult-s                                     20
+ 176   cultivate.manual                                               50
+ 177   harvest-g.combine-h                                                       1
+ 178   harvest-f.forage-h                                                        1.25
+ 179   harvest-c.manual                                              504
+ 180   harvest-c.cotton-p                                                        1
+ 181   
+ 182   beet-lift.beet-lift       2.5          2.5
+ 183   beet-lift.manual                                              200
+ 184   mow.mower                 1            1
+ 185   windrow.rake               .5           .5
+ 186   bale.baler                 .8          2
+ 187   transport.trailer-4t       .25          .25
+ 188   transport.trailer-ht                                  4
+ 189   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 6
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 191   
+ 192   Table cropdata(*,c)
+ 193   
+ 194  * 1. seed, fertilizer, herbicide, pesticide - cost in 1000 rials per ha
+ 195  * 2. crop-limit - maximum percentage of available land that can be planted in each crop: agrocomic constraint
+ 196  * 3. trans-adj - transport adustment: reflects different travel distances and waiting times
+ 197  * 4. price - 1000 rials per ton
+ 198  * 5. yield - normal yield in metric tons per ha
+ 199  * 6. water - normal requirements in 1000 cubic meters per ha
+ 200   
+ 201                   wheat     soy-beans     maize-for     sugar-beet     alfalfa     cotton
+ 202   
+ 203   seed            2.16        1.6           1.05            .9            .2         .375
+ 204   fertilize       3.3         2.4           4.2            6.3           2.61       2.25
+ 205   herbicide       1.395        .5            .5             .4            .32
+ 206   pesticide                                                 .4                      1.8
+ 207   crop-limit      1           1              .15           1              .25       1
+ 208   trans-adj        .33         .67           .15            .43           .5        1
+ 209   price          10          23.96          1.08           1.8           5         16.47
+ 210   yield           3.5         2            60             35            12          3.5
+ 211   water           6.44       15.83         11.11          16.83         22.55      14.37
+ 212   
+ 213   
+ 214   Table stress(*,w,c)  water stress multiplier (proportion)
+ 215   
+ 216                    wheat     soy-beans     maize-for     sugar-beet     alfalfa     cotton
+ 217   
+ 218   yield.normal      1          1             1              1             1           1
+ 219   water.normal      1          1             1              1             1           1
+ 220   yield.stress-1     .98        .95           .98            .94           .95         .96
+ 221   water.stress-1     .9         .83           .9             .61           .83         .58
+ 222   yield.stress-2     .94        .79           .94            .89           .79         .71
+ 223   water.stress-2     .8         .55           .8             .38           .55         .25
+ 224   yield.stress-3     .75        .53           .75            .83           .53
+ 225   water.stress-3     .5         .28           .5             .23           .28
+ 226   
+ 227   
+ 228   Table  cs(c,*,s)  time periods (fortnight) when cropping schedules start and end
+ 229   
+ 230                                        sch-1  sch-2  sch-3  sch-4  sch-5  sch-6  sch-7  sch-8
+ 231   
+ 232   wheat.start                           13     14     15     16     17     17     17
+ 233   wheat.end                             11     12     13     13     13     11     11
+ 234   soy-beans.start                       23     23     23      1      2      5      6
+ 235   soy-beans.end                         16     16     16     17     17     17     16
+ 236   maize-for.start                       12     12     13     13     13     12     13
+ 237   maize-for.end                         19     20     19     20     20     20     20
+ 238   alfalfa.start                         23     24      1      2      3      4      5      6
+ 239   alfalfa.end                           19     19     19     19     19     19     19     19
+ 240   sugar-beet.start                      24      1      2      3      3      3
+ 241   sugar-beet.end                        21     21     21     22     22     23
+ 242   cotton.start                           3      4      5      6      6      3      5
+ 243   cotton.end                            16     17     17     17     19     20     16
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 7
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 244   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 8
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 246   
+ 247   Table atask(c,g,s)  time periods when a unit of agricultural task is to be performed (per ha)
+ 248   
+ 249  * table atask specifies the time periods when various agricultural activities for each crop and according to the
+ 250  * schedule are required.  the first and last periods during which cultivation must take place are given.
+ 251   
+ 252                                         sch-1   sch-2   sch-3   sch-4   sch-5   sch-6   sch-7   sch-8
+ 253   
+ 254   wheat.plough                            13      14      15      16      17      17      17
+ 255   wheat.disce                             14      15      16      17      18      17      18
+ 256   wheat.(harrow,spray)                    18      19      19      20      20      18      18
+ 257   wheat.fertilize                          6       7       7       7       7       6       6
+ 258   wheat.drill                             19      20      21      21      21      19      19
+ 259   wheat.(harvest-g,bale,transport)        11      12      13      13      13      11      11
+ 260   
+ 261   soy-beans.plough                        23      23      23       1       2       5       6
+ 262   soy-beans.(disce,harrow,spray)           4       5       6       4       4       6       6
+ 263   soy-beans.drill                          7       7       7       8       8       8       7
+ 264   soy-beans.cultivate                      9       9       9      10      10      10       9
+ 265   soy-beans.fertilize                      5       6       6       5       5       6       6
+ 266   soy-beans.(harvest-g,transport)         16      16      16      17      17      17      16
+ 267   
+ 268   maize-for.disce                         12      12      13      13      13      12      13
+ 269   maize-for.plant                         13      14      13      14      14      14      13
+ 270   maize-for.spray                         14      15      14      15      16      15      14
+ 271   maize-for.cultivate                     15      16      15      16      16      16      15
+ 272   maize-for.fertilize                     16      17      16      17      16      16      16
+ 273   maize-for.harvest-f                     19      20      19      20      20      20      19
+ 274   maize-for.transport                     19      20      19      20      20      20      20
+ 275   
+ 276   cotton.plough                            3       4       5       6       6       3       5
+ 277   cotton.disce                             4       5       6       7       7       4       7
+ 278   cotton.plant                             8       9       8       8       9       9       8
+ 279   
+ 280   alfalfa.plough                          23      24       1       2       3       4       5       6
+ 281   alfalfa.(disce,harrow)                   6       6       6       7       7       6       7       6
+ 282   alfalfa.drill                            9       9       9       9      10      10      10      10
+ 283   
+ 284   sugar-beet.plough                       24       1       2       3       3       3
+ 285   sugar-beet.disce                         1       2       3       4       4       4
+ 286   sugar-beet.plant                         4       4       4       5       5       6
+ 287   sugar-beet.fertilize                     6       6       6       7       7       7
+ 288   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:38 Page 9
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 290   
+ 291   table btask(c,g,s,t)  task requirements according to crop and schedule (per ha)
+ 292   
+ 293                                                             01      02      03      04      05      06      07      08
+ 294   
+ 295   alfalfa.(fertilize,spray).(sch-1*sch-4)                                                            1
+ 296   alfalfa.(fertilize,spray).(sch-5*sch-8)                                                                    1
+ 297   sugar-beet.harrow.sch-1                                                    1                               1
+ 298   sugar-beet.harrow.(sch-2*sch-4)                                                    1                       1
+ 299   sugar-beet.harrow.(sch-5,sch-6)                                                            1               1
+ 300   sugar-beet.cultivate.(sch-1*sch-3)                                                                 1               1
+ 301   sugar-beet.cultivate.(sch-4,sch-5)                                                                         1
+ 302   sugar-beet.cultivate.sch-6                                                                                         1
+ 303   sugar-beet.spray.(sch-1,sch-3)                                             1
+ 304   sugar-beet.spray.(sch-2,sch-4)                                                     1
+ 305   sugar-beet.spray.(sch-5,sch-6)                                                             1
+ 306   
+ 307   +                                                         09      10      11      12      13      14      15      16
+ 308   
+ 309   alfalfa.(fertilize,spray).(sch-1*sch-8)                                                    1       1               1
+ 310   alfalfa.(mow,windrow,bale).(sch-1*sch-8)                                           1               1       1
+ 311   alfalfa.transport.(sch-1*sch-8)                                                    0.2             0.2     0.2
+ 312   sugar-beet.cultivate.(sch-4,sch-5)                         1
+ 313   sugar-beet.cultivate.sch-6                                         1
+ 314   sugar-beet.spray.(sch-1*sch-3)                             1       1       1                       1       1       1
+ 315   sugar-beet.spray.(sch-4,sch-5)                                     1       1       1       1               1       1
+ 316   sugar-beet.spray.sch-6                                                     1       1       1       1       1       1
+ 317   cotton.cultivate.(sch-1*sch-7)                                             1       1
+ 318   cotton.spray.(sch-1,sch-3,sch-4,sch-7)                            1        1       1       1       1       1
+ 319   cotton.spray.sch-2                                                         1       1       1       1       1       1
+ 320   cotton.spray.sch-5                                                1        1       1       1                       1
+ 321   cotton.spray.sch-6                                                         1       1       1                       1
+ 322   cotton.(harvest-c,transport).(sch-1,sch-7)                                                                         1
+ 323   cotton.(harvest-c,transport).(sch-3,sch-4)                                                                         0.5
+ 324   
+ 325   +                                                         17      18      19      20      21      22      23     24
+ 326   
+ 327   alfalfa.(fertilize,spray).(sch-1*sch-8)                            1
+ 328   alfalfa.(mow,windrow,bale).(sch-1*sch-8)                   1               1
+ 329   alfalfa.transport.(sch-1*sch-8)                            0.2             0.2
+ 330   sugar-beet.(beet-lift,transport).(sch-1*sch-3)                                     .5      .5
+ 331   sugar-beet.(beet-lift,transport).(sch-4,sch-5)                                             .5      .5
+ 332   sugar-beet.(beet-lift,transport).sch-6                                                             .5      .5
+ 333   cotton.spray.sch-5                                                 1
+ 334   cotton.spray.sch-6                                                 1       1
+ 335   cotton.(harvest-c,transport).sch-2                         1
+ 336   cotton.(harvest-c,transport).(sch-3,sch-4)                 0.5
+ 337   cotton.(harvest-c,transport).sch-5                         0.34    0.33    0.33
+ 338   cotton.(harvest-c,transport).sch-6                          .25     .25     .25    .25
+ 339   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 10
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 341   
+ 342   table lreq(c,s,t) labor requirements (hours per fortnight)
+ 343   
+ 344                                                       01      02      03      04      05      06      07      08
+ 345   
+ 346   wheat.(sch-1,sch-6,sch-7)                                                                   2
+ 347   wheat.(sch-2*sch-5)                                                                                 2
+ 348   soy-beans.(sch-1,sch-4,sch-5)                                                      20
+ 349   soy-beans.(sch-2,sch-3,sch-6,sch-7)                                                        20
+ 350   sugar-beet.(sch-1*sch-3)                                                                   26               6
+ 351   sugar-beet.(sch-4,sch-5)                                                                           26
+ 352   sugar-beet.sch-6                                                                                           26
+ 353   
+ 354   +                                                   09      10      11      12      13      14      15      16
+ 355   
+ 356   wheat.(sch-1,sch-6,sch-7)                                            2
+ 357   wheat.sch-2                                                                  2
+ 358   wheat.(sch-3*sch-5)                                                                  2
+ 359   soy-beans.(sch-1*sch-3,sch-7)                                                                                1
+ 360   maize-for.(sch-1,sch-3,sch-5*sch-7)                                                                          8
+ 361   sugar-beet.(sch-4,sch-5)                             6
+ 362   sugar-beet.sch-6                                            6
+ 363   cotton.(sch-1,sch-7)                                        1.3     11.05   11.05    1.3     1.3     1.3    11.7
+ 364   cotton.sch-2                                                        11.05   11.05    1.3     1.3     1.3     1.3
+ 365   cotton.(sch-3,sch-4)                                        1.3     11.05   11.05    1.3     1.3     1.3    5.85
+ 366   cotton.sch-5                                                1.3     11.05   11.05    1.3                     1.3
+ 367   cotton.sch-6                                                        11.05   11.05    1.3                     1.3
+ 368   
+ 369   +                                                   17      18      19      20      21      22      23      24
+ 370   
+ 371   soy-beans.(sch-4*sch-6)                              1
+ 372   maize-for.(sch-2,sch-4)                              8
+ 373   sugar-beet.(sch-1*sch-3)                                                   16.5    16.5
+ 374   sugar-beet.(sch-4,sch-5)                                                           16.5    16.5
+ 375   sugar-beet.sch-6                                                                           16.5    16.5
+ 376   cotton.sch-2                                        11.7
+ 377   cotton.(sch-3,sch-4)                                 5.85
+ 378   cotton.sch-5                                         3.9     5.2     3.9
+ 379   cotton.sch-6                                         2.93    4.23    4.23   2.93
+ 380   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 11
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 382   
+ 383   Scalar    rho         interest rate                                    /     .04 /
+ 384             land        farm size                                  (ha)  / 1600    /
+ 385             lcost       labor cost             (1000 rials per man-day)  /     .135 /
+ 386             watercost   water cost (rials per 1000 cubic meters per ha)  /     .267 /
+ 387             hrtoday     hours in a man-day                               /    6     /
+ 388   
+ 389   Parameter oc(g,mn,mn) operating costs                                       (1000 rials per ha)
+ 390             avail(mn)   equipment avaialbility               (hours of utilization per fortnight)
+ 391             life(mn)    expected life of equipment                                        (years)
+ 392             crf(mn)     capital recovery factor
+ 393             cap(mn)     amortized capital cost                                       (1000 rials)
+ 394             pmisc(c)      cost of inputs - seed pesticide herbicide & fertilizer (1000 rials per ha)
+ 395             pcrop(c)      price of agricultural commodities                     (1000 rials per ton)
+ 396             yield(c,w)    crop yields along yield-water curve                   (metric tons per ha)
+ 397             water(c,w)    water requirements along yield-water curve      (1000 cubic meters per ha)
+ 398             length(c,s)   length of cropping season for crop under schedule             (fortnights)
+ 399             luse(c,t,s)   land use possibilities
+ 400             treq(g,t,c,s) agricultural tasks requirements
+ 401             agrol(c)      agronomic constraints                                                 (ha);
+ 402   
+ 403   oc(g,m,n) = (equip(m,"opcost") + equip(n,"opcost"))*tech(g,m,n)/1000;
+ 404   avail(mn)  = equip(mn,"avail");
+ 405   life(mn)   = equip(mn,"life");
+ 406   
+ 407   pmisc(c)   = cropdata("seed",c) + cropdata("fertilize",c) + cropdata("pesticide",c) + cropdata("herbicide",c);
+ 408   pcrop(c)   = cropdata("price",c);
+ 409   yield(c,w) = cropdata("yield",c)*stress("yield",w,c);
+ 410   water(c,w) = cropdata("water",c)*stress("water",w,c);
+ 411   agrol(c)   = land*cropdata("crop-limit",c);
+ 412   
+ 413   crf(mn)$equip(mn,"life") = rho*(1 + rho)**equip(mn,"life")/((1 + rho)**equip(mn,"life") - 1);
+ 414   cap(mn) = crf(mn)*equip(mn,"cost");
+ 415   
+ 416   length(c,s)$cs(c,"start",s) = mod(card(t) + cs(c,"end",s) - cs(c,"start",s),card(t)) + 1;
+ 417   luse(c,t++(cs(c,"start",s)-1),s) = 1$(ord(t) le length(c,s));
+ 418   
+ 419   treq(g,t,c,s)  = 1$(atask(c,g,s) eq ord(t)) + btask(c,g,s,t);
+ 420   treq("transport",t,c,s) = treq("transport",t,c,s)*cropdata("trans-adj",c)*yield(c,"normal");
+ 421   
+ 422   cposs(c,s)       = yes$length(c,s);
+ 423   taskposs(g,t)    = sum((c,s), yes$treq(g,t,c,s));
+ 424   
+ 425  * special adjustments for cotton picking:
+ 426   
+ 427   Parameter tadj(g)     extra tasks required for mechanical cotton picking (units per ha) / spray    1 /
+ 428             loss(c)     product loss from mechanical cotton picking;
+ 429   
+ 430   loss("cotton")      = .2*yield("cotton","normal");
+ 431   taskposs("spray",t) = taskposs("spray",t) + taskposs("harvest-c",t);
+ 432   
+ 433   equipposs(m,t)   = yes$(sum((g,n)$taskposs(g,t), tech(g,m,n)) ne 0);
+ 434   equipposs(n,t)   = yes$(sum((g,m)$equipposs(m,t), tech(g,m,n)) ne 0);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 12
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+crop data
+
+
+ 435   equipposs("self-prop",t) = no; equipposs("manual",t) = no;
+ 436   
+ 437   Display lreq,cposs,taskposs,equipposs,oc,avail,life,pmisc,pcrop,loss,yield,water,length,luse,treq,crf,cap;
+ 438   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 13
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+model definition
+
+
+ 440   
+ 441   Variables xcrop(c,s)      cropping schedules                                      (ha)
+ 442             xwater(c,w)     cropping by irrigation level                            (ha)
+ 443             awater          annual water requirements             (million cubic meters)
+ 444             task(g,t,mn,mn) agricultural tasks by technology                        (ha)
+ 445             sales(c)        sales of agricultural commodities                     (tons)
+ 446             equipp(mn)      equipment purchases                                  (units)
+ 447             emply(t)        employment                                        (man-days)
+ 448             revenue         from crop sales                                 (1000 rials)
+ 449             cost(cc)        cost of cropping activities                     (1000 rials)
+ 450             profit          objective function                              (1000 rials)
+ 451   
+ 452   Positive Variables xcrop,xwater,task,sales,equipp,emply,revenue,cost
+ 453   
+ 454   Equations cbal(c)         commodity balance                                     (tons)
+ 455             tbal(g,t)       task balance                                            (ha)
+ 456             cropd(c)        crop-water balance                                      (ha)
+ 457             waterd          annual water requirement definition   (million cubic meters)
+ 458             agroc(c)        agronomic constraints                                   (ha)
+ 459             landc(t)        land constraints                                        (ha)
+ 460             labor(t)        labor requirements                                (man-days)
+ 461             equipb1(mn,t)   equipment balance for implements                      (unit)
+ 462             equipb2(mn,t)   equipment balance for power sources                   (unit)
+ 463             arev            accounting: revenue                             (1000 rials)
+ 464             acost1          accounting: cost of miscellaneous inputs        (1000 rials)
+ 465             acost2          accounting: cost of water                       (1000 rials)
+ 466             acost3          accounting: operating cost                      (1000 rials)
+ 467             acost4          accounting: capital charges                     (1000 rials)
+ 468             acost5          accounting: cost of labor                       (1000 rials)
+ 469             obj             objective function                              (1000 rials);
+ 470   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 14
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+model definition
+
+
+ 472   
+ 473   cbal(c)..  sales(c) =e= sum(w, yield(c,w)*xwater(c,w))
+ 474                         - loss(c)*sum(t$taskposs("harvest-c",t), task("harvest-c",t,"cotton-p","self-prop"));
+ 475   
+ 476   tbal(g,t)$taskposs(g,t).. sum((c,s)$cposs(c,s), treq(g,t,c,s)*xcrop(c,s)) =e= sum((m,n)$tech(g,m,n), task(g,t,m,n))
+ 477                                                                    - tadj(g)*task("harvest-c",t,"cotton-p","self-prop");
+ 478   
+ 479   cropd(c)..  sum(s$cposs(c,s), xcrop(c,s)) =e= sum(w$yield(c,w), xwater(c,w));
+ 480   
+ 481   waterd..    awater =e= sum((c,w), water(c,w)*xwater(c,w))/1000;
+ 482   
+ 483   agroc(c).. sum(s$cposs(c,s), xcrop(c,s)) =l= agrol(c);
+ 484   
+ 485   landc(t)..  sum((c,s)$cposs(c,s), luse(c,t,s)*xcrop(c,s)) =l= land;
+ 486   
+ 487   labor(t)..  sum((c,s)$cposs(c,s), lreq(c,s,t)*xcrop(c,s)) + sum((g,m,n)$taskposs(g,t), tech(g,m,n)*task(g,t,m,n))
+ 488           =l= hrtoday*emply(t);
+ 489   
+ 490   equipb1(m,t)$equipposs(m,t).. sum((g,n)$taskposs(g,t), tech(g,m,n)*task(g,t,m,n)) =l= avail(m)*equipp(m);
+ 491   
+ 492   equipb2(n,t)$equipposs(n,t).. sum((g,m)$taskposs(g,t), tech(g,m,n)*task(g,t,m,n)) =l= avail(n)*equipp(n);
+ 493   
+ 494   arev..      revenue =e= sum(c, pcrop(c)*sales(c));
+ 495   
+ 496   acost1..    cost("misc-input") =e= sum(c, pmisc(c)*sum(s$cposs(c,s), xcrop(c,s)));
+ 497   
+ 498   acost2..    cost("water") =e= watercost*awater;
+ 499   
+ 500   acost3..    cost("operating") =e= sum((g,t,m,n)$taskposs(g,t), oc(g,m,n)*task(g,t,m,n));
+ 501   
+ 502   acost4..    cost("capital") =e= sum(mn, cap(mn)*equipp(mn));
+ 503   
+ 504   acost5..    cost("wages") =e= lcost*sum(t, emply(t));
+ 505   
+ 506   obj.. profit =e= revenue - sum(cc, cost(cc));
+ 507   
+ 508   Model iran / all /;
+ 509   
+ 510   sales.lo("wheat") = 875; awater.up = 21.73;
+ 511   
+ 512   Option iterlim=5000;
+ 513   Solve iran maximizing profit using lp;
+ 514   
+ 515   Display xcrop.l,xwater.l;
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 15
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+----    437 PARAMETER lreq  labor requirements (hours per fortnight)
+
+                          05          06          07          08          09          10          11          12          13          14          15          16          17          18          19          20          21          22          23
+
+wheat     .sch-1                   2.000                                                       2.000
+wheat     .sch-2                               2.000                                                       2.000
+wheat     .sch-3                               2.000                                                                   2.000
+wheat     .sch-4                               2.000                                                                   2.000
+wheat     .sch-5                               2.000                                                                   2.000
+wheat     .sch-6                   2.000                                                       2.000
+wheat     .sch-7                   2.000                                                       2.000
+soy-beans .sch-1      20.000                                                                                                                               1.000
+soy-beans .sch-2                  20.000                                                                                                                   1.000
+soy-beans .sch-3                  20.000                                                                                                                   1.000
+soy-beans .sch-4      20.000                                                                                                                                           1.000
+soy-beans .sch-5      20.000                                                                                                                                           1.000
+soy-beans .sch-6                  20.000                                                                                                                               1.000
+soy-beans .sch-7                  20.000                                                                                                                   1.000
+maize-for .sch-1                                                                                                                                           8.000
+maize-for .sch-2                                                                                                                                                       8.000
+maize-for .sch-3                                                                                                                                           8.000
+maize-for .sch-4                                                                                                                                                       8.000
+maize-for .sch-5                                                                                                                                           8.000
+maize-for .sch-6                                                                                                                                           8.000
+maize-for .sch-7                                                                                                                                           8.000
+sugar-beet.sch-1                  26.000                   6.000                                                                                                                                          16.500      16.500
+sugar-beet.sch-2                  26.000                   6.000                                                                                                                                          16.500      16.500
+sugar-beet.sch-3                  26.000                   6.000                                                                                                                                          16.500      16.500
+sugar-beet.sch-4                              26.000                   6.000                                                                                                                                          16.500      16.500
+sugar-beet.sch-5                              26.000                   6.000                                                                                                                                          16.500      16.500
+sugar-beet.sch-6                                          26.000                   6.000                                                                                                                                          16.500      16.500
+cotton    .sch-1                                                                   1.300      11.050      11.050       1.300       1.300       1.300      11.700
+cotton    .sch-2                                                                              11.050      11.050       1.300       1.300       1.300       1.300      11.700
+cotton    .sch-3                                                                   1.300      11.050      11.050       1.300       1.300       1.300       5.850       5.850
+cotton    .sch-4                                                                   1.300      11.050      11.050       1.300       1.300       1.300       5.850       5.850
+cotton    .sch-5                                                                   1.300      11.050      11.050       1.300                               1.300       3.900       5.200       3.900
+cotton    .sch-6                                                                              11.050      11.050       1.300                               1.300       2.930       4.230       4.230       2.930
+cotton    .sch-7                                                                   1.300      11.050      11.050       1.300       1.300       1.300      11.700
+
+
+----    437 SET cposs  crop possibilities
+
+                 sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+wheat              YES         YES         YES         YES         YES         YES         YES
+soy-beans          YES         YES         YES         YES         YES         YES         YES
+maize-for          YES         YES         YES         YES         YES         YES         YES
+alfalfa            YES         YES         YES         YES         YES         YES         YES         YES
+sugar-beet         YES         YES         YES         YES         YES         YES
+cotton             YES         YES         YES         YES         YES         YES         YES
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 16
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+----    437 SET taskposs  task possibilities
+
+                   01          02          03          04          05          06          07          08          09          10          11          12          13          14          15          16          17          18          19          20
+
+plough            YES         YES         YES         YES         YES         YES                                                                                 YES         YES         YES         YES         YES
+disce             YES         YES         YES         YES         YES         YES         YES                                                         YES         YES         YES         YES         YES         YES         YES
+harrow                                    YES         YES         YES         YES         YES                                                                                                                                 YES         YES         YES
+spray                                     YES         YES         YES         YES         YES                     YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+drill                                                                                     YES         YES         YES         YES                                                                                                         YES         YES
+plant                                                 YES         YES         YES                     YES         YES                                             YES         YES
+fertilize                                                         YES         YES         YES                                                                     YES         YES                     YES         YES         YES
+cultivate                                                                     YES         YES         YES         YES         YES         YES         YES                                 YES         YES
+beet-lift                                                                                                                                                                                                                                             YES
+mow                                                                                                                                                   YES                     YES         YES                     YES                     YES
+windrow                                                                                                                                               YES                     YES         YES                     YES                     YES
+bale                                                                                                                                      YES         YES         YES         YES         YES                     YES                     YES
+harvest-g                                                                                                                                 YES         YES         YES                                 YES         YES
+harvest-f                                                                                                                                                                                                                                 YES         YES
+harvest-c                                                                                                                                                                                             YES         YES         YES         YES         YES
+transport                                                                                                                                 YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+
+        +          21          22          23          24
+
+plough                                    YES         YES
+drill             YES
+beet-lift         YES         YES         YES
+transport         YES         YES         YES
+
+
+----    437 SET equipposs  equipment use possibilities
+
+                    01          02          03          04          05          06          07          08          09          10          11          12          13          14          15          16          17          18          19          20
+
+drill                                                                                      YES         YES         YES         YES                                                                                                         YES         YES
+beet-lift                                                                                                                                                                                                                                              YES
+tractor-l          YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+tractor-s          YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+draft-unit         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+combine-h                                                                                                                                  YES         YES         YES                                 YES         YES
+forage-h                                                                                                                                                                                                                                   YES         YES
+cotton-p                                                                                                                                                                                               YES         YES         YES         YES         YES
+f-plow-6           YES         YES         YES         YES         YES         YES                                                                                 YES         YES         YES         YES         YES
+f-plow-3           YES         YES         YES         YES         YES         YES                                                                                 YES         YES         YES         YES         YES
+f-plow-1           YES         YES         YES         YES         YES         YES                                                                                 YES         YES         YES         YES         YES
+harrow-o-d         YES         YES         YES         YES         YES         YES         YES                                                         YES         YES         YES         YES         YES         YES         YES
+harrow-s-t         YES         YES         YES         YES         YES         YES         YES                                                         YES         YES         YES         YES         YES         YES         YES         YES         YES
+harrow-s           YES         YES         YES         YES         YES         YES         YES                                                         YES         YES         YES         YES         YES         YES         YES         YES         YES
+sprayer-l                                  YES         YES         YES         YES         YES                     YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+sprayer-s                                  YES         YES         YES         YES         YES                     YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+drill-s                                                                                    YES         YES         YES         YES                                                                                                         YES         YES
+planter                                                YES         YES         YES                     YES         YES                                             YES         YES
+planter-s                                              YES         YES         YES                     YES         YES                                             YES         YES
+spreader-l                                                         YES         YES         YES                                                                     YES         YES                     YES         YES         YES
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 17
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 SET equipposs  equipment use possibilities
+
+                    01          02          03          04          05          06          07          08          09          10          11          12          13          14          15          16          17          18          19          20
+
+spreader-s                                                         YES         YES         YES                                                                     YES         YES                     YES         YES         YES
+cult-l                                                                         YES         YES         YES         YES         YES         YES         YES                                 YES         YES
+cult-s                                                                         YES         YES         YES         YES         YES         YES         YES                                 YES         YES
+mower                                                                                                                                                  YES                     YES         YES                     YES                     YES
+baler                                                                                                                                      YES         YES         YES         YES         YES                     YES                     YES
+rake                                                                                                                                                   YES                     YES         YES                     YES                     YES
+trailer-4t                                                                                                                                 YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+trailer-ht                                                                                                                                 YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+sprayer-k                                  YES         YES         YES         YES         YES                     YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES         YES
+
+         +          21          22          23          24
+
+drill              YES
+beet-lift          YES         YES         YES
+tractor-l          YES         YES         YES         YES
+tractor-s          YES         YES         YES         YES
+draft-unit         YES         YES         YES         YES
+f-plow-6                                   YES         YES
+f-plow-3                                   YES         YES
+f-plow-1                                   YES         YES
+drill-s            YES
+trailer-4t         YES         YES         YES
+trailer-ht         YES         YES         YES
+
+
+----    437 PARAMETER oc  operating costs                                       (1000 rials per ha)
+
+                       tractor-l   tractor-s  draft-unit   self-prop
+
+plough   .f-plow-6         0.516
+plough   .f-plow-3         0.693       0.372
+plough   .f-plow-1                                 0.810
+disce    .harrow-o-d       0.164
+disce    .harrow-s-t                   0.118
+disce    .harrow-s                                 0.108
+harrow   .harrow-s-t                   0.189
+harrow   .harrow-s                                 0.036
+spray    .sprayer-l        0.116       0.062
+spray    .sprayer-s                                0.144
+drill    .drill            0.146       0.092
+drill    .drill-s                                  0.144
+plant    .planter          0.399       0.239
+plant    .planter-s                                0.360
+fertilize.spreader-l       0.900       0.472
+fertilize.spreader-s                               0.144
+cultivate.cult-l           0.125       0.143
+cultivate.cult-s                                   0.360
+beet-lift.beet-lift        0.612       0.345
+mow      .mower            0.235       0.128
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 18
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER oc  operating costs                                       (1000 rials per ha)
+
+                       tractor-l   tractor-s  draft-unit   self-prop
+
+windrow  .rake             0.116       0.062
+bale     .baler            0.232       0.366
+harvest-g.combine-h                                            0.770
+harvest-f.forage-h                                             1.637
+harvest-c.cotton-p                                             0.770
+transport.trailer-4t       0.062       0.035
+transport.trailer-ht                               0.072
+
+
+----    437 PARAMETER avail  equipment avaialbility               (hours of utilization per fortnight)
+
+drill      140.000,    beet-lift  140.000,    tractor-l  140.000,    tractor-s  140.000,    draft-unit 100.000,    combine-h  140.000,    forage-h   140.000,    cotton-p    80.000,    f-plow-6   140.000,    f-plow-3   140.000,    f-plow-1   100.000
+harrow-o-d 140.000,    harrow-s-t 140.000,    harrow-s   100.000,    sprayer-l  140.000,    sprayer-s  100.000,    drill-s    100.000,    planter    140.000,    planter-s  100.000,    spreader-l 140.000,    spreader-s 100.000,    cult-l     140.000
+cult-s     100.000,    mower      140.000,    baler      140.000,    rake       140.000,    trailer-4t 140.000,    trailer-ht 100.000,    sprayer-k   84.000
+
+
+----    437 PARAMETER life  expected life of equipment                                        (years)
+
+drill       6.000,    beet-lift  10.000,    tractor-l   5.000,    tractor-s   5.000,    draft-unit  6.000,    combine-h   6.000,    forage-h   10.000,    cotton-p    8.000,    f-plow-6    5.000,    f-plow-3   10.000,    f-plow-1    3.000
+harrow-o-d  5.000,    harrow-s-t  8.000,    harrow-s    3.000,    sprayer-l   4.000,    sprayer-s   3.000,    drill-s     3.000,    planter     6.000,    planter-s   3.000,    spreader-l  3.000,    spreader-s  3.000,    cult-l      5.000
+cult-s      3.000,    mower       3.000,    baler       4.000,    rake        4.000,    trailer-4t  5.000,    trailer-ht  5.000,    sprayer-k   2.000
+
+
+----    437 PARAMETER pmisc  cost of inputs - seed pesticide herbicide & fertilizer (1000 rials per ha)
+
+wheat      6.855,    soy-beans  4.500,    maize-for  5.750,    alfalfa    3.130,    sugar-beet 8.000,    cotton     4.425
+
+
+----    437 PARAMETER pcrop  price of agricultural commodities                     (1000 rials per ton)
+
+wheat      10.000,    soy-beans  23.960,    maize-for   1.080,    alfalfa     5.000,    sugar-beet  1.800,    cotton     16.470
+
+
+----    437 PARAMETER loss  product loss from mechanical cotton picking
+
+cotton 0.700
+
+
+----    437 PARAMETER yield  crop yields along yield-water curve                   (metric tons per ha)
+
+                normal    stress-1    stress-2    stress-3
+
+wheat            3.500       3.430       3.290       2.625
+soy-beans        2.000       1.900       1.580       1.060
+maize-for       60.000      58.800      56.400      45.000
+alfalfa         12.000      11.400       9.480       6.360
+sugar-beet      35.000      32.900      31.150      29.050
+cotton           3.500       3.360       2.485
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 19
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+----    437 PARAMETER water  water requirements along yield-water curve      (1000 cubic meters per ha)
+
+                normal    stress-1    stress-2    stress-3
+
+wheat            6.440       5.796       5.152       3.220
+soy-beans       15.830      13.139       8.707       4.432
+maize-for       11.110       9.999       8.888       5.555
+alfalfa         22.550      18.716      12.403       6.314
+sugar-beet      16.830      10.266       6.395       3.871
+cotton          14.370       8.335       3.592
+
+
+----    437 PARAMETER length  length of cropping season for crop under schedule             (fortnights)
+
+                 sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+wheat           23.000      23.000      23.000      22.000      21.000      19.000      19.000
+soy-beans       18.000      18.000      18.000      17.000      16.000      13.000      11.000
+maize-for        8.000       9.000       7.000       8.000       8.000       9.000       8.000
+alfalfa         21.000      20.000      19.000      18.000      17.000      16.000      15.000      14.000
+sugar-beet      22.000      21.000      20.000      20.000      20.000      21.000
+cotton          14.000      14.000      13.000      12.000      14.000      18.000      12.000
+
+
+----    437 PARAMETER luse  land use possibilities
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+wheat     .01       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .02       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .03       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .04       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .05       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .06       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .07       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .08       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .09       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .10       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .11       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .12                   1.000       1.000       1.000       1.000
+wheat     .13       1.000                   1.000       1.000       1.000
+wheat     .14       1.000       1.000
+wheat     .15       1.000       1.000       1.000
+wheat     .16       1.000       1.000       1.000       1.000
+wheat     .17       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .18       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .19       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .20       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .21       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .22       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .23       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+wheat     .24       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .01       1.000       1.000       1.000       1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 20
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER luse  land use possibilities
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+soy-beans .02       1.000       1.000       1.000       1.000       1.000
+soy-beans .03       1.000       1.000       1.000       1.000       1.000
+soy-beans .04       1.000       1.000       1.000       1.000       1.000
+soy-beans .05       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .06       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .07       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .08       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .09       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .10       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .11       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .12       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .13       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .14       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .15       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .16       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+soy-beans .17                                           1.000       1.000       1.000
+soy-beans .23       1.000       1.000       1.000
+soy-beans .24       1.000       1.000       1.000
+maize-for .12       1.000       1.000                                           1.000
+maize-for .13       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .14       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .15       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .16       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .17       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .18       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .19       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+maize-for .20                   1.000                   1.000       1.000       1.000       1.000
+alfalfa   .01       1.000       1.000       1.000
+alfalfa   .02       1.000       1.000       1.000       1.000
+alfalfa   .03       1.000       1.000       1.000       1.000       1.000
+alfalfa   .04       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .05       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .06       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .07       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .08       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .09       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .10       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .11       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .12       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .13       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .14       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .15       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .16       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .17       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .18       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .19       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+alfalfa   .23       1.000
+alfalfa   .24       1.000       1.000
+sugar-beet.01       1.000       1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 21
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER luse  land use possibilities
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+sugar-beet.02       1.000       1.000       1.000
+sugar-beet.03       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.04       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.05       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.06       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.07       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.08       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.09       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.10       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.11       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.12       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.13       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.14       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.15       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.16       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.17       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.18       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.19       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.20       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.21       1.000       1.000       1.000       1.000       1.000       1.000
+sugar-beet.22                                           1.000       1.000       1.000
+sugar-beet.23                                                                   1.000
+sugar-beet.24       1.000
+cotton    .03       1.000                                                       1.000
+cotton    .04       1.000       1.000                                           1.000
+cotton    .05       1.000       1.000       1.000                               1.000       1.000
+cotton    .06       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .07       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .08       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .09       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .10       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .11       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .12       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .13       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .14       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .15       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .16       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+cotton    .17                   1.000       1.000       1.000       1.000       1.000
+cotton    .18                                                       1.000       1.000
+cotton    .19                                                       1.000       1.000
+cotton    .20                                                                   1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 22
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+----    437 PARAMETER treq  agricultural tasks requirements
+
+INDEX 1 = plough
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+01.soy-beans                                            1.000
+01.alfalfa                                  1.000
+01.sugar-beet                   1.000
+02.soy-beans                                                        1.000
+02.alfalfa                                              1.000
+02.sugar-beet                               1.000
+03.alfalfa                                                          1.000
+03.sugar-beet                                           1.000       1.000       1.000
+03.cotton           1.000                                                       1.000
+04.alfalfa                                                                      1.000
+04.cotton                       1.000
+05.soy-beans                                                                    1.000
+05.alfalfa                                                                                  1.000
+05.cotton                                   1.000                                           1.000
+06.soy-beans                                                                                1.000
+06.alfalfa                                                                                              1.000
+06.cotton                                               1.000       1.000
+13.wheat            1.000
+14.wheat                        1.000
+15.wheat                                    1.000
+16.wheat                                                1.000
+17.wheat                                                            1.000       1.000       1.000
+23.soy-beans        1.000       1.000       1.000
+23.alfalfa          1.000
+24.alfalfa                      1.000
+24.sugar-beet       1.000
+
+INDEX 1 = disce
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+01.sugar-beet       1.000
+02.sugar-beet                   1.000
+03.sugar-beet                               1.000
+04.soy-beans        1.000                               1.000       1.000
+04.sugar-beet                                           1.000       1.000       1.000
+04.cotton           1.000                                                       1.000
+05.soy-beans                    1.000
+05.cotton                       1.000
+06.soy-beans                                1.000                               1.000       1.000
+06.alfalfa          1.000       1.000       1.000                               1.000                   1.000
+06.cotton                                   1.000
+07.alfalfa                                              1.000       1.000                   1.000
+07.cotton                                               1.000       1.000                   1.000
+12.maize-for        1.000       1.000                                           1.000
+13.maize-for                                1.000       1.000       1.000                   1.000
+14.wheat            1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 23
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER treq  agricultural tasks requirements
+
+INDEX 1 = disce
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+15.wheat                        1.000
+16.wheat                                    1.000
+17.wheat                                                1.000                   1.000
+18.wheat                                                            1.000                   1.000
+
+INDEX 1 = harrow
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+03.sugar-beet       1.000
+04.soy-beans        1.000                               1.000       1.000
+04.sugar-beet                   1.000       1.000       1.000
+05.soy-beans                    1.000
+05.sugar-beet                                                       1.000       1.000
+06.soy-beans                                1.000                               1.000       1.000
+06.alfalfa          1.000       1.000       1.000                               1.000                   1.000
+07.alfalfa                                              1.000       1.000                   1.000
+07.sugar-beet       1.000       1.000       1.000       1.000       1.000       1.000
+18.wheat            1.000                                                       1.000       1.000
+19.wheat                        1.000       1.000
+20.wheat                                                1.000       1.000
+
+INDEX 1 = spray
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+03.sugar-beet       1.000                   1.000
+04.soy-beans        1.000                               1.000       1.000
+04.sugar-beet                   1.000                   1.000
+05.soy-beans                    1.000
+05.sugar-beet                                                       1.000       1.000
+06.soy-beans                                1.000                               1.000       1.000
+06.alfalfa          1.000       1.000       1.000       1.000
+07.alfalfa                                                          1.000       1.000       1.000       1.000
+09.sugar-beet       1.000       1.000       1.000
+10.sugar-beet       1.000       1.000       1.000       1.000       1.000
+10.cotton           1.000                   1.000       1.000       1.000                   1.000
+11.sugar-beet       1.000       1.000       1.000       1.000       1.000       1.000
+11.cotton           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+12.sugar-beet                                           1.000       1.000       1.000
+12.cotton           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+13.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+13.sugar-beet                                           1.000       1.000       1.000
+13.cotton           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+14.maize-for        1.000                   1.000                                           1.000
+14.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+14.sugar-beet       1.000       1.000       1.000                               1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 24
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER treq  agricultural tasks requirements
+
+INDEX 1 = spray
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+14.cotton           1.000       1.000       1.000       1.000                               1.000
+15.maize-for                    1.000                   1.000                   1.000
+15.sugar-beet       1.000       1.000       1.000       1.000       1.000       1.000
+15.cotton           1.000       1.000       1.000       1.000                               1.000
+16.maize-for                                                        1.000
+16.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+16.sugar-beet       1.000       1.000       1.000       1.000       1.000       1.000
+16.cotton                       1.000                               1.000       1.000
+18.wheat            1.000                                                       1.000       1.000
+18.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+18.cotton                                                           1.000       1.000
+19.wheat                        1.000       1.000
+19.cotton                                                                       1.000
+20.wheat                                                1.000       1.000
+
+INDEX 1 = drill
+
+                   sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+07.soy-beans       1.000       1.000       1.000                                           1.000
+08.soy-beans                                           1.000       1.000       1.000
+09.alfalfa         1.000       1.000       1.000       1.000
+10.alfalfa                                                         1.000       1.000       1.000       1.000
+19.wheat           1.000                                                       1.000       1.000
+20.wheat                       1.000
+21.wheat                                   1.000       1.000       1.000
+
+INDEX 1 = plant
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7
+
+04.sugar-beet       1.000       1.000       1.000
+05.sugar-beet                                           1.000       1.000
+06.sugar-beet                                                                   1.000
+08.cotton           1.000                   1.000       1.000                               1.000
+09.cotton                       1.000                               1.000       1.000
+13.maize-for        1.000                   1.000                                           1.000
+14.maize-for                    1.000                   1.000       1.000       1.000
+
+INDEX 1 = fertilize
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+05.soy-beans        1.000                               1.000       1.000
+06.wheat            1.000                                                       1.000       1.000
+06.soy-beans                    1.000       1.000                               1.000       1.000
+06.alfalfa          1.000       1.000       1.000       1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 25
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER treq  agricultural tasks requirements
+
+INDEX 1 = fertilize
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+06.sugar-beet       1.000       1.000       1.000
+07.wheat                        1.000       1.000       1.000       1.000
+07.alfalfa                                                          1.000       1.000       1.000       1.000
+07.sugar-beet                                           1.000       1.000       1.000
+13.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+14.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+16.maize-for        1.000                   1.000                   1.000       1.000       1.000
+16.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+17.maize-for                    1.000                   1.000
+18.alfalfa          1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+INDEX 1 = cultivate
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7
+
+06.sugar-beet       1.000       1.000       1.000
+07.sugar-beet                                           1.000       1.000
+08.sugar-beet       1.000       1.000       1.000                               1.000
+09.soy-beans        1.000       1.000       1.000                                           1.000
+09.sugar-beet                                           1.000       1.000
+10.soy-beans                                            1.000       1.000       1.000
+10.sugar-beet                                                                   1.000
+11.cotton           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+12.cotton           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+15.maize-for        1.000                   1.000                                           1.000
+16.maize-for                    1.000                   1.000       1.000       1.000
+
+INDEX 1 = beet-lift
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6
+
+20.sugar-beet       0.500       0.500       0.500
+21.sugar-beet       0.500       0.500       0.500       0.500       0.500
+22.sugar-beet                                           0.500       0.500       0.500
+23.sugar-beet                                                                   0.500
+
+INDEX 1 = mow
+
+                 sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+12.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+14.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+15.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+17.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+19.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 26
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER treq  agricultural tasks requirements
+
+INDEX 1 = windrow
+
+                 sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+12.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+14.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+15.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+17.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+19.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+INDEX 1 = bale
+
+                 sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+11.wheat         1.000                                                       1.000       1.000
+12.wheat                     1.000
+12.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+13.wheat                                 1.000       1.000       1.000
+14.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+15.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+17.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+19.alfalfa       1.000       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+INDEX 1 = harvest-g
+
+                   sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7
+
+11.wheat           1.000                                                       1.000       1.000
+12.wheat                       1.000
+13.wheat                                   1.000       1.000       1.000
+16.soy-beans       1.000       1.000       1.000                                           1.000
+17.soy-beans                                           1.000       1.000       1.000
+
+INDEX 1 = harvest-f
+
+                   sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7
+
+19.maize-for       1.000                   1.000                                           1.000
+20.maize-for                   1.000                   1.000       1.000       1.000
+
+INDEX 1 = harvest-c
+
+                sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7
+
+16.cotton       1.000                   0.500       0.500                               1.000
+17.cotton                   1.000       0.500       0.500       0.340       0.250
+18.cotton                                                       0.330       0.250
+19.cotton                                                       0.330       0.250
+20.cotton                                                                   0.250
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 27
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+        437 PARAMETER treq  agricultural tasks requirements
+
+INDEX 1 = transport
+
+                    sch-1       sch-2       sch-3       sch-4       sch-5       sch-6       sch-7       sch-8
+
+11.wheat            1.155                                                       1.155       1.155
+12.wheat                        1.155
+12.alfalfa          1.200       1.200       1.200       1.200       1.200       1.200       1.200       1.200
+13.wheat                                    1.155       1.155       1.155
+14.alfalfa          1.200       1.200       1.200       1.200       1.200       1.200       1.200       1.200
+15.alfalfa          1.200       1.200       1.200       1.200       1.200       1.200       1.200       1.200
+16.soy-beans        1.340       1.340       1.340                                           1.340
+16.cotton           3.500                   1.750       1.750                               3.500
+17.soy-beans                                            1.340       1.340       1.340
+17.alfalfa          1.200       1.200       1.200       1.200       1.200       1.200       1.200       1.200
+17.cotton                       3.500       1.750       1.750       1.190       0.875
+18.cotton                                                           1.155       0.875
+19.maize-for        9.000                   9.000
+19.alfalfa          1.200       1.200       1.200       1.200       1.200       1.200       1.200       1.200
+19.cotton                                                           1.155       0.875
+20.maize-for                    9.000                   9.000       9.000       9.000       9.000
+20.sugar-beet       7.525       7.525       7.525
+20.cotton                                                                       0.875
+21.sugar-beet       7.525       7.525       7.525       7.525       7.525
+22.sugar-beet                                           7.525       7.525       7.525
+23.sugar-beet                                                                   7.525
+
+
+----    437 PARAMETER crf  capital recovery factor
+
+drill      0.191,    beet-lift  0.123,    tractor-l  0.225,    tractor-s  0.225,    draft-unit 0.191,    combine-h  0.191,    forage-h   0.123,    cotton-p   0.149,    f-plow-6   0.225,    f-plow-3   0.123,    f-plow-1   0.360,    harrow-o-d 0.225
+harrow-s-t 0.149,    harrow-s   0.360,    sprayer-l  0.275,    sprayer-s  0.360,    drill-s    0.360,    planter    0.191,    planter-s  0.360,    spreader-l 0.360,    spreader-s 0.360,    cult-l     0.225,    cult-s     0.360,    mower      0.360
+baler      0.275,    rake       0.275,    trailer-4t 0.225,    trailer-ht 0.225,    sprayer-k  0.530
+
+
+----    437 PARAMETER cap  amortized capital cost                                       (1000 rials)
+
+drill       38.152,    beet-lift    3.699,    tractor-l  224.627,    tractor-s  121.299,    draft-unit  19.076,    combine-h  286.143,    forage-h   184.936,    cotton-p   594.111,    f-plow-6    31.448,    f-plow-3    12.329,    f-plow-1     1.081
+harrow-o-d  44.925,    harrow-s-t   5.198,    harrow-s     1.081,    sprayer-l   30.855,    sprayer-s    3.964,    drill-s      4.685,    planter     38.152,    planter-s    7.207,    spreader-l   9.729,    spreader-s   1.081,    cult-l      28.078
+cult-s       4.685,    mower       23.423,    baler       77.137,    rake        13.775,    trailer-4t  40.433,    trailer-ht   5.616,    sprayer-k    5.832
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 28
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+---- cbal  =E=  commodity balance                                     (tons)
+
+cbal(wheat)..  - 3.5*xwater(wheat,normal) - 3.43*xwater(wheat,stress-1) - 3.29*xwater(wheat,stress-2) - 2.625*xwater(wheat,stress-3) + sales(wheat) =E= 0 ; (LHS = 875, INFES = 875 ****)
+     
+cbal(soy-beans)..  - 2*xwater(soy-beans,normal) - 1.9*xwater(soy-beans,stress-1) - 1.58*xwater(soy-beans,stress-2) - 1.06*xwater(soy-beans,stress-3) + sales(soy-beans) =E= 0 ; (LHS = 0)
+     
+cbal(maize-for)..  - 60*xwater(maize-for,normal) - 58.8*xwater(maize-for,stress-1) - 56.4*xwater(maize-for,stress-2) - 45*xwater(maize-for,stress-3) + sales(maize-for) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- tbal  =E=  task balance                                            (ha)
+
+tbal(plough,01)..  xcrop(soy-beans,sch-4) + xcrop(alfalfa,sch-3) + xcrop(sugar-beet,sch-2) - task(plough,01,f-plow-6,tractor-l) - task(plough,01,f-plow-3,tractor-l) - task(plough,01,f-plow-3,tractor-s) - task(plough,01,f-plow-1,draft-unit) =E= 0 ;
+     
+      (LHS = 0)
+     
+tbal(plough,02)..  xcrop(soy-beans,sch-5) + xcrop(alfalfa,sch-4) + xcrop(sugar-beet,sch-3) - task(plough,02,f-plow-6,tractor-l) - task(plough,02,f-plow-3,tractor-l) - task(plough,02,f-plow-3,tractor-s) - task(plough,02,f-plow-1,draft-unit) =E= 0 ;
+     
+      (LHS = 0)
+     
+tbal(plough,03)..  xcrop(alfalfa,sch-5) + xcrop(sugar-beet,sch-4) + xcrop(sugar-beet,sch-5) + xcrop(sugar-beet,sch-6) + xcrop(cotton,sch-1) + xcrop(cotton,sch-6) - task(plough,03,f-plow-6,tractor-l) - task(plough,03,f-plow-3,tractor-l)
+     
+      - task(plough,03,f-plow-3,tractor-s) - task(plough,03,f-plow-1,draft-unit) =E= 0 ; (LHS = 0)
+     
+REMAINING 126 ENTRIES SKIPPED
+
+
+---- cropd  =E=  crop-water balance                                      (ha)
+
+cropd(wheat)..  xcrop(wheat,sch-1) + xcrop(wheat,sch-2) + xcrop(wheat,sch-3) + xcrop(wheat,sch-4) + xcrop(wheat,sch-5) + xcrop(wheat,sch-6) + xcrop(wheat,sch-7) - xwater(wheat,normal) - xwater(wheat,stress-1) - xwater(wheat,stress-2)
+     
+      - xwater(wheat,stress-3) =E= 0 ; (LHS = 0)
+     
+cropd(soy-beans)..  xcrop(soy-beans,sch-1) + xcrop(soy-beans,sch-2) + xcrop(soy-beans,sch-3) + xcrop(soy-beans,sch-4) + xcrop(soy-beans,sch-5) + xcrop(soy-beans,sch-6) + xcrop(soy-beans,sch-7) - xwater(soy-beans,normal) - xwater(soy-beans,stress-1)
+     
+      - xwater(soy-beans,stress-2) - xwater(soy-beans,stress-3) =E= 0 ; (LHS = 0)
+     
+cropd(maize-for)..  xcrop(maize-for,sch-1) + xcrop(maize-for,sch-2) + xcrop(maize-for,sch-3) + xcrop(maize-for,sch-4) + xcrop(maize-for,sch-5) + xcrop(maize-for,sch-6) + xcrop(maize-for,sch-7) - xwater(maize-for,normal) - xwater(maize-for,stress-1)
+     
+      - xwater(maize-for,stress-2) - xwater(maize-for,stress-3) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- waterd  =E=  annual water requirement definition   (million cubic meters)
+
+waterd..  - 0.00644*xwater(wheat,normal) - 0.005796*xwater(wheat,stress-1) - 0.005152*xwater(wheat,stress-2) - 0.00322*xwater(wheat,stress-3) - 0.01583*xwater(soy-beans,normal) - 0.0131389*xwater(soy-beans,stress-1) - 0.0087065*xwater(soy-beans,stress-2)
+     
+      - 0.0044324*xwater(soy-beans,stress-3) - 0.01111*xwater(maize-for,normal) - 0.009999*xwater(maize-for,stress-1) - 0.008888*xwater(maize-for,stress-2) - 0.005555*xwater(maize-for,stress-3) - 0.02255*xwater(alfalfa,normal)
+     
+      - 0.0187165*xwater(alfalfa,stress-1) - 0.0124025*xwater(alfalfa,stress-2) - 0.006314*xwater(alfalfa,stress-3) - 0.01683*xwater(sugar-beet,normal) - 0.0102663*xwater(sugar-beet,stress-1) - 0.0063954*xwater(sugar-beet,stress-2)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 29
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+     waterd  =E=  annual water requirement definition   (million cubic meters)     
+     
+      - 0.0038709*xwater(sugar-beet,stress-3) - 0.01437*xwater(cotton,normal) - 0.0083346*xwater(cotton,stress-1) - 0.0035925*xwater(cotton,stress-2) + awater =E= 0 ; (LHS = 0)
+     
+
+---- agroc  =L=  agronomic constraints                                   (ha)
+
+agroc(wheat)..  xcrop(wheat,sch-1) + xcrop(wheat,sch-2) + xcrop(wheat,sch-3) + xcrop(wheat,sch-4) + xcrop(wheat,sch-5) + xcrop(wheat,sch-6) + xcrop(wheat,sch-7) =L= 1600 ; (LHS = 0)
+     
+agroc(soy-beans)..  xcrop(soy-beans,sch-1) + xcrop(soy-beans,sch-2) + xcrop(soy-beans,sch-3) + xcrop(soy-beans,sch-4) + xcrop(soy-beans,sch-5) + xcrop(soy-beans,sch-6) + xcrop(soy-beans,sch-7) =L= 1600 ; (LHS = 0)
+     
+agroc(maize-for)..  xcrop(maize-for,sch-1) + xcrop(maize-for,sch-2) + xcrop(maize-for,sch-3) + xcrop(maize-for,sch-4) + xcrop(maize-for,sch-5) + xcrop(maize-for,sch-6) + xcrop(maize-for,sch-7) =L= 240 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- landc  =L=  land constraints                                        (ha)
+
+landc(01)..  xcrop(wheat,sch-1) + xcrop(wheat,sch-2) + xcrop(wheat,sch-3) + xcrop(wheat,sch-4) + xcrop(wheat,sch-5) + xcrop(wheat,sch-6) + xcrop(wheat,sch-7) + xcrop(soy-beans,sch-1) + xcrop(soy-beans,sch-2) + xcrop(soy-beans,sch-3)
+     
+      + xcrop(soy-beans,sch-4) + xcrop(alfalfa,sch-1) + xcrop(alfalfa,sch-2) + xcrop(alfalfa,sch-3) + xcrop(sugar-beet,sch-1) + xcrop(sugar-beet,sch-2) =L= 1600 ; (LHS = 0)
+     
+landc(02)..  xcrop(wheat,sch-1) + xcrop(wheat,sch-2) + xcrop(wheat,sch-3) + xcrop(wheat,sch-4) + xcrop(wheat,sch-5) + xcrop(wheat,sch-6) + xcrop(wheat,sch-7) + xcrop(soy-beans,sch-1) + xcrop(soy-beans,sch-2) + xcrop(soy-beans,sch-3)
+     
+      + xcrop(soy-beans,sch-4) + xcrop(soy-beans,sch-5) + xcrop(alfalfa,sch-1) + xcrop(alfalfa,sch-2) + xcrop(alfalfa,sch-3) + xcrop(alfalfa,sch-4) + xcrop(sugar-beet,sch-1) + xcrop(sugar-beet,sch-2) + xcrop(sugar-beet,sch-3) =L= 1600 ; (LHS = 0)
+     
+landc(03)..  xcrop(wheat,sch-1) + xcrop(wheat,sch-2) + xcrop(wheat,sch-3) + xcrop(wheat,sch-4) + xcrop(wheat,sch-5) + xcrop(wheat,sch-6) + xcrop(wheat,sch-7) + xcrop(soy-beans,sch-1) + xcrop(soy-beans,sch-2) + xcrop(soy-beans,sch-3)
+     
+      + xcrop(soy-beans,sch-4) + xcrop(soy-beans,sch-5) + xcrop(alfalfa,sch-1) + xcrop(alfalfa,sch-2) + xcrop(alfalfa,sch-3) + xcrop(alfalfa,sch-4) + xcrop(alfalfa,sch-5) + xcrop(sugar-beet,sch-1) + xcrop(sugar-beet,sch-2) + xcrop(sugar-beet,sch-3)
+     
+      + xcrop(sugar-beet,sch-4) + xcrop(sugar-beet,sch-5) + xcrop(sugar-beet,sch-6) + xcrop(cotton,sch-1) + xcrop(cotton,sch-6) =L= 1600 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- labor  =L=  labor requirements                                (man-days)
+
+labor(01)..  2*task(plough,01,f-plow-6,tractor-l) + 3*task(plough,01,f-plow-3,tractor-l) + 3*task(plough,01,f-plow-3,tractor-s) + 45*task(plough,01,f-plow-1,draft-unit) + 0.6*task(disce,01,harrow-o-d,tractor-l) + task(disce,01,harrow-s-t,tractor-s)
+     
+      + 6*task(disce,01,harrow-s,draft-unit) - 6*emply(01) =L= 0 ; (LHS = 0)
+     
+labor(02)..  2*task(plough,02,f-plow-6,tractor-l) + 3*task(plough,02,f-plow-3,tractor-l) + 3*task(plough,02,f-plow-3,tractor-s) + 45*task(plough,02,f-plow-1,draft-unit) + 0.6*task(disce,02,harrow-o-d,tractor-l) + task(disce,02,harrow-s-t,tractor-s)
+     
+      + 6*task(disce,02,harrow-s,draft-unit) - 6*emply(02) =L= 0 ; (LHS = 0)
+     
+labor(03)..  2*task(plough,03,f-plow-6,tractor-l) + 3*task(plough,03,f-plow-3,tractor-l) + 3*task(plough,03,f-plow-3,tractor-s) + 45*task(plough,03,f-plow-1,draft-unit) + 0.6*task(disce,03,harrow-o-d,tractor-l) + task(disce,03,harrow-s-t,tractor-s)
+     
+      + 6*task(disce,03,harrow-s,draft-unit) + 50*task(harrow,03,manual,manual) + 1.6*task(harrow,03,harrow-s-t,tractor-s) + 2*task(harrow,03,harrow-s,draft-unit) + 0.5*task(spray,03,sprayer-l,tractor-l) + 0.5*task(spray,03,sprayer-l,tractor-s)
+     
+      + 8*task(spray,03,sprayer-s,draft-unit) + 8*task(spray,03,sprayer-k,manual) - 6*emply(03) =L= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 30
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+---- equipb1  =L=  equipment balance for implements                      (unit)
+
+equipb1(drill,07)..  0.5*task(drill,07,drill,tractor-l) + 0.5*task(drill,07,drill,tractor-s) - 140*equipp(drill) =L= 0 ; (LHS = 0)
+     
+equipb1(drill,08)..  0.5*task(drill,08,drill,tractor-l) + 0.5*task(drill,08,drill,tractor-s) - 140*equipp(drill) =L= 0 ; (LHS = 0)
+     
+equipb1(drill,09)..  0.5*task(drill,09,drill,tractor-l) + 0.5*task(drill,09,drill,tractor-s) - 140*equipp(drill) =L= 0 ; (LHS = 0)
+     
+REMAINING 254 ENTRIES SKIPPED
+
+
+---- equipb2  =L=  equipment balance for power sources                   (unit)
+
+equipb2(tractor-l,01)..  2*task(plough,01,f-plow-6,tractor-l) + 3*task(plough,01,f-plow-3,tractor-l) + 0.6*task(disce,01,harrow-o-d,tractor-l) - 140*equipp(tractor-l) =L= 0 ; (LHS = 0)
+     
+equipb2(tractor-l,02)..  2*task(plough,02,f-plow-6,tractor-l) + 3*task(plough,02,f-plow-3,tractor-l) + 0.6*task(disce,02,harrow-o-d,tractor-l) - 140*equipp(tractor-l) =L= 0 ; (LHS = 0)
+     
+equipb2(tractor-l,03)..  2*task(plough,03,f-plow-6,tractor-l) + 3*task(plough,03,f-plow-3,tractor-l) + 0.6*task(disce,03,harrow-o-d,tractor-l) + 0.5*task(spray,03,sprayer-l,tractor-l) - 140*equipp(tractor-l) =L= 0 ; (LHS = 0)
+     
+REMAINING 69 ENTRIES SKIPPED
+
+
+---- arev  =E=  accounting: revenue                             (1000 rials)
+
+arev..  - 10*sales(wheat) - 23.96*sales(soy-beans) - 1.08*sales(maize-for) - 5*sales(alfalfa) - 1.8*sales(sugar-beet) - 16.47*sales(cotton) + revenue =E= 0 ; (LHS = -8750, INFES = 8750 ****)
+     
+
+---- acost1  =E=  accounting: cost of miscellaneous inputs        (1000 rials)
+
+acost1..  - 6.855*xcrop(wheat,sch-1) - 6.855*xcrop(wheat,sch-2) - 6.855*xcrop(wheat,sch-3) - 6.855*xcrop(wheat,sch-4) - 6.855*xcrop(wheat,sch-5) - 6.855*xcrop(wheat,sch-6) - 6.855*xcrop(wheat,sch-7) - 4.5*xcrop(soy-beans,sch-1)
+     
+      - 4.5*xcrop(soy-beans,sch-2) - 4.5*xcrop(soy-beans,sch-3) - 4.5*xcrop(soy-beans,sch-4) - 4.5*xcrop(soy-beans,sch-5) - 4.5*xcrop(soy-beans,sch-6) - 4.5*xcrop(soy-beans,sch-7) - 5.75*xcrop(maize-for,sch-1) - 5.75*xcrop(maize-for,sch-2)
+     
+      - 5.75*xcrop(maize-for,sch-3) - 5.75*xcrop(maize-for,sch-4) - 5.75*xcrop(maize-for,sch-5) - 5.75*xcrop(maize-for,sch-6) - 5.75*xcrop(maize-for,sch-7) - 3.13*xcrop(alfalfa,sch-1) - 3.13*xcrop(alfalfa,sch-2) - 3.13*xcrop(alfalfa,sch-3)
+     
+      - 3.13*xcrop(alfalfa,sch-4) - 3.13*xcrop(alfalfa,sch-5) - 3.13*xcrop(alfalfa,sch-6) - 3.13*xcrop(alfalfa,sch-7) - 3.13*xcrop(alfalfa,sch-8) - 8*xcrop(sugar-beet,sch-1) - 8*xcrop(sugar-beet,sch-2) - 8*xcrop(sugar-beet,sch-3)
+     
+      - 8*xcrop(sugar-beet,sch-4) - 8*xcrop(sugar-beet,sch-5) - 8*xcrop(sugar-beet,sch-6) - 4.425*xcrop(cotton,sch-1) - 4.425*xcrop(cotton,sch-2) - 4.425*xcrop(cotton,sch-3) - 4.425*xcrop(cotton,sch-4) - 4.425*xcrop(cotton,sch-5)
+     
+      - 4.425*xcrop(cotton,sch-6) - 4.425*xcrop(cotton,sch-7) + cost(misc-input) =E= 0 ; (LHS = 0)
+     
+
+---- acost2  =E=  accounting: cost of water                       (1000 rials)
+
+acost2..  - 0.267*awater + cost(water) =E= 0 ; (LHS = 0)
+     
+
+---- acost3  =E=  accounting: operating cost                      (1000 rials)
+
+acost3..  - 0.516*task(plough,01,f-plow-6,tractor-l) - 0.693*task(plough,01,f-plow-3,tractor-l) - 0.372*task(plough,01,f-plow-3,tractor-s) - 0.81*task(plough,01,f-plow-1,draft-unit) - 0.516*task(plough,02,f-plow-6,tractor-l)
+     
+      - 0.693*task(plough,02,f-plow-3,tractor-l) - 0.372*task(plough,02,f-plow-3,tractor-s) - 0.81*task(plough,02,f-plow-1,draft-unit) - 0.516*task(plough,03,f-plow-6,tractor-l) - 0.693*task(plough,03,f-plow-3,tractor-l)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 31
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+     acost3  =E=  accounting: operating cost                      (1000 rials)     
+     
+      - 0.372*task(plough,03,f-plow-3,tractor-s) - 0.81*task(plough,03,f-plow-1,draft-unit) - 0.516*task(plough,04,f-plow-6,tractor-l) - 0.693*task(plough,04,f-plow-3,tractor-l) - 0.372*task(plough,04,f-plow-3,tractor-s)
+     
+      - 0.81*task(plough,04,f-plow-1,draft-unit) - 0.516*task(plough,05,f-plow-6,tractor-l) - 0.693*task(plough,05,f-plow-3,tractor-l) - 0.372*task(plough,05,f-plow-3,tractor-s) - 0.81*task(plough,05,f-plow-1,draft-unit)
+     
+      - 0.516*task(plough,06,f-plow-6,tractor-l) - 0.693*task(plough,06,f-plow-3,tractor-l) - 0.372*task(plough,06,f-plow-3,tractor-s) - 0.81*task(plough,06,f-plow-1,draft-unit) - 0.516*task(plough,13,f-plow-6,tractor-l)
+     
+      - 0.693*task(plough,13,f-plow-3,tractor-l) - 0.372*task(plough,13,f-plow-3,tractor-s) - 0.81*task(plough,13,f-plow-1,draft-unit) - 0.516*task(plough,14,f-plow-6,tractor-l) - 0.693*task(plough,14,f-plow-3,tractor-l)
+     
+      - 0.372*task(plough,14,f-plow-3,tractor-s) - 0.81*task(plough,14,f-plow-1,draft-unit) - 0.516*task(plough,15,f-plow-6,tractor-l) - 0.693*task(plough,15,f-plow-3,tractor-l) - 0.372*task(plough,15,f-plow-3,tractor-s)
+     
+      - 0.81*task(plough,15,f-plow-1,draft-unit) - 0.516*task(plough,16,f-plow-6,tractor-l) - 0.693*task(plough,16,f-plow-3,tractor-l) - 0.372*task(plough,16,f-plow-3,tractor-s) - 0.81*task(plough,16,f-plow-1,draft-unit)
+     
+      - 0.516*task(plough,17,f-plow-6,tractor-l) - 0.693*task(plough,17,f-plow-3,tractor-l) - 0.372*task(plough,17,f-plow-3,tractor-s) - 0.81*task(plough,17,f-plow-1,draft-unit) - 0.516*task(plough,23,f-plow-6,tractor-l)
+     
+      - 0.693*task(plough,23,f-plow-3,tractor-l) - 0.372*task(plough,23,f-plow-3,tractor-s) - 0.81*task(plough,23,f-plow-1,draft-unit) - 0.516*task(plough,24,f-plow-6,tractor-l) - 0.693*task(plough,24,f-plow-3,tractor-l)
+     
+      - 0.372*task(plough,24,f-plow-3,tractor-s) - 0.81*task(plough,24,f-plow-1,draft-unit) - 0.1644*task(disce,01,harrow-o-d,tractor-l) - 0.118*task(disce,01,harrow-s-t,tractor-s) - 0.108*task(disce,01,harrow-s,draft-unit)
+     
+      - 0.1644*task(disce,02,harrow-o-d,tractor-l) - 0.118*task(disce,02,harrow-s-t,tractor-s) - 0.108*task(disce,02,harrow-s,draft-unit) - 0.1644*task(disce,03,harrow-o-d,tractor-l) - 0.118*task(disce,03,harrow-s-t,tractor-s)
+     
+      - 0.108*task(disce,03,harrow-s,draft-unit) - 0.1644*task(disce,04,harrow-o-d,tractor-l) - 0.118*task(disce,04,harrow-s-t,tractor-s) - 0.108*task(disce,04,harrow-s,draft-unit) - 0.1644*task(disce,05,harrow-o-d,tractor-l)
+     
+      - 0.118*task(disce,05,harrow-s-t,tractor-s) - 0.108*task(disce,05,harrow-s,draft-unit) - 0.1644*task(disce,06,harrow-o-d,tractor-l) - 0.118*task(disce,06,harrow-s-t,tractor-s) - 0.108*task(disce,06,harrow-s,draft-unit)
+     
+      - 0.1644*task(disce,07,harrow-o-d,tractor-l) - 0.118*task(disce,07,harrow-s-t,tractor-s) - 0.108*task(disce,07,harrow-s,draft-unit) - 0.1644*task(disce,12,harrow-o-d,tractor-l) - 0.118*task(disce,12,harrow-s-t,tractor-s)
+     
+      - 0.108*task(disce,12,harrow-s,draft-unit) - 0.1644*task(disce,13,harrow-o-d,tractor-l) - 0.118*task(disce,13,harrow-s-t,tractor-s) - 0.108*task(disce,13,harrow-s,draft-unit) - 0.1644*task(disce,14,harrow-o-d,tractor-l)
+     
+      - 0.118*task(disce,14,harrow-s-t,tractor-s) - 0.108*task(disce,14,harrow-s,draft-unit) - 0.1644*task(disce,15,harrow-o-d,tractor-l) - 0.118*task(disce,15,harrow-s-t,tractor-s) - 0.108*task(disce,15,harrow-s,draft-unit)
+     
+      - 0.1644*task(disce,16,harrow-o-d,tractor-l) - 0.118*task(disce,16,harrow-s-t,tractor-s) - 0.108*task(disce,16,harrow-s,draft-unit) - 0.1644*task(disce,17,harrow-o-d,tractor-l) - 0.118*task(disce,17,harrow-s-t,tractor-s)
+     
+      - 0.108*task(disce,17,harrow-s,draft-unit) - 0.1644*task(disce,18,harrow-o-d,tractor-l) - 0.118*task(disce,18,harrow-s-t,tractor-s) - 0.108*task(disce,18,harrow-s,draft-unit) - 0.1888*task(harrow,03,harrow-s-t,tractor-s)
+     
+      - 0.036*task(harrow,03,harrow-s,draft-unit) - 0.1888*task(harrow,04,harrow-s-t,tractor-s) - 0.036*task(harrow,04,harrow-s,draft-unit) - 0.1888*task(harrow,05,harrow-s-t,tractor-s) - 0.036*task(harrow,05,harrow-s,draft-unit)
+     
+      - 0.1888*task(harrow,06,harrow-s-t,tractor-s) - 0.036*task(harrow,06,harrow-s,draft-unit) - 0.1888*task(harrow,07,harrow-s-t,tractor-s) - 0.036*task(harrow,07,harrow-s,draft-unit) - 0.1888*task(harrow,18,harrow-s-t,tractor-s)
+     
+      - 0.036*task(harrow,18,harrow-s,draft-unit) - 0.1888*task(harrow,19,harrow-s-t,tractor-s) - 0.036*task(harrow,19,harrow-s,draft-unit) - 0.1888*task(harrow,20,harrow-s-t,tractor-s) - 0.036*task(harrow,20,harrow-s,draft-unit)
+     
+      - 0.1155*task(spray,03,sprayer-l,tractor-l) - 0.062*task(spray,03,sprayer-l,tractor-s) - 0.144*task(spray,03,sprayer-s,draft-unit) - 0.1155*task(spray,04,sprayer-l,tractor-l) - 0.062*task(spray,04,sprayer-l,tractor-s)
+     
+      - 0.144*task(spray,04,sprayer-s,draft-unit) - 0.1155*task(spray,05,sprayer-l,tractor-l) - 0.062*task(spray,05,sprayer-l,tractor-s) - 0.144*task(spray,05,sprayer-s,draft-unit) - 0.1155*task(spray,06,sprayer-l,tractor-l)
+     
+      - 0.062*task(spray,06,sprayer-l,tractor-s) - 0.144*task(spray,06,sprayer-s,draft-unit) - 0.1155*task(spray,07,sprayer-l,tractor-l) - 0.062*task(spray,07,sprayer-l,tractor-s) - 0.144*task(spray,07,sprayer-s,draft-unit)
+     
+      - 0.1155*task(spray,09,sprayer-l,tractor-l) - 0.062*task(spray,09,sprayer-l,tractor-s) - 0.144*task(spray,09,sprayer-s,draft-unit) - 0.1155*task(spray,10,sprayer-l,tractor-l) - 0.062*task(spray,10,sprayer-l,tractor-s)
+     
+      - 0.144*task(spray,10,sprayer-s,draft-unit) - 0.1155*task(spray,11,sprayer-l,tractor-l) - 0.062*task(spray,11,sprayer-l,tractor-s) - 0.144*task(spray,11,sprayer-s,draft-unit) - 0.1155*task(spray,12,sprayer-l,tractor-l)
+     
+      - 0.062*task(spray,12,sprayer-l,tractor-s) - 0.144*task(spray,12,sprayer-s,draft-unit) - 0.1155*task(spray,13,sprayer-l,tractor-l) - 0.062*task(spray,13,sprayer-l,tractor-s) - 0.144*task(spray,13,sprayer-s,draft-unit)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 32
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+     acost3  =E=  accounting: operating cost                      (1000 rials)     
+     
+      - 0.1155*task(spray,14,sprayer-l,tractor-l) - 0.062*task(spray,14,sprayer-l,tractor-s) - 0.144*task(spray,14,sprayer-s,draft-unit) - 0.1155*task(spray,15,sprayer-l,tractor-l) - 0.062*task(spray,15,sprayer-l,tractor-s)
+     
+      - 0.144*task(spray,15,sprayer-s,draft-unit) - 0.1155*task(spray,16,sprayer-l,tractor-l) - 0.062*task(spray,16,sprayer-l,tractor-s) - 0.144*task(spray,16,sprayer-s,draft-unit) - 0.1155*task(spray,17,sprayer-l,tractor-l)
+     
+      - 0.062*task(spray,17,sprayer-l,tractor-s) - 0.144*task(spray,17,sprayer-s,draft-unit) - 0.1155*task(spray,18,sprayer-l,tractor-l) - 0.062*task(spray,18,sprayer-l,tractor-s) - 0.144*task(spray,18,sprayer-s,draft-unit)
+     
+      - 0.1155*task(spray,19,sprayer-l,tractor-l) - 0.062*task(spray,19,sprayer-l,tractor-s) - 0.144*task(spray,19,sprayer-s,draft-unit) - 0.1155*task(spray,20,sprayer-l,tractor-l) - 0.062*task(spray,20,sprayer-l,tractor-s)
+     
+      - 0.144*task(spray,20,sprayer-s,draft-unit) - 0.146*task(drill,07,drill,tractor-l) - 0.0925*task(drill,07,drill,tractor-s) - 0.144*task(drill,07,drill-s,draft-unit) - 0.146*task(drill,08,drill,tractor-l) - 0.0925*task(drill,08,drill,tractor-s)
+     
+      - 0.144*task(drill,08,drill-s,draft-unit) - 0.146*task(drill,09,drill,tractor-l) - 0.0925*task(drill,09,drill,tractor-s) - 0.144*task(drill,09,drill-s,draft-unit) - 0.146*task(drill,10,drill,tractor-l) - 0.0925*task(drill,10,drill,tractor-s)
+     
+      - 0.144*task(drill,10,drill-s,draft-unit) - 0.146*task(drill,19,drill,tractor-l) - 0.0925*task(drill,19,drill,tractor-s) - 0.144*task(drill,19,drill-s,draft-unit) - 0.146*task(drill,20,drill,tractor-l) - 0.0925*task(drill,20,drill,tractor-s)
+     
+      - 0.144*task(drill,20,drill-s,draft-unit) - 0.146*task(drill,21,drill,tractor-l) - 0.0925*task(drill,21,drill,tractor-s) - 0.144*task(drill,21,drill-s,draft-unit) - 0.399*task(plant,04,planter,tractor-l) - 0.2385*task(plant,04,planter,tractor-s)
+     
+      - 0.36*task(plant,04,planter-s,draft-unit) - 0.399*task(plant,05,planter,tractor-l) - 0.2385*task(plant,05,planter,tractor-s) - 0.36*task(plant,05,planter-s,draft-unit) - 0.399*task(plant,06,planter,tractor-l)
+     
+      - 0.2385*task(plant,06,planter,tractor-s) - 0.36*task(plant,06,planter-s,draft-unit) - 0.399*task(plant,08,planter,tractor-l) - 0.2385*task(plant,08,planter,tractor-s) - 0.36*task(plant,08,planter-s,draft-unit)
+     
+      - 0.399*task(plant,09,planter,tractor-l) - 0.2385*task(plant,09,planter,tractor-s) - 0.36*task(plant,09,planter-s,draft-unit) - 0.399*task(plant,13,planter,tractor-l) - 0.2385*task(plant,13,planter,tractor-s)
+     
+      - 0.36*task(plant,13,planter-s,draft-unit) - 0.399*task(plant,14,planter,tractor-l) - 0.2385*task(plant,14,planter,tractor-s) - 0.36*task(plant,14,planter-s,draft-unit) - 0.9*task(fertilize,05,spreader-l,tractor-l)
+     
+      - 0.472*task(fertilize,05,spreader-l,tractor-s) - 0.144*task(fertilize,05,spreader-s,draft-unit) - 0.9*task(fertilize,06,spreader-l,tractor-l) - 0.472*task(fertilize,06,spreader-l,tractor-s) - 0.144*task(fertilize,06,spreader-s,draft-unit)
+     
+      - 0.9*task(fertilize,07,spreader-l,tractor-l) - 0.472*task(fertilize,07,spreader-l,tractor-s) - 0.144*task(fertilize,07,spreader-s,draft-unit) - 0.9*task(fertilize,13,spreader-l,tractor-l) - 0.472*task(fertilize,13,spreader-l,tractor-s)
+     
+      - 0.144*task(fertilize,13,spreader-s,draft-unit) - 0.9*task(fertilize,14,spreader-l,tractor-l) - 0.472*task(fertilize,14,spreader-l,tractor-s) - 0.144*task(fertilize,14,spreader-s,draft-unit) - 0.9*task(fertilize,16,spreader-l,tractor-l)
+     
+      - 0.472*task(fertilize,16,spreader-l,tractor-s) - 0.144*task(fertilize,16,spreader-s,draft-unit) - 0.9*task(fertilize,17,spreader-l,tractor-l) - 0.472*task(fertilize,17,spreader-l,tractor-s) - 0.144*task(fertilize,17,spreader-s,draft-unit)
+     
+      - 0.9*task(fertilize,18,spreader-l,tractor-l) - 0.472*task(fertilize,18,spreader-l,tractor-s) - 0.144*task(fertilize,18,spreader-s,draft-unit) - 0.125*task(cultivate,06,cult-l,tractor-l) - 0.143*task(cultivate,06,cult-l,tractor-s)
+     
+      - 0.36*task(cultivate,06,cult-s,draft-unit) - 0.125*task(cultivate,07,cult-l,tractor-l) - 0.143*task(cultivate,07,cult-l,tractor-s) - 0.36*task(cultivate,07,cult-s,draft-unit) - 0.125*task(cultivate,08,cult-l,tractor-l)
+     
+      - 0.143*task(cultivate,08,cult-l,tractor-s) - 0.36*task(cultivate,08,cult-s,draft-unit) - 0.125*task(cultivate,09,cult-l,tractor-l) - 0.143*task(cultivate,09,cult-l,tractor-s) - 0.36*task(cultivate,09,cult-s,draft-unit)
+     
+      - 0.125*task(cultivate,10,cult-l,tractor-l) - 0.143*task(cultivate,10,cult-l,tractor-s) - 0.36*task(cultivate,10,cult-s,draft-unit) - 0.125*task(cultivate,11,cult-l,tractor-l) - 0.143*task(cultivate,11,cult-l,tractor-s)
+     
+      - 0.36*task(cultivate,11,cult-s,draft-unit) - 0.125*task(cultivate,12,cult-l,tractor-l) - 0.143*task(cultivate,12,cult-l,tractor-s) - 0.36*task(cultivate,12,cult-s,draft-unit) - 0.125*task(cultivate,15,cult-l,tractor-l)
+     
+      - 0.143*task(cultivate,15,cult-l,tractor-s) - 0.36*task(cultivate,15,cult-s,draft-unit) - 0.125*task(cultivate,16,cult-l,tractor-l) - 0.143*task(cultivate,16,cult-l,tractor-s) - 0.36*task(cultivate,16,cult-s,draft-unit)
+     
+      - 0.6125*task(beet-lift,20,beet-lift,tractor-l) - 0.345*task(beet-lift,20,beet-lift,tractor-s) - 0.6125*task(beet-lift,21,beet-lift,tractor-l) - 0.345*task(beet-lift,21,beet-lift,tractor-s) - 0.6125*task(beet-lift,22,beet-lift,tractor-l)
+     
+      - 0.345*task(beet-lift,22,beet-lift,tractor-s) - 0.6125*task(beet-lift,23,beet-lift,tractor-l) - 0.345*task(beet-lift,23,beet-lift,tractor-s) - 0.235*task(mow,12,mower,tractor-l) - 0.128*task(mow,12,mower,tractor-s)
+     
+      - 0.235*task(mow,14,mower,tractor-l) - 0.128*task(mow,14,mower,tractor-s) - 0.235*task(mow,15,mower,tractor-l) - 0.128*task(mow,15,mower,tractor-s) - 0.235*task(mow,17,mower,tractor-l) - 0.128*task(mow,17,mower,tractor-s)
+     
+      - 0.235*task(mow,19,mower,tractor-l) - 0.128*task(mow,19,mower,tractor-s) - 0.116*task(windrow,12,rake,tractor-l) - 0.0625*task(windrow,12,rake,tractor-s) - 0.116*task(windrow,14,rake,tractor-l) - 0.0625*task(windrow,14,rake,tractor-s)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 33
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+     acost3  =E=  accounting: operating cost                      (1000 rials)     
+     
+      - 0.116*task(windrow,15,rake,tractor-l) - 0.0625*task(windrow,15,rake,tractor-s) - 0.116*task(windrow,17,rake,tractor-l) - 0.0625*task(windrow,17,rake,tractor-s) - 0.116*task(windrow,19,rake,tractor-l) - 0.0625*task(windrow,19,rake,tractor-s)
+     
+      - 0.232*task(bale,11,baler,tractor-l) - 0.366*task(bale,11,baler,tractor-s) - 0.232*task(bale,12,baler,tractor-l) - 0.366*task(bale,12,baler,tractor-s) - 0.232*task(bale,13,baler,tractor-l) - 0.366*task(bale,13,baler,tractor-s)
+     
+      - 0.232*task(bale,14,baler,tractor-l) - 0.366*task(bale,14,baler,tractor-s) - 0.232*task(bale,15,baler,tractor-l) - 0.366*task(bale,15,baler,tractor-s) - 0.232*task(bale,17,baler,tractor-l) - 0.366*task(bale,17,baler,tractor-s)
+     
+      - 0.232*task(bale,19,baler,tractor-l) - 0.366*task(bale,19,baler,tractor-s) - 0.77*task(harvest-g,11,combine-h,self-prop) - 0.77*task(harvest-g,12,combine-h,self-prop) - 0.77*task(harvest-g,13,combine-h,self-prop)
+     
+      - 0.77*task(harvest-g,16,combine-h,self-prop) - 0.77*task(harvest-g,17,combine-h,self-prop) - 1.6375*task(harvest-f,19,forage-h,self-prop) - 1.6375*task(harvest-f,20,forage-h,self-prop) - 0.77*task(harvest-c,16,cotton-p,self-prop)
+     
+      - 0.77*task(harvest-c,17,cotton-p,self-prop) - 0.77*task(harvest-c,18,cotton-p,self-prop) - 0.77*task(harvest-c,19,cotton-p,self-prop) - 0.77*task(harvest-c,20,cotton-p,self-prop) - 0.062*task(transport,11,trailer-4t,tractor-l)
+     
+      - 0.03525*task(transport,11,trailer-4t,tractor-s) - 0.072*task(transport,11,trailer-ht,draft-unit) - 0.062*task(transport,12,trailer-4t,tractor-l) - 0.03525*task(transport,12,trailer-4t,tractor-s) - 0.072*task(transport,12,trailer-ht,draft-unit)
+     
+      - 0.062*task(transport,13,trailer-4t,tractor-l) - 0.03525*task(transport,13,trailer-4t,tractor-s) - 0.072*task(transport,13,trailer-ht,draft-unit) - 0.062*task(transport,14,trailer-4t,tractor-l) - 0.03525*task(transport,14,trailer-4t,tractor-s)
+     
+      - 0.072*task(transport,14,trailer-ht,draft-unit) - 0.062*task(transport,15,trailer-4t,tractor-l) - 0.03525*task(transport,15,trailer-4t,tractor-s) - 0.072*task(transport,15,trailer-ht,draft-unit) - 0.062*task(transport,16,trailer-4t,tractor-l)
+     
+      - 0.03525*task(transport,16,trailer-4t,tractor-s) - 0.072*task(transport,16,trailer-ht,draft-unit) - 0.062*task(transport,17,trailer-4t,tractor-l) - 0.03525*task(transport,17,trailer-4t,tractor-s) - 0.072*task(transport,17,trailer-ht,draft-unit)
+     
+      - 0.062*task(transport,18,trailer-4t,tractor-l) - 0.03525*task(transport,18,trailer-4t,tractor-s) - 0.072*task(transport,18,trailer-ht,draft-unit) - 0.062*task(transport,19,trailer-4t,tractor-l) - 0.03525*task(transport,19,trailer-4t,tractor-s)
+     
+      - 0.072*task(transport,19,trailer-ht,draft-unit) - 0.062*task(transport,20,trailer-4t,tractor-l) - 0.03525*task(transport,20,trailer-4t,tractor-s) - 0.072*task(transport,20,trailer-ht,draft-unit) - 0.062*task(transport,21,trailer-4t,tractor-l)
+     
+      - 0.03525*task(transport,21,trailer-4t,tractor-s) - 0.072*task(transport,21,trailer-ht,draft-unit) - 0.062*task(transport,22,trailer-4t,tractor-l) - 0.03525*task(transport,22,trailer-4t,tractor-s) - 0.072*task(transport,22,trailer-ht,draft-unit)
+     
+      - 0.062*task(transport,23,trailer-4t,tractor-l) - 0.03525*task(transport,23,trailer-4t,tractor-s) - 0.072*task(transport,23,trailer-ht,draft-unit) + cost(operating) =E= 0 ; (LHS = 0)
+     
+
+---- acost4  =E=  accounting: capital charges                     (1000 rials)
+
+acost4..  - 38.1523805015908*equipp(drill) - 3.69872832990409*equipp(beet-lift) - 224.627113493034*equipp(tractor-l) - 121.298641286238*equipp(tractor-s) - 19.0761902507954*equipp(draft-unit) - 286.142853761931*equipp(combine-h)
+     
+      - 184.936416495205*equipp(forage-h) - 594.111328186851*equipp(cotton-p) - 31.4477958890247*equipp(f-plow-6) - 12.3290944330136*equipp(f-plow-3) - 1.08104561763198*equipp(f-plow-1) - 44.9254226986068*equipp(harrow-o-d)
+     
+      - 5.19847412163495*equipp(harrow-s-t) - 1.08104561763198*equipp(harrow-s) - 30.8548850808578*equipp(sprayer-l) - 3.96383393131727*equipp(sprayer-s) - 4.68453100973859*equipp(drill-s) - 38.1523805015908*equipp(planter)
+     
+      - 7.20697078421322*equipp(planter-s) - 9.72941055868785*equipp(spreader-l) - 1.08104561763198*equipp(spreader-s) - 28.0783891866292*equipp(cult-l) - 4.68453100973859*equipp(cult-s) - 23.422655048693*equipp(mower) - 77.1372127021446*equipp(baler)
+     
+      - 13.7745022682401*equipp(rake) - 40.4328804287461*equipp(trailer-4t) - 5.61567783732585*equipp(trailer-ht) - 5.83215686274509*equipp(sprayer-k) + cost(capital) =E= 0 ; (LHS = 0)
+     
+
+---- acost5  =E=  accounting: cost of labor                       (1000 rials)
+
+acost5..  - 0.135*emply(01) - 0.135*emply(02) - 0.135*emply(03) - 0.135*emply(04) - 0.135*emply(05) - 0.135*emply(06) - 0.135*emply(07) - 0.135*emply(08) - 0.135*emply(09) - 0.135*emply(10) - 0.135*emply(11) - 0.135*emply(12) - 0.135*emply(13)
+     
+      - 0.135*emply(14) - 0.135*emply(15) - 0.135*emply(16) - 0.135*emply(17) - 0.135*emply(18) - 0.135*emply(19) - 0.135*emply(20) - 0.135*emply(21) - 0.135*emply(22) - 0.135*emply(23) - 0.135*emply(24) + cost(wages) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 34
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Equation Listing    SOLVE iran Using LP From line 513
+
+
+---- obj  =E=  objective function                              (1000 rials)
+
+obj..  - revenue + cost(misc-input) + cost(water) + cost(operating) + cost(wages) + cost(capital) + profit =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 35
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Column Listing      SOLVE iran Using LP From line 513
+
+
+---- xcrop  cropping schedules                                      (ha)
+
+xcrop(wheat,sch-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       tbal(plough,13)
+        1       tbal(disce,14)
+        1       tbal(harrow,18)
+        1       tbal(spray,18)
+        1       tbal(drill,19)
+        1       tbal(fertilize,06)
+        1       tbal(bale,11)
+        1       tbal(harvest-g,11)
+        1.155   tbal(transport,11)
+        1       cropd(wheat)
+        1       agroc(wheat)
+        1       landc(01)
+        1       landc(02)
+        1       landc(03)
+        1       landc(04)
+        1       landc(05)
+        1       landc(06)
+        1       landc(07)
+        1       landc(08)
+        1       landc(09)
+        1       landc(10)
+        1       landc(11)
+        1       landc(13)
+        1       landc(14)
+        1       landc(15)
+        1       landc(16)
+        1       landc(17)
+        1       landc(18)
+        1       landc(19)
+        1       landc(20)
+        1       landc(21)
+        1       landc(22)
+        1       landc(23)
+        1       landc(24)
+        2       labor(06)
+        2       labor(11)
+       -6.855   acost1
+
+xcrop(wheat,sch-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       tbal(plough,14)
+        1       tbal(disce,15)
+        1       tbal(harrow,19)
+        1       tbal(spray,19)
+        1       tbal(drill,20)
+        1       tbal(fertilize,07)
+        1       tbal(bale,12)
+        1       tbal(harvest-g,12)
+        1.155   tbal(transport,12)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 36
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Column Listing      SOLVE iran Using LP From line 513
+
+
+     xcrop  cropping schedules                                      (ha)
+
+        1       cropd(wheat)
+        1       agroc(wheat)
+        1       landc(01)
+        1       landc(02)
+        1       landc(03)
+        1       landc(04)
+        1       landc(05)
+        1       landc(06)
+        1       landc(07)
+        1       landc(08)
+        1       landc(09)
+        1       landc(10)
+        1       landc(11)
+        1       landc(12)
+        1       landc(14)
+        1       landc(15)
+        1       landc(16)
+        1       landc(17)
+        1       landc(18)
+        1       landc(19)
+        1       landc(20)
+        1       landc(21)
+        1       landc(22)
+        1       landc(23)
+        1       landc(24)
+        2       labor(07)
+        2       labor(12)
+       -6.855   acost1
+
+xcrop(wheat,sch-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       tbal(plough,15)
+        1       tbal(disce,16)
+        1       tbal(harrow,19)
+        1       tbal(spray,19)
+        1       tbal(drill,21)
+        1       tbal(fertilize,07)
+        1       tbal(bale,13)
+        1       tbal(harvest-g,13)
+        1.155   tbal(transport,13)
+        1       cropd(wheat)
+        1       agroc(wheat)
+        1       landc(01)
+        1       landc(02)
+        1       landc(03)
+        1       landc(04)
+        1       landc(05)
+        1       landc(06)
+        1       landc(07)
+        1       landc(08)
+        1       landc(09)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 37
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Column Listing      SOLVE iran Using LP From line 513
+
+
+     xcrop  cropping schedules                                      (ha)
+
+        1       landc(10)
+        1       landc(11)
+        1       landc(12)
+        1       landc(13)
+        1       landc(15)
+        1       landc(16)
+        1       landc(17)
+        1       landc(18)
+        1       landc(19)
+        1       landc(20)
+        1       landc(21)
+        1       landc(22)
+        1       landc(23)
+        1       landc(24)
+        2       labor(07)
+        2       labor(13)
+       -6.855   acost1
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- xwater  cropping by irrigation level                            (ha)
+
+xwater(wheat,normal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.5     cbal(wheat)
+       -1       cropd(wheat)
+       -0.0064  waterd
+
+xwater(wheat,stress-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.43    cbal(wheat)
+       -1       cropd(wheat)
+       -0.0058  waterd
+
+xwater(wheat,stress-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3.29    cbal(wheat)
+       -1       cropd(wheat)
+       -0.0052  waterd
+
+REMAINING 20 ENTRIES SKIPPED
+
+---- awater  annual water requirements             (million cubic meters)
+
+awater
+                (.LO, .L, .UP, .M = -INF, 0, 21.73, 0)
+        1       waterd
+       -0.267   acost2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 38
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Column Listing      SOLVE iran Using LP From line 513
+
+
+---- task  agricultural tasks by technology                        (ha)
+
+task(plough,01,f-plow-6,tractor-l)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       tbal(plough,01)
+        2       labor(01)
+        2       equipb1(f-plow-6,01)
+        2       equipb2(tractor-l,01)
+       -0.516   acost3
+
+task(plough,01,f-plow-3,tractor-l)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       tbal(plough,01)
+        3       labor(01)
+        3       equipb1(f-plow-3,01)
+        3       equipb2(tractor-l,01)
+       -0.693   acost3
+
+task(plough,01,f-plow-3,tractor-s)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       tbal(plough,01)
+        3       labor(01)
+        3       equipb1(f-plow-3,01)
+        3       equipb2(tractor-s,01)
+       -0.372   acost3
+
+REMAINING 407 ENTRIES SKIPPED
+
+---- sales  sales of agricultural commodities                     (tons)
+
+sales(wheat)
+                (.LO, .L, .UP, .M = 875, 875, +INF, 0)
+        1       cbal(wheat)
+      -10       arev
+        0       (OLD LEVEL ****)
+
+sales(soy-beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cbal(soy-beans)
+      -23.96    arev
+
+sales(maize-for)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cbal(maize-for)
+       -1.08    arev
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- equipp  equipment purchases                                  (units)
+
+equipp(drill)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -140       equipb1(drill,07)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 39
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Column Listing      SOLVE iran Using LP From line 513
+
+
+     equipp  equipment purchases                                  (units)
+
+     -140       equipb1(drill,08)
+     -140       equipb1(drill,09)
+     -140       equipb1(drill,10)
+     -140       equipb1(drill,19)
+     -140       equipb1(drill,20)
+     -140       equipb1(drill,21)
+      -38.1524  acost4
+
+equipp(beet-lift)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -140       equipb1(beet-lift,20)
+     -140       equipb1(beet-lift,21)
+     -140       equipb1(beet-lift,22)
+     -140       equipb1(beet-lift,23)
+       -3.6987  acost4
+
+equipp(tractor-l)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -140       equipb2(tractor-l,01)
+     -140       equipb2(tractor-l,02)
+     -140       equipb2(tractor-l,03)
+     -140       equipb2(tractor-l,04)
+     -140       equipb2(tractor-l,05)
+     -140       equipb2(tractor-l,06)
+     -140       equipb2(tractor-l,07)
+     -140       equipb2(tractor-l,08)
+     -140       equipb2(tractor-l,09)
+     -140       equipb2(tractor-l,10)
+     -140       equipb2(tractor-l,11)
+     -140       equipb2(tractor-l,12)
+     -140       equipb2(tractor-l,13)
+     -140       equipb2(tractor-l,14)
+     -140       equipb2(tractor-l,15)
+     -140       equipb2(tractor-l,16)
+     -140       equipb2(tractor-l,17)
+     -140       equipb2(tractor-l,18)
+     -140       equipb2(tractor-l,19)
+     -140       equipb2(tractor-l,20)
+     -140       equipb2(tractor-l,21)
+     -140       equipb2(tractor-l,22)
+     -140       equipb2(tractor-l,23)
+     -140       equipb2(tractor-l,24)
+     -224.6271  acost4
+
+REMAINING 26 ENTRIES SKIPPED
+
+---- emply  employment                                        (man-days)
+
+emply(01)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -6       labor(01)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 40
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Column Listing      SOLVE iran Using LP From line 513
+
+
+     emply  employment                                        (man-days)
+
+       -0.135   acost5
+
+emply(02)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -6       labor(02)
+       -0.135   acost5
+
+emply(03)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -6       labor(03)
+       -0.135   acost5
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- revenue  from crop sales                                 (1000 rials)
+
+revenue
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       arev
+       -1       obj
+
+
+---- cost  cost of cropping activities                     (1000 rials)
+
+cost(misc-input)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       acost1
+        1       obj
+
+cost(water)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       acost2
+        1       obj
+
+cost(operating)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       acost3
+        1       obj
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- profit  objective function                              (1000 rials)
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 41
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Model Statistics    SOLVE iran Using LP From line 513
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          16     SINGLE EQUATIONS          532
+BLOCKS OF VARIABLES          10     SINGLE VARIABLES          542  1 projected
+NON ZERO ELEMENTS         3,949
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.015 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 42
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+Solution Report     SOLVE iran Using LP From line 513
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   iran                OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  513
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0          5000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sarf/convert.opt"
+>>  ampl sarf-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sarf/convert.opt"
+Ampl      : sarf-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:38 Page 43
+Farm Credit and Income Distribution Model (SARF,SEQ=49)
+E x e c u t i o n
+
+
+----    515 VARIABLE xcrop.L  cropping schedules                                      (ha)
+
+                      ( ALL       0.000 )
+
+
+----    515 VARIABLE xwater.L  cropping by irrigation level                            (ha)
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/sarf/sarf.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/sarf/sarf-scalar.mod.lst

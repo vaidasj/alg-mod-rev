@@ -1,0 +1,244 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 2
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+C o m p i l a t i o n
+
+
+   4   
+       
+          Given a set of possible chemical reactions, we must verify
+          whether a chemical can be synthesized from a given set of
+          raw materials and catalysts.
+       
+       
+      Morari, M, and Grossmann, I E, Eds, Chemical Engineering Optimization
+      Models with GAMS. Computer Aids for Chemical Engineering Corporation,
+      1991.
+       
+      Raman, R, and Grossmann, I E, Relation between MINLP Modeling and
+      Logical Inverence for Chemical Process Synthesis. Computers and
+      Chemical Engineering 15, 2 (1991), 73-84.
+       
+  21   
+  22   
+  23  Sets v system variables (chemicals)  /
+  24   
+  25         y01           ch3co2c2h5
+  26         y02           naoc2h5
+  27         y03           c2h5oh
+  28         y04           ch3coch2co2c2h5
+  29         y05           h3o-hydronium ion
+  30         y06           ch3coch3
+  31         y07           co2
+  32         y08           ch3cn
+  33         y09           ch3mgi
+  34         y10           c2h5oc2h5
+  35         y11           ch3c(nmgi)ch3
+  36         y12           h2o
+  37         y13           hcl
+  38         y14           ch3cho
+  39         y15           ch3ch(oh)ch3
+  40         y16           cro3
+  41         y17           h2so4
+  42         y18           ch2=c(ch3)2
+  43         y19           o3
+  44         y20           hco2h
+  45         y21           ch3i
+  46         y22           mg
+  47         y23           ch3co2ch3
+  48         y24           hoc(ch3)3
+  49         y25           ch4
+  50         y26           i2
+  51         y27           hi
+  52         y28           o2
+  53         y29           cr2o3
+  54         y30           ch3cl
+  55         y31           nacn
+  56         y32           nacl
+  57         y33           cl2
+  58         y34           ch3cooh  /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 3
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+C o m p i l a t i o n
+
+
+  59   
+  60       rx logical conditions / rxn01 * rxn22 /
+  61   
+  62  Alias (v,vv)
+  63   
+  64  Set  logic(rx,v,vv) mathematical representation of chemical reactions /
+  65   
+  66        rxn01.y04.(y01,y02,y03)
+  67        rxn02.y06.(y04,y05)
+  68        rxn03.y07.(y04,y05)
+  69        rxn04.y03.(y04,y05)
+  70        rxn05.y11.(y08,y09,y10)
+  71        rxn06.y06.(y11,y12,y13)
+  72        rxn07.y15.(y14,y09,y10,y05)
+  73        rxn08.y06.(y15,y16,y17)
+  74        rxn09.y06.(y18,y19,y12)
+  75        rxn10.y20.(y18,y19,y12)
+  76        rxn11.y09.(y21,y22)
+  77        rxn12.y24.(y09,y23)
+  78        rxn13.y18.(y24,y17)
+  79        rxn14.y21.(y25,y26)
+  80        rxn15.y27.(y25,y26)
+  81        rxn16.y14.(y03,y28,y29)
+  82        rxn17.y32.(y30,y31,y12)
+  83        rxn18.y08.(y30,y31,y12)
+  84        rxn19.y30.(y25,y33)
+  85        rxn20.y13.(y25,y33)
+  86        rxn21.y01.(y34,y03)
+  87        rxn22.y34.(y14,y28)                 /
+  88   
+  89      rxv(rx,v) rx to v mapping;
+  90   
+  91  rxv(rx,v) = sum(vv, logic(rx,v,vv));
+  92   
+  93  Binary Variable  y(v); variable  totsum
+  94   
+  95  Equations  obj       minimize y06 to determine if acetone can be produced
+  96             leq(rx,v) logic constraints ;
+  97   
+  98   
+  99  obj..    totsum =e= y('y06') ;
+ 100   
+ 101  leq(rxv(rx,v))..  sum(logic(rxv,vv), 1 - y(vv)) =g= 1 - y(v);
+ 102   
+ 103   
+ 104  Sets yavail(v) available raw materials and catalysts /
+ 105                 y02,y03,y05,y10,y12,y13,y17,y22,y25,y26,y28,y31,y33 /
+ 106       ynotavail(v)  raw materials and catalysts not available /
+ 107                 y16,y19 /;
+ 108   
+ 109  y.fx(yavail)    = 1;
+ 110  y.fx(ynotavail) = 0;
+ 111   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 4
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+C o m p i l a t i o n
+
+
+ 112  Model rulebase / all /;
+ 113   
+ 114  Solve rulebase minimizing totsum using mip;
+ 115   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 5
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+Equation Listing    SOLVE rulebase Using MIP From line 114
+
+
+---- obj  =E=  minimize y06 to determine if acetone can be produced
+
+obj..  - y(y06) + totsum =E= 0 ; (LHS = 0)
+     
+
+---- leq  =G=  logic constraints
+
+leq(rxn01,y04)..  - y(y01) - y(y02) - y(y03) + y(y04) =G= -2 ; (LHS = -2)
+     
+leq(rxn02,y06)..  - y(y04) - y(y05) + y(y06) =G= -1 ; (LHS = -1)
+     
+leq(rxn03,y07)..  - y(y04) - y(y05) + y(y07) =G= -1 ; (LHS = -1)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 6
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+Column Listing      SOLVE rulebase Using MIP From line 114
+
+
+---- y  
+
+y(y01)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       leq(rxn01,y04)
+        1       leq(rxn21,y01)
+
+y(y02)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       -1       leq(rxn01,y04)
+
+y(y03)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       -1       leq(rxn01,y04)
+        1       leq(rxn04,y03)
+       -1       leq(rxn16,y14)
+       -1       leq(rxn21,y01)
+
+REMAINING 31 ENTRIES SKIPPED
+
+---- totsum  
+
+totsum
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 7
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+Model Statistics    SOLVE rulebase Using MIP From line 114
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           35
+NON ZERO ELEMENTS            79     DISCRETE VARIABLES         19
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:47 Page 8
+Logical Inference for Reaction Path Synthesis (REACTION,SEQ=121)
+Solution Report     SOLVE rulebase Using MIP From line 114
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   rulebase            OBJECTIVE  totsum
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  114
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/reaction/convert.opt"
+>>  gams reaction-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/reaction/convert.opt"
+Gams      : reaction-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/reaction/reaction.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/reaction/reaction-scalar.gms.lst

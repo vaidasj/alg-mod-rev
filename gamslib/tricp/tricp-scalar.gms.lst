@@ -1,0 +1,619 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option QCP=convert;
+   2  option QCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 2
+Triangular Graph Circle Packing (tricp,SEQ=395)
+C o m p i l a t i o n
+
+
+      A circle packing is a collection of circles whose interiors are disjoint. 
+      The contact graph of a circle packing in the plane is always a planar graph, 
+      and the set of circle centers with the line segments connecting tangent circle centers
+      forms a planar embedding of the contact graph.
+       
+      The Koebe-Andreev-Thurston theorem states that also the converse is true:
+      For every connected simple planar graph G, there is a circle packing in the 
+      plane whose contact graph is isomorphic to G.
+       
+      We use a triangulation of n-3 random points in a triangle to construct circle 
+      packing instances. Note that similarities (translations, rotations, scalings) 
+      have to be excluded by fixing some coordinates or selecting suitable start values.
+      In this way, nice geometric problems result for a complete subdivision solver:
+       
+       
+      Ch. Fuenfzig, D. Michelucci, S. Foufou: Nonlinear systems solver in floating-point 
+      arithmetic using LP reduction, SIAM/ACM Joint Conference on Geometric and Physical 
+      Modeling 2009.
+       
+      Contributor: Christoph Fuenfzig (c.fuenfzig@gmx.de)
+  26   
+  27  set n      nodes     / n0*n19 /
+  28      e(n,n) edges     /
+  29             n0.(n1,n2,n3,n5,n6,n7,n9,n11,n19)
+  30             n1.(n2,n3)
+  31             n2.(n3,n4,n7)
+  32             n3.(n4,n5)
+  33             n4.(n5,n6,n7)
+  34             n5.n6
+  35             n6.(n7,n8)
+  36             n7.(n8,n9)
+  37             n6.(n10,n11)
+  38             n8.(n9,n10)
+  39             n9.(n10,n11,n12,n13,n14,n15,n18,n19)
+  40             n10.n11
+  41             n11.(n12,n13,n14,n16,n17,n19)
+  42             n12.n13
+  43             n13.n14
+  44             n14.(n15,n16)
+  45             n15.(n16,n17,n18)
+  46             n16.n17
+  47             n17.(n18,n19)
+  48             n18.n19
+  49             /
+  50      k      dimension / k0*k1 /;
+  51  alias (n,i,j), (k,kp);
+  53  Parameter
+  54      fx(n,k) /
+  55                n0 .k0 10, n0 .k1 10
+  56                n19.k0 20, n19.k1 10
+  57                n9 .k0 15, n9 .k1 20
+  58              /
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 3
+Triangular Graph Circle Packing (tricp,SEQ=395)
+C o m p i l a t i o n
+
+
+  61   
+  62  Variables
+  63      x(n,k)   coordinates
+  64      r(n)     radius
+  65      slp(n,n) positive slack
+  66      sln(n,n) negative slack
+  67      z        feasibility maker
+  68      obj      objective;
+  69   
+  70  Positive variable x, r, z, slp, sln;
+  71   
+  72  Scalar myScale /1e2/;
+  73  x.up(n,k) = myScale*smax((i,kp),fx(i,kp));
+  74  x.fx(n,k)$fx(n,k) = myScale*fx(n,k);
+  75  r.lo(n) = myScale*0.001;
+  76   
+  77  * Random starting point
+  78  x.l(n,k) = myScale*uniform(0,smax(i,fx(i,k)));
+  79  r.l(n) = myScale*1;
+  80   
+  81  Equations
+  82      defobj    objective
+  83      eq1(n,n)  neighboring nodes kiss
+  84      eq2(n,n)  non-neiggboring nodes disjoint;
+  85   
+  86  eq1(e(i,j)).. sum(k, sqr(x(i,k)-x(j,k))) =e= sqr(r(i)+r(j)) + slp(e) - sln(e);
+  87   
+  88  eq2(i,j)$(not e(i,j) and ord(i)<ord(j))..
+  89                sum(k, sqr(x(i,k)-x(j,k))) =g= sqr(r(i)+r(j)) - z;
+  90   
+  91  defobj..      obj =e= 100*z + sum(e, slp(e) + sln(e));
+  92   
+  93  model cp / all /;
+  94   
+  95  option optcr=1e-6, optca=1e-6;
+  96  solve cp using qcp min obj;
+  97   
+  98  * Output packing as EPS
+  99  file fcp / 'cp.eps' /; fcp.ap=1; fcp.nd=4; put fcp;
+ 100  if (cp.modelstat <= 2,
+ 101    x.l(n,k) = x.l(n,k)/myScale;
+ 102    r.l(n) = r.l(n)/myScale;
+ 103    loop(n,
+ 104     put   '% annotate in gray'
+ 105         / '0.4 setgray'
+ 106         / 'newpath'
+ 107         / x.l(n,'k0'):0:4 ' ' x.l(n,'k1'):0:4 ' moveto'
+ 108         / 'currentpoint exch 0.1 2 div sub exch moveto'
+ 109         / '(' (ord(n)-1):0:0 ') show'
+ 110         / '% draw circle in red'
+ 111         / '1 0 0 setrgbcolor'
+ 112         / 'newpath'
+ 113         / x.l(n,'k0'):0:4 ' ' x.l(n,'k1'):0:4 ' ' r.l(n):0:4 ' 0 360 arc stroke'
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 4
+Triangular Graph Circle Packing (tricp,SEQ=395)
+C o m p i l a t i o n
+
+
+ 114         / 'stroke' /;
+ 115    )
+ 116    put 'showpage';
+ 117  );
+ 118   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 5
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Equation Listing    SOLVE cp Using QCP From line 96
+
+
+---- defobj  =E=  objective
+
+defobj..  - slp(n0,n1) - slp(n0,n2) - slp(n0,n3) - slp(n0,n5) - slp(n0,n6) - slp(n0,n7) - slp(n0,n9) - slp(n0,n11) - slp(n0,n19) - slp(n1,n2) - slp(n1,n3) - slp(n2,n3) - slp(n2,n4) - slp(n2,n7) - slp(n3,n4) - slp(n3,n5) - slp(n4,n5) - slp(n4,n6)
+     
+      - slp(n4,n7) - slp(n5,n6) - slp(n6,n7) - slp(n6,n8) - slp(n6,n10) - slp(n6,n11) - slp(n7,n8) - slp(n7,n9) - slp(n8,n9) - slp(n8,n10) - slp(n9,n10) - slp(n9,n11) - slp(n9,n12) - slp(n9,n13) - slp(n9,n14) - slp(n9,n15) - slp(n9,n18) - slp(n9,n19)
+     
+      - slp(n10,n11) - slp(n11,n12) - slp(n11,n13) - slp(n11,n14) - slp(n11,n16) - slp(n11,n17) - slp(n11,n19) - slp(n12,n13) - slp(n13,n14) - slp(n14,n15) - slp(n14,n16) - slp(n15,n16) - slp(n15,n17) - slp(n15,n18) - slp(n16,n17) - slp(n17,n18)
+     
+      - slp(n17,n19) - slp(n18,n19) - sln(n0,n1) - sln(n0,n2) - sln(n0,n3) - sln(n0,n5) - sln(n0,n6) - sln(n0,n7) - sln(n0,n9) - sln(n0,n11) - sln(n0,n19) - sln(n1,n2) - sln(n1,n3) - sln(n2,n3) - sln(n2,n4) - sln(n2,n7) - sln(n3,n4) - sln(n3,n5)
+     
+      - sln(n4,n5) - sln(n4,n6) - sln(n4,n7) - sln(n5,n6) - sln(n6,n7) - sln(n6,n8) - sln(n6,n10) - sln(n6,n11) - sln(n7,n8) - sln(n7,n9) - sln(n8,n9) - sln(n8,n10) - sln(n9,n10) - sln(n9,n11) - sln(n9,n12) - sln(n9,n13) - sln(n9,n14) - sln(n9,n15)
+     
+      - sln(n9,n18) - sln(n9,n19) - sln(n10,n11) - sln(n11,n12) - sln(n11,n13) - sln(n11,n14) - sln(n11,n16) - sln(n11,n17) - sln(n11,n19) - sln(n12,n13) - sln(n13,n14) - sln(n14,n15) - sln(n14,n16) - sln(n15,n16) - sln(n15,n17) - sln(n15,n18)
+     
+      - sln(n16,n17) - sln(n17,n18) - sln(n17,n19) - sln(n18,n19) - 100*z + obj =E= 0 ; (LHS = 0)
+     
+
+---- eq1  =E=  neighboring nodes kiss
+
+eq1(n0,n1)..  - (201.501424)*x(n0,k0) + (795.448384)*x(n0,k1) + (201.501424)*x(n1,k0) - (795.448384)*x(n1,k1) - (400)*r(n0) - (400)*r(n1) - slp(n0,n1) + sln(n0,n1) =E= 0 ; (LHS = 128335.23887056, INFES = 128335.23887056 ****)
+     
+eq1(n0,n2)..  (831.151532)*x(n0,k0) + (1103.788532)*x(n0,k1) - (831.151532)*x(n2,k0) - (1103.788532)*x(n2,k1) - (400)*r(n0) - (400)*r(n2) - slp(n0,n2) + sln(n0,n2) =E= 0 ; (LHS = 437290.498130166, INFES = 437290.498130166 ****)
+     
+eq1(n0,n3)..  (600.677984)*x(n0,k0) - (1425.081388)*x(n0,k1) - (600.677984)*x(n3,k0) + (1425.081388)*x(n3,k1) - (400)*r(n0) - (400)*r(n3) - slp(n0,n3) + sln(n0,n3) =E= 0 ; (LHS = 557917.750721578, INFES = 557917.750721578 ****)
+     
+REMAINING 51 ENTRIES SKIPPED
+
+
+---- eq2  =G=  non-neiggboring nodes disjoint
+
+eq2(n0,n4)..  (1731.545108)*x(n0,k0) - (0.842675999999983)*x(n0,k1) - (1731.545108)*x(n4,k0) + (0.842675999999983)*x(n4,k1) - (400)*r(n0) - (400)*r(n4) + z =G= 0 ; (LHS = 709562.292785393)
+     
+eq2(n0,n8)..  (1361.928544)*x(n0,k0) + (999.677868)*x(n0,k1) - (1361.928544)*x(n8,k0) - (999.677868)*x(n8,k1) - (400)*r(n0) - (400)*r(n8) + z =G= 0 ; (LHS = 673551.299682746)
+     
+eq2(n0,n10)..  (561.198936)*x(n0,k0) + (594.234528)*x(n0,k1) - (561.198936)*x(n10,k0) - (594.234528)*x(n10,k1) - (400)*r(n0) - (400)*r(n10) + z =G= 0 ; (LHS = 127014.730008729)
+     
+REMAINING 133 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 6
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+---- x  coordinates
+
+x(n0,k0)
+                (.LO, .L, .UP, .M = 1000, 1000, 1000, 0)
+    (-201.5014) eq1(n0,n1)
+     (831.1515) eq1(n0,n2)
+     (600.678)  eq1(n0,n3)
+   (-1992.4705) eq1(n0,n5)
+   (-1964.5322) eq1(n0,n6)
+    (1477.2301) eq1(n0,n7)
+   (-1000)      eq1(n0,n9)
+    (1474.0336) eq1(n0,n11)
+   (-2000)      eq1(n0,n19)
+    (1731.5451) eq2(n0,n4)
+    (1361.9285) eq2(n0,n8)
+     (561.1989) eq2(n0,n10)
+    (-356.4546) eq2(n0,n12)
+    (1076.737)  eq2(n0,n13)
+   (-1103.4304) eq2(n0,n14)
+    (1558.0308) eq2(n0,n15)
+    (1359.309)  eq2(n0,n16)
+     (939.5418) eq2(n0,n17)
+    (-375.8237) eq2(n0,n18)
+      343.4943  (OLD LEVEL ****)
+
+x(n0,k1)
+                (.LO, .L, .UP, .M = 1000, 1000, 1000, 0)
+     (795.4484) eq1(n0,n1)
+    (1103.7885) eq1(n0,n2)
+   (-1425.0814) eq1(n0,n3)
+    (-314.9335) eq1(n0,n5)
+   (-1049.0019) eq1(n0,n6)
+    (-558.875)  eq1(n0,n7)
+   (-2000)      eq1(n0,n9)
+    (1399.5928) eq1(n0,n11)
+       (0)      eq1(n0,n19)
+      (-0.8427) eq2(n0,n4)
+     (999.6779) eq2(n0,n8)
+     (594.2345) eq2(n0,n10)
+   (-1323.5712) eq2(n0,n12)
+    (-662.9378) eq2(n0,n13)
+     (785.3661) eq2(n0,n14)
+      (-9.5395) eq2(n0,n15)
+   (-1489.8492) eq2(n0,n16)
+     (856.7427) eq2(n0,n17)
+    (-890.8763) eq2(n0,n18)
+     1686.5334  (OLD LEVEL ****)
+
+x(n1,k0)
+                (.LO, .L, .UP, .M = 0, 1100.750712, 2000, 0)
+     (201.5014) eq1(n0,n1)
+    (1032.653)  eq1(n1,n2)
+     (802.1794) eq1(n1,n3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 7
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+     x  coordinates
+
+    (1933.0465) eq2(n1,n4)
+   (-1790.9691) eq2(n1,n5)
+   (-1763.0307) eq2(n1,n6)
+    (1678.7315) eq2(n1,n7)
+    (1563.43)   eq2(n1,n8)
+    (-798.4986) eq2(n1,n9)
+     (762.7004) eq2(n1,n10)
+    (1675.5351) eq2(n1,n11)
+    (-154.9532) eq2(n1,n12)
+    (1278.2385) eq2(n1,n13)
+    (-901.929)  eq2(n1,n14)
+    (1759.5323) eq2(n1,n15)
+    (1560.8104) eq2(n1,n16)
+    (1141.0432) eq2(n1,n17)
+    (-174.3223) eq2(n1,n18)
+   (-1798.4986) eq2(n1,n19)
+
+REMAINING 37 ENTRIES SKIPPED
+
+---- r  radius
+
+r(n0)
+                (.LO, .L, .UP, .M = 0.1, 100, +INF, 0)
+    (-400)      eq1(n0,n1)
+    (-400)      eq1(n0,n2)
+    (-400)      eq1(n0,n3)
+    (-400)      eq1(n0,n5)
+    (-400)      eq1(n0,n6)
+    (-400)      eq1(n0,n7)
+    (-400)      eq1(n0,n9)
+    (-400)      eq1(n0,n11)
+    (-400)      eq1(n0,n19)
+    (-400)      eq2(n0,n4)
+    (-400)      eq2(n0,n8)
+    (-400)      eq2(n0,n10)
+    (-400)      eq2(n0,n12)
+    (-400)      eq2(n0,n13)
+    (-400)      eq2(n0,n14)
+    (-400)      eq2(n0,n15)
+    (-400)      eq2(n0,n16)
+    (-400)      eq2(n0,n17)
+    (-400)      eq2(n0,n18)
+
+r(n1)
+                (.LO, .L, .UP, .M = 0.1, 100, +INF, 0)
+    (-400)      eq1(n0,n1)
+    (-400)      eq1(n1,n2)
+    (-400)      eq1(n1,n3)
+    (-400)      eq2(n1,n4)
+    (-400)      eq2(n1,n5)
+    (-400)      eq2(n1,n6)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 8
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+     r  radius
+
+    (-400)      eq2(n1,n7)
+    (-400)      eq2(n1,n8)
+    (-400)      eq2(n1,n9)
+    (-400)      eq2(n1,n10)
+    (-400)      eq2(n1,n11)
+    (-400)      eq2(n1,n12)
+    (-400)      eq2(n1,n13)
+    (-400)      eq2(n1,n14)
+    (-400)      eq2(n1,n15)
+    (-400)      eq2(n1,n16)
+    (-400)      eq2(n1,n17)
+    (-400)      eq2(n1,n18)
+    (-400)      eq2(n1,n19)
+
+r(n2)
+                (.LO, .L, .UP, .M = 0.1, 100, +INF, 0)
+    (-400)      eq1(n0,n2)
+    (-400)      eq1(n1,n2)
+    (-400)      eq1(n2,n3)
+    (-400)      eq1(n2,n4)
+    (-400)      eq1(n2,n7)
+    (-400)      eq2(n2,n5)
+    (-400)      eq2(n2,n6)
+    (-400)      eq2(n2,n8)
+    (-400)      eq2(n2,n9)
+    (-400)      eq2(n2,n10)
+    (-400)      eq2(n2,n11)
+    (-400)      eq2(n2,n12)
+    (-400)      eq2(n2,n13)
+    (-400)      eq2(n2,n14)
+    (-400)      eq2(n2,n15)
+    (-400)      eq2(n2,n16)
+    (-400)      eq2(n2,n17)
+    (-400)      eq2(n2,n18)
+    (-400)      eq2(n2,n19)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- slp  positive slack
+
+slp(n0,n1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       defobj
+       -1       eq1(n0,n1)
+
+slp(n0,n2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       defobj
+       -1       eq1(n0,n2)
+
+slp(n0,n3)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:39 Page 9
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+     slp  positive slack
+
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       defobj
+       -1       eq1(n0,n3)
+
+REMAINING 51 ENTRIES SKIPPED
+
+---- sln  negative slack
+
+sln(n0,n1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       defobj
+        1       eq1(n0,n1)
+
+sln(n0,n2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       defobj
+        1       eq1(n0,n2)
+
+sln(n0,n3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       defobj
+        1       eq1(n0,n3)
+
+REMAINING 51 ENTRIES SKIPPED
+
+---- z  feasibility maker
+
+z
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -100       defobj
+        1       eq2(n0,n4)
+        1       eq2(n0,n8)
+        1       eq2(n0,n10)
+        1       eq2(n0,n12)
+        1       eq2(n0,n13)
+        1       eq2(n0,n14)
+        1       eq2(n0,n15)
+        1       eq2(n0,n16)
+        1       eq2(n0,n17)
+        1       eq2(n0,n18)
+        1       eq2(n1,n4)
+        1       eq2(n1,n5)
+        1       eq2(n1,n6)
+        1       eq2(n1,n7)
+        1       eq2(n1,n8)
+        1       eq2(n1,n9)
+        1       eq2(n1,n10)
+        1       eq2(n1,n11)
+        1       eq2(n1,n12)
+        1       eq2(n1,n13)
+        1       eq2(n1,n14)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:39 Page 10
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+     z  feasibility maker
+
+        1       eq2(n1,n15)
+        1       eq2(n1,n16)
+        1       eq2(n1,n17)
+        1       eq2(n1,n18)
+        1       eq2(n1,n19)
+        1       eq2(n2,n5)
+        1       eq2(n2,n6)
+        1       eq2(n2,n8)
+        1       eq2(n2,n9)
+        1       eq2(n2,n10)
+        1       eq2(n2,n11)
+        1       eq2(n2,n12)
+        1       eq2(n2,n13)
+        1       eq2(n2,n14)
+        1       eq2(n2,n15)
+        1       eq2(n2,n16)
+        1       eq2(n2,n17)
+        1       eq2(n2,n18)
+        1       eq2(n2,n19)
+        1       eq2(n3,n6)
+        1       eq2(n3,n7)
+        1       eq2(n3,n8)
+        1       eq2(n3,n9)
+        1       eq2(n3,n10)
+        1       eq2(n3,n11)
+        1       eq2(n3,n12)
+        1       eq2(n3,n13)
+        1       eq2(n3,n14)
+        1       eq2(n3,n15)
+        1       eq2(n3,n16)
+        1       eq2(n3,n17)
+        1       eq2(n3,n18)
+        1       eq2(n3,n19)
+        1       eq2(n4,n8)
+        1       eq2(n4,n9)
+        1       eq2(n4,n10)
+        1       eq2(n4,n11)
+        1       eq2(n4,n12)
+        1       eq2(n4,n13)
+        1       eq2(n4,n14)
+        1       eq2(n4,n15)
+        1       eq2(n4,n16)
+        1       eq2(n4,n17)
+        1       eq2(n4,n18)
+        1       eq2(n4,n19)
+        1       eq2(n5,n7)
+        1       eq2(n5,n8)
+        1       eq2(n5,n9)
+        1       eq2(n5,n10)
+        1       eq2(n5,n11)
+        1       eq2(n5,n12)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:39 Page 11
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+     z  feasibility maker
+
+        1       eq2(n5,n13)
+        1       eq2(n5,n14)
+        1       eq2(n5,n15)
+        1       eq2(n5,n16)
+        1       eq2(n5,n17)
+        1       eq2(n5,n18)
+        1       eq2(n5,n19)
+        1       eq2(n6,n9)
+        1       eq2(n6,n12)
+        1       eq2(n6,n13)
+        1       eq2(n6,n14)
+        1       eq2(n6,n15)
+        1       eq2(n6,n16)
+        1       eq2(n6,n17)
+        1       eq2(n6,n18)
+        1       eq2(n6,n19)
+        1       eq2(n7,n10)
+        1       eq2(n7,n11)
+        1       eq2(n7,n12)
+        1       eq2(n7,n13)
+        1       eq2(n7,n14)
+        1       eq2(n7,n15)
+        1       eq2(n7,n16)
+        1       eq2(n7,n17)
+        1       eq2(n7,n18)
+        1       eq2(n7,n19)
+        1       eq2(n8,n11)
+        1       eq2(n8,n12)
+        1       eq2(n8,n13)
+        1       eq2(n8,n14)
+        1       eq2(n8,n15)
+        1       eq2(n8,n16)
+        1       eq2(n8,n17)
+        1       eq2(n8,n18)
+        1       eq2(n8,n19)
+        1       eq2(n9,n16)
+        1       eq2(n9,n17)
+        1       eq2(n10,n12)
+        1       eq2(n10,n13)
+        1       eq2(n10,n14)
+        1       eq2(n10,n15)
+        1       eq2(n10,n16)
+        1       eq2(n10,n17)
+        1       eq2(n10,n18)
+        1       eq2(n10,n19)
+        1       eq2(n11,n15)
+        1       eq2(n11,n18)
+        1       eq2(n12,n14)
+        1       eq2(n12,n15)
+        1       eq2(n12,n16)
+        1       eq2(n12,n17)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:39 Page 12
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Column Listing      SOLVE cp Using QCP From line 96
+
+
+     z  feasibility maker
+
+        1       eq2(n12,n18)
+        1       eq2(n12,n19)
+        1       eq2(n13,n15)
+        1       eq2(n13,n16)
+        1       eq2(n13,n17)
+        1       eq2(n13,n18)
+        1       eq2(n13,n19)
+        1       eq2(n14,n17)
+        1       eq2(n14,n18)
+        1       eq2(n14,n19)
+        1       eq2(n15,n19)
+        1       eq2(n16,n18)
+        1       eq2(n16,n19)
+
+
+---- obj  objective
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:39 Page 13
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Model Statistics    SOLVE cp Using QCP From line 96
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          191
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES          170  6 projected
+NON ZERO ELEMENTS         1,494     NON LINEAR N-Z          1,140
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH               2,471
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:39 Page 14
+Triangular Graph Circle Packing (tricp,SEQ=395)
+Solution Report     SOLVE cp Using QCP From line 96
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   cp                  OBJECTIVE  obj
+     TYPE    QCP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  96
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tricp/convert.opt"
+>>  gams tricp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tricp/convert.opt"
+Gams      : tricp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:39 Page 15
+Triangular Graph Circle Packing (tricp,SEQ=395)
+E x e c u t i o n
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/tricp/tricp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/tricp/tricp-scalar.gms.lst

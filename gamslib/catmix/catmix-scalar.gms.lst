@@ -1,0 +1,261 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 2
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+C o m p i l a t i o n
+
+
+   4   
+       
+      Determine the optimal policy of two catalysts along the length of a
+      tubular plug flow reactor involving several reactions.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of discretization points can be specified using the command
+      line parameter --nh. COPS performance tests have been reported for nh
+      = 100, 200, 400, 800
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      von Stryk, O, User's Guide for DIRCOL (Version 2.1):
+      A Direct Collocation Method for the Numerical Solution of
+      Optimal Control Problems. Tech. rep., Technische Universität
+      München, 1999.
+       
+  28   
+  29   
+  32   
+  33  Set nh  Number of subintervals / 0*100 /;
+  34  Alias (nh,i);
+  35   
+  36  Scalar tf    Final time               /1/
+  37         x1_0  Initial condition for x1 /1/
+  38         x2_0  Initial condition for x2 /0/
+  39         alpha smoothing parameter      /0/
+  40         h;
+  41   
+  42  h = tf/100;
+  43   
+  44  Variable u(nh), x1(nh), x2(nh), obj;
+  45  Positive variable u; u.up(nh) = 1;
+  46   
+  47  Equations  defobj   objective function
+  48             ode1(nh)
+  49             ode2(nh);
+  50   
+  51  defobj.. obj =e= -1 + x1['100'] + x2['100']
+  52                       + alpha*h*sum{nh(i+1), sqr(u[i+1] - u[i])};
+  53   
+  54  ode1(nh(i+1))..  x1[i+1] =e= x1[i] + (h/2)*(u[i]*(10*x2[i]-x1[i])
+  55                                            + u[i+1]*(10*x2[i+1]-x1[i+1]));
+  56   
+  57  ode2(nh(i+1))..  x2[i+1] =e= x2[i] + (h/2)*(u[i]*(x1[i]-10*x2[i])
+  58                     - (1-u[i])*x2[i] + u[i+1]*(x1[i+1]-10*x2[i+1])
+  59                     - (1-u[i+1])*x2[i+1]);
+  60   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 3
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+C o m p i l a t i o n
+
+
+  61   
+  62  x1.l[nh] = 1;
+  63  x1.fx['0'] = x1_0;
+  64  x2.fx['0'] = x2_0;
+  65   
+  66  model catmix /all/;
+  67   
+  69   
+  70  solve catmix minimizing obj using nlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 4
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+Equation Listing    SOLVE catmix Using NLP From line 70
+
+
+---- defobj  =E=  objective function
+
+defobj..  - x1(100) - x2(100) + obj =E= -1 ; (LHS = -1)
+     
+
+---- ode1  =E=  
+
+ode1(1)..  (0.005)*u(0) + (0.005)*u(1) - (1)*x1(0) + (1)*x1(1) + (0)*x2(0) + (0)*x2(1) =E= 0 ; (LHS = 0)
+     
+ode1(2)..  (0.005)*u(1) + (0.005)*u(2) - (1)*x1(1) + (1)*x1(2) + (0)*x2(1) + (0)*x2(2) =E= 0 ; (LHS = 0)
+     
+ode1(3)..  (0.005)*u(2) + (0.005)*u(3) - (1)*x1(2) + (1)*x1(3) + (0)*x2(2) + (0)*x2(3) =E= 0 ; (LHS = 0)
+     
+REMAINING 97 ENTRIES SKIPPED
+
+
+---- ode2  =E=  
+
+ode2(1)..  - (0.005)*u(0) - (0.005)*u(1) + (0)*x1(0) + (0)*x1(1) - (0.995)*x2(0) + (1.005)*x2(1) =E= 0 ; (LHS = 0)
+     
+ode2(2)..  - (0.005)*u(1) - (0.005)*u(2) + (0)*x1(1) + (0)*x1(2) - (0.995)*x2(1) + (1.005)*x2(2) =E= 0 ; (LHS = 0)
+     
+ode2(3)..  - (0.005)*u(2) - (0.005)*u(3) + (0)*x1(2) + (0)*x1(3) - (0.995)*x2(2) + (1.005)*x2(3) =E= 0 ; (LHS = 0)
+     
+REMAINING 97 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 5
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+Column Listing      SOLVE catmix Using NLP From line 70
+
+
+---- u  
+
+u(0)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       (0.005)  ode1(1)
+      (-0.005)  ode2(1)
+
+u(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       (0.005)  ode1(1)
+       (0.005)  ode1(2)
+      (-0.005)  ode2(1)
+      (-0.005)  ode2(2)
+
+u(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       (0.005)  ode1(2)
+       (0.005)  ode1(3)
+      (-0.005)  ode2(2)
+      (-0.005)  ode2(3)
+
+REMAINING 98 ENTRIES SKIPPED
+
+---- x1  
+
+x1(0)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (-1)      ode1(1)
+       (0)      ode2(1)
+
+x1(1)
+                (.LO, .L, .UP, .M = -INF, 1, +INF, 0)
+       (1)      ode1(1)
+      (-1)      ode1(2)
+       (0)      ode2(1)
+       (0)      ode2(2)
+
+x1(2)
+                (.LO, .L, .UP, .M = -INF, 1, +INF, 0)
+       (1)      ode1(2)
+      (-1)      ode1(3)
+       (0)      ode2(2)
+       (0)      ode2(3)
+
+REMAINING 98 ENTRIES SKIPPED
+
+---- x2  
+
+x2(0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       (0)      ode1(1)
+      (-0.995)  ode2(1)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 6
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+Column Listing      SOLVE catmix Using NLP From line 70
+
+
+     x2  
+
+x2(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      ode1(1)
+       (0)      ode1(2)
+       (1.005)  ode2(1)
+      (-0.995)  ode2(2)
+
+x2(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      ode1(2)
+       (0)      ode1(3)
+       (1.005)  ode2(2)
+      (-0.995)  ode2(3)
+
+REMAINING 98 ENTRIES SKIPPED
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 7
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+Model Statistics    SOLVE catmix Using NLP From line 70
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS          201
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          304
+NON ZERO ELEMENTS         1,203     NON LINEAR N-Z          1,200
+DERIVATIVE POOL              20     CONSTANT POOL              18
+CODE LENGTH               4,201
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:34 Page 8
+Catalyst Mixing COPS 2.0 #14 (CATMIX,SEQ=242)
+Solution Report     SOLVE catmix Using NLP From line 70
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   catmix              OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  70
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/catmix/convert.opt"
+>>  gams catmix-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/catmix/convert.opt"
+Gams      : catmix-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/catmix/catmix.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/catmix/catmix-scalar.gms.lst

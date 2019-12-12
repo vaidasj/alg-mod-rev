@@ -1,0 +1,1433 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 2
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+C o m p i l a t i o n
+
+
+   4   
+       
+      This model helps a farmer to decide how to allocate
+      his or her land. The yields are uncertain.
+       
+       
+      Birge, R, and Louveaux, F V, Introduction to Stochastic Programming.
+      Springer, 1997.
+       
+  15   
+  17   
+  18  set crop / wheat, corn, sugarbeets /;
+  19  set cropr(crop) crops required for feeding cattle /wheat, corn/;
+  20  set cropx /wheat,
+  21             corn,
+  22             beets1 up to 6000 ton,
+  23             beets2 in excess of 6000 ton/;
+  24   
+  25  parameter yield(crop) tons per acre /
+  26            wheat        2.5
+  27            corn         3
+  28            sugarbeets  20
+  29  /;
+  30   
+  31  parameter plantcost(crop) dollars per acre /
+  32            wheat        150
+  33            corn         230
+  34            sugarbeets   260
+  35  /;
+  36   
+  37  parameter sellprice(cropx)  dollars per ton /
+  38            wheat        170
+  39            corn         150
+  40            beets1        36
+  41            beets2        10
+  42  /;
+  43   
+  44  parameter purchprice(cropr) dollars per ton /
+  45            wheat        238
+  46            corn         210
+  47  /;
+  48   
+  49  parameter minreq(cropr) minimum requirements in ton /
+  50            wheat        200
+  51            corn         240
+  52  /;
+  53   
+  54  scalar land available land /500/;
+  55  scalar maxbeets1 max allowed /6000/;
+  56   
+  57  *--------------------------------------------------------------------------
+  58  * First a non-stochastic version
+  59  *--------------------------------------------------------------------------
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 3
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+C o m p i l a t i o n
+
+
+  60  variables
+  61    x(crop)  acres of land
+  62    w(cropx) crops sold
+  63    y(cropr) crops purchased
+  64    yld(crop) yield
+  65    profit   objective variable
+  66  ;
+  67  positive variables x,w,y;
+  68   
+  69  equations
+  70    profitdef  objective function
+  71    landuse    capacity
+  72    req(cropr) crop requirements for cattle feed
+  73    ylddef     calc yields
+  74    beets      total beet production
+  75  ;
+  76   
+        The YLD variable and YLDDEF equation isolate the stochastic
+        YIELD parameter into one equation, making the DECIS setup
+        somewhat easier than if we would substitute YLD out of
+        the model.
+  83   
+  84  profitdef.. profit =e= -sum(crop, plantcost(crop)*x(crop)) - sum(cropr, purchprice(cropr)*y(cropr))
+  85                     + sum(cropx, sellprice(cropx)*w(cropx));
+  86   
+  87  landuse.. sum(crop, x(crop)) =l= land;
+  88   
+  89  ylddef(crop).. yld(crop) =e= yield(crop)*x(crop);
+  90   
+  91  req(cropr).. yld(cropr) + y(cropr) - sum(sameas(cropx,cropr),w(cropx)) =g= minreq(cropr);
+  92   
+  93  beets.. w('beets1')+w('beets2') =l= yld('sugarbeets');
+  94  w.up('beets1') = maxbeets1;
+  95   
+  96  model simple /profitdef,landuse,req,beets,ylddef/;
+  97  solve simple using lp maximizing profit;
+  98   
+  99   
+ 100  *--------------------------------------------------------------------------
+ 101  * Extensive form stochastic model
+ 102  * This is a standard LP.
+ 103  *--------------------------------------------------------------------------
+ 104   
+ 105  set s scenarios / above, avg, below /;
+ 106   
+ 107  variables
+ 108    ws(cropx, s) crops sold under scenario s
+ 109    ys(cropr, s) crops purchased under scenario s;
+ 110  positive variable ws, ys;
+ 111   
+ 112  parameter p(s) probability;
+ 113  p(s) = 1/3;
+ 114  abort$(abs( sum(s,p(s)) - 1.0 ) > 0.001) "probabilities don't add up";
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 4
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+C o m p i l a t i o n
+
+
+ 115   
+ 116  parameter syield(crop,s);
+ 117  syield(crop,'below') = 0.8*yield(crop);
+ 118  syield(crop,'avg') = yield(crop);
+ 119  syield(crop,'above') = 1.2*yield(crop);
+ 120   
+ 121  equations
+ 122    sprofitdef    objective function extensive form stochastic model
+ 123    sreq(cropr,s)
+ 124    sbeets(s)
+ 125  ;
+ 126   
+ 127  sprofitdef.. profit =e= -sum(crop, plantcost(crop)*x(crop))
+ 128                          +sum(s, p(s)*(
+ 129                                 -sum(cropr, purchprice(cropr)*ys(cropr,s))
+ 130                                 +sum(cropx, sellprice(cropx)*ws(cropx,s))
+ 131                               ));
+ 132   
+ 133  sreq(cropr,s).. syield(cropr,s)*x(cropr) + ys(cropr,s) - sum(sameas(cropx,cropr),ws(cropx,s)) =g= minreq(cropr);
+ 134   
+ 135  sbeets(s).. ws('beets1',s)+ws('beets2',s) =l= syield('sugarbeets',s)*x('sugarbeets');
+ 136  ws.up('beets1',s) = maxbeets1;
+ 137   
+ 138  model extform /sprofitdef,landuse,sreq,sbeets/;
+ 139  solve extform using lp maximizing profit;
+ 140   
+ 141   
+ 142  * collect results for x for different runs
+ 143   
+ 144  set runs / extform      extensive form
+ 145             decisapprox  default decis
+ 146             decisexact   stochastic universe option
+ 147           /;
+ 148   
+ 149  parameter px(runs,crop) results for stage 1 variables;
+ 150   
+ 151  * store stage 1 results
+ 152  px('extform',crop) = x.l(crop);
+ 153   
+ 154  *--------------------------------------------------------------------------
+ 155  * Default DECIS setup
+ 156  * Based upon the non-stochastic (core) model.
+ 157  *--------------------------------------------------------------------------
+ 158   
+ 159  * output the stochastic file
+ 160  file stg / MODEL.STG /;
+ 161  stg.nd = 8;
+ 162  put stg;
+ 163  put 'BLOCKS DISCRETE'/;
+ 164  loop(s,
+ 165     put 'BL BLOCK1 PERIOD2 ',p(s)/;
+ 166     loop(crop,
+ 167         put 'x ',crop.tl,' ylddef ',crop.tl,' ',(-syield(crop,s))/;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 5
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+C o m p i l a t i o n
+
+
+ 168         );
+ 169  );
+ 170  putclose;
+ 171   
+         Notice the (-yield) expression in for the coefficient for x in
+         equation ylddef. The row listing for YLDDEF shows that the expression
+         yield(crop)*x(crop) is moved by GAMS to the left-hand side causing a
+         minus sign. The parentheses are needed as the PUT syntax does
+         not allow expressions there.
+ 179   
+ 180  *output a MINOS option file
+ 181   
+ 182  file mopt / MINOS.SPC /;
+ 183  put mopt;
+ 184  put "begin"/;
+ 185  put "rows 250"/;
+ 186  put "columns 250"/;
+ 187  put "elements 10000"/;
+ 188  put "end"/;
+ 189  putclose;
+ 190   
+ 191  * assign stages
+ 192  x.stage(cropr) = 1;
+ 193  y.stage(cropr) = 2;
+ 194  w.stage(cropx) = 2;
+ 195  yld.stage(crop) = 2;
+ 196  landuse.stage = 1;
+ 197  ylddef.stage(crop) = 2;
+ 198  req.stage(cropr)=2;
+ 199  beets.stage=2;
+ 200   
+ 201  option lp=decism;
+ 202  solve simple using lp maximizing profit;
+ 203   
+ 204  * store stage 1 results
+ 205  px('decisapprox',crop) = x.l(crop);
+ 206   
+ 207  *--------------------------------------------------------------------------
+ 208  * Let DECIS solve the model exactly
+ 209  * Stochastic Universe option: 4 "ISTRAT"
+ 210  *--------------------------------------------------------------------------
+ 211   
+ 212  file decopt / decism.opt /;
+ 213  put decopt;
+ 214  put '4 "ISTRAT"'/;
+ 215  putclose;
+ 216   
+ 217  simple.optfile=1;
+ 218  solve simple using lp maximizing profit;
+ 219   
+ 220  * store stage 1 results
+ 221  px('decisexact',crop) = x.l(crop);
+ 222   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 6
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+C o m p i l a t i o n
+
+
+ 223  display px;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 7
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Equation Listing    SOLVE simple Using LP From line 97
+
+
+---- profitdef  =E=  objective function
+
+profitdef..  150*x(wheat) + 230*x(corn) + 260*x(sugarbeets) - 170*w(wheat) - 150*w(corn) - 36*w(beets1) - 10*w(beets2) + 238*y(wheat) + 210*y(corn) + profit =E= 0 ; (LHS = 0)
+     
+
+---- landuse  =L=  capacity
+
+landuse..  x(wheat) + x(corn) + x(sugarbeets) =L= 500 ; (LHS = 0)
+     
+
+---- req  =G=  crop requirements for cattle feed
+
+req(wheat)..  - w(wheat) + y(wheat) + yld(wheat) =G= 200 ; (LHS = 0, INFES = 200 ****)
+     
+req(corn)..  - w(corn) + y(corn) + yld(corn) =G= 240 ; (LHS = 0, INFES = 240 ****)
+     
+
+---- beets  =L=  total beet production
+
+beets..  w(beets1) + w(beets2) - yld(sugarbeets) =L= 0 ; (LHS = 0)
+     
+
+---- ylddef  =E=  calc yields
+
+ylddef(wheat)..  - 2.5*x(wheat) + yld(wheat) =E= 0 ; (LHS = 0)
+     
+ylddef(corn)..  - 3*x(corn) + yld(corn) =E= 0 ; (LHS = 0)
+     
+ylddef(sugarbeets)..  - 20*x(sugarbeets) + yld(sugarbeets) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 8
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE simple Using LP From line 97
+
+
+---- x  acres of land
+
+x(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      150       profitdef
+        1       landuse
+       -2.5     ylddef(wheat)
+
+x(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      230       profitdef
+        1       landuse
+       -3       ylddef(corn)
+
+x(sugarbeets)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      260       profitdef
+        1       landuse
+      -20       ylddef(sugarbeets)
+
+
+---- w  crops sold
+
+w(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -170       profitdef
+       -1       req(wheat)
+
+w(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -150       profitdef
+       -1       req(corn)
+
+w(beets1)
+                (.LO, .L, .UP, .M = 0, 0, 6000, 0)
+      -36       profitdef
+        1       beets
+
+REMAINING ENTRY SKIPPED
+
+---- y  crops purchased
+
+y(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      238       profitdef
+        1       req(wheat)
+
+y(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      210       profitdef
+        1       req(corn)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:21 Page 9
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE simple Using LP From line 97
+
+
+---- yld  yield
+
+yld(wheat)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       req(wheat)
+        1       ylddef(wheat)
+
+yld(corn)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       req(corn)
+        1       ylddef(corn)
+
+yld(sugarbeets)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       beets
+        1       ylddef(sugarbeets)
+
+
+---- profit  objective variable
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       profitdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 10
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Model Statistics    SOLVE simple Using LP From line 97
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            28
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 11
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 97
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   simple              OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  97
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+>>  gams farm-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+Gams      : farm-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 12
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Equation Listing    SOLVE extform Using LP From line 139
+
+
+---- sprofitdef  =E=  objective function extensive form stochastic model
+
+sprofitdef..  150*x(wheat) + 230*x(corn) + 260*x(sugarbeets) + profit - 56.6666666666667*ws(wheat,above) - 56.6666666666667*ws(wheat,avg) - 56.6666666666667*ws(wheat,below) - 50*ws(corn,above) - 50*ws(corn,avg) - 50*ws(corn,below) - 12*ws(beets1,above)
+     
+      - 12*ws(beets1,avg) - 12*ws(beets1,below) - 3.33333333333333*ws(beets2,above) - 3.33333333333333*ws(beets2,avg) - 3.33333333333333*ws(beets2,below) + 79.3333333333333*ys(wheat,above) + 79.3333333333333*ys(wheat,avg)
+     
+      + 79.3333333333333*ys(wheat,below) + 70*ys(corn,above) + 70*ys(corn,avg) + 70*ys(corn,below) =E= 0 ; (LHS = 0)
+     
+
+---- landuse  =L=  capacity
+
+landuse..  x(wheat) + x(corn) + x(sugarbeets) =L= 500 ; (LHS = 0)
+     
+
+---- sreq  =G=  
+
+sreq(wheat,above)..  3*x(wheat) - ws(wheat,above) + ys(wheat,above) =G= 200 ; (LHS = 0, INFES = 200 ****)
+     
+sreq(wheat,avg)..  2.5*x(wheat) - ws(wheat,avg) + ys(wheat,avg) =G= 200 ; (LHS = 0, INFES = 200 ****)
+     
+sreq(wheat,below)..  2*x(wheat) - ws(wheat,below) + ys(wheat,below) =G= 200 ; (LHS = 0, INFES = 200 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- sbeets  =L=  
+
+sbeets(above)..  - 24*x(sugarbeets) + ws(beets1,above) + ws(beets2,above) =L= 0 ; (LHS = 0)
+     
+sbeets(avg)..  - 20*x(sugarbeets) + ws(beets1,avg) + ws(beets2,avg) =L= 0 ; (LHS = 0)
+     
+sbeets(below)..  - 16*x(sugarbeets) + ws(beets1,below) + ws(beets2,below) =L= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 13
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE extform Using LP From line 139
+
+
+---- x  acres of land
+
+x(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      150       sprofitdef
+        1       landuse
+        3       sreq(wheat,above)
+        2.5     sreq(wheat,avg)
+        2       sreq(wheat,below)
+
+x(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      230       sprofitdef
+        1       landuse
+        3.6     sreq(corn,above)
+        3       sreq(corn,avg)
+        2.4     sreq(corn,below)
+
+x(sugarbeets)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      260       sprofitdef
+        1       landuse
+      -24       sbeets(above)
+      -20       sbeets(avg)
+      -16       sbeets(below)
+
+
+---- profit  objective variable
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       sprofitdef
+
+
+---- ws  crops sold under scenario s
+
+ws(wheat,above)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -56.6667  sprofitdef
+       -1       sreq(wheat,above)
+
+ws(wheat,avg)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -56.6667  sprofitdef
+       -1       sreq(wheat,avg)
+
+ws(wheat,below)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -56.6667  sprofitdef
+       -1       sreq(wheat,below)
+
+REMAINING 9 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 14
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE extform Using LP From line 139
+
+
+---- ys  crops purchased under scenario s
+
+ys(wheat,above)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       79.3333  sprofitdef
+        1       sreq(wheat,above)
+
+ys(wheat,avg)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       79.3333  sprofitdef
+        1       sreq(wheat,avg)
+
+ys(wheat,below)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       79.3333  sprofitdef
+        1       sreq(wheat,below)
+
+REMAINING 3 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 15
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Model Statistics    SOLVE extform Using LP From line 139
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           11
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           22
+NON ZERO ELEMENTS            52
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 16
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE extform Using LP From line 139
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   extform             OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  139
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+>>  gams farm-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+Gams      : farm-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 17
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Equation Listing    SOLVE simple Using LP From line 202
+
+
+---- profitdef  =E=  objective function
+
+profitdef..  150*x(wheat) + 230*x(corn) + 260*x(sugarbeets) - 170*w(wheat) - 150*w(corn) - 36*w(beets1) - 10*w(beets2) + 238*y(wheat) + 210*y(corn) + profit =E= 0 ; (LHS = 0)
+     
+
+---- landuse  =L=  capacity
+
+landuse..  x(wheat) + x(corn) + x(sugarbeets) =L= 500 ; (LHS = 0)
+     
+
+---- req  =G=  crop requirements for cattle feed
+
+req(wheat)..  - w(wheat) + y(wheat) + yld(wheat) =G= 200 ; (LHS = 0, INFES = 200 ****)
+     
+req(corn)..  - w(corn) + y(corn) + yld(corn) =G= 240 ; (LHS = 0, INFES = 240 ****)
+     
+
+---- beets  =L=  total beet production
+
+beets..  w(beets1) + w(beets2) - yld(sugarbeets) =L= 0 ; (LHS = 0)
+     
+
+---- ylddef  =E=  calc yields
+
+ylddef(wheat)..  - 2.5*x(wheat) + yld(wheat) =E= 0 ; (LHS = 0)
+     
+ylddef(corn)..  - 3*x(corn) + yld(corn) =E= 0 ; (LHS = 0)
+     
+ylddef(sugarbeets)..  - 20*x(sugarbeets) + yld(sugarbeets) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 18
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE simple Using LP From line 202
+
+
+---- x  acres of land
+
+x(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      150       profitdef
+        1       landuse
+       -2.5     ylddef(wheat)
+
+x(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      230       profitdef
+        1       landuse
+       -3       ylddef(corn)
+
+x(sugarbeets)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      260       profitdef
+        1       landuse
+      -20       ylddef(sugarbeets)
+
+
+---- w  crops sold
+
+w(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -170       profitdef
+       -1       req(wheat)
+
+w(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     -150       profitdef
+       -1       req(corn)
+
+w(beets1)
+                (.LO, .L, .UP, .M = 0, 0, 6000, 0)
+      -36       profitdef
+        1       beets
+
+REMAINING ENTRY SKIPPED
+
+---- y  crops purchased
+
+y(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      238       profitdef
+        1       req(wheat)
+
+y(corn)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      210       profitdef
+        1       req(corn)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 19
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE simple Using LP From line 202
+
+
+---- yld  yield
+
+yld(wheat)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       req(wheat)
+        1       ylddef(wheat)
+
+yld(corn)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       req(corn)
+        1       ylddef(corn)
+
+yld(sugarbeets)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       beets
+        1       ylddef(sugarbeets)
+
+
+---- profit  objective variable
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       profitdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 20
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Model Statistics    SOLVE simple Using LP From line 202
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            28
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 21
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 202
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   simple              OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  DECISM              FROM LINE  202
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE           108389.7830
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT        11    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  4
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 22
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 202
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   1
+ jsum:   3
+ itoc:   3
+ itele:  9
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000004  R0000003   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+
+ nwcore1:  9004769
+ nwcore2:  4231
+ nwcore :  9013231
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 8 cols 12 nonz 27
+ master: rows 2 cols 4 nonz 6
+ B:      rows 7 cols 3 nonz 3
+ sub:    rows 7 cols 9 nonz 18
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 7 cols: 3 nonz: 3
+ Successful input of stochastic file:
+ Independent random parameters:  1
+ Total number of outcomes     :  9
+ Universe scenarios           :   3.
+ start benders universe solution
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm -1.1920929E-07
+ theta : -1.E+09
+ evaluating w/ universe
+ solve master, iteration:  1
+ master objective:  -131999.738
+ lower bnd.: -131999.738  var.:  0.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 23
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 202
+
+
+ upper bnd.:  97999.902  var.:  0.
+ objm  130000.
+ evaluating w/ universe
+ solve master, iteration:  2
+ master objective:  -128999.763
+ lower bnd.: -128999.763  var.:  0.
+ upper bnd.: -27999.842  var.:  0.
+ objm  108000.
+ evaluating w/ universe
+ solve master, iteration:  3
+ master objective:  -126813.661
+ lower bnd.: -126813.661  var.:  0.
+ upper bnd.: -98199.7938  var.:  0.
+ objm  91968.4543
+ evaluating w/ universe
+ solve master, iteration:  4
+ master objective:  -121963.398
+ lower bnd.: -121963.398  var.:  0.
+ upper bnd.: -98199.7938  var.:  0.
+ objm  116781.818
+ evaluating w/ universe
+ solve master, iteration:  5
+ master objective:  -112120.756
+ lower bnd.: -112120.756  var.:  0.
+ upper bnd.: -104220.385  var.:  0.
+ objm  110482.517
+ evaluating w/ universe
+ solve master, iteration:  6
+ master objective:  -110419.266
+ lower bnd.: -110419.266  var.:  0.
+ upper bnd.: -107259.223  var.:  0.
+ objm  109714.978
+ evaluating w/ universe
+ solve master, iteration:  7
+ master objective:  -109503.983
+ lower bnd.: -109503.983  var.:  0.
+ upper bnd.: -107259.223  var.:  0.
+ objm  111758.771
+ evaluating w/ universe
+ solve master, iteration:  8
+ master objective:  -108860.893
+ lower bnd.: -108860.893  var.:  0.
+ upper bnd.: -107812.364  var.:  0.
+ objm  109611.111
+ evaluating w/ universe
+ solve master, iteration:  9
+ master objective:  -108801.918
+ lower bnd.: -108801.918  var.:  0.
+ upper bnd.: -108327.56  var.:  0.
+ objm  109893.162
+ evaluating w/ universe
+ solve master, iteration:  10
+ master objective:  -108389.783
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 24
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 202
+
+
+ lower bnd.: -108389.783  var.:  0.
+ upper bnd.: -108327.56  var.:  0.
+ objm  108900.
+ evaluating w/ universe
+ solve master, iteration:  11
+ master objective:  -108389.783
+ lower bnd.: -108389.783  var.:  0.
+ upper bnd.: -108389.783  var.:  0.
+ objm  108900.
+ re-evaluating best solution for upper bnd
+ evaluating w/ universe
+ upper bnd.: -108389.783 var.:  0.
+  solution :
+  obj :  -108389.783
+ x1p( 1):   170.
+ x1p( 2):   80.
+ x1p( 3):   250.
+ x1p( 4):  -217289.783
+ theta:  -217289.783 zsub:  -217289.783
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU profitdef           .              .              .             1.0000      
+---- EQU landuse           -INF          500.0000       500.0000      -274.9996  NOPT
+
+  profitdef  objective function
+  landuse  capacity
+
+---- EQU req  crop requirements for cattle feed
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+wheat       200.0000       199.9998        +INF          169.9998      
+corn        240.0000       239.9998        +INF          169.9998      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU beets             -INF             .              .           -36.0000      
+
+  beets  total beet production
+
+---- EQU ylddef  calc yields
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+wheat               .           424.9996          .          -169.9998      
+corn                .           239.9998          .          -169.9998      
+sugarbeets          .          4999.9950          .           -36.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 25
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 202
+
+
+---- VAR x  acres of land
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+wheat               .           170.0000        +INF             .          
+corn                .            80.0000        +INF             .          
+sugarbeets          .           250.0000        +INF             .          
+
+---- VAR w  crops sold
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .           224.9998        +INF            EPS         
+corn            .            16.0000        +INF           20.0000      
+beets1          .          4999.9950      6000.0000         EPS         
+beets2          .              .            +INF           26.0000      
+
+---- VAR y  crops purchased
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+wheat          .              .            +INF           67.9999      
+corn           .            16.0000        +INF           40.0000      
+
+---- VAR yld  yield
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+wheat             -INF          424.9996        +INF            EPS         
+corn              -INF          239.9998        +INF            EPS         
+sugarbeets        -INF         4999.9950        +INF            EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR profit            -INF       108389.7830        +INF           -1.0000      
+
+  profit  objective variable
+
+
+**** REPORT SUMMARY :        1     NONOPT ( NOPT)
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 26
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Equation Listing    SOLVE simple Using LP From line 218
+
+
+---- profitdef  =E=  objective function
+
+profitdef..  150*x(wheat) + 230*x(corn) + 260*x(sugarbeets) - 170*w(wheat) - 150*w(corn) - 36*w(beets1) - 10*w(beets2) + 238*y(wheat) + 210*y(corn) + profit =E= 0 ; (LHS = 0.000289999967208132, INFES = 0.000289999967208132 ****)
+     
+
+---- landuse  =L=  capacity
+
+landuse..  x(wheat) + x(corn) + x(sugarbeets) =L= 500 ; (LHS = 500)
+     
+
+---- req  =G=  crop requirements for cattle feed
+
+req(wheat)..  - w(wheat) + y(wheat) + yld(wheat) =G= 200 ; (LHS = 199.9998, INFES = 0.000200000000006639 ****)
+     
+req(corn)..  - w(corn) + y(corn) + yld(corn) =G= 240 ; (LHS = 239.99976, INFES = 0.000239999999990914 ****)
+     
+
+---- beets  =L=  total beet production
+
+beets..  w(beets1) + w(beets2) - yld(sugarbeets) =L= 0 ; (LHS = 0)
+     
+
+---- ylddef  =E=  calc yields
+
+ylddef(wheat)..  - 2.5*x(wheat) + yld(wheat) =E= 0 ; (LHS = -0.000425000000007003, INFES = 0.000425000000007003 ****)
+     
+ylddef(corn)..  - 3*x(corn) + yld(corn) =E= 0 ; (LHS = -0.000239999999990914, INFES = 0.000239999999990914 ****)
+     
+ylddef(sugarbeets)..  - 20*x(sugarbeets) + yld(sugarbeets) =E= 0 ; (LHS = -0.00500000000010914, INFES = 0.00500000000010914 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 27
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE simple Using LP From line 218
+
+
+---- x  acres of land
+
+x(wheat)
+                (.LO, .L, .UP, .M = 0, 170, +INF, 0)
+      150       profitdef
+        1       landuse
+       -2.5     ylddef(wheat)
+
+x(corn)
+                (.LO, .L, .UP, .M = 0, 80, +INF, 0)
+      230       profitdef
+        1       landuse
+       -3       ylddef(corn)
+
+x(sugarbeets)
+                (.LO, .L, .UP, .M = 0, 250, +INF, 0)
+      260       profitdef
+        1       landuse
+      -20       ylddef(sugarbeets)
+
+
+---- w  crops sold
+
+w(wheat)
+                (.LO, .L, .UP, .M = 0, 224.999775, +INF, EPS)
+     -170       profitdef
+       -1       req(wheat)
+
+w(corn)
+                (.LO, .L, .UP, .M = 0, 15.999984, +INF, 19.99998)
+     -150       profitdef
+       -1       req(corn)
+
+w(beets1)
+                (.LO, .L, .UP, .M = 0, 4999.995, 6000, EPS)
+      -36       profitdef
+        1       beets
+
+REMAINING ENTRY SKIPPED
+
+---- y  crops purchased
+
+y(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 67.999932)
+      238       profitdef
+        1       req(wheat)
+
+y(corn)
+                (.LO, .L, .UP, .M = 0, 15.999984, +INF, 39.99996)
+      210       profitdef
+        1       req(corn)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 28
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Column Listing      SOLVE simple Using LP From line 218
+
+
+---- yld  yield
+
+yld(wheat)
+                (.LO, .L, .UP, .M = -INF, 424.999575, +INF, EPS)
+        1       req(wheat)
+        1       ylddef(wheat)
+
+yld(corn)
+                (.LO, .L, .UP, .M = -INF, 239.99976, +INF, EPS)
+        1       req(corn)
+        1       ylddef(corn)
+
+yld(sugarbeets)
+                (.LO, .L, .UP, .M = -INF, 4999.995, +INF, EPS)
+       -1       beets
+        1       ylddef(sugarbeets)
+
+
+---- profit  objective variable
+
+profit
+                (.LO, .L, .UP, .M = -INF, 108389.783, +INF, -1)
+        1       profitdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 29
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Model Statistics    SOLVE simple Using LP From line 218
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            28
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 30
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 218
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   simple              OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  DECISM              FROM LINE  218
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE           108389.7830
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT        11    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  4
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 31
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 218
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   1
+ jsum:   3
+ itoc:   3
+ itele:  9
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000004  R0000003   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+
+ nwcore1:  9004769
+ nwcore2:  4231
+ nwcore :  9013231
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 8 cols 12 nonz 27
+ master: rows 2 cols 4 nonz 6
+ B:      rows 7 cols 3 nonz 3
+ sub:    rows 7 cols 9 nonz 18
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 7 cols: 3 nonz: 3
+ Successful input of stochastic file:
+ Independent random parameters:  1
+ Total number of outcomes     :  9
+ Universe scenarios           :   3.
+ start benders universe solution
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm -1.1920929E-07
+ theta : -1.E+09
+ evaluating w/ universe
+ solve master, iteration:  1
+ master objective:  -131999.738
+ lower bnd.: -131999.738  var.:  0.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 32
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 218
+
+
+ upper bnd.:  97999.902  var.:  0.
+ objm  130000.
+ evaluating w/ universe
+ solve master, iteration:  2
+ master objective:  -128999.763
+ lower bnd.: -128999.763  var.:  0.
+ upper bnd.: -27999.842  var.:  0.
+ objm  108000.
+ evaluating w/ universe
+ solve master, iteration:  3
+ master objective:  -126813.661
+ lower bnd.: -126813.661  var.:  0.
+ upper bnd.: -98199.7938  var.:  0.
+ objm  91968.4543
+ evaluating w/ universe
+ solve master, iteration:  4
+ master objective:  -121963.398
+ lower bnd.: -121963.398  var.:  0.
+ upper bnd.: -98199.7938  var.:  0.
+ objm  116781.818
+ evaluating w/ universe
+ solve master, iteration:  5
+ master objective:  -112120.756
+ lower bnd.: -112120.756  var.:  0.
+ upper bnd.: -104220.385  var.:  0.
+ objm  110482.517
+ evaluating w/ universe
+ solve master, iteration:  6
+ master objective:  -110419.266
+ lower bnd.: -110419.266  var.:  0.
+ upper bnd.: -107259.223  var.:  0.
+ objm  109714.978
+ evaluating w/ universe
+ solve master, iteration:  7
+ master objective:  -109503.983
+ lower bnd.: -109503.983  var.:  0.
+ upper bnd.: -107259.223  var.:  0.
+ objm  111758.771
+ evaluating w/ universe
+ solve master, iteration:  8
+ master objective:  -108860.893
+ lower bnd.: -108860.893  var.:  0.
+ upper bnd.: -107812.364  var.:  0.
+ objm  109611.111
+ evaluating w/ universe
+ solve master, iteration:  9
+ master objective:  -108801.918
+ lower bnd.: -108801.918  var.:  0.
+ upper bnd.: -108327.56  var.:  0.
+ objm  109893.162
+ evaluating w/ universe
+ solve master, iteration:  10
+ master objective:  -108389.783
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 33
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 218
+
+
+ lower bnd.: -108389.783  var.:  0.
+ upper bnd.: -108327.56  var.:  0.
+ objm  108900.
+ evaluating w/ universe
+ solve master, iteration:  11
+ master objective:  -108389.783
+ lower bnd.: -108389.783  var.:  0.
+ upper bnd.: -108389.783  var.:  0.
+ objm  108900.
+ re-evaluating best solution for upper bnd
+ evaluating w/ universe
+ upper bnd.: -108389.783 var.:  0.
+  solution :
+  obj :  -108389.783
+ x1p( 1):   170.
+ x1p( 2):   80.
+ x1p( 3):   250.
+ x1p( 4):  -217289.783
+ theta:  -217289.783 zsub:  -217289.783
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU profitdef           .              .              .             1.0000      
+---- EQU landuse           -INF          500.0000       500.0000      -274.9996  NOPT
+
+  profitdef  objective function
+  landuse  capacity
+
+---- EQU req  crop requirements for cattle feed
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+wheat       200.0000       199.9998        +INF          169.9998      
+corn        240.0000       239.9998        +INF          169.9998      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU beets             -INF             .              .           -36.0000      
+
+  beets  total beet production
+
+---- EQU ylddef  calc yields
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+wheat               .           424.9996          .          -169.9998      
+corn                .           239.9998          .          -169.9998      
+sugarbeets          .          4999.9950          .           -36.0000      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 34
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+Solution Report     SOLVE simple Using LP From line 218
+
+
+---- VAR x  acres of land
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+wheat               .           170.0000        +INF             .          
+corn                .            80.0000        +INF             .          
+sugarbeets          .           250.0000        +INF             .          
+
+---- VAR w  crops sold
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+wheat           .           224.9998        +INF            EPS         
+corn            .            16.0000        +INF           20.0000      
+beets1          .          4999.9950      6000.0000         EPS         
+beets2          .              .            +INF           26.0000      
+
+---- VAR y  crops purchased
+
+             LOWER          LEVEL          UPPER         MARGINAL
+
+wheat          .              .            +INF           67.9999      
+corn           .            16.0000        +INF           40.0000      
+
+---- VAR yld  yield
+
+                  LOWER          LEVEL          UPPER         MARGINAL
+
+wheat             -INF          424.9996        +INF            EPS         
+corn              -INF          239.9998        +INF            EPS         
+sugarbeets        -INF         4999.9950        +INF            EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR profit            -INF       108389.7830        +INF           -1.0000      
+
+  profit  objective variable
+
+
+**** REPORT SUMMARY :        1     NONOPT ( NOPT)
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:21 Page 35
+The Farmer's Problem formulated for GAMS/DECIS (FARM,SEQ=199)
+E x e c u t i o n
+
+
+----    223 PARAMETER px  results for stage 1 variables
+
+                  wheat        corn  sugarbeets
+
+decisapprox     170.000      80.000     250.000
+decisexact      170.000      80.000     250.000
+
+
+**** REPORT FILE SUMMARY
+
+stg /home/renigijus/gams/opt-mod-lib/gamslib/farm/MODEL.STG
+mopt /home/renigijus/gams/opt-mod-lib/gamslib/farm/MINOS.SPC
+decopt /home/renigijus/gams/opt-mod-lib/gamslib/farm/decism.opt
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/farm/farm.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/farm/farm-scalar.gms.lst

@@ -1,0 +1,88 @@
+--- Job mathopt4.gms Start 12/13/18 11:22:59 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- mathopt4.gms(70) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- mathopt4.gms(35) 4 Mb
+--- Generating NLP model m
+--- mathopt4.gms(36) 6 Mb
+---   3 rows  3 columns  7 non-zeroes
+---   29 nl-code  4 nl-non-zeroes
+--- mathopt4.gms(36) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+>>  ampl mathopt4-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+--- Writing Ampl      : mathopt4-scalar.mod
+
+--- Restarting execution
+--- mathopt4.gms(36) 2 Mb
+--- Reading solution for model m
+--- mathopt4.gms(44) 3 Mb
+--- Generating NLP model m
+--- mathopt4.gms(45) 5 Mb
+---   3 rows  3 columns  7 non-zeroes
+---   29 nl-code  4 nl-non-zeroes
+--- mathopt4.gms(45) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.019
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+>>  ampl mathopt4-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+--- Writing Ampl      : mathopt4-scalar.mod
+
+--- Restarting execution
+--- mathopt4.gms(45) 2 Mb
+--- Reading solution for model m
+--- mathopt4.gms(52) 3 Mb
+--- Generating NLP model m
+--- mathopt4.gms(53) 5 Mb
+---   3 rows  3 columns  7 non-zeroes
+---   29 nl-code  4 nl-non-zeroes
+--- mathopt4.gms(53) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.037
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+>>  ampl mathopt4-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+--- Writing Ampl      : mathopt4-scalar.mod
+
+--- Restarting execution
+--- mathopt4.gms(53) 2 Mb
+--- Reading solution for model m
+--- mathopt4.gms(60) 3 Mb
+--- Generating NLP model m
+--- mathopt4.gms(61) 5 Mb
+---   3 rows  3 columns  7 non-zeroes
+---   29 nl-code  4 nl-non-zeroes
+--- mathopt4.gms(61) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.052
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+>>  ampl mathopt4-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt4/convert.opt"
+--- Writing Ampl      : mathopt4-scalar.mod
+
+--- Restarting execution
+--- mathopt4.gms(61) 2 Mb
+--- Reading solution for model m
+--- mathopt4.gms(70) 3 Mb
+*** Status: Normal completion
+--- Job mathopt4.gms Stop 12/13/18 11:22:59 elapsed 0:00:00.065

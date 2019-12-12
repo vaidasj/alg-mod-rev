@@ -1,0 +1,397 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 2
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+C o m p i l a t i o n
+
+
+   4   
+       
+        This model designs a heat exchanger network which operates at
+        minimal annual cost and satisfies heating and cooling require-
+        -ments. The superstructure consists of two stages with eight
+        possible exchangers
+       
+       
+      Yee, T F, and Grossmann, I E, Simultaneous Optimization of Models for
+      Heat Integration - Heat Exchanger Network Synthesis. Computers and
+      Chemical Engineering 14, 10 (1990), 1151-1184.
+       
+  18   
+  19   
+  20   Sets i hot streams /1*2/
+  21        j cold streams /1*2/;
+  22   
+  23   Scalar nok  number of stages in superstructure / 2 /;
+  24   
+  25   Set  k          temperature locations  nok + 1 /1*3/
+  26        st(k)      stages
+  27        first(k)   first temperature location
+  28        last(k)    last temperature location ;
+  29   
+  30   
+  31   st(k)    = yes$(ord(k) lt card(k))  ;
+  32   first(k) = yes$(ord(k) eq 1)        ;
+  33   last(k)  = yes$(ord(k) eq card(k))  ;
+  34   
+  35   
+  36   
+  37   Parameters
+  38   
+  39   fh(i)      heat capacity flowrate of hot stream
+  40   fc(j)      heat capacity flowrate of cold stream
+  41   thin(i)    supply temp. of hot stream
+  42   thout(i)   target temp. of hot stream
+  43   tcin(j)    supply temp. of cold stream
+  44   tcout(j)   target temp. of cold stream
+  45   ech(i)     heat content hot i
+  46   ecc(j)     heat content cold j
+  47   hh(i)      stream-individual film coefficient hot i,
+  48   hc(j)      stream-individual film coefficient cold j,
+  49   hucost     cost of heating utility,
+  50   cucost     cost of cooling utility,
+  51   unitc      fixed charge for exchanger,
+  52   acoeff     area cost coefficient for exchangers,
+  53   hucoeff    area cost coefficient for heaters,
+  54   cucoeff    area cost coefficient for coolers,
+  55   aexp       cost exponent for exchangers,
+  56   hhu        stream-individual film coefficient hot utility,
+  57   hcu        stream-individual film coefficient cold utility,
+  58   thuin      inlet temperature hot utility,
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 3
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+C o m p i l a t i o n
+
+
+  59   thuout     outlet temperature hot utility,
+  60   tcuin      inlet temperature cold utility,
+  61   tcuout     outlet temperature cold utility,
+  62   gamma(i,j) upper bound of driving force,
+  63   a(i,j,k)   area for exchanger for match ij in interval k (chen approx.),
+  64   al(i,j,k)  area calculated with log mean,
+  65   acu(i)     area coolers,
+  66   ahu(j)     area heaters,
+  67   tmapp      minimum approach temperature
+  68   costheat   cost of heating,
+  69   costcool   cost of cooling,
+  70   invcost    investment cost   ;
+  71   
+  72   Binary Variables      z(i,j,k), zcu(i), zhu(j)  ;
+  73   
+  74   Positive Variables
+  75     th(i,k)    temperature of  hot stream i as it enters stage k
+  76     tc(j,k)    temperature of cold stream j as it leaves stage k
+  77     q(i,j,k)   energy exchanged between i and j in stage k
+  78     qc(i)      energy exchanged between i and the cold utility
+  79     qh(j)      energy exchanged between j and the hot utility
+  80     dt(i,j,k)  approach between i and j at location k
+  81     dtcu(i)    approach between i and the cold utility
+  82     dthu(j)    approach between j and the hot utility    ;
+  83   
+  84   Variable cost    hen and utility cost       ;
+  85   
+  86   Equations
+  87    eh(i,k)       energy exchanged by hot  stream i in stage k
+  88    eqc(i,k)      energy exchanged by hot  stream i with the cold utility
+  89    teh(i)        total energy exchanged by hot  stream i
+  90    ec(j,k)       energy exchanged by cold stream j in stage k
+  91    eqh(j,k)      energy exchanged by cold stream j with the hot utility
+  92    tec(j)        total energy exchanged by cold  stream j
+  93    month(i,k)    monotonicity of th
+  94    montc(j,k)    monotonicity of tc
+  95    monthl(i,k)   monotonicity of th k = last
+  96    montcf(j,k)   monotonicity of tc for k = 1
+  97    tinh(i,k)     supply temperature of hot streams
+  98    tinc(j,k)     supply temperature of cold streams
+  99    logq(i,j,k)   logical constraints on  q
+ 100    logqh(j)      logical constraints on qh(j)
+ 101    logqc(i)      logical constraints on qc(i)
+ 102    logdth(i,j,k) logical constraints on dt at the  hot end
+ 103    logdtc(i,j,k) logical constraints on dt at the cold end
+ 104    logdtcu(i,k)  logical constraints on dtcu
+ 105    logdthu(j,k)  logical constraints on dthu
+ 106    obj           objective function         ;
+ 107   
+ 108   
+ 109   teh(i).. (thin(i)-thout(i))*fh(i) =e= sum((j,st), q(i,j,st)) + qc(i) ;
+ 110   tec(j).. (tcout(j)-tcin(j))*fc(j) =e= sum((i,st), q(i,j,st)) + qh(j) ;
+ 111   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 4
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+C o m p i l a t i o n
+
+
+ 112   eh(i,k)$st(k).. fh(i)*(th(i,k) - th(i,k+1)) =e= sum(j, q(i,j,k))  ;
+ 113   ec(j,k)$st(k).. fc(j)*(tc(j,k) - tc(j,k+1)) =e= sum(i,q(i,j,k)) ;
+ 114   
+ 115   eqc(i,k)$last(k)..  fh(i)*(th(i,k) - thout(i)) =e= qc(i) ;
+ 116   eqh(j,k)$first(k).. fc(j)*(tcout(j) - tc(j,k)) =e= qh(j) ;
+ 117   
+ 118   tinh(i,k)$first(k).. thin(i) =e= th(i,k) ;
+ 119   tinc(j,k)$last(k)..  tcin(j) =e= tc(j,k) ;
+ 120   
+ 121   month(i,k)$st(k).. th(i,k) =g= th(i,k+1) ;
+ 122   montc(j,k)$st(k).. tc(j,k) =g= tc(j,k+1) ;
+ 123   
+ 124   monthl(i,k)$last(k).. th(i,k) =g= thout(i) ;
+ 125   montcf(j,k)$first(k)..tcout(j) =g= tc(j,k) ;
+ 126   
+ 127   logq(i,j,k)$st(k)..q(i,j,k) - min(ech(i), ecc(j))*z(i,j,k) =l= 0 ;
+ 128   
+ 129   logqc(i)..qc(i) - ech(i)*zcu(i) =l= 0 ;
+ 130   logqh(j)..qh(j) - ecc(j)*zhu(j) =l= 0 ;
+ 131   
+ 132   logdth(i,j,k)$st(k)..dt(i,j,k) =l= th(i,k) - tc(j,k) +
+ 133                                      gamma(i,j)*(1 - z(i,j,k)) ;
+ 134   
+ 135   logdtc(i,j,k)$st(k)..dt(i,j,k+1) =l= th(i,k+1)-tc(j,k+1) +
+ 136                                        gamma(i,j)*(1 - z(i,j,k)) ;
+ 137   
+ 138   logdthu(j,k)$first(k)..dthu(j) =l= (thuout - tc(j,k)) ;
+ 139   logdtcu(i,k)$last(k)..dtcu(i) =l= th(i,k) - tcuout ;
+ 140   
+ 141   obj..cost =e= unitc*(sum((i,j,st),z(i,j,st)) +
+ 142                 sum(i,zcu(i)) + sum(j,zhu(j))) +
+ 143   
+ 144                 acoeff*sum((i,j,k),(q(i,j,k)*((1/hh(i))+(1/hc(j)))/
+ 145                 (((dt(i,j,k)*dt(i,j,k+1)*(dt(i,j,k) + dt(i,j,k+1))/2 +
+ 146                 1e-6)**0.33333) + 1e-6) + 1e-6)**aexp) +
+ 147   
+ 148                 hucoeff*(sum(j,(qh(j)*((1/hc(j))+1/hhu))/
+ 149                 (((thuin-tcout(j))*dthu(j)*((thuin-tcout(j)+dthu(j))/2)+
+ 150                 1e-6)**0.33333) + 1e-6)**aexp) +
+ 151   
+ 152                 cucoeff*sum(i,(qc(i)*((1/hh(i))+(1/hcu))/
+ 153                 (((thout(i)-tcuin)*dtcu(i)*(thout(i)-tcuin+dtcu(i))/2 +
+ 154                 1e-6)**0.33333) + 1e-6)**aexp) +
+ 155   
+ 156                 sum(j,qh(j)*hucost) + sum(i,qc(i)*cucost) ;
+ 157   
+ 158   
+ 159   
+ 160  * process streams
+ 161   
+ 162  * hot
+ 163   
+ 164   thin('1')=650;  thout('1')=370;  fh('1')=10; hh('1')=1;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 5
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+C o m p i l a t i o n
+
+
+ 165   thin('2')=590;  thout('2')=370;  fh('2')=20; hh('2')=1;
+ 166   
+ 167  * cold
+ 168   
+ 169    tcin('1')=410;  tcout('1')=650;  fc('1')=15;  hc('1')=1;
+ 170    tcin('2')=350;  tcout('2')=500;  fc('2')=13;  hc('2')=1;
+ 171   
+ 172  * costs and coefficients
+ 173   
+ 174   hucost =80; hucoeff =150; thuin  =680; thuout =680; hhu   =5;
+ 175   cucost =15; cucoeff =150; tcuin  =300; tcuout =320; hcu   =1;
+ 176   
+ 177   unitc  =5500;   acoeff =150;  aexp   =1;
+ 178   
+ 179   
+ 180   tmapp = 10;
+ 181   
+ 182  * bounds
+ 183   
+ 184   dt.lo(i,j,k) = tmapp ;
+ 185   dthu.lo(j) = tmapp ;
+ 186   dtcu.lo(i) = tmapp ;
+ 187   
+ 188   th.up(i,k) = thin(i) ;
+ 189   th.lo(i,k) = thout(i) ;
+ 190   tc.up(j,k) = tcout(j) ;
+ 191   tc.lo(j,k) = tcin(j) ;
+ 192   
+ 193  * initialization
+ 194   
+ 195   th.l(i,k) = thin(i) ;
+ 196   tc.l(j,k) = tcin(j) ;
+ 197   
+ 198   dthu.l(j) = thuout - tcin(j) ;
+ 199   dtcu.l(i) = thin(i) - tcuout ;
+ 200   
+ 201   ech(i) = fh(i)*(thin(i) - thout(i)) ;
+ 202   ecc(j) = fc(j)*(tcout(j) - tcin(j)) ;
+ 203   
+ 204   gamma(i,j) = max(0,tcin(j) - thin(i), tcin(j) - thout(i),
+ 205                    tcout(j) - thin(i), tcout(j) - thout(i)) ;
+ 206   
+ 207   dt.l(i,j,k) = thin(i) - tcin(j) ;
+ 208   
+ 209   q.l(i,j,k)$st(k) = min(ech(i),ecc(j)) ;
+ 210   
+ 211   
+ 212   
+ 213   Model super/all/ ;
+ 214   
+ 215   Option optcr    = 0 ;
+ 216   Option limrow   = 0 ;
+ 217   Option limcol   = 0 ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 6
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+C o m p i l a t i o n
+
+
+ 218   Option solprint = off ;
+ 219   Option sysout   = off ;
+ 220   
+ 221   
+ 222   Solve super using minlp minimizing cost ;
+ 223   
+ 224  *  areas by chen approximation
+ 225   
+ 226   a(i,j,k)$st(k) = q.l(i,j,k)*((1/hh(i))+(1/hc(j)))/
+ 227                    (2/3*sqrt(dt.l(i,j,k)*dt.l(i,j,k+1)) +
+ 228                     1/6*(1e-8 + dt.l(i,j,k) + dt.l(i,j,k+1))) ;
+ 229   
+ 230  *  areas by log mean temperature
+ 231   
+ 232   al(i,j,k)$st(k) = (q.l(i,j,k)*((1/hh(i))+(1/hc(j))))/
+ 233                     (dt.l(i,j,k)*dt.l(i,j,k+1)*
+ 234                     (dt.l(i,j,k)+dt.l(i,j,k+1))/2)**0.33333  ;
+ 235   
+ 236   
+ 237   display a,al ;
+ 238   
+ 239   
+ 240  * areas of heaters and coolers
+ 241   
+ 242   ahu(j) = (qh.l(j)*((1/hc(j)) + (1/hhu))/(((thuin-tcout(j))*dthu.l(j)*
+ 243            ((thuin-tcout(j)+dthu.l(j)))/2) + 1e-6)**0.33333)  ;
+ 244   
+ 245   acu(i) = (qc.l(i)*((1/hh(i))+(1/hcu))/(((thout(i)-tcuin)*dtcu.l(i)*
+ 246            (thout(i)-tcuin+dtcu.l(i))/2 + 1e-6)**0.33333)) ;
+ 247   
+ 248   
+ 249   display acu, ahu ;
+ 250   
+ 251   
+ 252  *  utility costs
+ 253   
+ 254   costheat = sum(j,qh.l(j)*hucost) ;
+ 255   costcool = sum(i,qc.l(i)*cucost) ;
+ 256   
+ 257   
+ 258   display costheat, costcool ;
+ 259   
+ 260   
+ 261  *  investment cost
+ 262   
+ 263   invcost = cost.l - costheat - costcool ;
+ 264   
+ 265   
+ 266   display invcost ;
+ 267   
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 7
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+Model Statistics    SOLVE super Using MINLP From line 222
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          20     SINGLE EQUATIONS           65
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES           57
+NON ZERO ELEMENTS           225     NON LINEAR N-Z             32
+DERIVATIVE POOL              20     CONSTANT POOL              28
+CODE LENGTH                 233     DISCRETE VARIABLES         12
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 8
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+Solution Report     SOLVE super Using MINLP From line 222
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   super               OBJECTIVE  cost
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  222
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/synheat/convert.opt"
+>>  gams synheat-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/synheat/convert.opt"
+Gams      : synheat-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:52 Page 9
+Simultaneous Optimization for HEN Synthesis (SYNHEAT,SEQ=117)
+E x e c u t i o n
+
+
+----    237 PARAMETER a  area for exchanger for match ij in interval k (chen approx.)
+
+              1           2
+
+1.1      23.333      23.333
+1.2      13.000      13.000
+2.1      40.000      40.000
+2.2      16.250      16.250
+
+
+----    237 PARAMETER al  area calculated with log mean
+
+              1           2
+
+1.1      23.335      23.335
+1.2      13.001      13.001
+2.1      40.002      40.002
+2.2      16.251      16.251
+
+
+----    249 PARAMETER acu  area coolers
+
+                      ( ALL       0.000 )
+
+
+----    249 PARAMETER ahu  area heaters
+
+                      ( ALL       0.000 )
+
+
+----    258 PARAMETER costheat             =        0.000  cost of heating
+            PARAMETER costcool             =        0.000  cost of cooling
+
+----    266 PARAMETER invcost              =        0.000  investment cost
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/synheat/synheat.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/synheat/synheat-scalar.gms.lst

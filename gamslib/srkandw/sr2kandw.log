@@ -1,0 +1,88 @@
+
+***********************************************
+*  SCENARIO TREE CONSTRUCTION / REDUCTION     *
+*                                             *
+*  S C E N R E D - 2                          *
+*                                             *
+*  VERSION: 12/12/2008                        *
+*                                             *
+*  (C) - Humboldt-University Berlin           *
+*        Institute of Mathematics             *
+*        Written by: Holger Heitsch           *
+*                                             *
+***********************************************
+
+SCENRED LogFile: Thu Dec 13 11:22:39 2018
+
+    -------------
+    FilePrefix : kandw
+    -------------
+    LogFile     : sr2kandw.log
+    GDX Input   : sr2kandw_in.gdx
+    GDX Output  : sr2kandw_out.gdx
+--- Start reading GDX input parameters
+
+    ------------------
+    SCENRED PARAMETERS
+    ------------------
+    num_time_steps      3
+    num_leaves          1
+    num_nodes           13
+    num_random          2
+    red_num_leaves      9
+    reduction_method    3
+    scen_red            1
+
+*** SCENRED WARNING: Parameter reduction_method out of range and changed to default
+--- Summary of read input GDX symbols
+
+    ---------
+    Input GDX
+    ---------
+    ScenRedParms  ... Read 
+    Node Names    ... Read 
+    Ancestor Set  ... Read 
+    Probabilities ... Read 
+    Random Values ... Read 
+
+--- Reading GDX input parameters done (0 seconds)
+--- Additional file output:
+--- Start checking input parameters
+*** SCENRED WARNING: Detected number of scenarios differs from declared value
+--- Checking input parameters done (0 seconds)
+--- Start scenario reduction process
+
+    ------------------
+    SCENARIO REDUCTION
+    ------------------
+
+      --- WARNING NO OPTION FILE
+          SWITCH TO DEFAULT OPTIONS
+    ASSIGN SCENARIO DISTANCES
+    START SCENARIO REDUCTION
+      METHOD: BACKWARD REDUCTION
+        START BACKWARD ITERATION
+    *** SCENARIO REDUCTION SUCCESSFUL
+    SCENRED SUMMARY
+      --- 1 WARNING(S)
+      REDUCTION METHOD: BACKWARD REDUCTION
+      METRIC TYPE     : TRANSPORT ORDER 1
+      PERCENTAGE      :        1
+      TOTAL TIME      :     0.00 (sec)
+        SCENARIO DIST :     0.00 (sec)
+        REDUCTION TIME:     0.00 (sec)
+      PROB DISTANCES  :   0.2470 (ABSOLUTE)
+                          100.00 (RELATIVE)
+                        INITIAL       REDUCED
+      SCENARIOS -             9             9
+      NODES     -            13            13
+      STAGES    -             3             3
+
+--- Scenario reduction done (0 seconds)
+
+*************************
+--- SCENRED WARNINGS = 3
+--- SCENRED ERRORS   = 0
+*************************
+
+*** SCENRED EXECUTION TIME = 0 (sec)

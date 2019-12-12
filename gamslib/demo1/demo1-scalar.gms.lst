@@ -1,0 +1,476 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 2
+Simple Farm Level Model (DEMO1,SEQ=91)
+Crop Data
+
+
+   5   
+       
+         This is the first in a series of single farm models .  This simplest
+         version has only 7 principal crops and 2 basic inputs, land and labor,
+         which are specified on a monthly basis.
+       
+       
+      Kutcher, G P, Meeraus, A, and O'Mara, G T, Agriculture Sector and Policy
+      Models. The World Bank, 1988.
+       
+  17   
+  18   
+  19  Sets  c crops   / wheat,  clover, beans, onions,
+  20                    cotton, maize,  tomato  /
+  21        t period  / jan, feb, mar, apr, may, jun,
+  22                    jul, aug, sep, oct, nov, dec  /
+  23   
+  24  Table landreq(t,c)  months of land occupation by crop (hectares)
+  25   
+  26      wheat  clover  beans  onions cotton maize  tomato
+  27  jan   1.     1.      1.     1.
+  28  feb   1.     1.      1.     1.
+  29  mar   1.      .5     1.     1.      .5
+  30  apr   1.             1.     1.     1.
+  31  may   1.                     .25   1.     .25
+  32  jun                                1.    1.
+  33  jul                                1.    1.      .75
+  34  aug                                1.    1.     1.
+  35  sep                                1.    1.     1.
+  36  oct                                1.     .5    1.
+  37  nov    .5     .25     .25    .5     .75          .75
+  38  dec   1.     1.      1.     1.
+  39   
+  40  Table laborreq(t,c) crop labor requirements (man-days per hectare)
+  41   
+  42       wheat  clover beans  onions cotton maize  tomato
+  43  jan   1.72   4.5     .75   5.16
+  44  feb    .5    1.      .75   5.
+  45  mar   1.     8.      .75   5.      5.
+  46  apr   1.           16.    19.58    5.
+  47  may  17.16                 2.42    9.    4.3
+  48  jun   2.34                         2.    5.04
+  49  jul                                1.5   7.16   17.
+  50  aug                                2.    7.97   15.
+  51  sep                                1.    4.41   12.
+  52  oct                               26.    1.12    7.
+  53  nov   2.43   2.5    7.5   11.16   12.            6.
+  54  dec   1.35   7.5     .75   4.68
+  55   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 3
+Simple Farm Level Model (DEMO1,SEQ=91)
+Crop Data
+
+
+  57   
+  58  Parameters yield(c) crop yield (tons per hectare) /
+  59                      wheat  = 1.5, clover = 6.5,  beans  =  1, onions = 3
+  60                      cotton = 1.5, maize  = 2  ,  tomato =  3  /
+  61   
+  62             price(c) crop prices (dollars per ton)             /
+  63                      wheat  = 100, beans  = 200,  onions = 125
+  64                      cotton = 350, maize  =  70,  tomato = 120 /
+  65   
+  66             miscost(c) misc cash costs (dollars per hectare)   /
+  67                      wheat  =  10, beans  =   5,  onions =  50
+  68                      cotton =  80, maize  =   5,  tomato =  50 /;
+  69  *   farm data, size labor availability etc.
+  70   
+  71  Scalars land    farm size (hectares)                       /  4.  /
+  72          famlab  family labor available (days per month)   / 25   /
+  73          owage   hire-out  wage rate (dollars per day)     /  3.  /
+  74          twage   temporary labor wage  (dollars per day)   /  4   /
+  75          dpm     number of working days per month          / 25   /
+  76   
+  77   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 4
+Simple Farm Level Model (DEMO1,SEQ=91)
+endogenous variables and equations
+
+
+  79   
+  80  Variables  xcrop(c)   cropping activity         (hectares)
+  81             yfarm      farm income               (dollars)
+  82             revenue    value of production       (dollars)
+  83             mcost      misc cash cost            (dollars)
+  84             labcost    labor cost                (dollars)
+  85             labearn    labor income              (dollars)
+  86             flab(t)    family labor use          (days)
+  87             fout(t)    hiring out                (days)
+  88             tlab(t)    temporary labor           (days)
+  89   
+  90  Positive Variable xcrop, flab ,fout, tlab
+  91   
+  92  Equations  landbal(t)   land balance            (hectares)
+  93             laborbal(t)  labor balance           (days)
+  94             flabor(t)    family labor balance    (days)
+  95             arev         revenue accounting      (dollars)
+  96             acost        cash cost accounting    (dollars)
+  97             alab         labor cost accounting   (dollars)
+  98             aout         labor income accounting (dollars)
+  99             income       income definition       (dollars);
+ 100   
+ 101   
+ 102  landbal(t)..   sum(c, xcrop(c)*landreq(t,c))  =l= land             ;
+ 103   
+ 104  laborbal(t)..  sum(c, xcrop(c)*laborreq(t,c)) =l= flab(t) + tlab(t);
+ 105   
+ 106  flabor(t)..    famlab  =e= flab(t) + fout(t)                       ;
+ 107   
+ 108  arev..         revenue =e= sum(c, xcrop(c)*yield(c)*price(c))      ;
+ 109   
+ 110  acost..        mcost   =e= sum(c, xcrop(c)*miscost(c))             ;
+ 111   
+ 112  alab..         labcost =e= sum(t, tlab(t)*twage)                   ;
+ 113   
+ 114  aout..         labearn =e= sum(t, fout(t)*owage)                   ;
+ 115   
+ 116  income..       yfarm   =e= revenue + labearn - labcost - mcost     ;
+ 117   
+ 118   
+ 119  Model demo1 farm labor model / all /
+ 120   
+ 121  Solve demo1 using lp maximizing yfarm;
+ 122   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 5
+Simple Farm Level Model (DEMO1,SEQ=91)
+report on solution
+
+
+ 124   
+ 125  Sets crep    / landuse, output, revenue /
+ 126       lrep    / demand,  family, temporary
+ 127                 unused,  hire-out /
+ 128   
+ 129  Parameters  croprep crop report summary
+ 130              labrep  labor report summary(days);
+ 131   
+ 132  croprep("landuse",c)  = xcrop.l(c);
+ 133  croprep("output",c)   = xcrop.l(c)*yield(c);
+ 134  croprep("revenue",c)  = croprep("output",c)*price(c);
+ 135  croprep(crep,"total") = sum(c, croprep(crep,c));
+ 136   
+ 137  labrep(t,"demand")    = sum(c, xcrop.l(c)*laborreq(t,c));
+ 138  labrep(t,"family")    = flab.l(t);
+ 139  labrep(t,"temporary") = tlab.l(t);
+ 140  labrep(t,"unused")    = -laborbal.l(t);
+ 141  labrep(t,"hire-out")  = fout.l(t);
+ 142  labrep("total",lrep)  = sum(t, labrep(t,lrep));
+ 143  Display "landuse -- hectares "
+ 144          "output  -- tons     "
+ 145          "revenue -- dollars  ", croprep, labrep ;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 6
+Simple Farm Level Model (DEMO1,SEQ=91)
+Equation Listing    SOLVE demo1 Using LP From line 121
+
+
+---- landbal  =L=  land balance            (hectares)
+
+landbal(jan)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) =L= 4 ; (LHS = 0)
+     
+landbal(feb)..  xcrop(wheat) + xcrop(clover) + xcrop(beans) + xcrop(onions) =L= 4 ; (LHS = 0)
+     
+landbal(mar)..  xcrop(wheat) + 0.5*xcrop(clover) + xcrop(beans) + xcrop(onions) + 0.5*xcrop(cotton) =L= 4 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- laborbal  =L=  labor balance           (days)
+
+laborbal(jan)..  1.72*xcrop(wheat) + 4.5*xcrop(clover) + 0.75*xcrop(beans) + 5.16*xcrop(onions) - flab(jan) - tlab(jan) =L= 0 ; (LHS = 0)
+     
+laborbal(feb)..  0.5*xcrop(wheat) + xcrop(clover) + 0.75*xcrop(beans) + 5*xcrop(onions) - flab(feb) - tlab(feb) =L= 0 ; (LHS = 0)
+     
+laborbal(mar)..  xcrop(wheat) + 8*xcrop(clover) + 0.75*xcrop(beans) + 5*xcrop(onions) + 5*xcrop(cotton) - flab(mar) - tlab(mar) =L= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- flabor  =E=  family labor balance    (days)
+
+flabor(jan)..  - flab(jan) - fout(jan) =E= -25 ; (LHS = 0, INFES = 25 ****)
+     
+flabor(feb)..  - flab(feb) - fout(feb) =E= -25 ; (LHS = 0, INFES = 25 ****)
+     
+flabor(mar)..  - flab(mar) - fout(mar) =E= -25 ; (LHS = 0, INFES = 25 ****)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- arev  =E=  revenue accounting      (dollars)
+
+arev..  - 150*xcrop(wheat) - 200*xcrop(beans) - 375*xcrop(onions) - 525*xcrop(cotton) - 140*xcrop(maize) - 360*xcrop(tomato) + revenue =E= 0 ; (LHS = 0)
+     
+
+---- acost  =E=  cash cost accounting    (dollars)
+
+acost..  - 10*xcrop(wheat) - 5*xcrop(beans) - 50*xcrop(onions) - 80*xcrop(cotton) - 5*xcrop(maize) - 50*xcrop(tomato) + mcost =E= 0 ; (LHS = 0)
+     
+
+---- alab  =E=  labor cost accounting   (dollars)
+
+alab..  labcost - 4*tlab(jan) - 4*tlab(feb) - 4*tlab(mar) - 4*tlab(apr) - 4*tlab(may) - 4*tlab(jun) - 4*tlab(jul) - 4*tlab(aug) - 4*tlab(sep) - 4*tlab(oct) - 4*tlab(nov) - 4*tlab(dec) =E= 0 ; (LHS = 0)
+     
+
+---- aout  =E=  labor income accounting (dollars)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 7
+Simple Farm Level Model (DEMO1,SEQ=91)
+Equation Listing    SOLVE demo1 Using LP From line 121
+
+
+     aout  =E=  labor income accounting (dollars)
+
+aout..  labearn - 3*fout(jan) - 3*fout(feb) - 3*fout(mar) - 3*fout(apr) - 3*fout(may) - 3*fout(jun) - 3*fout(jul) - 3*fout(aug) - 3*fout(sep) - 3*fout(oct) - 3*fout(nov) - 3*fout(dec) =E= 0 ; (LHS = 0)
+     
+
+---- income  =E=  income definition       (dollars)
+
+income..  yfarm - revenue + mcost + labcost - labearn =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 8
+Simple Farm Level Model (DEMO1,SEQ=91)
+Column Listing      SOLVE demo1 Using LP From line 121
+
+
+---- xcrop  cropping activity         (hectares)
+
+xcrop(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        1       landbal(mar)
+        1       landbal(apr)
+        1       landbal(may)
+        0.5     landbal(nov)
+        1       landbal(dec)
+        1.72    laborbal(jan)
+        0.5     laborbal(feb)
+        1       laborbal(mar)
+        1       laborbal(apr)
+       17.16    laborbal(may)
+        2.34    laborbal(jun)
+        2.43    laborbal(nov)
+        1.35    laborbal(dec)
+     -150       arev
+      -10       acost
+
+xcrop(clover)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        0.5     landbal(mar)
+        0.25    landbal(nov)
+        1       landbal(dec)
+        4.5     laborbal(jan)
+        1       laborbal(feb)
+        8       laborbal(mar)
+        2.5     laborbal(nov)
+        7.5     laborbal(dec)
+
+xcrop(beans)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       landbal(jan)
+        1       landbal(feb)
+        1       landbal(mar)
+        1       landbal(apr)
+        0.25    landbal(nov)
+        1       landbal(dec)
+        0.75    laborbal(jan)
+        0.75    laborbal(feb)
+        0.75    laborbal(mar)
+       16       laborbal(apr)
+        7.5     laborbal(nov)
+        0.75    laborbal(dec)
+     -200       arev
+       -5       acost
+
+REMAINING 4 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:46 Page 9
+Simple Farm Level Model (DEMO1,SEQ=91)
+Column Listing      SOLVE demo1 Using LP From line 121
+
+
+---- yfarm  farm income               (dollars)
+
+yfarm
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income
+
+
+---- revenue  value of production       (dollars)
+
+revenue
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       arev
+       -1       income
+
+
+---- mcost  misc cash cost            (dollars)
+
+mcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       acost
+        1       income
+
+
+---- labcost  labor cost                (dollars)
+
+labcost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       alab
+        1       income
+
+
+---- labearn  labor income              (dollars)
+
+labearn
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aout
+       -1       income
+
+
+---- flab  family labor use          (days)
+
+flab(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(jan)
+       -1       flabor(jan)
+
+flab(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(feb)
+       -1       flabor(feb)
+
+flab(mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 10
+Simple Farm Level Model (DEMO1,SEQ=91)
+Column Listing      SOLVE demo1 Using LP From line 121
+
+
+     flab  family labor use          (days)
+
+       -1       laborbal(mar)
+       -1       flabor(mar)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- fout  hiring out                (days)
+
+fout(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       flabor(jan)
+       -3       aout
+
+fout(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       flabor(feb)
+       -3       aout
+
+fout(mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       flabor(mar)
+       -3       aout
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- tlab  temporary labor           (days)
+
+tlab(jan)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(jan)
+       -4       alab
+
+tlab(feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(feb)
+       -4       alab
+
+tlab(mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       laborbal(mar)
+       -4       alab
+
+REMAINING 9 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 11
+Simple Farm Level Model (DEMO1,SEQ=91)
+Model Statistics    SOLVE demo1 Using LP From line 121
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS           41
+BLOCKS OF VARIABLES           9     SINGLE VARIABLES           48
+NON ZERO ELEMENTS           184
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 12
+Simple Farm Level Model (DEMO1,SEQ=91)
+Solution Report     SOLVE demo1 Using LP From line 121
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   demo1               OBJECTIVE  yfarm
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  121
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/demo1/convert.opt"
+>>  gams demo1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/demo1/convert.opt"
+Gams      : demo1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:46 Page 13
+Simple Farm Level Model (DEMO1,SEQ=91)
+E x e c u t i o n
+
+
+----    143 landuse -- hectares 
+            output  -- tons     
+            revenue -- dollars  
+
+----    143 PARAMETER croprep  crop report summary
+
+                      ( ALL       0.000 )
+
+
+----    143 PARAMETER labrep  labor report summary(days)
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/demo1/demo1.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/demo1/demo1-scalar.gms.lst

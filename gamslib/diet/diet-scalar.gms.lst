@@ -1,0 +1,215 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 2
+Stigler's Nutrition model (DIET,SEQ=7)
+C o m p i l a t i o n
+
+
+   4   
+       
+      This model determines a least cost diet which meets the daily
+      allowances of nutrients for a moderately active man weighing 154 lbs.
+       
+       
+      Dantzig, G B, Chapter 27.1. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  15   
+  16   Sets n nutrients / calorie     thousands   , protein     grams     , calcium     grams     , iron   milligrams
+  17                      vitamin-a   thousand ius, vitamin-b1  milligrams, vitamin-b2  milligrams,
+  18                      niacin      milligrams  , vitamin-c   milligrams                                              /
+  19        f foods     / wheat  , cornmeal , cannedmilk, margarine , cheese   , peanut-b , lard
+  20                      liver  , porkroast, salmon    , greenbeans, cabbage  , onions   , potatoes
+  21                      spinach, sweet-pot, peaches   , prunes    , limabeans, navybeans           /
+  22   
+  23   Parameter b(n) required daily allowances of nutrients / calorie      3, protein    70  , calcium   .8  , iron      12
+  24                                                           vitamin-a    5, vitamin-b1  1.8, vitamin-b2 2.7,
+  25                                                           niacin      18, vitamin-c  75                                 /
+  26   
+  27   Table a(f,n) nutritive value of foods (per dollar spent)
+  28   
+  29                calorie  protein  calcium  iron  vitamin-a  vitamin-b1  vitamin-b2  niacin  vitamin-c
+  30  *              (1000)    (g)      (g)    (mg)   (1000iu)    (mg)         (mg)       (mg)    (mg)
+  31   
+  32   wheat           44.7     1411      2.0   365                 55.4        33.3       441
+  33   cornmeal        36        897      1.7    99      30.9       17.4         7.9       106
+  34   cannedmilk       8.4      422     15.1     9      26          3          23.5        11       60
+  35   margarine       20.6       17       .6     6      55.8         .2
+  36   cheese           7.4      448     16.4    19      28.1         .8        10.3         4
+  37   peanut-b        15.7      661      1      48                  9.6         8.1       471
+  38   lard            41.7                                .2                     .5         5
+  39   liver            2.2      333       .2   139     169.2        6.4        50.8       316      525
+  40   porkroast        4.4      249       .3    37                 18.2         3.6        79
+  41   salmon           5.8      705      6.8    45       3.5        1           4.9       209
+  42   greenbeans       2.4      138      3.7    80      69          4.3         5.8        37      862
+  43   cabbage          2.6      125      4      36       7.2        9           4.5        26     5369
+  44   onions           5.8      166      3.8    59      16.6        4.7         5.9        21     1184
+  45   potatoes        14.3      336      1.8   118       6.7       29.4         7.1       198     2522
+  46   spinach          1.1      106            138     918.4        5.7        13.8        33     2755
+  47   sweet-pot        9.6      138      2.7    54     290.7        8.4         5.4        83     1912
+  48   peaches          8.5       87      1.7   173      86.8        1.2         4.3        55       57
+  49   prunes          12.8       99      2.5   154      85.7        3.9         4.3        65      257
+  50   limabeans       17.4     1055      3.7   459       5.1       26.9        38.2        93
+  51   navybeans       26.9     1691     11.4   792                 38.4        24.6       217
+  52   
+  53   
+  54   Positive Variable x(f)  dollars of food f to be purchased daily   (dollars)
+  55   
+  56   Free     Variable cost  total food bill                           (dollars)
+  57   
+  58   Equations  nb(n) nutrient balance  (units),  cb cost balance  (dollars) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 3
+Stigler's Nutrition model (DIET,SEQ=7)
+C o m p i l a t i o n
+
+
+  59   
+  60   nb(n).. sum(f, a(f,n)*x(f)) =g= b(n);  cb..  cost=e= sum(f, x(f));
+  61   
+  62   Model diet stiglers diet problem / nb,cb /;
+  63   Solve diet minimizing cost using lp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 4
+Stigler's Nutrition model (DIET,SEQ=7)
+Equation Listing    SOLVE diet Using LP From line 63
+
+
+---- nb  =G=  nutrient balance  (units)
+
+nb(calorie)..  44.7*x(wheat) + 36*x(cornmeal) + 8.4*x(cannedmilk) + 20.6*x(margarine) + 7.4*x(cheese) + 15.7*x(peanut-b) + 41.7*x(lard) + 2.2*x(liver) + 4.4*x(porkroast) + 5.8*x(salmon) + 2.4*x(greenbeans) + 2.6*x(cabbage) + 5.8*x(onions)
+     
+      + 14.3*x(potatoes) + 1.1*x(spinach) + 9.6*x(sweet-pot) + 8.5*x(peaches) + 12.8*x(prunes) + 17.4*x(limabeans) + 26.9*x(navybeans) =G= 3 ; (LHS = 0, INFES = 3 ****)
+     
+nb(protein)..  1411*x(wheat) + 897*x(cornmeal) + 422*x(cannedmilk) + 17*x(margarine) + 448*x(cheese) + 661*x(peanut-b) + 333*x(liver) + 249*x(porkroast) + 705*x(salmon) + 138*x(greenbeans) + 125*x(cabbage) + 166*x(onions) + 336*x(potatoes)
+     
+      + 106*x(spinach) + 138*x(sweet-pot) + 87*x(peaches) + 99*x(prunes) + 1055*x(limabeans) + 1691*x(navybeans) =G= 70 ; (LHS = 0, INFES = 70 ****)
+     
+nb(calcium)..  2*x(wheat) + 1.7*x(cornmeal) + 15.1*x(cannedmilk) + 0.6*x(margarine) + 16.4*x(cheese) + x(peanut-b) + 0.2*x(liver) + 0.3*x(porkroast) + 6.8*x(salmon) + 3.7*x(greenbeans) + 4*x(cabbage) + 3.8*x(onions) + 1.8*x(potatoes) + 2.7*x(sweet-pot)
+     
+      + 1.7*x(peaches) + 2.5*x(prunes) + 3.7*x(limabeans) + 11.4*x(navybeans) =G= 0.8 ; (LHS = 0, INFES = 0.8 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- cb  =E=  cost balance  (dollars)
+
+cb..  - x(wheat) - x(cornmeal) - x(cannedmilk) - x(margarine) - x(cheese) - x(peanut-b) - x(lard) - x(liver) - x(porkroast) - x(salmon) - x(greenbeans) - x(cabbage) - x(onions) - x(potatoes) - x(spinach) - x(sweet-pot) - x(peaches) - x(prunes)
+     
+      - x(limabeans) - x(navybeans) + cost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 5
+Stigler's Nutrition model (DIET,SEQ=7)
+Column Listing      SOLVE diet Using LP From line 63
+
+
+---- x  dollars of food f to be purchased daily   (dollars)
+
+x(wheat)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       44.7     nb(calorie)
+     1411       nb(protein)
+        2       nb(calcium)
+      365       nb(iron)
+       55.4     nb(vitamin-b1)
+       33.3     nb(vitamin-b2)
+      441       nb(niacin)
+       -1       cb
+
+x(cornmeal)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       36       nb(calorie)
+      897       nb(protein)
+        1.7     nb(calcium)
+       99       nb(iron)
+       30.9     nb(vitamin-a)
+       17.4     nb(vitamin-b1)
+        7.9     nb(vitamin-b2)
+      106       nb(niacin)
+       -1       cb
+
+x(cannedmilk)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        8.4     nb(calorie)
+      422       nb(protein)
+       15.1     nb(calcium)
+        9       nb(iron)
+       26       nb(vitamin-a)
+        3       nb(vitamin-b1)
+       23.5     nb(vitamin-b2)
+       11       nb(niacin)
+       60       nb(vitamin-c)
+       -1       cb
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- cost  total food bill                           (dollars)
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cb
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 6
+Stigler's Nutrition model (DIET,SEQ=7)
+Model Statistics    SOLVE diet Using LP From line 63
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           21
+NON ZERO ELEMENTS           180
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:29 Page 7
+Stigler's Nutrition model (DIET,SEQ=7)
+Solution Report     SOLVE diet Using LP From line 63
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   diet                OBJECTIVE  cost
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  63
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/diet/convert.opt"
+>>  gams diet-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/diet/convert.opt"
+Gams      : diet-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/diet/diet.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/diet/diet-scalar.gms.lst

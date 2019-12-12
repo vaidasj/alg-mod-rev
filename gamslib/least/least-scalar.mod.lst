@@ -1,0 +1,299 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 2
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+C o m p i l a t i o n
+
+
+       
+      Nonlinear least squares estimation problem of Mitcherlisch's law.
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 8.4. In Selected Applications of
+      Nonlinear Programming. John Wiley and Sons, New York, 1968, pp. 89-90.
+       
+  12   
+  13  set i  observation number / 1*6 /
+  14   
+  15       table dat(i,*)  basic data
+  16   
+  17      y       x
+  18  1  127     -5
+  19  2  151     -3
+  20  3  379     -1
+  21  4  421      5
+  22  5  460      3
+  23  6  426      1
+  24   
+  25  variables ols  ordinary least squares
+  26            dev(i) deviation
+  27            b1, b2, b3
+  28   
+  29  equations dols    definition of ols
+  30            ddev(i) definition of deviations
+  31            sequ    single equation definition ;
+  32   
+  33  dols..    ols =e= sum(i, sqr(dev(i)));
+  34   
+  35  ddev(i).. dat(i,"y") =e= b1 + b2*exp(b3*dat(i,"x")) + dev(i);
+  36   
+  37  sequ..    ols =e= sum(i, sqr(dat(i,"y")-b1-b2*exp(b3*dat(i,"x"))));
+  38   
+  39  model least  ordinary least squares / dols, ddev /
+  40        single single equ definition  / sequ / ;
+  41   
+  42  b1.l = 500; b2.l = -150; b3.lo = -5.0;
+  43                           b3.l  = - .2;
+  44                           b3.up =  5.0;
+  45   
+  46  solve single minimizing ols using nlp;
+  47   
+  48  solve least minimizing ols using nlp;
+  49   
+  50   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 3
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Equation Listing    SOLVE single Using NLP From line 46
+
+
+---- sequ  =E=  single equation definition
+
+sequ..  ols + (177.167565205952)*b1 + (173.895509921941)*b2 + (20593.0958645217)*b3 =E= 0 ; (LHS = -15545.7631272004, INFES = 15545.7631272004 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 4
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Column Listing      SOLVE single Using NLP From line 46
+
+
+---- ols  ordinary least squares
+
+ols
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       sequ
+
+
+---- b1  
+
+b1
+                (.LO, .L, .UP, .M = -INF, 500, +INF, 0)
+     (177.1676) sequ
+
+
+---- b2  
+
+b2
+                (.LO, .L, .UP, .M = -INF, -150, +INF, 0)
+     (173.8955) sequ
+
+
+---- b3  
+
+b3
+                (.LO, .L, .UP, .M = -5, -0.2, 5, 0)
+   (20593.0959) sequ
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 5
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Model Statistics    SOLVE single Using NLP From line 46
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES            4
+NON ZERO ELEMENTS             4     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              24
+CODE LENGTH                  55
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 6
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Solution Report     SOLVE single Using NLP From line 46
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   single              OBJECTIVE  ols
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  46
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/least/convert.opt"
+>>  ampl least-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/least/convert.opt"
+Ampl      : least-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 7
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Equation Listing    SOLVE least Using NLP From line 48
+
+
+---- dols  =E=  definition of ols
+
+dols..  ols + (0)*dev(1) + (0)*dev(2) + (0)*dev(3) + (0)*dev(4) + (0)*dev(5) + (0)*dev(6) =E= 0 ; (LHS = 0)
+     
+
+---- ddev  =E=  definition of deviations
+
+ddev(1)..  - dev(1) - b1 - (2.71828182845905)*b2 - (2038.71137134428)*b3 =E= -127 ; (LHS = -92.2577257311432, INFES = 34.7422742688568 ****)
+     
+ddev(2)..  - dev(2) - b1 - (1.82211880039051)*b2 - (819.953460175729)*b3 =E= -151 ; (LHS = -226.682179941424, INFES = 75.6821799414236 ****)
+     
+ddev(3)..  - dev(3) - b1 - (1.22140275816017)*b2 - (183.210413724025)*b3 =E= -379 ; (LHS = -316.789586275975, INFES = 62.2104137240254 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 8
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Column Listing      SOLVE least Using NLP From line 48
+
+
+---- ols  ordinary least squares
+
+ols
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       dols
+
+
+---- dev  deviation
+
+dev(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      dols
+       -1       ddev(1)
+
+dev(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      dols
+       -1       ddev(2)
+
+dev(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      dols
+       -1       ddev(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- b1  
+
+b1
+                (.LO, .L, .UP, .M = -INF, 500, +INF, 0)
+       -1       ddev(1)
+       -1       ddev(2)
+       -1       ddev(3)
+       -1       ddev(4)
+       -1       ddev(5)
+       -1       ddev(6)
+
+
+---- b2  
+
+b2
+                (.LO, .L, .UP, .M = -INF, -150, +INF, 0)
+      (-2.7183) ddev(1)
+      (-1.8221) ddev(2)
+      (-1.2214) ddev(3)
+      (-0.3679) ddev(4)
+      (-0.5488) ddev(5)
+      (-0.8187) ddev(6)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:33 Page 9
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Column Listing      SOLVE least Using NLP From line 48
+
+
+---- b3  
+
+b3
+                (.LO, .L, .UP, .M = -5, -0.2, 5, 0)
+   (-2038.7114) ddev(1)
+    (-819.9535) ddev(2)
+    (-183.2104) ddev(3)
+     (275.9096) ddev(4)
+     (246.9652) ddev(5)
+     (122.8096) ddev(6)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 10
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Model Statistics    SOLVE least Using NLP From line 48
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           10
+NON ZERO ELEMENTS            31     NON LINEAR N-Z             18
+DERIVATIVE POOL              20     CONSTANT POOL              18
+CODE LENGTH                  61
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:33 Page 11
+Nonlinear Regression Problem   (LEAST,SEQ=24)
+Solution Report     SOLVE least Using NLP From line 48
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   least               OBJECTIVE  ols
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  48
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/least/convert.opt"
+>>  ampl least-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/least/convert.opt"
+Ampl      : least-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/least/least.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/least/least-scalar.mod.lst

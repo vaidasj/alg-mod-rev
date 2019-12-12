@@ -1,0 +1,408 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 2
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+C o m p i l a t i o n
+
+
+   5   
+      No description.
+       
+       
+      Hosoe, N, Gasawa, K, and Hashimoto, H
+      Handbook of Computible General Equilibrium Modeling
+      University of Tokyo Press, Tokyo, Japan, 2004
+  14   
+  15   
+  16  * Definition of sets for suffix ---------------------------------------
+  17  Set     u       SAM entry     /BRD, MLK, CAP, LAB, HOH/
+  18          i(u)    goods         /BRD, MLK/
+  19          h(u)    factor        /CAP, LAB/;
+  20  Alias (u,v), (i,j), (h,k);
+  21  * ---------------------------------------------------------------------
+  22   
+  23  * Loading data --------------------------------------------------------
+  24  Table   SAM(u,v)        social accounting matrix
+  25          BRD     MLK     CAP     LAB     HOH
+  26  BRD                                     15
+  27  MLK                                     35
+  28  CAP     5       20
+  29  LAB     10      15
+  30  HOH                     25      25
+  31  ;
+  32  * ---------------------------------------------------------------------
+  33   
+  34  * Loading the initial values ------------------------------------------
+  35  Parameter       X0(i)           household consumption of the i-th good
+  36                  F0(h,j)         the h-th factor input by the j-th firm
+  37                  Z0(j)           output of the j-th good
+  38                  FF(h)           factor endowment of the h-th factor
+  39  ;
+  40   
+  41  X0(i)   =SAM(i,"HOH");
+  42  F0(h,j) =SAM(h,j);
+  43  Z0(j)   =sum(h, F0(h,j));
+  44  FF(h)   =SAM("HOH",h);
+  45  Display X0, F0, Z0, FF;
+  46  * Calibration ---------------------------------------------------------
+  47   
+  48  Parameters      alpha(i)        share parameter in utility function
+  49                  beta(h,j)       share parameter in production function
+  50                  b(j)            scale parameter in production function
+  51  ;
+  52  alpha(i)=X0(i)/sum(j, X0(j));
+  53  beta(h,j)=F0(h,j)/sum(k, F0(k,j));
+  54  b(j)    =Z0(j)/prod(h, F0(h,j)**beta(h,j));
+  55  Display alpha, beta, b;
+  56  * ---------------------------------------------------------------------
+  57   
+  58  * Defining model system -----------------------------------------------
+  59  Variable        X(i)            household consumption of the i-th good
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 3
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+C o m p i l a t i o n
+
+
+  60                  F(h,j)          the h-th factor input by the j-th firm
+  61                  Z(j)            output of the j-th good
+  62                  px(i)           demand price of the i-th good
+  63                  pz(j)           supply price of the i-th good
+  64                  pf(h)           the h-th factor price
+  65   
+  66                  UU              utility [fictitious]
+  67  ;
+  68   
+  69  Equation        eqX(i)          household demand function
+  70                  eqpz(i)         production function
+  71                  eqF(h,j)        factor demand function
+  72                  eqpx(i)         good market clearing condition
+  73                  eqpf(h)         factor market clearing condition
+  74                  eqZ(i)          price equation
+  75   
+  76                  obj             utility function [fictitious]
+  77  ;
+  78   
+  79  eqX(i)..        X(i)    =e= alpha(i)*sum(h, pf(h)*FF(h))/px(i);
+  80  eqpz(j)..       Z(j)    =e= b(j)*prod(h, F(h,j)**beta(h,j));
+  81  eqF(h,j)..      F(h,j)  =e= beta(h,j)*pz(j)*Z(j)/pf(h);
+  82  eqpx(i)..       X(i)    =e= Z(i);
+  83  eqpf(h)..       sum(j, F(h,j)) =e= FF(h);
+  84  eqZ(i)..        px(i)   =e= pz(i);
+  85   
+  86  obj..           UU      =e= prod(i, X(i)**alpha(i));
+  87  * ---------------------------------------------------------------------
+  88   
+  89  * Initializing variables ----------------------------------------------
+  90  X.l(i)  =X0(i);
+  91  F.l(h,j)=F0(h,j);
+  92  Z.l(j)  =Z0(j);
+  93  px.l(i) =1;
+  94  pz.l(j) =1;
+  95  pf.l(h) =1;
+  96  * ---------------------------------------------------------------------
+  97   
+  98  * Setting lower bounds to avoid division by zero ----------------------
+  99  X.lo(i) =0.001;
+ 100  F.lo(h,j)=0.001;
+ 101  Z.lo(j) =0.001;
+ 102  px.lo(i)=0.001;
+ 103  pz.lo(j)=0.001;
+ 104  pf.lo(h)=0.001;
+ 105  * ---------------------------------------------------------------------
+ 106  pf.fx("LAB")=1;
+ 107   
+ 108  * Defining and solving the model --------------------------------------
+ 109  Model splcge /all/;
+ 110  Solve splcge maximizing UU using nlp;
+ 111  * ---------------------------------------------------------------------
+ 112  * end of model --------------------------------------------------------
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 4
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+C o m p i l a t i o n
+
+
+ 113  * ---------------------------------------------------------------------
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 5
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+E x e c u t i o n
+
+
+----     45 PARAMETER X0  household consumption of the i-th good
+
+BRD 15.000,    MLK 35.000
+
+
+----     45 PARAMETER F0  the h-th factor input by the j-th firm
+
+            BRD         MLK
+
+CAP       5.000      20.000
+LAB      10.000      15.000
+
+
+----     45 PARAMETER Z0  output of the j-th good
+
+BRD 15.000,    MLK 35.000
+
+
+----     45 PARAMETER FF  factor endowment of the h-th factor
+
+CAP 25.000,    LAB 25.000
+
+
+----     55 PARAMETER alpha  share parameter in utility function
+
+BRD 0.300,    MLK 0.700
+
+
+----     55 PARAMETER beta  share parameter in production function
+
+            BRD         MLK
+
+CAP       0.333       0.571
+LAB       0.667       0.429
+
+
+----     55 PARAMETER b  scale parameter in production function
+
+BRD 1.890,    MLK 1.980
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 6
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+Equation Listing    SOLVE splcge Using NLP From line 110
+
+
+---- eqX  =E=  household demand function
+
+eqX(BRD)..  X(BRD) + (15)*px(BRD) - (7.5)*pf(CAP) - (7.5)*pf(LAB) =E= 0 ; (LHS = 0)
+     
+eqX(MLK)..  X(MLK) + (35)*px(MLK) - (17.5)*pf(CAP) - (17.5)*pf(LAB) =E= 0 ; (LHS = 0)
+     
+
+---- eqpz  =E=  production function
+
+eqpz(BRD)..  - (1)*F(CAP,BRD) - (1)*F(LAB,BRD) + Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqpz(MLK)..  - (1)*F(CAP,MLK) - (1)*F(LAB,MLK) + Z(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD)..  F(CAP,BRD) - (0.333333333333333)*Z(BRD) - (5)*pz(BRD) + (5)*pf(CAP) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK)..  F(CAP,MLK) - (0.571428571428571)*Z(MLK) - (20)*pz(MLK) + (20)*pf(CAP) =E= 0 ; (LHS = 0)
+     
+eqF(LAB,BRD)..  F(LAB,BRD) - (0.666666666666667)*Z(BRD) - (10)*pz(BRD) + (10)*pf(LAB) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpx  =E=  good market clearing condition
+
+eqpx(BRD)..  X(BRD) - Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqpx(MLK)..  X(MLK) - Z(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP)..  F(CAP,BRD) + F(CAP,MLK) =E= 25 ; (LHS = 25)
+     
+eqpf(LAB)..  F(LAB,BRD) + F(LAB,MLK) =E= 25 ; (LHS = 25)
+     
+
+---- eqZ  =E=  price equation
+
+eqZ(BRD)..  px(BRD) - pz(BRD) =E= 0 ; (LHS = 0)
+     
+eqZ(MLK)..  px(MLK) - pz(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- obj  =E=  utility function [fictitious]
+
+obj..  - (0.542881452689825)*X(BRD) - (0.542881452689825)*X(MLK) + UU =E= 0 ; (LHS = -27.1440726344913, INFES = 27.1440726344913 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 7
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+Column Listing      SOLVE splcge Using NLP From line 110
+
+
+---- X  household consumption of the i-th good
+
+X(BRD)
+                (.LO, .L, .UP, .M = 0.001, 15, +INF, 0)
+        1       eqX(BRD)
+        1       eqpx(BRD)
+      (-0.5429) obj
+
+X(MLK)
+                (.LO, .L, .UP, .M = 0.001, 35, +INF, 0)
+        1       eqX(MLK)
+        1       eqpx(MLK)
+      (-0.5429) obj
+
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD)
+                (.LO, .L, .UP, .M = 0.001, 5, +INF, 0)
+      (-1)      eqpz(BRD)
+        1       eqF(CAP,BRD)
+        1       eqpf(CAP)
+
+F(CAP,MLK)
+                (.LO, .L, .UP, .M = 0.001, 20, +INF, 0)
+      (-1)      eqpz(MLK)
+        1       eqF(CAP,MLK)
+        1       eqpf(CAP)
+
+F(LAB,BRD)
+                (.LO, .L, .UP, .M = 0.001, 10, +INF, 0)
+      (-1)      eqpz(BRD)
+        1       eqF(LAB,BRD)
+        1       eqpf(LAB)
+
+REMAINING ENTRY SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD)
+                (.LO, .L, .UP, .M = 0.001, 15, +INF, 0)
+        1       eqpz(BRD)
+      (-0.3333) eqF(CAP,BRD)
+      (-0.6667) eqF(LAB,BRD)
+       -1       eqpx(BRD)
+
+Z(MLK)
+                (.LO, .L, .UP, .M = 0.001, 35, +INF, 0)
+        1       eqpz(MLK)
+      (-0.5714) eqF(CAP,MLK)
+      (-0.4286) eqF(LAB,MLK)
+       -1       eqpx(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 8
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+Column Listing      SOLVE splcge Using NLP From line 110
+
+
+---- px  demand price of the i-th good
+
+px(BRD)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (15)      eqX(BRD)
+        1       eqZ(BRD)
+
+px(MLK)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (35)      eqX(MLK)
+        1       eqZ(MLK)
+
+
+---- pz  supply price of the i-th good
+
+pz(BRD)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (-5)      eqF(CAP,BRD)
+     (-10)      eqF(LAB,BRD)
+       -1       eqZ(BRD)
+
+pz(MLK)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+     (-20)      eqF(CAP,MLK)
+     (-15)      eqF(LAB,MLK)
+       -1       eqZ(MLK)
+
+
+---- pf  the h-th factor price
+
+pf(CAP)
+                (.LO, .L, .UP, .M = 0.001, 1, +INF, 0)
+      (-7.5)    eqX(BRD)
+     (-17.5)    eqX(MLK)
+       (5)      eqF(CAP,BRD)
+      (20)      eqF(CAP,MLK)
+
+pf(LAB)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (-7.5)    eqX(BRD)
+     (-17.5)    eqX(MLK)
+      (10)      eqF(LAB,BRD)
+      (15)      eqF(LAB,MLK)
+
+
+---- UU  utility [fictitious]
+
+UU
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 9
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+Model Statistics    SOLVE splcge Using NLP From line 110
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS           15
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           15
+NON ZERO ELEMENTS            45     NON LINEAR N-Z             24
+DERIVATIVE POOL              20     CONSTANT POOL              26
+CODE LENGTH                  83
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:23 Page 10
+A Simple CGE Model in Ch. 5 (SPLCGE,SEQ=275)
+Solution Report     SOLVE splcge Using NLP From line 110
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   splcge              OBJECTIVE  UU
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  110
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/splcge/convert.opt"
+>>  pyomo splcge-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/splcge/convert.opt"
+Pyomo     : splcge-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/splcge/splcge.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/splcge/splcge-scalar.py.lst

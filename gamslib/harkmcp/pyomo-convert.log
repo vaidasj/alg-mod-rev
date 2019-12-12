@@ -1,0 +1,88 @@
+--- Job harkmcp.gms Start 12/13/18 10:30:49 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- harkmcp.gms(262) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- harkmcp.gms(217) 4 Mb
+--- Generating MCP model harker
+--- harkmcp.gms(218) 6 Mb
+---   32 rows  32 columns  100 non-zeroes
+---   69 nl-code  14 nl-non-zeroes
+--- harkmcp.gms(218) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Pyomo     : harkmcp-scalar.py
+
+--- Restarting execution
+--- harkmcp.gms(218) 2 Mb
+--- Reading solution for model harker
+--- harkmcp.gms(228) 3 Mb
+--- Generating MCP model harker
+--- harkmcp.gms(229) 5 Mb
+---   32 rows  32 columns  103 non-zeroes
+---   70 nl-code  14 nl-non-zeroes
+--- harkmcp.gms(229) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.015
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Pyomo     : harkmcp-scalar.py
+
+--- Restarting execution
+--- harkmcp.gms(229) 2 Mb
+--- Reading solution for model harker
+--- harkmcp.gms(238) 3 Mb
+--- Generating MCP model harker
+--- harkmcp.gms(239) 5 Mb
+---   32 rows  32 columns  103 non-zeroes
+---   69 nl-code  14 nl-non-zeroes
+--- harkmcp.gms(239) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.032
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Pyomo     : harkmcp-scalar.py
+
+--- Restarting execution
+--- harkmcp.gms(239) 2 Mb
+--- Reading solution for model harker
+--- harkmcp.gms(248) 3 Mb
+--- Generating MCP model harkoli
+--- harkmcp.gms(249) 5 Mb
+---   92 rows  92 columns  329 non-zeroes
+---   207 nl-code  42 nl-non-zeroes
+--- harkmcp.gms(249) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.050
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  pyomo harkmcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Pyomo     : harkmcp-scalar.py
+
+--- Restarting execution
+--- harkmcp.gms(249) 2 Mb
+--- Reading solution for model harkoli
+--- harkmcp.gms(261) 3 Mb
+*** Status: Normal completion
+--- Job harkmcp.gms Stop 12/13/18 10:30:49 elapsed 0:00:00.062

@@ -1,0 +1,810 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option DNLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 2
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+C o m p i l a t i o n
+
+
+   3  * Eight univariate test models with simple box constraints. Compares
+   4  * the performance on eight models.
+   5  *
+   6  * More information at http://www.wolfram.com/products/applications/mathoptimizer/
+   7  *
+   8  *
+   9  *  Mathematica, MathOptimizer - An Advanced Modeling and Optimization System
+  10  *  for Mathematica Users, http://www.wolfram.com/products/applications/mathoptimizer/
+  11  *
+  12  *  Janos D Pinter, Global Optimization in Action, Kluwer Academic Publishers,
+  13  *  Dordrecht/Boston/London, 1996.
+  14  *
+  15  *  Janos D Pinter, Computational Global Optimization in Nonlinear Systems,
+  16  *  Lionheart Publishing, Inc., Atlanta, GA, 2001
+  17  *
+  19  sets ff / f1*f8 /, f(ff) dynamic version of ff
+  20       k  / k0*k6 /, k5(k) / k1*k5 /
+  21   
+  22  set frun(ff)  models that are to be run;
+  24  frun(ff) = yes;
+  25   
+  26  parameters c4(k) / k4 2, k3 -13, k2 18, k1 -10, k0 3 /
+  27             c7(k) / k5 0.2, k4 -1.6995, k3 0.998266, k2 -0.0218343, k1 -0.000089248 /
+  28             c8(k) / k2 2, k4 -1.05, k6 0.1666667, k1 -1 /;
+  29   
+  30   
+  31  *  Instead of defining eight different models we combine the
+  32  *  the models into one single objective function. Note the use
+  33  *  of the dynamic set f and the function sameas() which allows
+  34  *  us to select any component at runtime. The equation objdef is
+  35  *  declared using the domain ff, but defined with the dynamic set f.
+  36  *  This will permit convenient testing of all eight models.
+  37   
+  38  variables x, obj; equation objdef(ff);
+  39   
+  40  objdef(f).. obj =e=
+  41                                                                (
+  42      Exp[-x] - power(Sin[x],3)                   )$sameas('f1',f)+(
+  43      sqr(x) - Cos[18*x]                          )$sameas('f2',f)+(
+  44      Sin[x]*sqr(Cos[x] - Sin[x])                 )$sameas('f3',f)+(
+  45      sqr(sum(k, c4(k)*power(x,ord(k)-1)))        )$sameas('f4',f)+(
+  46      Sum[k5, ord(k5)*Sin[(ord(k5)+1)*x+ord(k5)]] )$sameas('f5',f)+(
+  47      0.1*x + Sqrt[Abs[x]]*sqr(Sin[x])            )$sameas('f6',f)+(
+  48      0.01*sum(k, c7(k)*power(x,ord(k)-1))        )$sameas('f7',f)+(
+  49      sum(k, c8(k)*power(x,ord(k)-1))             )$sameas('f8',f);
+  50   
+  51  model m / objdef /;
+  52   
+  53  *  You could use the convert option to expand all equation to allow
+  54  *  better verification with the original source.
+  55  *
+  56  *  f(ff) = yes; option dnlp=convert; solve m using dnlp min obj;
+  57   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 3
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+C o m p i l a t i o n
+
+
+  58  table bounds(ff,*) bounds and starting values used by J Pinter
+  59      lo  up   l
+  60  f1  -5  10   1
+  61  f2  -5   5   2
+  62  f3   0  10   3
+  63  f4  -1   4   3
+  64  f5 -10  10   5
+  65  f6 -10   5   6
+  66  f7   0   8   2
+  67  f8  -2   2.5 1
+  68   
+  69  set col / x_initial, f_solver, f_global, f_reldiff, x_solver, x_global, status  /;
+  70  acronym global,local,failed,capability; scalar stat;
+  71   
+  72  * note that in some cases we have multiple global optima. For
+  73  * example f5 has three global optima spaced 2*pi apart.
+  74  * the x_global is just used a possible starting point for
+  75  * local optimizers.
+  76   
+  77  table data(ff,col) solution summary
+  78   
+  79        x_global     f_global
+  80  f1    7.85411102   -0.99961182
+  81  f2    0            -1
+  82  f3    5.22405862   -1.61642493
+  83  f4    1
+  84  f5   -7.39728499  -14.83795000
+  85  f6   -9.44104654   -0.94329150
+  86  f7    6.32565486   -4.43672834
+  87  f8    1.75767181   -0.68607228   ;
+  88   
+  89   
+  90  *   Solve for each component of the objective function and collect
+  91  *   the result to report performance.
+  92   
+  93  f(ff) = no;
+  94  loop(frun(ff),
+  95     x.lo  = bounds(ff,'lo');
+  96     x.up  = bounds(ff,'up');
+  97     x.l   = bounds(ff,'l');
+  98  *  try different starting points
+  99  *   x.l = uniform(x.lo,x.up);
+ 100  *   x.l = bounds(ff,'l');
+ 101  *   x.l = data(ff,'x_global');
+ 102  *   x.l = 0;
+ 103     data(ff,'x_initial') = x.l;
+ 104     f(ff) = yes; solve m us dnlp min obj; f(ff) = no;
+ 105     if(m.modelstat=1 or
+ 106        m.modelstat=2 or
+ 107        m.modelstat=7, // good return
+ 108        data(ff,'f_reldiff') = abs(data(ff,'f_global') - obj.l)/(1+abs(data(ff,'f_global')));
+ 109        if(data(ff,'f_reldiff') < 1e-6,
+ 110           stat = global
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 4
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+C o m p i l a t i o n
+
+
+ 111        else
+ 112           stat = local );
+ 113        data(ff,'x_solver') = x.l;
+ 114        data(ff,'f_solver') = obj.l
+ 115     else
+ 116        data(ff,'f_reldiff') = na;
+ 117        if(m.solvestat = 6,
+ 118           stat = capability
+ 119        else
+ 120           stat = failed);
+ 121        data(ff,'x_solver') = na;
+ 122        data(ff,'f_solver') = na  );
+ 123     data(ff,'status') = stat  );
+ 124   
+ 125  options decimals=7; display data;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 5
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f1)..  (1.51560054302288)*x + obj =E= 0 ; (LHS = 0.227943795419513, INFES = 0.227943795419513 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 6
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = -5, 1, 10, 0)
+       (1.5156) objdef(f1)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f1)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 7
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  11
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 8
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:00 Page 9
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f2)..  (13.8520193619761)*x + obj =E= 0 ; (LHS = -4.1279636896274, INFES = 4.1279636896274 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 10
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = -5, 2, 5, 0)
+      (13.852)  objdef(f2)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 11
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  10
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 12
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 13
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f3)..  (1.53761022043315)*x + obj =E= 0 ; (LHS = -0.180551125417751, INFES = 0.180551125417751 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 14
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = 0, 3, 10, 0)
+       (1.5376) objdef(f3)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f3)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 15
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  13
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 16
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 17
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f4)..  - (3996)*x + obj =E= 0 ; (LHS = -2916, INFES = 2916 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 18
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = -1, 3, 4, 0)
+   (-3996)      objdef(f4)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f4)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 19
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              20
+CODE LENGTH                  24
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 20
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 21
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f5)..  (50.1080416228595)*x + obj =E= 0 ; (LHS = 10.256895287168, INFES = 10.256895287168 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 22
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = -10, 5, 10, 0)
+      (50.108)  objdef(f5)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f5)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 23
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  28
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 24
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 25
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f6)..  (0.91085373741861)*x + obj =E= 0 ; (LHS = -2.55614447724971, INFES = 2.55614447724971 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 26
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = -10, 5, 5, 0)
+       (0.9109) objdef(f6)
+        6       (OLD LEVEL ****)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f6)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 27
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f6
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2  1 projected
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  13
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f6
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 28
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 29
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f7)..  (0.26492234448)*x + obj =E= 0 ; (LHS = 0.12893387696, INFES = 0.12893387696 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 30
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = 0, 2, 8, 0)
+       (0.2649) objdef(f7)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f7)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 31
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f7
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              23
+CODE LENGTH                  24
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f7
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 32
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 33
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Equation Listing    SOLVE m Using DNLP From line 104
+
+
+---- objdef  =E=  
+
+objdef(f8)..  (0.1999998)*x + obj =E= 0 ; (LHS = -0.1166667, INFES = 0.1166667 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 34
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Column Listing      SOLVE m Using DNLP From line 104
+
+
+---- x  
+
+x
+                (.LO, .L, .UP, .M = -2, 1, 2.5, 0)
+       (0.2)    objdef(f8)
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef(f8)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 35
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Model Statistics    SOLVE m Using DNLP From line 104
+
+
+LOOPS                           *            f8
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           1     SINGLE EQUATIONS            1
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            2
+NON ZERO ELEMENTS             2     NON LINEAR N-Z              1
+DERIVATIVE POOL              20     CONSTANT POOL              20
+CODE LENGTH                  19
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S         *          f8
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 36
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+Solution Report     SOLVE m Using DNLP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    DNLP                DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+>>  ampl mathopt5-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/convert.opt"
+Ampl      : mathopt5-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:00 Page 37
+MathOptimizer Example 5 (MATHOPT5,SEQ=259)
+E x e c u t i o n
+
+
+----    125 PARAMETER data  solution summary
+
+     x_initial    f_solver    f_global   f_reldiff    x_solver    x_global      status
+
+f1   1.0000000          NA  -0.9996118          NA          NA   7.8541110      failed
+f2   2.0000000          NA  -1.0000000          NA          NA                  failed
+f3   3.0000000          NA  -1.6164249          NA          NA   5.2240586      failed
+f4   3.0000000          NA                      NA          NA   1.0000000      failed
+f5   5.0000000          NA -14.8379500          NA          NA  -7.3972850      failed
+f6   6.0000000          NA  -0.9432915          NA          NA  -9.4410465      failed
+f7   2.0000000          NA  -4.4367283          NA          NA   6.3256549      failed
+f8   1.0000000          NA  -0.6860723          NA          NA   1.7576718      failed
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/mathopt5.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mathopt5/mathopt5-scalar.mod.lst

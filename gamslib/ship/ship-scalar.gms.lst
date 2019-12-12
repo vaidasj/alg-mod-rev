@@ -1,0 +1,399 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 2
+Structural Optimization    (SHIP,SEQ=22)
+C o m p i l a t i o n
+
+
+   4   
+       
+      This model designs a vertically corrugated transverse bulkhead of an
+      oil tanker. The objective is to design for minimum weight and
+      meet stress, moment of inertia and plate thickness constraints.
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 6. In Selected Applications of
+      Nonlinear Programming. John Wiley and Sons, New York, 1968.
+       
+  16   
+  17   Set s bulkhead sections / top, middle, bottom /; alias (s,sp)
+  18   
+  19   Scalars  gam   specific gravity of water (kg cm-3)  / .001 /
+  20            sig   maximum bending stress    (kg cm-2)  / 1200 /
+  21            dnv   det norske veritas factor            / 3.9 /
+  22            ca    corrosion allowance       (cm)       / na /
+  23            e     flange effectiveness                 / na /
+  24            ha    height above panel         (cm)       / 250 /
+  25            gamsteel specific weight of steel          / .0078 /
+  26            width width of panel            (m)       / na /
+  27            tlow  lower bound on t          (cm)      / na /
+  28   
+  29   Parameters h(s)  height at the middle of panel (cm)
+  30              hb(s) height at the base of panel   (cm)
+  31              k1(s) constant number one
+  32              k2(s) constant number two
+  33              l(s)  length of panel               (cm)
+  34                    / top 495, middle 385, bottom 315 / ;
+  35   
+  36    hb(s) = ha + sum(sp$(ord(sp) le ord(s)), l(sp));
+  37    h(s)  = hb(s) - l(s)/2;
+  38    k1(s) = gam*h(s)*l(s)*l(s)/12/sig;
+  39    k2(s) = dnv*1.05e-4*sqrt(hb(s));
+  40   
+  41   Display l, h, hb, k1, k2;
+  42   
+  43  *  the reference does not contain values for the parameters
+  44  *  e, width, ca, and t.lo. from reported optimal solutions and
+  45  *  using constraints stress and inertia a value for e can be calculated.
+  46  *  the width is only a scaling constant and is set to 500. ca is assumed
+  47  *  to be .2 and the lower bound of 1.05 on t was read out from
+  48  *  solution values.
+  49   
+  50   e = .8; width = 500; ca = .2; tlow = 1.05;
+  51   
+  52   Variables  z(s)      module (cm3)
+  53              t(s)      plate thickness (cm)
+  54              wl        width of flange (cm)
+  55              lw        length of web   (cm)
+  56              d         depth of corrugation (cm)
+  57              wc        width of corrugation (cm)
+  58              w         weight of structure   (tons)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 3
+Structural Optimization    (SHIP,SEQ=22)
+C o m p i l a t i o n
+
+
+  59   
+  60   Equations  zdef(s)      module definition (cm3)
+  61              wdef         width of corrugation - definition (cm)
+  62              stress(s)    bending stress    (kg cm-2)
+  63              inertia(s)   moment of inertia (cm4)
+  64              platew(s)    plate thickness - width of flange (cm)
+  65              platel(s)    plate thickness - length of web   (cm)
+  66              geom         geometric constraint       (cm)
+  67              weight       total weight of structure  (tons) ;
+  68   
+  69   zdef(s).. z(s) =e= d*t(s)*(lw/3+wl*e)/2;
+  70   
+  71   wdef..    wc =e= wl + sqrt(lw*lw-d*d);
+  72   
+  73   stress(s).. z(s) =g= k1(s)*wc;
+  74   
+  75   inertia(s)..  z(s)*d/2 =g= 2.2*(k1(s)*wc)**(4/3);
+  76   
+  77   platew(s)..  t(s) =g= k2(s)*wl + ca ;
+  78   
+  79   platel(s)..  t(s) =g= k2(s)*lw + ca ;
+  80   
+  81   geom..       lw =g= d ;
+  82   
+  83   weight.. w =e= gamsteel*width*(wl+lw)*sum(s, t(s)*l(s))/wc/1000;
+  84   
+  85   t.lo(s) = tlow;
+  86   
+  87   t.l("top") = 1.2; t.l("middle") = 1.2; t.l("bottom") = 1.3;
+  88   wl.l = 45.8; lw.l = 43.2; d.l = 30.5;
+  89   wc.l = wl.l + sqrt(lw.l**2-d.l**2); display wc.l;
+  90   z.l(s) = d.l*t.l(s)*(lw.l/3+wl.l*e)/2; display z.l;
+  91   wc.lo = 1;
+  92   
+  93   Model ship structural design of bulkhead / all /;
+  94   
+  95   Solve ship minimizing w using nlp;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 4
+Structural Optimization    (SHIP,SEQ=22)
+E x e c u t i o n
+
+
+----     41 PARAMETER l  length of panel               (cm)
+
+top    495.000,    middle 385.000,    bottom 315.000
+
+
+----     41 PARAMETER h  height at the middle of panel (cm)
+
+top     497.500,    middle  937.500,    bottom 1287.500
+
+
+----     41 PARAMETER hb  height at the base of panel   (cm)
+
+top     745.000,    middle 1130.000,    bottom 1445.000
+
+
+----     41 PARAMETER k1  constant number one
+
+top    8.465,    middle 9.650,    bottom 8.872
+
+
+----     41 PARAMETER k2  constant number two
+
+top    0.011,    middle 0.014,    bottom 0.016
+
+
+----     89 VARIABLE wc.L                  =       76.394  width of corrugation (cm)
+
+----     90 VARIABLE z.L  module (cm3)
+
+top     934.032,    middle  934.032,    bottom 1011.868
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 5
+Structural Optimization    (SHIP,SEQ=22)
+Equation Listing    SOLVE ship Using NLP From line 95
+
+
+---- zdef  =E=  module definition (cm3)
+
+zdef(top)..  z(top) - (778.36)*t(top) - (14.64)*wl - (6.1)*lw - (30.624)*d =E= 0 ; (LHS = 0)
+     
+zdef(middle)..  z(middle) - (778.36)*t(middle) - (14.64)*wl - (6.1)*lw - (30.624)*d =E= 0 ; (LHS = 0)
+     
+zdef(bottom)..  z(bottom) - (778.36)*t(bottom) - (15.86)*wl - (6.60833333333333)*lw - (33.176)*d =E= 0 ; (LHS = 0)
+     
+
+---- wdef  =E=  width of corrugation - definition (cm)
+
+wdef..  - wl - (1.41204371598364)*lw + (0.996929012442153)*d + wc =E= 0 ; (LHS = 0)
+     
+
+---- stress  =G=  bending stress    (kg cm-2)
+
+stress(top)..  z(top) - 8.4652734375*wc =G= 0 ; (LHS = 287.336293372519)
+     
+stress(middle)..  z(middle) - 9.65006510416667*wc =G= 0 ; (LHS = 196.825373703086)
+     
+stress(bottom)..  z(bottom) - 8.8716796875*wc =G= 0 ; (LHS = 334.125313146539)
+     
+
+---- inertia  =G=  moment of inertia (cm4)
+
+inertia(top)..  (15.25)*z(top) + (467.016)*d - (214.734784568194)*wc =G= 0 ; (LHS = 1940.65861532871)
+     
+inertia(middle)..  (15.25)*z(middle) + (467.016)*d - (255.714136458365)*wc =G= 0 ; (LHS = -407.272416380843, INFES = 407.272416380843 ****)
+     
+inertia(bottom)..  (15.25)*z(bottom) + (505.934)*d - (228.589117320549)*wc =G= 0 ; (LHS = 2333.86717471692)
+     
+
+---- platew  =G=  plate thickness - width of flange (cm)
+
+platew(top)..  t(top) - 0.0111771747883801*wl =G= 0.2 ; (LHS = 0.688085394692191)
+     
+platew(middle)..  t(middle) - 0.0137655360411427*wl =G= 0.2 ; (LHS = 0.569538449315662)
+     
+platew(bottom)..  t(bottom) - 0.0155663872253648*wl =G= 0.2 ; (LHS = 0.587059465078293)
+     
+
+---- platel  =G=  plate thickness - length of web   (cm)
+
+platel(top)..  t(top) - 0.0111771747883801*lw =G= 0.2 ; (LHS = 0.717146049141979)
+     
+platel(middle)..  t(middle) - 0.0137655360411427*lw =G= 0.2 ; (LHS = 0.605328843022633)
+     
+platel(bottom)..  t(bottom) - 0.0155663872253648*lw =G= 0.2 ; (LHS = 0.627532071864241)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 6
+Structural Optimization    (SHIP,SEQ=22)
+Equation Listing    SOLVE ship Using NLP From line 95
+
+
+---- geom  =G=  geometric constraint       (cm)
+
+geom..  lw - d =G= 0 ; (LHS = 12.7)
+     
+
+---- weight  =E=  total weight of structure  (tons)
+
+weight..  - (2.24905888213228)*t(top) - (1.74926801943621)*t(middle) - (1.43121928862963)*t(bottom) - (0.0748154759224798)*wl - (0.0748154759224798)*lw + (0.0871610518748545)*wc + w =E= 0 ; (LHS = -6.65857735710071, INFES = 6.65857735710071 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 7
+Structural Optimization    (SHIP,SEQ=22)
+Column Listing      SOLVE ship Using NLP From line 95
+
+
+---- z  module (cm3)
+
+z(top)
+                (.LO, .L, .UP, .M = -INF, 934.032, +INF, 0)
+        1       zdef(top)
+        1       stress(top)
+      (15.25)   inertia(top)
+
+z(middle)
+                (.LO, .L, .UP, .M = -INF, 934.032, +INF, 0)
+        1       zdef(middle)
+        1       stress(middle)
+      (15.25)   inertia(middle)
+
+z(bottom)
+                (.LO, .L, .UP, .M = -INF, 1011.868, +INF, 0)
+        1       zdef(bottom)
+        1       stress(bottom)
+      (15.25)   inertia(bottom)
+
+
+---- t  plate thickness (cm)
+
+t(top)
+                (.LO, .L, .UP, .M = 1.05, 1.2, +INF, 0)
+    (-778.36)   zdef(top)
+        1       platew(top)
+        1       platel(top)
+      (-2.2491) weight
+
+t(middle)
+                (.LO, .L, .UP, .M = 1.05, 1.2, +INF, 0)
+    (-778.36)   zdef(middle)
+        1       platew(middle)
+        1       platel(middle)
+      (-1.7493) weight
+
+t(bottom)
+                (.LO, .L, .UP, .M = 1.05, 1.3, +INF, 0)
+    (-778.36)   zdef(bottom)
+        1       platew(bottom)
+        1       platel(bottom)
+      (-1.4312) weight
+
+
+---- wl  width of flange (cm)
+
+wl
+                (.LO, .L, .UP, .M = -INF, 45.8, +INF, 0)
+     (-14.64)   zdef(top)
+     (-14.64)   zdef(middle)
+     (-15.86)   zdef(bottom)
+       -1       wdef
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 8
+Structural Optimization    (SHIP,SEQ=22)
+Column Listing      SOLVE ship Using NLP From line 95
+
+
+     wl  width of flange (cm)
+
+       -0.0112  platew(top)
+       -0.0138  platew(middle)
+       -0.0156  platew(bottom)
+      (-0.0748) weight
+
+
+---- lw  length of web   (cm)
+
+lw
+                (.LO, .L, .UP, .M = -INF, 43.2, +INF, 0)
+      (-6.1)    zdef(top)
+      (-6.1)    zdef(middle)
+      (-6.6083) zdef(bottom)
+      (-1.412)  wdef
+       -0.0112  platel(top)
+       -0.0138  platel(middle)
+       -0.0156  platel(bottom)
+        1       geom
+      (-0.0748) weight
+
+
+---- d  depth of corrugation (cm)
+
+d
+                (.LO, .L, .UP, .M = -INF, 30.5, +INF, 0)
+     (-30.624)  zdef(top)
+     (-30.624)  zdef(middle)
+     (-33.176)  zdef(bottom)
+       (0.9969) wdef
+     (467.016)  inertia(top)
+     (467.016)  inertia(middle)
+     (505.934)  inertia(bottom)
+       -1       geom
+
+
+---- wc  width of corrugation (cm)
+
+wc
+                (.LO, .L, .UP, .M = 1, 76.3939536510076, +INF, 0)
+        1       wdef
+       -8.4653  stress(top)
+       -9.6501  stress(middle)
+       -8.8717  stress(bottom)
+    (-214.7348) inertia(top)
+    (-255.7141) inertia(middle)
+    (-228.5891) inertia(bottom)
+       (0.0872) weight
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:31 Page 9
+Structural Optimization    (SHIP,SEQ=22)
+Column Listing      SOLVE ship Using NLP From line 95
+
+
+---- w  weight of structure   (tons)
+
+w
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       weight
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:31 Page 10
+Structural Optimization    (SHIP,SEQ=22)
+Model Statistics    SOLVE ship Using NLP From line 95
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS           18
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           11
+NON ZERO ELEMENTS            55     NON LINEAR N-Z             29
+DERIVATIVE POOL              20     CONSTANT POOL              28
+CODE LENGTH                  93
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:31 Page 11
+Structural Optimization    (SHIP,SEQ=22)
+Solution Report     SOLVE ship Using NLP From line 95
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   ship                OBJECTIVE  w
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  95
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ship/convert.opt"
+>>  gams ship-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ship/convert.opt"
+Gams      : ship-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ship/ship.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ship/ship-scalar.gms.lst

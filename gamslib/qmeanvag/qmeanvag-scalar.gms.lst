@@ -1,0 +1,326 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIQCP=convert;
+   2  option MIQCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 2
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+C o m p i l a t i o n
+
+
+   4   
+       
+      This model is a parallel implementation of the sequential QMEANVAR
+      model. Minimum and maximum trade constraints are added to the standard
+      mean-variance model. If it is not profitable to trade within these
+      ranges, no trade should take place. A turnover constraint is added to
+      improve stability of the solution to small changes in data. The
+      resulting model is now expressed as a MIQCP and a frontier is
+      computed.
+       
+      Dahl, H, Meeraus, A, and Zenios, S A, Some Financial Optimization
+      Models: Risk Management. In Zenios, S A, Ed, Financial Optimization.
+      Cambridge University Press, New York, NY, 1993.
+       
+       
+      Two double dash option are used to conveniently change the number of
+      points and set a time limit.
+  23   
+  26   
+  31   
+  32  scalar maxtime / 120 /
+  33   
+  34  Set  i  securities  / cn, fr, gr, jp, sw, uk, us /;  alias (i,j) ;
+  35   
+  36  Parameter  mu(i)  expected return of security /
+  37   
+  38      cn     0.1287
+  39      fr     0.1096
+  40      gr     0.0501
+  41      jp     0.1524
+  42      sw     0.0763
+  43      uk     0.1854
+  44      us     0.0620 /
+  45   
+  46   
+  47  Table  q(i,j)   covariance matrix
+  48   
+  49              cn      fr      gr      jp      sw      uk      us
+  50      cn    42.18
+  51      fr    20.18   70.89
+  52      gr    10.88   21.58   25.51
+  53      jp     5.30   15.41    9.60   22.33
+  54      sw    12.32   23.24   22.63   10.32   30.01
+  55      uk    23.84   23.80   13.22   10.46   16.36   42.23
+  56      us    17.41   12.62    4.70    1.00    7.20    9.90   16.42 ;
+  57   
+  58  *  we will continue to use only the lower triangle of the q-matrix
+  59  *  and adjust the off diagonal entries to give the correct results.
+  60   
+  61  q(i,j) = 2*q(j,i) ;  q(i,i) = q(i,i)/2;
+  62   
+  63   
+  64  Scalars  tau   bounding parameter on turnover of current holdings  /0.3 /;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 3
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+C o m p i l a t i o n
+
+
+  65   
+  66  Set pd  portfolio data labels  /
+  67            old       current holdings fraction of the portfolio
+  68            umin      minimum increase of holdings fraction of security i
+  69            umax      maximum increase of holdings fraction of security i
+  70            lmin      minimum decrease of holdings fraction of security i
+  71            lmax      maximum decrease of holdings fraction of security i  /
+  72   
+  73   
+  74  Table    bdata(i,pd)    portfolio data and trading restrictions
+  75  *                    - increase -        - decrease -
+  76                old    umin    umax        lmin    lmax
+  77          cn    0.2    0.03    0.11        0.02    0.30
+  78          fr    0.2    0.04    0.10        0.02    0.15
+  79          gr    0.0    0.04    0.07        0.04    0.10
+  80          jp    0.0    0.03    0.11        0.04    0.10
+  81          sw    0.2    0.03    0.20        0.04    0.10
+  82          uk    0.2    0.03    0.10        0.04    0.15
+  83          us    0.2    0.03    0.10        0.04    0.30    ;
+  84   
+  85  bdata(i,'lmax') = min(bdata(i,'old'),bdata(i,'lmax')); ! tighten bounds
+  86   
+  87  Abort$(abs(sum(i, bdata(i,'old'))-1) >= 1e5) 'error in bdata', bdata;
+  88   
+  89  Variables
+  90      var       variance of portfolio
+  91      ret       return of portfolio
+  92      x(i)      fraction of portfolio of current holdings of i
+  93      xi(i)     fraction of portfolio increase
+  94      xd(i)     fraction of portfolio decrease
+  95      y(i)      binary switch for increasing current holdings of i
+  96      z(i)      binary switch for decreasing current holdings of i
+  97   
+  98  Binary Variables  y,z; positive variables x, xi, xd;
+  99   
+ 100   
+ 101  Equations  budget     budget constraint
+ 102             turnover   restrict maximum turnover of portfolio
+ 103             maxinc(i)  bound of maximum lot increase of fraction of i
+ 104             mininc(i)  bound of minimum lot increase of fraction of i
+ 105             maxdec(i)  bound of maximum lot decrease of fraction of i
+ 106             mindec(i)  bound of minimum lot decrease of fraction of i
+ 107             binsum(i)  restrict use of binary variables
+ 108             xdef(i)    final portfolio definition
+ 109             retdef     return definition
+ 110             vardef     variance definition;
+ 111   
+ 112  budget..   sum(i, x(i))  =e=  1 ;
+ 113   
+ 114  xdef(i)..  x(i) =e= bdata(i,'old') - xd(i) + xi(i);
+ 115   
+ 116  maxinc(i)..  xi(i)  =l=  bdata(i,'umax')*y(i) ;
+ 117  mininc(i)..  xi(i)  =g=  bdata(i,'umin')*y(i) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 4
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+C o m p i l a t i o n
+
+
+ 118  maxdec(i)..  xd(i)  =l=  bdata(i,'lmax')*z(i) ;
+ 119  mindec(i)..  xd(i)  =g=  bdata(i,'lmin')*z(i) ;
+ 120  binsum(i).. y(i) + z(i) =l= 1;
+ 121   
+ 122  turnover.. sum(i, xi(i)) =l=  tau ;
+ 123   
+ 124  retdef..  ret =e= sum(i, mu(i)*x(i));
+ 125   
+ 126  vardef..  var =e= sum((i,j), x(i)*q(i,j)*x(j));
+ 127   
+ 128   
+ 129   
+ 130  Models
+ 131  maxret / budget, xdef, turnover, maxinc, mininc, maxdec, mindec, binsum, retdef /
+ 132  minvar / budget, xdef, turnover, maxinc, mininc, maxdec, mindec, binsum, retdef, vardef /;
+ 133   
+ 134  Set  p       efficient frontier points     / minvar, p1*p4, maxret /
+ 135       pp(p)   efficient frontier points     /         p1*p4         /
+ 136   
+ 137  Scalars     rmin     minimum variance
+ 138              rmax     maximum variance ;
+ 139   
+ 140  Parameter Report(p,i,*)  Portfolio Details at different points
+ 141            xres(*,p)      Summary report at different points;
+ 142   
+ 143  Option limcol=0, limrow=0, solprint=off, optcr=0, solvelink=2, reslim = 120;
+ 144   
+ 145  Loop(p('maxret'),
+ 146     Solve maxret max ret using miqcp ; rmax = ret.l;
+ 147     xres(i,p)         = x.l(i);
+ 148     report(p,i,'inc') = xi.l(i);
+ 149     report(p,i,'dec') = xd.l(i) );
+ 150   
+ 151  Loop(p('minvar'),
+ 152     Solve minvar min var using miqcp ;  rmin = ret.l;
+ 153     xres(i,p)         = x.l(i);
+ 154     report(p,i,'inc') = xi.l(i);
+ 155     report(p,i,'dec') = xd.l(i) );
+ 156   
+ 157  parameter h(p) solution handle;
+ 158   
+ 159  minvar.solprint=2; minvar.solvelink=3;
+ 160   
+ 161  abort$(timeelapsed > maxtime - 5)  "too much time spend for initial solves";
+ 162  minvar.reslim = maxtime - timeelapsed - 4;
+ 163   
+ 164  Loop(pp,
+ 165     ret.fx = rmin + (rmax-rmin)/(card(pp)+1)*ord(pp) ;
+ 166     Solve minvar min var using miqcp ;
+ 167     h(pp) = minvar.handle; );
+ 168   
+ 169  Repeat
+ 170     loop(pp$handlecollect(h(pp)),
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 5
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+C o m p i l a t i o n
+
+
+ 171        if(minvar.solvestat = 1,
+ 172           xres(i,pp)         = x.l(i);
+ 173           report(pp,i,'inc') = xi.l(i);
+ 174           report(pp,i,'dec') = xd.l(i) );
+ 175        display$handledelete(h(pp)) 'trouble deleting handles' ;
+ 176        h(pp) = 0 ) ;
+ 177     display$sleep(card(h)*0.1) 'sleep some time';
+ 178  until card(h) = 0 or timeelapsed > maxtime;
+ 179   
+ 180  xres(i,pp)$h(pp) = na;
+ 181   
+ 182  xres('mean',p) = sum(i, mu(i)*xres(i,p));
+ 183  xres('var' ,p) = sum((i,j), xres(i,p)*q(i,j)*xres(j,p));
+ 184   
+ 185  Display$(card(p) < 10) xres, report;
+ 186   
+ 187  * prepare gdx data for IDE charting
+ 188   
+ 189  execute_unload "qmeanvarg.gdx";
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 6
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+Model Statistics    SOLVE maxret Using MIQCP From line 146
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           9     SINGLE EQUATIONS           45
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES           36
+NON ZERO ELEMENTS           111     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 7
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+Solution Report     SOLVE maxret Using MIQCP From line 146
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   maxret              OBJECTIVE  ret
+     TYPE    MIQCP               DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  146
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000       120.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvag/convert.opt"
+>>  gams qmeanvag-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvag/convert.opt"
+Gams      : qmeanvag-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 8
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+Model Statistics    SOLVE minvar Using MIQCP From line 152
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           37
+NON ZERO ELEMENTS           119     NON LINEAR N-Z              7
+DERIVATIVE POOL              20     CONSTANT POOL              43
+CODE LENGTH                 115     DISCRETE VARIABLES         14
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:35 Page 9
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+Solution Report     SOLVE minvar Using MIQCP From line 152
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   minvar              OBJECTIVE  var
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  152
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000       120.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvag/convert.opt"
+>>  gams qmeanvag-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qmeanvag/convert.opt"
+Gams      : qmeanvag-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:24:35 Page 10
+Portfolio Modeling with Parallel Solutions (QMEANVAG,SEQ=327)
+E x e c u t i o n
+
+
+----    177 sleep some time
+
+----    185 PARAMETER xres  Summary report at different points
+
+                      ( ALL       0.000 )
+
+
+----    185 PARAMETER Report  Portfolio Details at different points
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.240 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvag/qmeanvag.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qmeanvag/qmeanvag-scalar.gms.lst

@@ -1,0 +1,604 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 2
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+C o m p i l a t i o n
+
+
+      A gas pipeline is to be designed to transport a fixed amount of gas from
+      one point to two others. Both, the initial and final stages of the gas
+      are known. We need to determine:
+       
+        Number of compressor stations
+        Length of the pipeline segments
+        Diameter of pipeline segments
+        Suction and discharge pressures at each stations
+       
+       
+      Edgar, T F, Himmelblau, D M, and Lasdon, L S, Optimization of
+      Chemical Processes. McGraw Hill, Boston, 2001.
+       
+  19   
+  20   
+  22   
+  23  Sets
+  24     ii    all pipe segments / s0 * s11 /
+  25     i(ii) pipe segments     / s1 * s11 /
+  26           i1(i) segments one   / s1 * s3  /
+  27           i2(i) segments two   / s4 * s7  /
+  28           i3(i) segments three / s8 * s11 /
+  29     j     compressors  / c1 * c10 /
+  30     jii(j,ii,i) connections / c1.s0.s1, c2.s1.s2,  c3.s2.s3,   c4.s3.(s4,s8)
+  31                               c5.s4.s5, c6.s5.s6,  c7.s6.s7
+  32                               c8.s8.s9, c9.s9.s10, c10.s10.s11 /
+  33     qi(ii,i) pipeline flow mapping
+  34     cj(j,ii) compressor inflow mapping
+  35     ji(j,ii) compressor pipeline flow mapping
+  36     is(ii)   all segments less terminal segments;
+  37   
+  38  cj(j,ii) = sum(i,  jii(j,ii,i));
+  39  qi(ii,i) = sum(j,  jii(j,ii,i));
+  40  ji(j,i)  = sum(ii, jii(j,ii,i));
+  41  is(ii)   = sum(j,  cj (j,ii));
+  42   
+  43  Parameters
+  44   
+  45     k     suction condition      /  1.26 /
+  46     z     compressibility factor /  0.88 /
+  47     t     suction temperature    /   520 /
+  48   
+  49     cvar  compressor annual capital variable cost ( $ per hp) /  70 /
+  50     cfix  compressor annual fixed cost ( $ )                  / 1e4 /
+  51     pcost pipe capital cost ( $ per inch per mile )           / 870 /
+  52     ocost operating cost ( $ per hp)                          /   8 /
+  53   
+  54   
+  55  Variables
+  56   
+  57     l(i)    pipe length
+  58     Pd(i)   discharge pressure (psi)
+  59     Ps(ii)  suction pressure (psi)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 3
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+C o m p i l a t i o n
+
+
+  60     D(i)    diameter (inches)
+  61     Q(ii)   flow (MMCFD)
+  62     CR(j)   compression ratio
+  63     W(j)    work (hp)
+  64     b(j)    compressor decision
+  65   
+  66     cl      pipe capital cost
+  67     cc      compressor capital cost
+  68     oc      operating cost
+  69     cost
+  70  binary variable b; positive variables w;
+  71   
+  72  Equations
+  73   
+  74     pdrop(i)  pressure drop in lines
+  75     ltwo      line length two
+  76     lthree    line length three
+  77     qdef(i)   flow definitions
+  78     qbal(ii)  flow balances and gas consumption
+  79     wdef(j,i)   work definition
+  80     crdef(j,ii,i)  compression definition
+  81     cdef(j)
+  82   
+  83     cldef     cost of pipes
+  84     ccdef     cost of compressors
+  85     ocdef     operating cost
+  86     obj       total cost;
+  87   
+  88  pdrop(i).. pd(i) =g= ps(i);
+  89   
+  90  ltwo..   sum(i1, l(i1)) + sum(i2, l(i2)) =e= 175;
+  91   
+  92  lthree.. sum(i1, l(i1)) + sum(i3, l(i3)) =e= 200;
+  93   
+  94  qdef(i).. l(i)  =e=
+  95                  sqr(871*1e-6)*d(i)**(16/3)*(sqr(pd(i))-sqr(ps(i)))/sqr(q(i));
+  96   
+  97  crdef(jii(j,ii,i))..  cr(j)*ps(ii) =e= pd(i);
+  98   
+  99  cdef(j).. cr(j) =l= 1 + (cr.up(j)-1)*b(j);
+ 100   
+ 101  qbal(is)..   q(is) =e= sum(qi(is,i), q(i)) + sum(cj(j,is), 0.005*q(is)*b(j));
+ 102   
+ 103  wdef(ji(j,i))..  w(j) =e= 0.08531*q(i)*k/(k-1)*t*(cr(j)**(z*(k-1)/k)-1);
+ 104   
+ 105  cldef.. cl =e= sum(i, pcost*l(i)*d(i));
+ 106   
+ 107  ccdef.. cc =e= Sum(j, cvar*w(j) + cfix*b(j));
+ 108   
+ 109  ocdef.. oc =e= sum(j, ocost*w(j));
+ 110   
+ 111  obj..   cost =e= cl + cc + oc;
+ 112   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 4
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+C o m p i l a t i o n
+
+
+ 113  model gasnet / all /;
+ 114   
+ 115  * simple bounds
+ 116  pd.lo(i) = 200; pd.up(i) = 1000;
+ 117  ps.lo(i) = 200; ps.up(i) = 1000;
+ 118  L.lo(i) = 2; L.up(i) = 200;
+ 119  D.lo(i) = 4; D.up(i1) = 36; D.up(i2) = 18; D.up(i3) = 18;
+ 120  cr.lo(j) = 1; cr.up(j) = 2;
+ 121  q.lo(i) = 200; q.up(i) = 600;
+ 122   
+ 123  ps.fx('s0')  = 500;  ! fix starting pressure at line one
+ 124  ps.fx('s7')  = 600;  ! fix end pressure at line two
+ 125  ps.fx('s11') = 300;  ! fix end pressure at line three
+ 126   
+ 127  q.fx('s0')   = 600;  ! fix inflow at line one
+ 128   
+ 129  l.l(i) = 20;
+ 130  d.l(i) = 18;
+ 131   
+ 132  solve gasnet minimizing cost using minlp;
+ 133   
+ 134  parameter prep Pipe report
+ 135            crep Compressor report;
+ 136   
+ 137  prep(i,'Discharge') = pd.l(i);
+ 138  prep(i,'Suction')   = ps.l(i);
+ 139  prep(i,'Diameter')   = d.l(i);
+ 140  prep(i,'Length')    = l.l(i);
+ 141  prep(i,'Flow')      = q.l(i);
+ 142   
+ 143  crep(j,'Ratio')$b.l(j) = cr.l(j);
+ 144  crep(j,'Work' )$b.l(j) = w.l(j);
+ 145   
+ 146  display prep,crep;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 5
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Equation Listing    SOLVE gasnet Using MINLP From line 132
+
+
+---- pdrop  =G=  pressure drop in lines
+
+pdrop(s1)..  Pd(s1) - Ps(s1) =G= 0 ; (LHS = 0)
+     
+pdrop(s2)..  Pd(s2) - Ps(s2) =G= 0 ; (LHS = 0)
+     
+pdrop(s3)..  Pd(s3) - Ps(s3) =G= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- ltwo  =E=  line length two
+
+ltwo..  l(s1) + l(s2) + l(s3) + l(s4) + l(s5) + l(s6) + l(s7) =E= 175 ; (LHS = 140, INFES = 35 ****)
+     
+
+---- lthree  =E=  line length three
+
+lthree..  l(s1) + l(s2) + l(s3) + l(s8) + l(s9) + l(s10) + l(s11) =E= 200 ; (LHS = 140, INFES = 60 ****)
+     
+
+---- qdef  =E=  flow definitions
+
+qdef(s1)..  l(s1) - (0.0375684263495449)*Pd(s1) + (0.0375684263495449)*Ps(s1) + (0)*D(s1) + (0)*Q(s1) =E= 0 ; (LHS = 20, INFES = 20 ****)
+     
+qdef(s2)..  l(s2) - (0.0375684263495449)*Pd(s2) + (0.0375684263495449)*Ps(s2) + (0)*D(s2) + (0)*Q(s2) =E= 0 ; (LHS = 20, INFES = 20 ****)
+     
+qdef(s3)..  l(s3) - (0.0375684263495449)*Pd(s3) + (0.0375684263495449)*Ps(s3) + (0)*D(s3) + (0)*Q(s3) =E= 0 ; (LHS = 20, INFES = 20 ****)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- qbal  =E=  flow balances and gas consumption
+
+qbal(s0)..  (1)*Q(s0) - Q(s1) - (3)*b(c1) =E= 0 ; (LHS = 400, INFES = 400 ****)
+     
+qbal(s1)..  (1)*Q(s1) - Q(s2) - (1)*b(c2) =E= 0 ; (LHS = 0)
+     
+qbal(s2)..  (1)*Q(s2) - Q(s3) - (1)*b(c3) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- wdef  =E=  work definition
+
+wdef(c1,s1)..  (0)*Q(s1) - (7807.5712)*CR(c1) + W(c1) =E= 0 ; (LHS = 0)
+     
+wdef(c2,s2)..  (0)*Q(s2) - (7807.5712)*CR(c2) + W(c2) =E= 0 ; (LHS = 0)
+     
+wdef(c3,s3)..  (0)*Q(s3) - (7807.5712)*CR(c3) + W(c3) =E= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 6
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Equation Listing    SOLVE gasnet Using MINLP From line 132
+
+
+---- crdef  =E=  compression definition
+
+crdef(c1,s0,s1)..  - Pd(s1) + (1)*Ps(s0) + (500)*CR(c1) =E= 0 ; (LHS = 300, INFES = 300 ****)
+     
+crdef(c2,s1,s2)..  - Pd(s2) + (1)*Ps(s1) + (200)*CR(c2) =E= 0 ; (LHS = 0)
+     
+crdef(c3,s2,s3)..  - Pd(s3) + (1)*Ps(s2) + (200)*CR(c3) =E= 0 ; (LHS = 0)
+     
+REMAINING 8 ENTRIES SKIPPED
+
+
+---- cdef  =L=  
+
+cdef(c1)..  CR(c1) - b(c1) =L= 1 ; (LHS = 1)
+     
+cdef(c2)..  CR(c2) - b(c2) =L= 1 ; (LHS = 1)
+     
+cdef(c3)..  CR(c3) - b(c3) =L= 1 ; (LHS = 1)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- cldef  =E=  cost of pipes
+
+cldef..  - (15660)*l(s1) - (15660)*l(s2) - (15660)*l(s3) - (15660)*l(s4) - (15660)*l(s5) - (15660)*l(s6) - (15660)*l(s7) - (15660)*l(s8) - (15660)*l(s9) - (15660)*l(s10) - (15660)*l(s11) - (17400)*D(s1) - (17400)*D(s2) - (17400)*D(s3) - (17400)*D(s4)
+     
+      - (17400)*D(s5) - (17400)*D(s6) - (17400)*D(s7) - (17400)*D(s8) - (17400)*D(s9) - (17400)*D(s10) - (17400)*D(s11) + cl =E= 0 ; (LHS = -3445200, INFES = 3445200 ****)
+     
+
+---- ccdef  =E=  cost of compressors
+
+ccdef..  - 70*W(c1) - 70*W(c2) - 70*W(c3) - 70*W(c4) - 70*W(c5) - 70*W(c6) - 70*W(c7) - 70*W(c8) - 70*W(c9) - 70*W(c10) - 10000*b(c1) - 10000*b(c2) - 10000*b(c3) - 10000*b(c4) - 10000*b(c5) - 10000*b(c6) - 10000*b(c7) - 10000*b(c8) - 10000*b(c9)
+     
+      - 10000*b(c10) + cc =E= 0 ; (LHS = 0)
+     
+
+---- ocdef  =E=  operating cost
+
+ocdef..  - 8*W(c1) - 8*W(c2) - 8*W(c3) - 8*W(c4) - 8*W(c5) - 8*W(c6) - 8*W(c7) - 8*W(c8) - 8*W(c9) - 8*W(c10) + oc =E= 0 ; (LHS = 0)
+     
+
+---- obj  =E=  total cost
+
+obj..  - cl - cc - oc + cost =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 7
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Column Listing      SOLVE gasnet Using MINLP From line 132
+
+
+---- l  pipe length
+
+l(s1)
+                (.LO, .L, .UP, .M = 2, 20, 200, 0)
+        1       ltwo
+        1       lthree
+        1       qdef(s1)
+  (-15660)      cldef
+
+l(s2)
+                (.LO, .L, .UP, .M = 2, 20, 200, 0)
+        1       ltwo
+        1       lthree
+        1       qdef(s2)
+  (-15660)      cldef
+
+l(s3)
+                (.LO, .L, .UP, .M = 2, 20, 200, 0)
+        1       ltwo
+        1       lthree
+        1       qdef(s3)
+  (-15660)      cldef
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- Pd  discharge pressure (psi)
+
+Pd(s1)
+                (.LO, .L, .UP, .M = 200, 200, 1000, 0)
+        1       pdrop(s1)
+      (-0.0376) qdef(s1)
+       -1       crdef(c1,s0,s1)
+        0       (OLD LEVEL ****)
+
+Pd(s2)
+                (.LO, .L, .UP, .M = 200, 200, 1000, 0)
+        1       pdrop(s2)
+      (-0.0376) qdef(s2)
+       -1       crdef(c2,s1,s2)
+        0       (OLD LEVEL ****)
+
+Pd(s3)
+                (.LO, .L, .UP, .M = 200, 200, 1000, 0)
+        1       pdrop(s3)
+      (-0.0376) qdef(s3)
+       -1       crdef(c3,s2,s3)
+        0       (OLD LEVEL ****)
+
+REMAINING 8 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 8
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Column Listing      SOLVE gasnet Using MINLP From line 132
+
+
+---- Ps  suction pressure (psi)
+
+Ps(s0)
+                (.LO, .L, .UP, .M = 500, 500, 500, 0)
+       (1)      crdef(c1,s0,s1)
+
+Ps(s1)
+                (.LO, .L, .UP, .M = 200, 200, 1000, 0)
+       -1       pdrop(s1)
+       (0.0376) qdef(s1)
+       (1)      crdef(c2,s1,s2)
+        0       (OLD LEVEL ****)
+
+Ps(s2)
+                (.LO, .L, .UP, .M = 200, 200, 1000, 0)
+       -1       pdrop(s2)
+       (0.0376) qdef(s2)
+       (1)      crdef(c3,s2,s3)
+        0       (OLD LEVEL ****)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- D  diameter (inches)
+
+D(s1)
+                (.LO, .L, .UP, .M = 4, 18, 36, 0)
+       (0)      qdef(s1)
+  (-17400)      cldef
+
+D(s2)
+                (.LO, .L, .UP, .M = 4, 18, 36, 0)
+       (0)      qdef(s2)
+  (-17400)      cldef
+
+D(s3)
+                (.LO, .L, .UP, .M = 4, 18, 36, 0)
+       (0)      qdef(s3)
+  (-17400)      cldef
+
+REMAINING 8 ENTRIES SKIPPED
+
+---- Q  flow (MMCFD)
+
+Q(s0)
+                (.LO, .L, .UP, .M = 600, 600, 600, 0)
+       (1)      qbal(s0)
+
+Q(s1)
+                (.LO, .L, .UP, .M = 200, 200, 600, 0)
+       (0)      qdef(s1)
+       -1       qbal(s0)
+       (1)      qbal(s1)
+       (0)      wdef(c1,s1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:29 Page 9
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Column Listing      SOLVE gasnet Using MINLP From line 132
+
+
+     Q  flow (MMCFD)
+
+        0       (OLD LEVEL ****)
+
+Q(s2)
+                (.LO, .L, .UP, .M = 200, 200, 600, 0)
+       (0)      qdef(s2)
+       -1       qbal(s1)
+       (1)      qbal(s2)
+       (0)      wdef(c2,s2)
+        0       (OLD LEVEL ****)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- CR  compression ratio
+
+CR(c1)
+                (.LO, .L, .UP, .M = 1, 1, 2, 0)
+   (-7807.5712) wdef(c1,s1)
+     (500)      crdef(c1,s0,s1)
+        1       cdef(c1)
+        0       (OLD LEVEL ****)
+
+CR(c2)
+                (.LO, .L, .UP, .M = 1, 1, 2, 0)
+   (-7807.5712) wdef(c2,s2)
+     (200)      crdef(c2,s1,s2)
+        1       cdef(c2)
+        0       (OLD LEVEL ****)
+
+CR(c3)
+                (.LO, .L, .UP, .M = 1, 1, 2, 0)
+   (-7807.5712) wdef(c3,s3)
+     (200)      crdef(c3,s2,s3)
+        1       cdef(c3)
+        0       (OLD LEVEL ****)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- W  work (hp)
+
+W(c1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       wdef(c1,s1)
+      -70       ccdef
+       -8       ocdef
+
+W(c2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       wdef(c2,s2)
+      -70       ccdef
+       -8       ocdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:29 Page 10
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Column Listing      SOLVE gasnet Using MINLP From line 132
+
+
+     W  work (hp)
+
+W(c3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       wdef(c3,s3)
+      -70       ccdef
+       -8       ocdef
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- b  compressor decision
+
+b(c1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      (-3)      qbal(s0)
+       -1       cdef(c1)
+   -10000       ccdef
+
+b(c2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      (-1)      qbal(s1)
+       -1       cdef(c2)
+   -10000       ccdef
+
+b(c3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      (-1)      qbal(s2)
+       -1       cdef(c3)
+   -10000       ccdef
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- cl  pipe capital cost
+
+cl
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cldef
+       -1       obj
+
+
+---- cc  compressor capital cost
+
+cc
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ccdef
+       -1       obj
+
+
+---- oc  operating cost
+
+oc
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       ocdef
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:29 Page 11
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Column Listing      SOLVE gasnet Using MINLP From line 132
+
+
+     oc  operating cost
+
+       -1       obj
+
+
+---- cost  
+
+cost
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:29 Page 12
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Model Statistics    SOLVE gasnet Using MINLP From line 132
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS           70
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES           91  41 projected
+NON ZERO ELEMENTS           267     NON LINEAR N-Z            130
+DERIVATIVE POOL              20     CONSTANT POOL              23
+CODE LENGTH                 446     DISCRETE VARIABLES         10
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:29 Page 13
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+Solution Report     SOLVE gasnet Using MINLP From line 132
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   gasnet              OBJECTIVE  cost
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  132
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/gasnet/convert.opt"
+>>  gams gasnet-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/gasnet/convert.opt"
+Gams      : gasnet-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:29 Page 14
+Optimal Design of a Gas Transmission Network (GASNET, SEQ=223)
+E x e c u t i o n
+
+
+----    146 PARAMETER prep  Pipe report
+
+        Suction    Diameter      Length
+
+s1                   18.000      20.000
+s2                   18.000      20.000
+s3                   18.000      20.000
+s4                   18.000      20.000
+s5                   18.000      20.000
+s6                   18.000      20.000
+s7      600.000      18.000      20.000
+s8                   18.000      20.000
+s9                   18.000      20.000
+s10                  18.000      20.000
+s11     300.000      18.000      20.000
+
+
+----    146 PARAMETER crep  Compressor report
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/gasnet/gasnet.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/gasnet/gasnet-scalar.gms.lst

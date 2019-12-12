@@ -1,0 +1,256 @@
+option NLP=convert;
+option NLP=convert;
+option NLP=convert;
+$Title Nonlinear Simple Agricultural Sector Model (DEMO7,SEQ=92a)
+
+$Ontext
+
+   This is the last in a series of agricultural farm level and sector
+   models, this model simulates the market behavior of the sector
+   using a partial equilibrium framework. The technique is
+   the maximization of consumers and producers surplus.
+
+
+Kutcher, G P, Meeraus, A, and O'Mara, G T, Agriculture Sector and
+Policy Models. The World Bank, 1988.
+
+$Offtext
+
+Sets
+
+  c  crop   / wheat, clover, beans, onions, cotton, maize, tomato/
+  cl livestock  feed  / clover, straw /
+  t  month  / jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec  /
+  r  feeding recipes / rec-1, rec-2 /
+  s  seasons / summer, winter /
+  sc(s,c) season crop mapping / summer.(cotton,maize,tomato)
+                                winter.(wheat,clover,beans,onions) /
+  cn(c)  crops sold in national market
+  ce(c)  export commodities
+  cm(c)  import commodities
+
+Table a(t,c)  months of land occupation by crop (hectares)
+
+    wheat  clover  beans  onions cotton maize  tomato
+jan   1.     1.      1.     1.
+feb   1.     1.      1.     1.
+mar   1.      .5     1.     1.     .5
+apr   1.             1.     1.     1.
+may   1.                    .25    1.     .25
+jun                                1.     1.
+jul                                1.     1.     .75
+aug                                1.     1.     1.
+sep                                1.     1.     1.
+oct                                1.     .5     1.
+nov   .5     .25     .25    .5     .75           .75
+dec   1.     1.      1.     1.
+
+
+Table lc(t,c)  crop labor requirements (man-days per hectare)
+
+     wheat  clover beans  onions cotton maize  tomato
+jan   1.72   4.5    .75    5.16
+feb   .5     1.     .75    5.
+mar   1.     8.     .75    5.     5.
+apr   1.            16.    19.58  5.
+may   17.16                2.42   9.     4.3
+jun   2.34                        2.     5.04
+jul                               1.5    7.16   17.
+aug                               2.     7.97   15.
+sep                               1.     4.41   12.
+oct                              26.    1.12   7.
+nov   2.43   2.5    7.5    11.16 12.           6.
+dec   1.35   7.5    .75    4.68
+
+Table lio(cl,r)  livestock input output matrix
+
+           rec-1   rec-2
+clover     1.3     2.0
+straw      1.6      .8
+
+Table demdat(c,*)  demand data
+
+            ref-p  ref-q  elas   exp-p  imp-p
+*            ($)  (1000t)        ($)     ($)
+ wheat       100    2700   -.8           140
+ beans       200     900   -.4           270
+ onions       125   700    -1.   40     inf
+ cotton      350    2100    -1.  300    inf
+ maize        70    3800   -.5           85
+ tomato       120    500   -1.2   60     inf
+
+
+Scalars  fnum    number  of  farms in sector                /1000/
+         land    farm size (hectares)                        / 4.   /
+         famlab  family labor available (days per month)   / 25   /
+         dpm     work days per month                      /  25  /
+         rwage   reservation wage rate (dollars per day)     /  3 /
+         twage   temporary labor wage  (dollars per day)   /  4   /
+         llab    livestock labor requirements (days per month)  /   2 /
+         trent   tractor rental cost (dollar per hectare)       / 40 /
+         hpa     land plowed by animals (hectares per animal)     / 2 /
+         straw   straw yield from wheat                         /1.75 /
+
+Parameters yield(c) crop yield (tons per hectare) /
+                    wheat  = 1.5, clover = 6 , beans  = 1, onions = 3
+                    cotton = 1.5, maize  = 2, tomato = 3  /
+
+           miscost(c) misc cash costs (dollars per hectare) /
+                    wheat  = 10, beans  = 5, onions = 50
+                    cotton = 80, maize  =  5, tomato = 50 /
+           price(c)     reference (observed) price (dollars)
+           pe(c)        commodity export prices (dollars)
+           pm(c)        commodity import prices (dollars)
+           alpha(c)     demand curve intercept
+           beta(c)      demand curve gradient;
+
+ cn(c) = yes$demdat(c,"ref-p");
+ ce(c) = yes$demdat(c,"exp-p");
+ cm(c) = yes$(demdat(c,"imp-p") lt inf );
+ cm("clover") = no;
+ price(c) = demdat(c,"ref-p");
+ pe(ce)   = demdat(ce,"exp-p");    pm(cm) = demdat(cm,"imp-p");
+
+ beta(cn)$demdat(cn,"ref-q") = demdat(cn,"ref-p")/demdat(cn,"ref-q")/
+                               demdat(cn,"elas");
+ alpha(cn) = demdat(cn,"ref-p") - beta(cn)*demdat(cn,"ref-q");
+
+ demdat(cn,"dem-a") = alpha(cn); demdat(cn,"dem-b") = beta(cn);
+
+ Display cn,cm,ce,price,pe,beta,alpha,demdat;
+
+Variables   xcrop(c)     cropping activity    (hectares)
+            yfarm        farm income          (dollars)
+            revenue      value of production  (dollars)
+            mcost        misc cash cost       (dollars)
+            pcost        tractor plowing cost
+            labcost      labor cost           (dollars)
+            rescost      family labor reservation wage cost (dollars)
+            tcost        total farm cost including rescost
+            flab(t)      family labor use     (days)
+            tlab(t)      temporary labor      (days)
+            xlive(r)     livestock activity   (units)
+            natprod(c)   net production       (tons)
+            thire(s)     tractor rental       (hectares plowed)
+            natcon(c)    domestic consumption (1000 tons)
+            natprice(c)  domestic price       (dollars per ton)
+            exports(c)   national exports     (1000 tons)
+            imports(c)   national imports     (1000 tons)
+            cps          consumers and producers surplus
+            valpro       value of net production at ref prices
+            employ       employment generated (man-years)
+            tradebal     net exports          (1000 $)
+
+ Positive Variable xcrop,xlive,thire,flab,tlab,natcon,natprod,
+                       exports,imports
+Equations   landbal(t)   land balance            (hectares)
+            laborbal(t)  labor balance           (days)
+            flabor(t)    family labor balance    (days)
+            plow(s)      land plowed             (hectares per season)
+            arev         revenue accounting      (dollars)
+            ares         reservation labor cost    (dollars)
+            acost        total cost accounting    (dollars)
+            amisc        misc cost accounting
+            aplow
+            alab         labor cost accounting   (dollars)
+            lclover      clover balance
+            lstraw       straw balance
+            income      income definition       (dollars)
+            dem(c)        national demand balance    (1000 tons)
+            pdef(c)       price definition
+            arevn         revenue accounting                    (1000 $)
+            arevf         revenue accounting: fixed price model (1000 $)
+            valproc       value of net production definition    (1000 $)
+            proc(c)       net production definition             (tons)
+            employc       employment definition                 (man-years)
+            tradebalc     trade balance definition               (1000 $)
+            objn          objective function;
+
+
+landbal(t)..   sum(c, xcrop(c)*a(t,c))  =l= land*fnum;
+
+laborbal(t)..  sum(c, xcrop(c)*lc(t,c)) + sum(r, xlive(r))*llab  =l= flab(t) +                     tlab(t);
+
+amisc.. mcost =e= sum(c, xcrop(c)*miscost(c));
+
+alab..  labcost =e= sum(t, tlab(t)*twage);
+
+ares..  rescost =e= sum(t, flab(t)*rwage);
+
+aplow.. pcost =e= sum(s, thire(s)*trent);
+
+acost.. tcost =e= mcost + labcost + rescost + pcost;
+
+lclover..  xcrop("clover")*yield("clover") =g= sum(r,xlive(r)*lio("clover",r));
+
+lstraw..   xcrop("wheat")*straw =g= sum(r,xlive(r)*lio("straw",r));
+
+plow(s)..  sum(c$sc(s,c), xcrop(c)) =l= sum(r, xlive(r))*hpa + thire(s);
+
+proc(c)..   natprod(c) =e= xcrop(c)*yield(c);
+
+dem(cn)..   natcon(cn) =e= natprod(cn)
+                          + imports(cn)$cm(cn) - exports(cn)$ce(cn);
+
+objn..
+      cps =e= sum(cn, alpha(cn)*natcon(cn) + .5*beta(cn)*sqr(natcon(cn)))
+              + sum(ce, exports(ce)*pe(ce))
+              - sum(cm, imports(cm)*pm(cm))
+              - tcost;
+
+
+* the next 5 equations are only reporting or accounting definitions.
+* they do not effect the model.
+
+arevn..
+    revenue =e= sum(cn, alpha(cn)*natcon(cn) + beta(cn)*sqr(natcon(cn))
+                      + exports(cn)*pe(cn)$ce(cn));
+
+arevf..
+    revenue =e= sum(cn, natprod(cn)*price(cn)
+                      + (exports(cn)*(pe(cn)-price(cn)))$ce(cn));
+
+valproc..   valpro =e= sum(c, natprod(c)*price(c));
+
+income.. yfarm =e= revenue - tcost + rescost;
+
+employc..
+         employ =e= (sum(t, sum(c, xcrop(c)*lc(t,c)))
+                        + sum(r, xlive(r)*llab))/dpm/12;
+
+tradebalc.. tradebal =e= sum(cn, exports(cn)*pe(cn)$ce(cn)
+                                - imports(cn)*pm(cn)$cm(cn));
+
+pdef(cn)..  natprice(cn) =e= alpha(cn) + beta(cn)*natcon(cn);
+
+flab.up(t) = famlab*fnum;
+
+
+Models
+
+   demo7f fixed price / landbal, laborbal, plow, ares, arevf,
+                        alab, acost, dem, employc, proc, valproc,
+                        amisc, aplow, lclover, lstraw, income,
+                        tradebalc /
+
+   demo7n nonlinear   / landbal, laborbal, plow, ares, arevn,
+                        alab, acost, dem, employc, proc, valproc
+                        amisc, aplow, lclover, lstraw, income,
+                        tradebalc, pdef, objn /;
+
+* find a good starting point for the nlp by solving a fixed price
+* lp model.
+
+Solve demo7f maximizing yfarm using lp;
+
+natprice.l(cn) =  demdat(cn,"ref-p");
+
+* the first lp found a good primal starting point. we can help
+* the nlp step to provide some additional dual information.
+* the equation arevf is replaced by arevn and pdef is new and
+* should be binding.
+
+pdef.m(cn) = 1;
+arevn.m = arevf.m;
+
+Solve demo7n maximizing cps using nlp;

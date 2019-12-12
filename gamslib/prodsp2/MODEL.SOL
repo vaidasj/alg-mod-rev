@@ -1,0 +1,67 @@
+  D  E  C  I  S  Copyright (c) 1989 -- 2007  by Dr. Gerd Infanger
+  All rights reserved. 
+  
+  Licensee: Customer Sublicensee           Gams Development Corporation  
+  
+ EXPECTED VALUE SOLUTION:
+ ========================
+ iteration:                     4
+  solution :
+ objective:          -1.88396E+04
+
+       #   COLUMN           VALUE    REDUCED COST
+
+       1 C0000001     1.34734E+03     0.00000E+00
+       2 C0000002     0.00000E+00     6.88749E+00
+       3 C0000003     0.00000E+00     3.54115E+00
+       4 C0000004     6.67869E+01     0.00000E+00
+       5 THETA001     0.00000E+00     0.00000E+00
+
+       #      ROW           VALUE   MARGINAL COST
+
+       1 R0000001    -1.88396E+04    -1.00000E+00
+       2 R0000002     1.88396E+04     0.00000E+00
+  
+ zsub:                0.00000E+00
+
+ number of universe scenarios:        5.90490E+24
+ tolerance level:                     1.00000E-07
+  
+ expected total cost:                -1.70029E+04
+  
+ STOCHASTIC SOLUTION:
+ ====================
+ (importance sampling)
+ iteration:                     8
+  solution :
+ objective:          -1.78456E+04
+
+       #   COLUMN           VALUE    REDUCED COST
+
+       1 C0000001     1.37055E+03     0.00000E+00
+       2 C0000002     0.00000E+00     6.76199E+00
+       3 C0000003     0.00000E+00     3.44756E+00
+       4 C0000004     5.76314E+01     0.00000E+00
+       5 THETA001     0.00000E+00     0.00000E+00
+
+       #      ROW           VALUE   MARGINAL COST
+
+       1 R0000001    -1.87518E+04    -1.00000E+00
+       2 R0000002     1.87518E+04     0.00000E+00
+  
+ zsub:                9.06222E+02
+
+ 95% confidence interval:            -1.79618E+04    -1.77747E+04
+ 95% confidence interval (%):         6.50928E-01    -3.97600E-01
+  
+ initial seed:                           12933428
+ sample size:                                 100
+ number of universe scenarios:        5.90490E+24
+ tolerance level:                     1.00000E-07
+  
+ execution time (sec):                        .15
+ setup time     (sec):                        .01
+ solution time  (sec):                        .14
+                                 
+ solving master (sec):                        .00
+ solving subs   (sec):                        .11

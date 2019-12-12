@@ -1,0 +1,284 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 2
+Weapons Assignment   (WEAPONS,SEQ=18)
+C o m p i l a t i o n
+
+
+       
+      This model determines an assignment of weapons to targets in order
+      to inflict maximum damage at minimal cost. This is a classic
+      NLP test problem.
+       
+       
+      Bracken, J, and McCormick, G P, Chapter 2. In Selected Applications of
+      Nonlinear Programming. John Wiley and Sons, New York, 1968, pp. 22-27.
+       
+  16   
+  17  sets w  weapons  / ICBM      Intercontinental Ballistic Missiles
+  18                     MRBM-1    Medium-Range Ballistic Missiles from first area
+  19                     LR-Bomber Longe-Range Bomber
+  20                     F-Bomber  Fighter Bomber
+  21                     MRBM-2    Medium-Range Ballistic Missiles from second area /
+  22       t  targets  / 1*20 /
+  23   
+  24   
+  25     table td target data
+  26   
+  27              1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20    avail
+  28  icbm          .05             .15 .10 .15 .20                                 .05            200
+  29  mrbm-1    .16 .17 .15 .16 .15 .19 .19 .18 .20 .14     .02     .12 .13 .12 .15 .16 .15 .15    100
+  30  lr-bomber .04 .05 .04 .04 .04 .10 .08 .09 .08 .05 .01 .02 .01 .02 .03 .02 .05 .08 .07 .08    300
+  31  f-bomber                                      .04 .09 .08 .09 .08 .02 .07                    150
+  32  mrbm-2    .08 .06 .08 .05 .05 .02 .02         .10 .05 .04 .09 .02 .01 .01                    250
+  33   
+  34  damage     60  50  50  75  40  60  35  30  25 150  30  45 125 200 200 130 100 100 100 150
+  35  target     30                 100              40              50  70  35              10
+  36   
+  37  parameters wa(w)  weapons availability
+  38             tm(t)  minimum number of weapons per target
+  39             mv(t)  military value of target ;
+  40   
+  41  wa(w) = td(w,"avail");   tm(t) = td("target",t);   mv(t) = td("damage",t);
+  42   
+  43  display wa,tm,mv;
+  44   
+  45  variables x(w,t)  weapons assignment
+  46            prob(t) probability for each target
+  47            tetd    total expected damage
+  48  positive  variable x
+  49   
+  50  equations maxw(w)  weapons balance
+  51            minw(t)  minimum number of weapons required per target
+  52            probe(t) probability definition
+  53            etdp     total expected damage alternate formulation
+  54            etd      total expected damage;
+  55   
+  56  maxw(w)..  sum(t$td(w,t), x(w,t)) =l= wa(w);
+  57   
+  58  minw(t)$tm(t)..  sum(w$td(w,t), x(w,t)) =g= tm(t);
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 3
+Weapons Assignment   (WEAPONS,SEQ=18)
+C o m p i l a t i o n
+
+
+  60  probe(t)..       prob(t) =e= 1 - prod(w$td(w,t), (1-td(w,t))**x(w,t));
+  61   
+  62  etdp..  tetd =e= sum(t, mv(t)*prob(t));
+  63   
+  64  etd..   tetd =e= sum(t, mv(t)*(1-prod(w$td(w,t), (1-td(w,t))**x(w,t))));
+  65   
+  66  models war   traditional formulation  / maxw, minw, etd /
+  67         warp  extended formulation     / maxw, minw, probe, etdp /;
+  68   
+  69  x.l(w,t)$td(w,t) = wa(w)/card(t);
+  70   
+  71  solve war maximizing tetd using nlp;
+  72   
+  73  parameter report Summary Report;
+  74  *option report:0;
+  75   
+  76  report(w,t) = x.l(w,t);
+  77  report('total',t) = sum(w, x.l(w,t));
+  78  report(w,'total') = sum(t, x.l(w,t));
+  79   
+  80  display report;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 4
+Weapons Assignment   (WEAPONS,SEQ=18)
+E x e c u t i o n
+
+
+----     43 PARAMETER wa  weapons availability
+
+ICBM      200.000,    MRBM-1    100.000,    LR-Bomber 300.000,    F-Bomber  150.000,    MRBM-2    250.000
+
+
+----     43 PARAMETER tm  minimum number of weapons per target
+
+1   30.000,    6  100.000,    10  40.000,    14  50.000,    15  70.000,    16  35.000,    20  10.000
+
+
+----     43 PARAMETER mv  military value of target
+
+1   60.000,    2   50.000,    3   50.000,    4   75.000,    5   40.000,    6   60.000,    7   35.000,    8   30.000,    9   25.000,    10 150.000,    11  30.000,    12  45.000,    13 125.000,    14 200.000,    15 200.000,    16 130.000,    17 100.000
+18 100.000,    19 100.000,    20 150.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 5
+Weapons Assignment   (WEAPONS,SEQ=18)
+Equation Listing    SOLVE war Using NLP From line 71
+
+
+---- maxw  =L=  weapons balance
+
+maxw(ICBM)..  x(ICBM,2) + x(ICBM,6) + x(ICBM,7) + x(ICBM,8) + x(ICBM,9) + x(ICBM,18) =L= 200 ; (LHS = 60)
+     
+maxw(MRBM-1)..  x(MRBM-1,1) + x(MRBM-1,2) + x(MRBM-1,3) + x(MRBM-1,4) + x(MRBM-1,5) + x(MRBM-1,6) + x(MRBM-1,7) + x(MRBM-1,8) + x(MRBM-1,9) + x(MRBM-1,10) + x(MRBM-1,12) + x(MRBM-1,14) + x(MRBM-1,15) + x(MRBM-1,16) + x(MRBM-1,17) + x(MRBM-1,18)
+     
+      + x(MRBM-1,19) + x(MRBM-1,20) =L= 100 ; (LHS = 90)
+     
+maxw(LR-Bomber)..  x(LR-Bomber,1) + x(LR-Bomber,2) + x(LR-Bomber,3) + x(LR-Bomber,4) + x(LR-Bomber,5) + x(LR-Bomber,6) + x(LR-Bomber,7) + x(LR-Bomber,8) + x(LR-Bomber,9) + x(LR-Bomber,10) + x(LR-Bomber,11) + x(LR-Bomber,12) + x(LR-Bomber,13)
+     
+      + x(LR-Bomber,14) + x(LR-Bomber,15) + x(LR-Bomber,16) + x(LR-Bomber,17) + x(LR-Bomber,18) + x(LR-Bomber,19) + x(LR-Bomber,20) =L= 300 ; (LHS = 300)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- minw  =G=  minimum number of weapons required per target
+
+minw(1)..  x(MRBM-1,1) + x(LR-Bomber,1) + x(MRBM-2,1) =G= 30 ; (LHS = 32.5)
+     
+minw(6)..  x(ICBM,6) + x(MRBM-1,6) + x(LR-Bomber,6) + x(MRBM-2,6) =G= 100 ; (LHS = 42.5, INFES = 57.5 ****)
+     
+minw(10)..  x(MRBM-1,10) + x(LR-Bomber,10) + x(F-Bomber,10) + x(MRBM-2,10) =G= 40 ; (LHS = 40)
+     
+REMAINING 4 ENTRIES SKIPPED
+
+
+---- etd  =E=  total expected damage
+
+etd..  - (0.129303226394363)*x(ICBM,2) - (0.107061455337174)*x(ICBM,6) - (0.0997101746528989)*x(ICBM,7) - (0.0864777958144497)*x(ICBM,8) - (0.0561942092476005)*x(ICBM,9) - (0.367714272161127)*x(ICBM,18) - (0.836362220335872)*x(MRBM-1,1)
+     
+      - (0.469710825177735)*x(MRBM-1,2) - (0.68926293230949)*x(MRBM-1,3) - (1.56135494907988)*x(MRBM-1,4) - (0.823516176631929)*x(MRBM-1,5) - (0.1388152158799)*x(MRBM-1,6) - (0.199420349305798)*x(MRBM-1,7) - (0.105597543690324)*x(MRBM-1,8)
+     
+      - (0.0561942092476005)*x(MRBM-1,9) - (0.972681079083493)*x(MRBM-1,10) - (0.194958743799409)*x(MRBM-1,12) - (4.14203139461814)*x(MRBM-1,14) - (6.66301223685351)*x(MRBM-1,15) - (3.31477563803577)*x(MRBM-1,16) - (3.34081679972349)*x(MRBM-1,17)
+     
+      - (1.24991443069271)*x(MRBM-1,18) - (2.42796716880554)*x(MRBM-1,19) - (3.09675787594281)*x(MRBM-1,20) - (0.195820537441862)*x(LR-Bomber,1) - (0.129303226394363)*x(LR-Bomber,2) - (0.17313114067822)*x(LR-Bomber,3) - (0.365565729575338)*x(LR-Bomber,4)
+     
+      - (0.206853275207368)*x(LR-Bomber,5) - (0.0694076079399502)*x(LR-Bomber,6) - (0.0789099667768655)*x(LR-Bomber,7) - (0.0501835675858773)*x(LR-Bomber,8) - (0.020997978890839)*x(LR-Bomber,9) - (0.330798707161952)*x(LR-Bomber,10)
+     
+      - (0.0673263789303572)*x(LR-Bomber,11) - (0.194958743799409)*x(LR-Bomber,12) - (0.163849965122186)*x(LR-Bomber,13) - (0.654604091068478)*x(LR-Bomber,14) - (1.45732485580186)*x(LR-Bomber,15) - (0.523865100697137)*x(LR-Bomber,16)
+     
+      - (1.05440947791523)*x(LR-Bomber,17) - (0.597750797813612)*x(LR-Bomber,18) - (1.08417684121445)*x(LR-Bomber,19) - (1.58881586894974)*x(LR-Bomber,20) - (0.263267609778448)*x(F-Bomber,10) - (0.631779538098531)*x(F-Bomber,11)
+     
+      - (0.80464333216539)*x(F-Bomber,12) - (1.53754081129826)*x(F-Bomber,13) - (2.70171425411099)*x(F-Bomber,14) - (0.966601233570899)*x(F-Bomber,15) - (1.8817900349729)*x(F-Bomber,16) - (0.399976328131408)*x(MRBM-2,1) - (0.155979245059844)*x(MRBM-2,2)
+     
+      - (0.353631742810614)*x(MRBM-2,3) - (0.459337443098317)*x(MRBM-2,4) - (0.259913462458968)*x(MRBM-2,5) - (0.013308795805194)*x(MRBM-2,6) - (0.0191192636303468)*x(MRBM-2,7) - (0.679486915037861)*x(MRBM-2,10) - (0.343609589257603)*x(MRBM-2,11)
+     
+      - (0.393937537478145)*x(MRBM-2,12) - (1.53754081129826)*x(MRBM-2,13) - (0.654604091068478)*x(MRBM-2,14) - (0.480859663069609)*x(MRBM-2,15) - (0.260609636183208)*x(MRBM-2,16) + tetd =E= 1755 ; (LHS = 234.968513360408, INFES = 1520.03148663959 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 6
+Weapons Assignment   (WEAPONS,SEQ=18)
+Column Listing      SOLVE war Using NLP From line 71
+
+
+---- x  weapons assignment
+
+x(ICBM,2)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       maxw(ICBM)
+      (-0.1293) etd
+
+x(ICBM,6)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       maxw(ICBM)
+        1       minw(6)
+      (-0.1071) etd
+
+x(ICBM,7)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       maxw(ICBM)
+      (-0.0997) etd
+
+REMAINING 62 ENTRIES SKIPPED
+
+---- tetd  total expected damage
+
+tetd
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       etd
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 7
+Weapons Assignment   (WEAPONS,SEQ=18)
+Model Statistics    SOLVE war Using NLP From line 71
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           66
+NON ZERO ELEMENTS           156     NON LINEAR N-Z             65
+DERIVATIVE POOL              20     CONSTANT POOL              48
+CODE LENGTH                 284
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 8
+Weapons Assignment   (WEAPONS,SEQ=18)
+Solution Report     SOLVE war Using NLP From line 71
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   war                 OBJECTIVE  tetd
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  71
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/weapons/convert.opt"
+>>  pyomo weapons-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/weapons/convert.opt"
+Pyomo     : weapons-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 9
+Weapons Assignment   (WEAPONS,SEQ=18)
+E x e c u t i o n
+
+
+----     80 PARAMETER report  Summary Report
+
+                    1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20
+
+ICBM                       10.000                                          10.000      10.000      10.000      10.000                                                                                                      10.000
+MRBM-1          5.000       5.000       5.000       5.000       5.000       5.000       5.000       5.000       5.000       5.000                   5.000                   5.000       5.000       5.000       5.000       5.000       5.000       5.000
+LR-Bomber      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000      15.000
+F-Bomber                                                                                                                    7.500       7.500       7.500       7.500       7.500       7.500       7.500
+MRBM-2         12.500      12.500      12.500      12.500      12.500      12.500      12.500                              12.500      12.500      12.500      12.500      12.500      12.500      12.500
+total          32.500      42.500      32.500      32.500      32.500      42.500      42.500      30.000      30.000      40.000      35.000      40.000      35.000      40.000      40.000      40.000      20.000      30.000      20.000      20.000
+
+        +       total
+
+ICBM           60.000
+MRBM-1         90.000
+LR-Bomber     300.000
+F-Bomber       52.500
+MRBM-2        175.000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/weapons/weapons.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/weapons/weapons-scalar.py.lst

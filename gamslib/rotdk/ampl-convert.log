@@ -1,0 +1,32 @@
+--- Job rotdk.gms Start 12/13/18 10:32:16 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- rotdk.gms(72) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- rotdk.gms(69) 4 Mb
+--- Generating MIP model rotdk
+--- rotdk.gms(71) 8 Mb
+---   12,013 rows  1,133 columns  25,264 non-zeroes
+---   120 discrete-columns
+***
+***   120 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.035
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/rotdk/convert.opt"
+>>  ampl rotdk-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/rotdk/convert.opt"
+--- Writing Ampl      : rotdk-scalar.mod
+
+--- Restarting execution
+--- rotdk.gms(71) 3 Mb
+--- Reading solution for model rotdk
+*** Status: Normal completion
+--- Job rotdk.gms Stop 12/13/18 10:32:16 elapsed 0:00:00.067

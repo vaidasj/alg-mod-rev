@@ -1,0 +1,241 @@
+--- Job senstran.gms Start 12/13/18 10:24:48 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- senstran.gms(110) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- senstran.gms(89) 4 Mb
+--- Generating LP model transport
+--- senstran.gms(91) 4 Mb
+--- LOOPS ip = seattle
+---       jp = new-york
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(91) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(99) 3 Mb
+--- LOOPS ip = seattle
+---       jp = new-york
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.022
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(99) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(91) 3 Mb
+--- LOOPS ip = seattle
+---       jp = chicago
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.038
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(91) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(99) 3 Mb
+--- LOOPS ip = seattle
+---       jp = chicago
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.049
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(99) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(91) 3 Mb
+--- LOOPS ip = seattle
+---       jp = topeka
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.064
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(91) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(99) 3 Mb
+--- LOOPS ip = seattle
+---       jp = topeka
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.076
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(99) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(91) 3 Mb
+--- LOOPS ip = san-diego
+---       jp = new-york
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.092
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(91) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(99) 3 Mb
+--- LOOPS ip = san-diego
+---       jp = new-york
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.107
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(99) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(91) 3 Mb
+--- LOOPS ip = san-diego
+---       jp = chicago
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.119
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(91) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(99) 3 Mb
+--- LOOPS ip = san-diego
+---       jp = chicago
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.136
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(99) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(91) 3 Mb
+--- LOOPS ip = san-diego
+---       jp = topeka
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.162
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(91) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(89) 3 Mb
+--- Generating LP model transport
+--- senstran.gms(99) 3 Mb
+--- LOOPS ip = san-diego
+---       jp = topeka
+---   6 rows  7 columns  19 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.179
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+--- Writing Gams      : senstran-scalar.gms
+
+--- Restarting execution
+--- senstran.gms(99) 2 Mb
+--- Reading solution for model transport
+--- senstran.gms(108) 3 Mb
+--- Putfile repdat /home/renigijus/gams/opt-mod-lib/gamslib/senstran/repdat.put
+*** Status: Normal completion
+--- Job senstran.gms Stop 12/13/18 10:24:48 elapsed 0:00:00.191

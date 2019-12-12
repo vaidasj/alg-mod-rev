@@ -1,0 +1,152 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:24 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:24 Page 2
+Grid Transportation Problem (TRNSGRID,SEQ=315)
+C o m p i l a t i o n
+
+
+       
+      This problem finds a least cost shipping schedule that meets
+      requirements at markets and supplies at factories.
+       
+      The model demonstrates how to run multiple scenarios with different
+      demands in a parallel fashion using the GAMS Grid Facility.
+       
+       
+      Dantzig, G B, Chapter 3.3. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  16   
+  17    Sets
+  18         i   canning plants   / seattle, san-diego /
+  19         j   markets          / new-york, chicago, topeka / ;
+  20   
+  21    Parameters
+  22   
+  23         a(i)  capacity of plant i in cases
+  24           /    seattle     350
+  25                san-diego   600  /
+  26   
+  27         b(j)  demand at market j in cases
+  28           /    new-york    325
+  29                chicago     300
+  30                topeka      275  / ;
+  31   
+  32    Table d(i,j)  distance in thousands of miles
+  33                      new-york       chicago      topeka
+  34        seattle          2.5           1.7          1.8
+  35        san-diego        2.5           1.8          1.4  ;
+  36   
+  37    Scalar f  freight in dollars per case per thousand miles  /90/ ;
+  38   
+  39    Parameter c(i,j)  transport cost in thousands of dollars per case ;
+  40   
+  41              c(i,j) = f * d(i,j) / 1000 ;
+  42   
+  43    Variables
+  44         x(i,j)  shipment quantities in cases
+  45         z       total transportation costs in thousands of dollars ;
+  46   
+  47    Positive Variable x ;
+  48   
+  49    Equations
+  50         cost        define objective function
+  51         supply(i)   observe supply limit at plant i
+  52         demand(j)   satisfy demand at market j ;
+  53   
+  54    cost ..        z  =e=  sum((i,j), c(i,j)*x(i,j)) ;
+  55   
+  56    supply(i) ..   sum(j, x(i,j))  =l=  a(i) ;
+  57   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:24 Page 3
+Grid Transportation Problem (TRNSGRID,SEQ=315)
+C o m p i l a t i o n
+
+
+  58    demand(j) ..   sum(i, x(i,j))  =g=  b(j) ;
+  59   
+  60    Model transport /all/ ;
+  61   
+  63   
+  64  transport.solvelink = 3;  // turn on grid option
+  65  transport.limcol    = 0;
+  66  transport.limrow    = 0;
+  67  transport.solprint  = 2;
+  68   
+  69  set s scenarios / 1*5 /;
+  70   
+  71  parameter dem(s,j)  random demand
+  72            h(s) store the instance handle;
+  73   
+  74  dem(s,j)= b(j)*uniform(.95,1.15); // create some random demands
+  75   
+  76  loop(s,
+  77     b(j) = dem(s,j)
+  78     Solve transport using lp minimizing z;
+  79     h(s) = transport.handle );    // save instance handle
+  80   
+  81  parameter repx(s,i,j) solution report
+  82            repy        summary report;
+  83   
+  84  repy(s,'solvestat') = na;
+  85  repy(s,'modelstat') = na;
+  86   
+  87  * we use the handle parameter to indicate that the solution has been collected
+  88  repeat
+  89     loop(s$handlecollect(h(s)),
+  90        repx(s,i,j) = x.l(i,j);
+  91        repy(s,'solvestat') = transport.solvestat;
+  92        repy(s,'modelstat') = transport.modelstat;
+  93        repy(s,'resusd'   ) = transport.resusd;
+  94        repy(s,'objval')    = transport.objval;
+  95        display$handledelete(h(s)) 'trouble deleting handles' ;
+  96        h(s) = 0 ) ;    // indicate that we have loaded the solution
+  97     display$sleep(card(h)*0.2) 'was sleeping for some time';
+  98  until card(h) = 0 or timeelapsed > 10;  // wait until all models are loaded
+  99   
+ 100  display repx, repy;
+ 101   
+ 102  abort$sum(s$(repy(s,'solvestat')=na),1) 'Some jobs did not return';
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:24:24 Page 4
+Grid Transportation Problem (TRNSGRID,SEQ=315)
+E x e c u t i o n
+
+
+----     97 was sleeping for some time
+
+----    100 PARAMETER repx  solution report
+
+                      ( ALL       0.000 )
+
+
+----    100 PARAMETER repy  summary report
+
+    solvestat   modelstat
+
+1       1.000      14.000
+2       1.000      14.000
+3       1.000      14.000
+4       1.000      14.000
+5       1.000      14.000
+
+
+
+EXECUTION TIME       =        1.050 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/trnsgrid/trnsgrid.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/trnsgrid/trnsgrid-scalar.mod.lst

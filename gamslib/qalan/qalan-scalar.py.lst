@@ -1,0 +1,407 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIQCP=convert;
+   2  option MIQCP=convert;
+   3  option MIQCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 2
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+C o m p i l a t i o n
+
+
+       
+         This is the gamslib model ALAN expressed as a QCP and MIQCP
+       
+         This is a mini mean-variance portfolio selection problem described in
+         'GAMS/MINOS: Three examples' by Alan S. Manne, Department of Operations
+         Research, Stanford University, May 1986.
+       
+         Integer variables have been added to restrict the number of securities
+         selected. The resulting MINLP problem is solved with different option
+         settings to demonstrate some DICOPT features. Finally, the model is
+         solved by complete enumeration using GAMS procedural facilities.
+       
+       
+      Manne, A S, GAMS/MINOS: Three examples. Tech. rep., Department of
+      Operations Research, Stanford University, 1986.
+       
+  23   
+  24   Set i  securities   /hardware, software, show-biz, t-bills/; alias (i,j)
+  25   
+  26   
+  27   Scalar  target    target mean annual return on portfolio (%)   / 10 /
+  28   
+  29   
+  30   Parameters  mean(i)  mean annual returns on individual securities (%)
+  31   
+  32        / hardware   8
+  33          software   9
+  34          show-biz  12
+  35          t-bills    7 /
+  36   
+  37   Table v(i,j)  variance-covariance array (%-squared annual return)
+  38   
+  39                    hardware  software  show-biz  t-bills
+  40   
+  41         hardware      4         3         -1        0
+  42         software      3         6          1        0
+  43         show-biz     -1         1         10        0
+  44         t-bills       0         0          0        0
+  45   
+  46   Variables  x(i)       fraction of portfolio invested in asset i
+  47              variance   variance of portfolio
+  48   
+  49   Positive Variable x;
+  50   
+  51   Equations  fsum    fractions must add to 1.0
+  52              dmean   definition of mean return on portfolio
+  53              dvar    definition of variance;
+  54   
+  55   fsum..     sum(i, x(i))                     =e=  1.0  ;
+  56   dmean..    sum(i, mean(i)*x(i))             =e=  target;
+  57   dvar..     sum(i, x(i)*sum(j,v(i,j)*x(j)))  =e=  variance;
+  58   
+  59  Model portfolio  / fsum, dmean, dvar / ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 3
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+C o m p i l a t i o n
+
+
+  60   
+  61  Solve portfolio using QCP minimizing variance;
+  62   
+  63   
+  64  * now allow only three assets in our portfolio
+  65   
+  66  Scalar maxassets max assets in portfolio /3/;
+  67   
+  68  Binary Variables active(i) indicator: if 1 then asset is in portfolio;
+  69   
+  70  Equations  setindic(i) if active is 0 then not in portfolio,
+  71             maxactive   defines max number of assets in portfolio;
+  72   
+  73  setindic(i).. x(i) =l= active(i);
+  74   
+  75  maxactive..   sum(i, active(i)) =l= maxassets;
+  76   
+  77  Model p1 / fsum, dmean, dvar, setindic, maxactive/ ;
+  78   
+  79  option optcr=1e-6;
+  80   
+  81  Solve p1 using MIQCP minimizing variance;
+  82   
+  83   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 4
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Equation Listing    SOLVE portfolio Using QCP From line 61
+
+
+---- fsum  =E=  fractions must add to 1.0
+
+fsum..  x(hardware) + x(software) + x(show-biz) + x(t-bills) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- dmean  =E=  definition of mean return on portfolio
+
+dmean..  8*x(hardware) + 9*x(software) + 12*x(show-biz) + 7*x(t-bills) =E= 10 ; (LHS = 0, INFES = 10 ****)
+     
+
+---- dvar  =E=  definition of variance
+
+dvar..  (0)*x(hardware) + (0)*x(software) + (0)*x(show-biz) - variance =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 5
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Column Listing      SOLVE portfolio Using QCP From line 61
+
+
+---- x  fraction of portfolio invested in asset i
+
+x(hardware)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fsum
+        8       dmean
+       (0)      dvar
+
+x(software)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fsum
+        9       dmean
+       (0)      dvar
+
+x(show-biz)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       fsum
+       12       dmean
+       (0)      dvar
+
+REMAINING ENTRY SKIPPED
+
+---- variance  variance of portfolio
+
+variance
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       dvar
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 6
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Model Statistics    SOLVE portfolio Using QCP From line 61
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS            12     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  25
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 7
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Solution Report     SOLVE portfolio Using QCP From line 61
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   portfolio           OBJECTIVE  variance
+     TYPE    QCP                 DIRECTION  MINIMIZE
+     SOLVER  BARON               FROM LINE  61
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      2 Locally Optimal           
+**** OBJECTIVE VALUE                2.8990
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+GAMS/BARON       24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+Parts of the BARON software were created at the
+University of Illinois at Urbana-Champaign.
+
+--- Using Option File
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/qalan/baron.opt"
+*** Error Error code = 2; No such file or directory
+
+===========================================================================
+ BARON version 16.8.24. Built: LNX-64 Wed Aug 24 08:52:24 EDT 2016
+
+ If you use this software, please cite:
+ Tawarmalani, M. and N. V. Sahinidis, A polyhedral
+ branch-and-cut approach to global optimization,
+ Mathematical Programming, 103(2), 225-249, 2005.
+
+ BARON is a product of The Optimization Firm, LLC. http://www.minlp.com/
+ Parts of the BARON software were created at the
+ University of Illinois at Urbana-Champaign.
+===========================================================================
+ This BARON run may utilize the following subsolver(s)
+ For LP/MIP: ILOG CPLEX                                      
+ For NLP: MINOS, SNOPT, GAMS external NLP, IPOPT, FILTERSD
+===========================================================================
+
+Solution      = 2.89903846153846  best solution found during preprocessing
+Best possible = 2.63548951049
+Absolute gap  = 0.263548951048461  optca = 1E-9
+Relative gap  = 0.09091  optcr = 0.1
+  (Note that BARON uses a different formula to compute the relative gap as
+   was used for the above reported value.)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 8
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Solution Report     SOLVE portfolio Using QCP From line 61
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU fsum               1.0000         1.0000         1.0000       -13.5288      
+---- EQU dmean             10.0000        10.0000        10.0000         1.9327      
+---- EQU dvar                .              .              .            -1.0000      
+
+  fsum  fractions must add to 1.0
+  dmean  definition of mean return on portfolio
+  dvar  definition of variance
+
+---- VAR x  fraction of portfolio invested in asset i
+
+                LOWER          LEVEL          UPPER         MARGINAL
+
+hardware          .             0.3029        +INF             .          
+software          .             0.0865        +INF             .          
+show-biz          .             0.5048        +INF             .          
+t-bills           .             0.1058        +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR variance          -INF            2.8990        +INF             .          
+
+  variance  variance of portfolio
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:25 Page 9
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Equation Listing    SOLVE p1 Using MIQCP From line 81
+
+
+---- fsum  =E=  fractions must add to 1.0
+
+fsum..  x(hardware) + x(software) + x(show-biz) + x(t-bills) =E= 1 ; (LHS = 1)
+     
+
+---- dmean  =E=  definition of mean return on portfolio
+
+dmean..  8*x(hardware) + 9*x(software) + 12*x(show-biz) + 7*x(t-bills) =E= 10 ; (LHS = 10)
+     
+
+---- dvar  =E=  definition of variance
+
+dvar..  (1.93269230769231)*x(hardware) + (3.86538461538461)*x(software) + (9.66346153846154)*x(show-biz) - variance =E= 0 ; (LHS = 0)
+     
+
+---- setindic  =L=  if active is 0 then not in portfolio
+
+setindic(hardware)..  x(hardware) - active(hardware) =L= 0 ; (LHS = 0.302884615384616, INFES = 0.302884615384616 ****)
+     
+setindic(software)..  x(software) - active(software) =L= 0 ; (LHS = 0.0865384615384613, INFES = 0.0865384615384613 ****)
+     
+setindic(show-biz)..  x(show-biz) - active(show-biz) =L= 0 ; (LHS = 0.504807692307692, INFES = 0.504807692307692 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- maxactive  =L=  defines max number of assets in portfolio
+
+maxactive..  active(hardware) + active(software) + active(show-biz) + active(t-bills) =L= 3 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:25 Page 10
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Column Listing      SOLVE p1 Using MIQCP From line 81
+
+
+---- x  fraction of portfolio invested in asset i
+
+x(hardware)
+                (.LO, .L, .UP, .M = 0, 0.302884615384616, +INF, 0)
+        1       fsum
+        8       dmean
+       (1.9327) dvar
+        1       setindic(hardware)
+
+x(software)
+                (.LO, .L, .UP, .M = 0, 0.0865384615384613, +INF, 0)
+        1       fsum
+        9       dmean
+       (3.8654) dvar
+        1       setindic(software)
+
+x(show-biz)
+                (.LO, .L, .UP, .M = 0, 0.504807692307692, +INF, 0)
+        1       fsum
+       12       dmean
+       (9.6635) dvar
+        1       setindic(show-biz)
+
+REMAINING ENTRY SKIPPED
+
+---- variance  variance of portfolio
+
+variance
+                (.LO, .L, .UP, .M = -INF, 2.89903846153846, +INF, 0)
+       -1       dvar
+
+
+---- active  indicator: if 1 then asset is in portfolio
+
+active(hardware)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       setindic(hardware)
+        1       maxactive
+
+active(software)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       setindic(software)
+        1       maxactive
+
+active(show-biz)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       setindic(show-biz)
+        1       maxactive
+
+REMAINING ENTRY SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:25 Page 11
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Model Statistics    SOLVE p1 Using MIQCP From line 81
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            9
+NON ZERO ELEMENTS            24     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  24     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:25 Page 12
+A Quadratic Programming Model for Portfolio Analysis (QALAN,SEQ=282)
+Solution Report     SOLVE p1 Using MIQCP From line 81
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   p1                  OBJECTIVE  variance
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  81
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qalan/convert.opt"
+>>  pyomo qalan-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qalan/convert.opt"
+Pyomo     : qalan-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qalan/qalan.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qalan/qalan-scalar.py.lst

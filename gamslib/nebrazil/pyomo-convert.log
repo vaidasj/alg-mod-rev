@@ -1,0 +1,97 @@
+--- Job nebrazil.gms Start 12/13/18 10:24:45 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- nebrazil.gms(1081) 3 Mb
+--- Starting execution: elapsed 0:00:00.011
+--- nebrazil.gms(1070) 4 Mb
+--- Generating LP model brazil
+--- nebrazil.gms(1071) 5 Mb
+---   185 rows  414 columns  2,639 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+>>  pyomo nebrazil-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+--- Writing Pyomo     : nebrazil-scalar.py
+
+--- Restarting execution
+--- nebrazil.gms(1071) 2 Mb
+--- Reading solution for model brazil
+--- nebrazil.gms(1073) 3 Mb
+--- Generating LP model brazil
+--- nebrazil.gms(1074) 4 Mb
+---   285 rows  696 columns  6,840 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.041
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+>>  pyomo nebrazil-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+--- Writing Pyomo     : nebrazil-scalar.py
+
+--- Restarting execution
+--- nebrazil.gms(1074) 2 Mb
+--- Reading solution for model brazil
+--- nebrazil.gms(1075) 3 Mb
+--- Generating LP model brazil
+--- nebrazil.gms(1076) 3 Mb
+---   170 rows  323 columns  1,706 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.066
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+>>  pyomo nebrazil-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+--- Writing Pyomo     : nebrazil-scalar.py
+
+--- Restarting execution
+--- nebrazil.gms(1076) 2 Mb
+--- Reading solution for model brazil
+--- nebrazil.gms(1077) 3 Mb
+--- Generating LP model brazil
+--- nebrazil.gms(1078) 3 Mb
+---   131 rows  269 columns  1,427 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.082
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+>>  pyomo nebrazil-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+--- Writing Pyomo     : nebrazil-scalar.py
+
+--- Restarting execution
+--- nebrazil.gms(1078) 2 Mb
+--- Reading solution for model brazil
+--- nebrazil.gms(1079) 3 Mb
+--- Generating LP model brazil
+--- nebrazil.gms(1080) 3 Mb
+---   143 rows  328 columns  1,948 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.102
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+>>  pyomo nebrazil-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/nebrazil/convert.opt"
+--- Writing Pyomo     : nebrazil-scalar.py
+
+--- Restarting execution
+--- nebrazil.gms(1080) 2 Mb
+--- Reading solution for model brazil
+--- nebrazil.gms(1081) 3 Mb
+*** Status: Normal completion
+--- Job nebrazil.gms Stop 12/13/18 10:24:46 elapsed 0:00:00.118

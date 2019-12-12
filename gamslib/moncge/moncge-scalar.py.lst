@@ -1,0 +1,2198 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 2
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+   5   
+      No description.
+       
+       
+      Hosoe, N, Gasawa, K, and Hashimoto, H
+      Handbook of Computible General Equilibrium Modeling
+      University of Tokyo Press, Tokyo, Japan, 2004
+  14   
+  15   
+  16  * Definition of sets for suffix ---------------------------------------
+  17  Set     u       SAM entry     /BRD, MLK, CAP, LAB, IDT, TRF, HOH, GOV,
+  18                                 INV, EXT/
+  19          i(u)    goods         /BRD, MLK/
+  20          h(u)    factor        /CAP, LAB/;
+  21  Alias (u,v), (i,j), (h,k);
+  22  * ---------------------------------------------------------------------
+  23   
+  24  * Loading data --------------------------------------------------------
+  25  Table   SAM(u,v)        social accounting matrix
+  26          BRD     MLK     CAP     LAB     HOH
+  27  BRD     21      8                       20
+  28  MLK     17      9                       30
+  29  CAP     20      30
+  30  LAB     15      25
+  31  HOH                     50      40
+  32  GOV                                     23
+  33  INV                                     17
+  34  IDT     5       4
+  35  TRF     1       2
+  36  EXT     13      11
+  37   
+  38  +       GOV     INV     IDT     TRF     EXT
+  39  BRD     19      16                      8
+  40  MLK     14      15                      4
+  41  CAP
+  42  LAB
+  43  HOH
+  44  GOV                     9       3
+  45  INV     2                               12
+  46  IDT
+  47  TRF
+  48  EXT
+  49  ;
+  50  * Loading the initial values ------------------------------------------
+  51  Parameter       sigma(i)        elasticity of substitution
+  52                  psi(i)          elasticity of transformation
+  53                  eta(i)          substitution elasticity parameter
+  54                  phi(i)          transformation elasticity parameter
+  55  ;
+  56  sigma(i)=3;
+  57  psi(i)  =2;
+  58  eta(i)  =(sigma(i)-1)/sigma(i);
+  59  phi(i)  =(psi(i)+1)/psi(i);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 3
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+  60   
+  61  Parameter       Y0(j)           composite factor
+  62                  F0(h,j)         the h-th factor input by the j-th firm
+  63                  X0(i,j)         intermediate input
+  64                  Z0(j)           output of the j-th good
+  65                  Xp0(i)          household consumption of the i-th good
+  66                  Xg0(i)          government consumption
+  67                  Xv0(i)          investment demand
+  68                  E0(i)           exports
+  69                  M0(i)           imports
+  70                  Q0(i)           Armington's composite good
+  71                  D0(i)           domestic good
+  72                  Sp0             private saving
+  73                  Sg0             government saving
+  74                  Td0             direct tax
+  75                  Tz0(j)          production tax
+  76                  Tm0(j)          import tariff
+  77                  RT0(j)          monopoly rent
+  78   
+  79                  FF(h)           factor endowment of the h-th factor
+  80                  Sf              foreign saving in US dollars
+  81                  pWe(i)          export price in US dollars
+  82                  pWm(i)          import price in US dollars
+  83                  tauz(i)         production tax rate
+  84                  taum(i)         import tariff rate
+  85  ;
+  86  Td0     =SAM("GOV","HOH");
+  87  Tz0(j)  =SAM("IDT",j);
+  88  Tm0(j)  =SAM("TRF",J);
+  89  X0(i,j) =SAM(i,j);
+  90  M0(i)   =SAM("EXT",i);
+  91  Xp0(i)  =SAM(i,"HOH");
+  92  Xg0(i)  =SAM(i,"GOV");
+  93  Xv0(i)  =SAM(i,"INV");
+  94  E0(i)   =SAM(i,"EXT");
+  95  taum(j) =Tm0(j)/M0(j);
+  96  Q0(i)   =Xp0(i)+Xg0(i)+Xv0(i)+sum(j, X0(i,j));
+  97  D0(i)   =(Q0(i)-(1+taum(i))*M0(i))/(1/eta(i));
+  98  RT0(j)  =(1-eta(j))/eta(j)*D0(j);
+  99  F0(h,j) =SAM(h,j)-SAM(h,j)/sum(k, SAM(k,j))*RT0(j);
+ 100  FF(h)   =sum(j, F0(h,j));
+ 101  Y0(j)   =sum(h, F0(h,j));
+ 102  Z0(j)   =Y0(j) +sum(i,X0(i,j));
+ 103  tauz(j) =Tz0(j)/Z0(j);
+ 104  Sp0     =SAM("INV","HOH");
+ 105  Sg0     =SAM("INV","GOV");
+ 106  Sf      =SAM("INV","EXT");
+ 107   
+ 108  pWe(i)  =1;
+ 109  pWm(i)  =1;
+ 110   
+ 111  Display Y0,F0,X0,Z0,Xp0,Xg0,Xv0,E0,M0,Q0,D0,Sp0,Sg0,Td0,Tz0,Tm0,RT0,
+ 112          FF,Sf,tauz,taum;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 4
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+ 113  * Calibration ---------------------------------------------------------
+ 114   
+ 115  Parameter       alpha(i)        share parameter in utility func.
+ 116                  beta(h,j)       share parameter in production func.
+ 117                  b(j)            scale parameter in production func.
+ 118                  ax(i,j)         intermediate input requirement coeff.
+ 119                  ay(j)           composite fact. input req. coeff.
+ 120                  mu(i)           government consumption share
+ 121                  lambda(i)       investment demand share
+ 122                  deltam(i)       share parameter in Armington func.
+ 123                  deltad(i)       share parameter in Armington func.
+ 124                  gamma(i)        scale parameter in Armington func.
+ 125                  xid(i)          share parameter in transformation func.
+ 126                  xie(i)          share parameter in transformation func.
+ 127                  theta(i)        scale parameter in transformation func.
+ 128                  ssp             average propensity for private saving
+ 129                  ssg             average propensity for government saving
+ 130                  taud            direct tax rate
+ 131  ;
+ 132   
+ 133  alpha(i)=Xp0(i)/sum(j, Xp0(j));
+ 134  beta(h,j)=F0(h,j)/sum(k, F0(k,j));
+ 135  b(j)    =Y0(j)/prod(h, F0(h,j)**beta(h,j));
+ 136   
+ 137  ax(i,j) =X0(i,j)/Z0(j);
+ 138  ay(j)   =Y0(j)/Z0(j);
+ 139  mu(i)   =Xg0(i)/sum(j, Xg0(j));
+ 140  lambda(i)=Xv0(i)/(Sp0+Sg0+Sf);
+ 141   
+ 142  deltam(i)=(1+taum(i))*M0(i)**(1-eta(i))
+ 143          /((1+taum(i))*M0(i)**(1-eta(i))
+ 144          +(1/eta(i))*D0(i)**(1-eta(i)));
+ 145  deltad(i)=(1/eta(i))*D0(i)**(1-eta(i))
+ 146          /((1+taum(i))*M0(i)**(1-eta(i))
+ 147          +(1/eta(i))*D0(i)**(1-eta(i)));
+ 148  gamma(i)=Q0(i)/(deltam(i)*M0(i)**eta(i)+deltad(i)*D0(i)**eta(i))
+ 149          **(1/eta(i));
+ 150   
+ 151  xie(i)=E0(i)**(1-phi(i))/(E0(i)**(1-phi(i))+D0(i)**(1-phi(i)));
+ 152  xid(i)=D0(i)**(1-phi(i))/(E0(i)**(1-phi(i))+D0(i)**(1-phi(i)));
+ 153  theta(i)=Z0(i)/(xie(i)*E0(i)**phi(i)+xid(i)*D0(i)**phi(i))**(1/phi(i));
+ 154   
+ 155  ssp     =Sp0/(sum(h, FF(h))+sum(j, RT0(j)));
+ 156  ssg     =Sg0/(Td0+sum(j, Tz0(j))+sum(j, Tm0(j)));
+ 157  taud    =Td0/(sum(h, FF(h))+sum(j, RT0(j)));
+ 158   
+ 159  Display alpha,beta,b,ax,ay,mu,lambda,deltam,deltad,gamma,xie,
+ 160          xid,theta,ssp,ssg,taud;
+ 161  * ---------------------------------------------------------------------
+ 162   
+ 163  * Defining model system -----------------------------------------------
+ 164  Variable        Y(j)            composite factor
+ 165                  F(h,j)          the h-th factor input by the j-th firm
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 5
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+ 166                  X(i,j)          intermediate input
+ 167                  Z(j)            output of the j-th good
+ 168                  Xp(i)           household consumption of the i-th good
+ 169                  Xg(i)           government consumption
+ 170                  Xv(i)           investment demand
+ 171                  E(i)            exports
+ 172                  M(i)            imports
+ 173                  Q(i)            Armington's composite good
+ 174                  D(i)            domestic good
+ 175   
+ 176                  pf(h)           the h-th factor price
+ 177                  py(j)           composite factor price
+ 178                  pz(j)           supply price of the i-th good
+ 179                  pq(i)           Armington's composite good price
+ 180                  pe(i)           export price in local currency
+ 181                  pm(i)           import price in local currency
+ 182                  pd(i)           the i-th domestic good price
+ 183                  epsilon         exchange rate
+ 184   
+ 185                  Sp              private saving
+ 186                  Sg              government saving
+ 187                  Td              direct tax
+ 188                  Tz(j)           production tax
+ 189                  Tm(i)           import tariff
+ 190                  RT(j)           monopoly rent
+ 191   
+ 192                  UU              utility [fictitious]
+ 193  ;
+ 194  Equation        eqpy(j)         composite factor aggregation func.
+ 195                  eqX(i,j)        intermediate demand function
+ 196                  eqY(j)          composite factor demand function
+ 197                  eqF(h,j)        factor demand function
+ 198                  eqpzs(j)        unit cost function
+ 199   
+ 200                  eqTd            direct tax revenue function
+ 201                  eqTz(j)         production tax revenue function
+ 202                  eqTm(i)         import tariff revenue function
+ 203                  eqXg(i)         government demand function
+ 204   
+ 205                  eqXv(i)         investment demand function
+ 206                  eqSp            private saving function
+ 207                  eqSg            government saving function
+ 208   
+ 209                  eqXp(i)         household demand function
+ 210                  eqRT(j)         monopoly rent function
+ 211   
+ 212                  eqpe(i)         world export price equation
+ 213                  eqpm(i)         world import price equation
+ 214                  eqepsilon       balance of payments
+ 215   
+ 216                  eqpqs(i)        Armington function
+ 217                  eqM(i)          import demand function
+ 218                  eqD(i)          domestic good demand function
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 6
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+ 219   
+ 220                  eqpzd(i)        transformation function
+ 221                  eqDs(i)         domestic good supply function
+ 222                  eqE(i)          export supply function
+ 223   
+ 224                  eqpqd(i)        market clearing cond. for comp. good
+ 225                  eqpf(h)         factor market clearing condition
+ 226   
+ 227                  obj             utility function [fictitious]
+ 228  ;
+ 229  *[domestic production] ----
+ 230  eqpy(j)..       Y(j)    =e= b(j)*prod(h, F(h,j)**beta(h,j));
+ 231  eqX(i,j)..      X(i,j)  =e= ax(i,j)*Z(j);
+ 232  eqY(j)..        Y(j)    =e= ay(j)*Z(j);
+ 233  eqF(h,j)..      F(h,j)  =e= beta(h,j)*py(j)*Y(j)/pf(h);
+ 234  eqpzs(j)..      pz(j)   =e= ay(j)*py(j) +sum(i, ax(i,j)*pq(i));
+ 235   
+ 236  *[government behavior] ----
+ 237  eqTd..          Td      =e= taud*(sum(h, pf(h)*FF(h))+sum(j, RT(j)));
+ 238  eqTz(j)..       Tz(j)   =e= tauz(j)*pz(j)*Z(j);
+ 239  eqTm(i)..       Tm(i)   =e= taum(i)*pm(i)*M(i);
+ 240  eqXg(i)..       Xg(i)   =e= mu(i)*(Td +sum(j, Tz(j)) +sum(j, Tm(j))
+ 241                              -Sg)/pq(i);
+ 242   
+ 243  *[investment behavior] ----
+ 244  eqXv(i)..       Xv(i)   =e= lambda(i)*(Sp +Sg +epsilon*Sf)/pq(i);
+ 245   
+ 246  *[savings] ----------------
+ 247  eqSp..          Sp      =e= ssp*(sum(h, pf(h)*FF(h))+sum(j, RT(j)));
+ 248  eqSg..          Sg      =e= ssg*(Td +sum(j, Tz(j))+sum(j, Tm(j)));
+ 249   
+ 250  *[household consumption] --
+ 251  eqXp(i)..       Xp(i)   =e= alpha(i)*(sum(h, pf(h)*FF(h)) -Sp -Td
+ 252                              +sum(j, RT(j)))/pq(i);
+ 253  eqRT(j)..       RT(j)   =e= (1-eta(j))/eta(j)*pd(j)*D(j);
+ 254   
+ 255  *[international trade] ----
+ 256  eqpe(i)..       pe(i)   =e= epsilon*pWe(i);
+ 257  eqpm(i)..       pm(i)   =e= epsilon*pWm(i);
+ 258  eqepsilon..     sum(i, pWe(i)*E(i)) +Sf
+ 259                          =e= sum(i, pWm(i)*M(i));
+ 260   
+ 261  *[Armington function] -----
+ 262  eqpqs(i)..      Q(i)    =e= gamma(i)*(deltam(i)*M(i)**eta(i)
+ 263                              +deltad(i)*D(i)**eta(i))**(1/eta(i));
+ 264  eqM(i)..        M(i)    =e= (gamma(i)**eta(i)*deltam(i)*pq(i)
+ 265                              /((1+taum(i))*pm(i)))**(1/(1-eta(i)))*Q(i);
+ 266  eqD(i)..        D(i)    =e= (gamma(i)**eta(i)*deltad(i)*pq(i)
+ 267                              /((1/eta(i))*pd(i)))**(1/(1-eta(i)))*Q(i);
+ 268   
+ 269  *[transformation function] -----
+ 270  eqpzd(i)..      Z(i)    =e= theta(i)*(xie(i)*E(i)**phi(i)+xid(i)
+ 271                              *D(i)**phi(i))**(1/phi(i));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 7
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+ 272  eqE(i)..        E(i)    =e= (theta(i)**phi(i)*xie(i)*(1+tauz(i))*pz(i)
+ 273                              /pe(i))**(1/(1-phi(i)))*Z(i);
+ 274  eqDs(i)..       D(i)    =e= (theta(i)**phi(i)*xid(i)*(1+tauz(i))*pz(i)
+ 275                              /pd(i))**(1/(1-phi(i)))*Z(i);
+ 276   
+ 277  *[market clearing condition]
+ 278  eqpqd(i)..      Q(i)    =e= Xp(i) +Xg(i) +Xv(i) +sum(j, X(i,j));
+ 279  eqpf(h)..       sum(j, F(h,j)) =e= FF(h);
+ 280   
+ 281  *[fictitious objective function]
+ 282  obj..           UU      =e= prod(i, Xp(i)**alpha(i));
+ 283  * ---------------------------------------------------------------------
+ 284   
+ 285  * Initializing variables ----------------------------------------------
+ 286  Y.l(j)  =Y0(j);
+ 287  F.l(h,j)=F0(h,j);
+ 288  X.l(i,j)=X0(i,j);
+ 289  Z.l(j)  =Z0(j);
+ 290  Xp.l(i) =Xp0(i);
+ 291  Xg.l(i) =Xg0(i);
+ 292  Xv.l(i) =Xv0(i);
+ 293  E.l(i)  =E0(i);
+ 294  M.l(i)  =M0(i);
+ 295  Q.l(i)  =Q0(i);
+ 296  D.l(i)  =D0(i);
+ 297  pf.l(h) =1;
+ 298  py.l(j) =1;
+ 299  pz.l(j) =1;
+ 300  pq.l(i) =1;
+ 301  pe.l(i) =1;
+ 302  pm.l(i) =1;
+ 303  pd.l(i) =1;
+ 304  epsilon.l=1;
+ 305  Sp.l    =Sp0;
+ 306  Sg.l    =Sg0;
+ 307  Td.l    =Td0;
+ 308  Tz.l(j) =Tz0(j);
+ 309  Tm.l(i) =Tm0(i);
+ 310  RT.l(j) =RT0(j);
+ 311  * ---------------------------------------------------------------------
+ 312   
+ 313  * Setting lower bounds to avoid division by zero ----------------------
+ 314  Y.lo(j) =0.00001;
+ 315  F.lo(h,j)=0.00001;
+ 316  X.lo(i,j)=0.00001;
+ 317  Z.lo(j) =0.00001;
+ 318  Xp.lo(i)=0.00001;
+ 319  Xg.lo(i)=0.00001;
+ 320  Xv.lo(i)=0.00001;
+ 321  E.lo(i) =0.00001;
+ 322  M.lo(i) =0.00001;
+ 323  Q.lo(i) =0.00001;
+ 324  D.lo(i) =0.00001;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 8
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+ 325  pf.lo(h) =0.00001;
+ 326  py.lo(j)=0.00001;
+ 327  pz.lo(j)=0.00001;
+ 328  pq.lo(i)=0.00001;
+ 329  pe.lo(i)=0.00001;
+ 330  pm.lo(i)=0.00001;
+ 331  pd.lo(i)=0.00001;
+ 332  epsilon.lo=0.00001;
+ 333  Sp.lo   =0.00001;
+ 334  Sg.lo   =0.00001;
+ 335  Td.lo   =0.00001;
+ 336  Tz.lo(j)=0.0000;
+ 337  Tm.lo(i)=0.0000;
+ 338  * ---------------------------------------------------------------------
+ 339  * numeraire ---
+ 340  pf.fx("LAB")=1;
+ 341  * ---------------------------------------------------------------------
+ 342  * Defining and solving the model --------------------------------------
+ 343  Model moncge /all/;
+ 344  Solve moncge maximizing UU using nlp;
+ 345   
+ 346  * ---------------------------------------------------------------------
+ 347  * Simulation Runs: Abolition of Import Tariffs
+ 348  taum(i)=0; option bratio=1;
+ 349  Solve moncge maximizing UU using nlp;
+ 350  * ---------------------------------------------------------------------
+ 351   
+ 352  * Display of changes --------------------------------------------------
+ 353  Parameter
+ 354  dY(j),dF(h,j),dX(i,j),dZ(j),dXp(i),dXg(i),dXv(i),
+ 355  dE(i),dM(i),dQ(i),dD(i),dpd(i),dpz(i),dpq(i),dpy(j),
+ 356  dpm(i),dpe(i),dpf(h),depsilon,dTd,dTz(i),dTm(i),dSp,dSg;
+ 357   
+ 358  dY(j)  =(Y.l(j)  /Y0(j)  -1)*100;
+ 359  dF(h,j)=(F.l(h,j)/F0(h,j)-1)*100;
+ 360  dX(i,j)=(X.l(i,j)/X0(i,j)-1)*100;
+ 361  dZ(j)  =(Z.l(j)  /Z0(j)  -1)*100;
+ 362  dXp(i) =(Xp.l(i) /Xp0(i) -1)*100;
+ 363  dXg(i) =(Xg.l(i) /Xg0(i) -1)*100;
+ 364  dXv(i) =(Xv.l(i) /Xv0(i) -1)*100;
+ 365  dE(i)  =(E.l(i)  /E0(i)  -1)*100;
+ 366  dM(i)  =(M.l(i)  /M0(i)  -1)*100;
+ 367  dQ(i)  =(Q.l(i)  /Q0(i)  -1)*100;
+ 368  dD(i)  =(D.l(i)  /D0(i)  -1)*100;
+ 369  dpf(h) =(pf.l(h) /1 -1)*100;
+ 370  dpy(j) =(py.l(j) /1 -1)*100;
+ 371  dpz(j) =(pz.l(j) /1 -1)*100;
+ 372  dpq(i) =(pq.l(i) /1 -1)*100;
+ 373  dpe(i) =(pe.l(i) /1 -1)*100;
+ 374  dpm(i) =(pm.l(i) /1 -1)*100;
+ 375  dpd(i) =(pd.l(i) /1 -1)*100;
+ 376  depsilon=(epsilon.l/1 -1)*100;
+ 377  dTd    =(Td.l    /Td0    -1)*100;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 9
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+C o m p i l a t i o n
+
+
+ 378  dTz(j) =(Tz.l(j) /Tz0(j) -1)*100;
+ 379  dTm(i) =(Tm.l(i) /Tm0(i) -1)*100;
+ 380  dSp    =(Sp.l    /Sp0    -1)*100;
+ 381  dSg    =(Sg.l    /Sg0    -1)*100;
+ 382   
+ 383  Display
+ 384  dY,dF,dX,dZ,dXp,dXg,dXv,dE,dM,dQ,dD,dpf,dpy,dpz,
+ 385  dpq,dpe,dpm,dpd,depsilon,dTd,dTz,dTm,dSp,dSg;
+ 386   
+ 387  * Welfare measure: Hicksian equivalent variations ---------------------
+ 388  Parameter       UU0             utility level in the Base Run Eq.
+ 389                  ep0             expenditure func. in the Base Run Eq.
+ 390                  ep1             expenditure func. in the C-f Eq.
+ 391                  EV      Hicksian equivalent variations
+ 392  ;
+ 393  UU0     =prod(i, Xp0(i)**alpha(i));
+ 394  ep0     =UU0 /prod(i,(alpha(i)/1)**alpha(i));
+ 395  ep1     =UU.l/prod(i, (alpha(i)/1)**alpha(i));
+ 396  EV      =ep1-ep0;
+ 397   
+ 398  Display EV;
+ 399  * ---------------------------------------------------------------------
+ 400  * end of model --------------------------------------------------------
+ 401  * ---------------------------------------------------------------------
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 10
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+----    111 PARAMETER Y0  composite factor
+
+BRD 11.667,    MLK 31.000
+
+
+----    111 PARAMETER F0  the h-th factor input by the j-th firm
+
+            BRD         MLK
+
+CAP       6.667      16.909
+LAB       5.000      14.091
+
+
+----    111 PARAMETER X0  intermediate input
+
+            BRD         MLK
+
+BRD      21.000       8.000
+MLK      17.000       9.000
+
+
+----    111 PARAMETER Z0  output of the j-th good
+
+BRD 49.667,    MLK 48.000
+
+
+----    111 PARAMETER Xp0  household consumption of the i-th good
+
+BRD 20.000,    MLK 30.000
+
+
+----    111 PARAMETER Xg0  government consumption
+
+BRD 19.000,    MLK 14.000
+
+
+----    111 PARAMETER Xv0  investment demand
+
+BRD 16.000,    MLK 15.000
+
+
+----    111 PARAMETER E0  exports
+
+BRD 8.000,    MLK 4.000
+
+
+----    111 PARAMETER M0  imports
+
+BRD 13.000,    MLK 11.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 11
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+----    111 PARAMETER Q0  Armington's composite good
+
+BRD 84.000,    MLK 85.000
+
+
+----    111 PARAMETER D0  domestic good
+
+BRD 46.667,    MLK 48.000
+
+
+----    111 PARAMETER Sp0                  =       17.000  private saving
+            PARAMETER Sg0                  =        2.000  government saving
+            PARAMETER Td0                  =       23.000  direct tax
+
+----    111 PARAMETER Tz0  production tax
+
+BRD 5.000,    MLK 4.000
+
+
+----    111 PARAMETER Tm0  import tariff
+
+BRD 1.000,    MLK 2.000
+
+
+----    111 PARAMETER RT0  monopoly rent
+
+BRD 23.333,    MLK 24.000
+
+
+----    111 PARAMETER FF  factor endowment of the h-th factor
+
+CAP 23.576,    LAB 19.091
+
+
+----    111 PARAMETER Sf                   =       12.000  foreign saving in US dollars
+
+----    111 PARAMETER tauz  production tax rate
+
+BRD 0.101,    MLK 0.083
+
+
+----    111 PARAMETER taum  import tariff rate
+
+BRD 0.077,    MLK 0.182
+
+
+----    159 PARAMETER alpha  share parameter in utility func.
+
+BRD 0.400,    MLK 0.600
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 12
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+----    159 PARAMETER beta  share parameter in production func.
+
+            BRD         MLK
+
+CAP       0.571       0.545
+LAB       0.429       0.455
+
+
+----    159 PARAMETER b  scale parameter in production func.
+
+BRD 1.980,    MLK 1.992
+
+
+----    159 PARAMETER ax  intermediate input requirement coeff.
+
+            BRD         MLK
+
+BRD       0.423       0.167
+MLK       0.342       0.188
+
+
+----    159 PARAMETER ay  composite fact. input req. coeff.
+
+BRD 0.235,    MLK 0.646
+
+
+----    159 PARAMETER mu  government consumption share
+
+BRD 0.576,    MLK 0.424
+
+
+----    159 PARAMETER lambda  investment demand share
+
+BRD 0.516,    MLK 0.484
+
+
+----    159 PARAMETER deltam  share parameter in Armington func.
+
+BRD 0.319,    MLK 0.325
+
+
+----    159 PARAMETER deltad  share parameter in Armington func.
+
+BRD 0.681,    MLK 0.675
+
+
+----    159 PARAMETER gamma  scale parameter in Armington func.
+
+BRD 2.438,    MLK 2.491
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 13
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+----    159 PARAMETER xie  share parameter in transformation func.
+
+BRD 0.707,    MLK 0.776
+
+
+----    159 PARAMETER xid  share parameter in transformation func.
+
+BRD 0.293,    MLK 0.224
+
+
+----    159 PARAMETER theta  scale parameter in transformation func.
+
+BRD 2.172,    MLK 2.570
+
+
+----    159 PARAMETER ssp                  =        0.189  average propensity for private saving
+            PARAMETER ssg                  =        0.057  average propensity for government saving
+            PARAMETER taud                 =        0.256  direct tax rate
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 14
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 344
+
+
+---- eqpy  =E=  composite factor aggregation func.
+
+eqpy(BRD)..  Y(BRD) - (1)*F(CAP,BRD) - (1)*F(LAB,BRD) =E= 0 ; (LHS = 0)
+     
+eqpy(MLK)..  Y(MLK) - (1)*F(CAP,MLK) - (1)*F(LAB,MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqX  =E=  intermediate demand function
+
+eqX(BRD,BRD)..  X(BRD,BRD) - 0.422818791946309*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,MLK)..  X(BRD,MLK) - 0.166666666666667*Z(MLK) =E= 0 ; (LHS = 0)
+     
+eqX(MLK,BRD)..  X(MLK,BRD) - 0.342281879194631*Z(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqY  =E=  composite factor demand function
+
+eqY(BRD)..  Y(BRD) - 0.23489932885906*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqY(MLK)..  Y(MLK) - 0.645833333333333*Z(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD)..  - (0.571428571428571)*Y(BRD) + F(CAP,BRD) + (6.66666666666667)*pf(CAP) - (6.66666666666667)*py(BRD) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK)..  - (0.545454545454546)*Y(MLK) + F(CAP,MLK) + (16.9090909090909)*pf(CAP) - (16.9090909090909)*py(MLK) =E= 0 ; (LHS = 0)
+     
+eqF(LAB,BRD)..  - (0.428571428571429)*Y(BRD) + F(LAB,BRD) + (5)*pf(LAB) - (5)*py(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpzs  =E=  unit cost function
+
+eqpzs(BRD)..  - 0.23489932885906*py(BRD) + pz(BRD) - 0.422818791946309*pq(BRD) - 0.342281879194631*pq(MLK) =E= 0 ; (LHS = 0)
+     
+eqpzs(MLK)..  - 0.645833333333333*py(MLK) + pz(MLK) - 0.166666666666667*pq(BRD) - 0.1875*pq(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTd  =E=  direct tax revenue function
+
+eqTd..  - 6.02491582491582*pf(CAP) - 4.87878787878788*pf(LAB) + Td - 0.255555555555556*RT(BRD) - 0.255555555555556*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTz  =E=  production tax revenue function
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 15
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 344
+
+
+     eqTz  =E=  production tax revenue function
+
+eqTz(BRD)..  - (0.100671140939597)*Z(BRD) - (5)*pz(BRD) + Tz(BRD) =E= 0 ; (LHS = 0)
+     
+eqTz(MLK)..  - (0.0833333333333333)*Z(MLK) - (4)*pz(MLK) + Tz(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTm  =E=  import tariff revenue function
+
+eqTm(BRD)..  - (0.0769230769230769)*M(BRD) - (1)*pm(BRD) + Tm(BRD) =E= 0 ; (LHS = 0)
+     
+eqTm(MLK)..  - (0.181818181818182)*M(MLK) - (2)*pm(MLK) + Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXg  =E=  government demand function
+
+eqXg(BRD)..  Xg(BRD) + (19)*pq(BRD) + (0.575757575757576)*Sg - (0.575757575757576)*Td - (0.575757575757576)*Tz(BRD) - (0.575757575757576)*Tz(MLK) - (0.575757575757576)*Tm(BRD) - (0.575757575757576)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+eqXg(MLK)..  Xg(MLK) + (14)*pq(MLK) + (0.424242424242424)*Sg - (0.424242424242424)*Td - (0.424242424242424)*Tz(BRD) - (0.424242424242424)*Tz(MLK) - (0.424242424242424)*Tm(BRD) - (0.424242424242424)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXv  =E=  investment demand function
+
+eqXv(BRD)..  Xv(BRD) + (16)*pq(BRD) - (6.19354838709677)*epsilon - (0.516129032258065)*Sp - (0.516129032258065)*Sg =E= 0 ; (LHS = 0)
+     
+eqXv(MLK)..  Xv(MLK) + (15)*pq(MLK) - (5.80645161290323)*epsilon - (0.483870967741935)*Sp - (0.483870967741935)*Sg =E= 0 ; (LHS = 0)
+     
+
+---- eqSp  =E=  private saving function
+
+eqSp..  - 4.45319865319865*pf(CAP) - 3.60606060606061*pf(LAB) + Sp - 0.188888888888889*RT(BRD) - 0.188888888888889*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqSg  =E=  government saving function
+
+eqSg..  Sg - 0.0571428571428571*Td - 0.0571428571428571*Tz(BRD) - 0.0571428571428571*Tz(MLK) - 0.0571428571428571*Tm(BRD) - 0.0571428571428571*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXp  =E=  household demand function
+
+eqXp(BRD)..  Xp(BRD) - (9.43030303030303)*pf(CAP) - (7.63636363636363)*pf(LAB) + (20)*pq(BRD) + (0.4)*Sp + (0.4)*Td - (0.4)*RT(BRD) - (0.4)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+eqXp(MLK)..  Xp(MLK) - (14.1454545454545)*pf(CAP) - (11.4545454545455)*pf(LAB) + (30)*pq(MLK) + (0.6)*Sp + (0.6)*Td - (0.6)*RT(BRD) - (0.6)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqRT  =E=  monopoly rent function
+
+eqRT(BRD)..  - (0.5)*D(BRD) - (23.3333333333333)*pd(BRD) + RT(BRD) =E= 0 ; (LHS = 0)
+     
+eqRT(MLK)..  - (0.5)*D(MLK) - (24)*pd(MLK) + RT(MLK) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 16
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 344
+
+
+---- eqpe  =E=  world export price equation
+
+eqpe(BRD)..  pe(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpe(MLK)..  pe(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqpm  =E=  world import price equation
+
+eqpm(BRD)..  pm(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpm(MLK)..  pm(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqepsilon  =E=  balance of payments
+
+eqepsilon..  E(BRD) + E(MLK) - M(BRD) - M(MLK) =E= -12 ; (LHS = -12)
+     
+
+---- eqpqs  =E=  Armington function
+
+eqpqs(BRD)..  - (1.07692307692308)*M(BRD) + Q(BRD) - (1.5)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqs(MLK)..  - (1.18181818181818)*M(MLK) + Q(MLK) - (1.5)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqM  =E=  import demand function
+
+eqM(BRD)..  M(BRD) - (0.154761904761905)*Q(BRD) - (38.9999999999999)*pq(BRD) + (38.9999999999999)*pm(BRD) =E= 0 ; (LHS = 0)
+     
+eqM(MLK)..  M(MLK) - (0.129411764705882)*Q(MLK) - (33)*pq(MLK) + (33)*pm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqD  =E=  domestic good demand function
+
+eqD(BRD)..  - (0.555555555555555)*Q(BRD) + D(BRD) - (140)*pq(BRD) + (140)*pd(BRD) =E= 0 ; (LHS = 0)
+     
+eqD(MLK)..  - (0.564705882352942)*Q(MLK) + D(MLK) - (144)*pq(MLK) + (144)*pd(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpzd  =E=  transformation function
+
+eqpzd(BRD)..  Z(BRD) - (0.908536585365853)*E(BRD) - (0.908536585365854)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpzd(MLK)..  Z(MLK) - (0.923076923076922)*E(MLK) - (0.923076923076923)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqDs  =E=  domestic good supply function
+
+eqDs(BRD)..  - (0.939597315436243)*Z(BRD) + D(BRD) + (93.3333333333334)*pz(BRD) - (93.3333333333334)*pd(BRD) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 17
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 344
+
+
+     eqDs  =E=  domestic good supply function
+
+eqDs(MLK)..  - (1)*Z(MLK) + D(MLK) + (96.0000000000002)*pz(MLK) - (96.0000000000002)*pd(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqE  =E=  export supply function
+
+eqE(BRD)..  - (0.161073825503356)*Z(BRD) + E(BRD) + (16)*pz(BRD) - (16)*pe(BRD) =E= 0 ; (LHS = 0)
+     
+eqE(MLK)..  - (0.0833333333333335)*Z(MLK) + E(MLK) + (8.00000000000001)*pz(MLK) - (8.00000000000001)*pe(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpqd  =E=  market clearing cond. for comp. good
+
+eqpqd(BRD)..  - X(BRD,BRD) - X(BRD,MLK) - Xp(BRD) - Xg(BRD) - Xv(BRD) + Q(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqd(MLK)..  - X(MLK,BRD) - X(MLK,MLK) - Xp(MLK) - Xg(MLK) - Xv(MLK) + Q(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP)..  F(CAP,BRD) + F(CAP,MLK) =E= 23.5757575757576 ; (LHS = 23.5757575757576)
+     
+eqpf(LAB)..  F(LAB,BRD) + F(LAB,MLK) =E= 19.0909090909091 ; (LHS = 19.0909090909091)
+     
+
+---- obj  =E=  utility function [fictitious]
+
+obj..  - (0.510169800250316)*Xp(BRD) - (0.510169800250316)*Xp(MLK) + UU =E= 0 ; (LHS = -25.5084900125158, INFES = 25.5084900125158 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 18
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+---- Y  composite factor
+
+Y(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 11.6666666666667, +INF, 0)
+        1       eqpy(BRD)
+        1       eqY(BRD)
+      (-0.5714) eqF(CAP,BRD)
+      (-0.4286) eqF(LAB,BRD)
+
+Y(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 31, +INF, 0)
+        1       eqpy(MLK)
+        1       eqY(MLK)
+      (-0.5455) eqF(CAP,MLK)
+      (-0.4545) eqF(LAB,MLK)
+
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 6.66666666666667, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(CAP,BRD)
+        1       eqpf(CAP)
+
+F(CAP,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 16.9090909090909, +INF, 0)
+      (-1)      eqpy(MLK)
+        1       eqF(CAP,MLK)
+        1       eqpf(CAP)
+
+F(LAB,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 5, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(LAB,BRD)
+        1       eqpf(LAB)
+
+REMAINING ENTRY SKIPPED
+
+---- X  intermediate input
+
+X(BRD,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 21, +INF, 0)
+        1       eqX(BRD,BRD)
+       -1       eqpqd(BRD)
+
+X(BRD,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqX(BRD,MLK)
+       -1       eqpqd(BRD)
+
+X(MLK,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 19
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+     X  intermediate input
+
+        1       eqX(MLK,BRD)
+       -1       eqpqd(MLK)
+
+REMAINING ENTRY SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 49.6666666666667, +INF, 0)
+       -0.4228  eqX(BRD,BRD)
+       -0.3423  eqX(MLK,BRD)
+       -0.2349  eqY(BRD)
+      (-0.1007) eqTz(BRD)
+        1       eqpzd(BRD)
+      (-0.9396) eqDs(BRD)
+      (-0.1611) eqE(BRD)
+
+Z(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 48, +INF, 0)
+       -0.1667  eqX(BRD,MLK)
+       -0.1875  eqX(MLK,MLK)
+       -0.6458  eqY(MLK)
+      (-0.0833) eqTz(MLK)
+        1       eqpzd(MLK)
+      (-1)      eqDs(MLK)
+      (-0.0833) eqE(MLK)
+
+
+---- Xp  household consumption of the i-th good
+
+Xp(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXp(BRD)
+       -1       eqpqd(BRD)
+      (-0.5102) obj
+
+Xp(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(MLK)
+       -1       eqpqd(MLK)
+      (-0.5102) obj
+
+
+---- Xg  government consumption
+
+Xg(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 19, +INF, 0)
+        1       eqXg(BRD)
+       -1       eqpqd(BRD)
+
+Xg(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 20
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+     Xg  government consumption
+
+                (.LO, .L, .UP, .M = 1E-5, 14, +INF, 0)
+        1       eqXg(MLK)
+       -1       eqpqd(MLK)
+
+
+---- Xv  investment demand
+
+Xv(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 16, +INF, 0)
+        1       eqXv(BRD)
+       -1       eqpqd(BRD)
+
+Xv(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+        1       eqXv(MLK)
+       -1       eqpqd(MLK)
+
+
+---- E  exports
+
+E(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqepsilon
+      (-0.9085) eqpzd(BRD)
+        1       eqE(BRD)
+
+E(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 4, +INF, 0)
+        1       eqepsilon
+      (-0.9231) eqpzd(MLK)
+        1       eqE(MLK)
+
+
+---- M  imports
+
+M(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+      (-0.0769) eqTm(BRD)
+       -1       eqepsilon
+      (-1.0769) eqpqs(BRD)
+        1       eqM(BRD)
+
+M(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 11, +INF, 0)
+      (-0.1818) eqTm(MLK)
+       -1       eqepsilon
+      (-1.1818) eqpqs(MLK)
+        1       eqM(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 21
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+---- Q  Armington's composite good
+
+Q(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 84, +INF, 0)
+        1       eqpqs(BRD)
+      (-0.1548) eqM(BRD)
+      (-0.5556) eqD(BRD)
+        1       eqpqd(BRD)
+
+Q(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 85, +INF, 0)
+        1       eqpqs(MLK)
+      (-0.1294) eqM(MLK)
+      (-0.5647) eqD(MLK)
+        1       eqpqd(MLK)
+
+
+---- D  domestic good
+
+D(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 46.6666666666667, +INF, 0)
+      (-0.5)    eqRT(BRD)
+      (-1.5)    eqpqs(BRD)
+        1       eqD(BRD)
+      (-0.9085) eqpzd(BRD)
+        1       eqDs(BRD)
+
+D(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 48, +INF, 0)
+      (-0.5)    eqRT(MLK)
+      (-1.5)    eqpqs(MLK)
+        1       eqD(MLK)
+      (-0.9231) eqpzd(MLK)
+        1       eqDs(MLK)
+
+
+---- pf  the h-th factor price
+
+pf(CAP)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       (6.6667) eqF(CAP,BRD)
+      (16.9091) eqF(CAP,MLK)
+       -6.0249  eqTd
+       -4.4532  eqSp
+      (-9.4303) eqXp(BRD)
+     (-14.1455) eqXp(MLK)
+
+pf(LAB)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (5)      eqF(LAB,BRD)
+      (14.0909) eqF(LAB,MLK)
+       -4.8788  eqTd
+       -3.6061  eqSp
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 22
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+     pf  the h-th factor price
+
+      (-7.6364) eqXp(BRD)
+     (-11.4545) eqXp(MLK)
+
+
+---- py  composite factor price
+
+py(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.6667) eqF(CAP,BRD)
+      (-5)      eqF(LAB,BRD)
+       -0.2349  eqpzs(BRD)
+
+py(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-16.9091) eqF(CAP,MLK)
+     (-14.0909) eqF(LAB,MLK)
+       -0.6458  eqpzs(MLK)
+
+
+---- pz  supply price of the i-th good
+
+pz(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD)
+      (-5)      eqTz(BRD)
+      (93.3333) eqDs(BRD)
+      (16)      eqE(BRD)
+
+pz(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(MLK)
+      (-4)      eqTz(MLK)
+      (96)      eqDs(MLK)
+       (8)      eqE(MLK)
+
+
+---- pq  Armington's composite good price
+
+pq(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.4228  eqpzs(BRD)
+       -0.1667  eqpzs(MLK)
+      (19)      eqXg(BRD)
+      (16)      eqXv(BRD)
+      (20)      eqXp(BRD)
+     (-39)      eqM(BRD)
+    (-140)      eqD(BRD)
+
+pq(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.3423  eqpzs(BRD)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 23
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+     pq  Armington's composite good price
+
+       -0.1875  eqpzs(MLK)
+      (14)      eqXg(MLK)
+      (15)      eqXv(MLK)
+      (30)      eqXp(MLK)
+     (-33)      eqM(MLK)
+    (-144)      eqD(MLK)
+
+
+---- pe  export price in local currency
+
+pe(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD)
+     (-16)      eqE(BRD)
+
+pe(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(MLK)
+      (-8)      eqE(MLK)
+
+
+---- pm  import price in local currency
+
+pm(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqTm(BRD)
+        1       eqpm(BRD)
+      (39)      eqM(BRD)
+
+pm(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-2)      eqTm(MLK)
+        1       eqpm(MLK)
+      (33)      eqM(MLK)
+
+
+---- pd  the i-th domestic good price
+
+pd(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-23.3333) eqRT(BRD)
+     (140)      eqD(BRD)
+     (-93.3333) eqDs(BRD)
+
+pd(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-24)      eqRT(MLK)
+     (144)      eqD(MLK)
+     (-96)      eqDs(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 24
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+---- epsilon  exchange rate
+
+epsilon
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.1935) eqXv(BRD)
+      (-5.8065) eqXv(MLK)
+       -1       eqpe(BRD)
+       -1       eqpe(MLK)
+       -1       eqpm(BRD)
+       -1       eqpm(MLK)
+
+
+---- Sp  private saving
+
+Sp
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSp
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+
+---- Sg  government saving
+
+Sg
+                (.LO, .L, .UP, .M = 1E-5, 2, +INF, 0)
+       (0.5758) eqXg(BRD)
+       (0.4242) eqXg(MLK)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSg
+
+
+---- Td  direct tax
+
+Td
+                (.LO, .L, .UP, .M = 1E-5, 23, +INF, 0)
+        1       eqTd
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+
+---- Tz  production tax
+
+Tz(BRD)
+                (.LO, .L, .UP, .M = 0, 5, +INF, 0)
+        1       eqTz(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 25
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+     Tz  production tax
+
+       -0.0571  eqSg
+
+Tz(MLK)
+                (.LO, .L, .UP, .M = 0, 4, +INF, 0)
+        1       eqTz(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- Tm  import tariff
+
+Tm(BRD)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+Tm(MLK)
+                (.LO, .L, .UP, .M = 0, 2, +INF, 0)
+        1       eqTm(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- RT  monopoly rent
+
+RT(BRD)
+                (.LO, .L, .UP, .M = -INF, 23.3333333333333, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(BRD)
+
+RT(MLK)
+                (.LO, .L, .UP, .M = -INF, 24, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(MLK)
+
+
+---- UU  utility [fictitious]
+
+UU
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 26
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 344
+
+
+     UU  utility [fictitious]
+
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 27
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Model Statistics    SOLVE moncge Using NLP From line 344
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS           51
+BLOCKS OF VARIABLES          26     SINGLE VARIABLES           51
+NON ZERO ELEMENTS           193     NON LINEAR N-Z             98
+DERIVATIVE POOL              20     CONSTANT POOL              69
+CODE LENGTH                 331
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 28
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Solution Report     SOLVE moncge Using NLP From line 344
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   moncge              OBJECTIVE  UU
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  344
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/moncge/convert.opt"
+>>  pyomo moncge-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/moncge/convert.opt"
+Pyomo     : moncge-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 29
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 349
+
+
+---- eqpy  =E=  composite factor aggregation func.
+
+eqpy(BRD)..  Y(BRD) - (1)*F(CAP,BRD) - (1)*F(LAB,BRD) =E= 0 ; (LHS = 0)
+     
+eqpy(MLK)..  Y(MLK) - (1)*F(CAP,MLK) - (1)*F(LAB,MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqX  =E=  intermediate demand function
+
+eqX(BRD,BRD)..  X(BRD,BRD) - 0.422818791946309*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,MLK)..  X(BRD,MLK) - 0.166666666666667*Z(MLK) =E= 0 ; (LHS = 0)
+     
+eqX(MLK,BRD)..  X(MLK,BRD) - 0.342281879194631*Z(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqY  =E=  composite factor demand function
+
+eqY(BRD)..  Y(BRD) - 0.23489932885906*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqY(MLK)..  Y(MLK) - 0.645833333333333*Z(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD)..  - (0.571428571428571)*Y(BRD) + F(CAP,BRD) + (6.66666666666667)*pf(CAP) - (6.66666666666667)*py(BRD) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK)..  - (0.545454545454546)*Y(MLK) + F(CAP,MLK) + (16.9090909090909)*pf(CAP) - (16.9090909090909)*py(MLK) =E= 0 ; (LHS = 0)
+     
+eqF(LAB,BRD)..  - (0.428571428571429)*Y(BRD) + F(LAB,BRD) + (5)*pf(LAB) - (5)*py(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpzs  =E=  unit cost function
+
+eqpzs(BRD)..  - 0.23489932885906*py(BRD) + pz(BRD) - 0.422818791946309*pq(BRD) - 0.342281879194631*pq(MLK) =E= 0 ; (LHS = 0)
+     
+eqpzs(MLK)..  - 0.645833333333333*py(MLK) + pz(MLK) - 0.166666666666667*pq(BRD) - 0.1875*pq(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTd  =E=  direct tax revenue function
+
+eqTd..  - 6.02491582491582*pf(CAP) - 4.87878787878788*pf(LAB) + Td - 0.255555555555556*RT(BRD) - 0.255555555555556*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTz  =E=  production tax revenue function
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 30
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 349
+
+
+     eqTz  =E=  production tax revenue function
+
+eqTz(BRD)..  - (0.100671140939597)*Z(BRD) - (5)*pz(BRD) + Tz(BRD) =E= 0 ; (LHS = 0)
+     
+eqTz(MLK)..  - (0.0833333333333333)*Z(MLK) - (4)*pz(MLK) + Tz(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTm  =E=  import tariff revenue function
+
+eqTm(BRD)..  Tm(BRD) =E= 0 ; (LHS = 1, INFES = 1 ****)
+     
+eqTm(MLK)..  Tm(MLK) =E= 0 ; (LHS = 2, INFES = 2 ****)
+     
+
+---- eqXg  =E=  government demand function
+
+eqXg(BRD)..  Xg(BRD) + (19)*pq(BRD) + (0.575757575757576)*Sg - (0.575757575757576)*Td - (0.575757575757576)*Tz(BRD) - (0.575757575757576)*Tz(MLK) - (0.575757575757576)*Tm(BRD) - (0.575757575757576)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+eqXg(MLK)..  Xg(MLK) + (14)*pq(MLK) + (0.424242424242424)*Sg - (0.424242424242424)*Td - (0.424242424242424)*Tz(BRD) - (0.424242424242424)*Tz(MLK) - (0.424242424242424)*Tm(BRD) - (0.424242424242424)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXv  =E=  investment demand function
+
+eqXv(BRD)..  Xv(BRD) + (16)*pq(BRD) - (6.19354838709677)*epsilon - (0.516129032258065)*Sp - (0.516129032258065)*Sg =E= 0 ; (LHS = 0)
+     
+eqXv(MLK)..  Xv(MLK) + (15)*pq(MLK) - (5.80645161290323)*epsilon - (0.483870967741935)*Sp - (0.483870967741935)*Sg =E= 0 ; (LHS = 0)
+     
+
+---- eqSp  =E=  private saving function
+
+eqSp..  - 4.45319865319865*pf(CAP) - 3.60606060606061*pf(LAB) + Sp - 0.188888888888889*RT(BRD) - 0.188888888888889*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqSg  =E=  government saving function
+
+eqSg..  Sg - 0.0571428571428571*Td - 0.0571428571428571*Tz(BRD) - 0.0571428571428571*Tz(MLK) - 0.0571428571428571*Tm(BRD) - 0.0571428571428571*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXp  =E=  household demand function
+
+eqXp(BRD)..  Xp(BRD) - (9.43030303030303)*pf(CAP) - (7.63636363636363)*pf(LAB) + (20)*pq(BRD) + (0.4)*Sp + (0.4)*Td - (0.4)*RT(BRD) - (0.4)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+eqXp(MLK)..  Xp(MLK) - (14.1454545454545)*pf(CAP) - (11.4545454545455)*pf(LAB) + (30)*pq(MLK) + (0.6)*Sp + (0.6)*Td - (0.6)*RT(BRD) - (0.6)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqRT  =E=  monopoly rent function
+
+eqRT(BRD)..  - (0.5)*D(BRD) - (23.3333333333333)*pd(BRD) + RT(BRD) =E= 0 ; (LHS = 0)
+     
+eqRT(MLK)..  - (0.5)*D(MLK) - (24)*pd(MLK) + RT(MLK) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 31
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 349
+
+
+---- eqpe  =E=  world export price equation
+
+eqpe(BRD)..  pe(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpe(MLK)..  pe(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqpm  =E=  world import price equation
+
+eqpm(BRD)..  pm(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpm(MLK)..  pm(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqepsilon  =E=  balance of payments
+
+eqepsilon..  E(BRD) + E(MLK) - M(BRD) - M(MLK) =E= -12 ; (LHS = -12)
+     
+
+---- eqpqs  =E=  Armington function
+
+eqpqs(BRD)..  - (1.07692307692308)*M(BRD) + Q(BRD) - (1.5)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqs(MLK)..  - (1.18181818181818)*M(MLK) + Q(MLK) - (1.5)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqM  =E=  import demand function
+
+eqM(BRD)..  M(BRD) - (0.193293885601578)*Q(BRD) - (48.7100591715976)*pq(BRD) + (48.7100591715976)*pm(BRD) =E= 0 ; (LHS = -3.23668639053253, INFES = 3.23668639053253 ****)
+     
+eqM(MLK)..  M(MLK) - (0.213612056392805)*Q(MLK) - (54.4710743801653)*pq(MLK) + (54.4710743801653)*pm(MLK) =E= 0 ; (LHS = -7.15702479338844, INFES = 7.15702479338844 ****)
+     
+
+---- eqD  =E=  domestic good demand function
+
+eqD(BRD)..  - (0.555555555555555)*Q(BRD) + D(BRD) - (140)*pq(BRD) + (140)*pd(BRD) =E= 0 ; (LHS = 0)
+     
+eqD(MLK)..  - (0.564705882352942)*Q(MLK) + D(MLK) - (144)*pq(MLK) + (144)*pd(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpzd  =E=  transformation function
+
+eqpzd(BRD)..  Z(BRD) - (0.908536585365853)*E(BRD) - (0.908536585365854)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpzd(MLK)..  Z(MLK) - (0.923076923076922)*E(MLK) - (0.923076923076923)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqDs  =E=  domestic good supply function
+
+eqDs(BRD)..  - (0.939597315436243)*Z(BRD) + D(BRD) + (93.3333333333334)*pz(BRD) - (93.3333333333334)*pd(BRD) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 32
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Equation Listing    SOLVE moncge Using NLP From line 349
+
+
+     eqDs  =E=  domestic good supply function
+
+eqDs(MLK)..  - (1)*Z(MLK) + D(MLK) + (96.0000000000002)*pz(MLK) - (96.0000000000002)*pd(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqE  =E=  export supply function
+
+eqE(BRD)..  - (0.161073825503356)*Z(BRD) + E(BRD) + (16)*pz(BRD) - (16)*pe(BRD) =E= 0 ; (LHS = 0)
+     
+eqE(MLK)..  - (0.0833333333333335)*Z(MLK) + E(MLK) + (8.00000000000001)*pz(MLK) - (8.00000000000001)*pe(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpqd  =E=  market clearing cond. for comp. good
+
+eqpqd(BRD)..  - X(BRD,BRD) - X(BRD,MLK) - Xp(BRD) - Xg(BRD) - Xv(BRD) + Q(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqd(MLK)..  - X(MLK,BRD) - X(MLK,MLK) - Xp(MLK) - Xg(MLK) - Xv(MLK) + Q(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP)..  F(CAP,BRD) + F(CAP,MLK) =E= 23.5757575757576 ; (LHS = 23.5757575757576)
+     
+eqpf(LAB)..  F(LAB,BRD) + F(LAB,MLK) =E= 19.0909090909091 ; (LHS = 19.0909090909091)
+     
+
+---- obj  =E=  utility function [fictitious]
+
+obj..  - (0.510169800250316)*Xp(BRD) - (0.510169800250316)*Xp(MLK) + UU =E= 0 ; (LHS = -25.5084900125158, INFES = 25.5084900125158 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 33
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+---- Y  composite factor
+
+Y(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 11.6666666666667, +INF, 0)
+        1       eqpy(BRD)
+        1       eqY(BRD)
+      (-0.5714) eqF(CAP,BRD)
+      (-0.4286) eqF(LAB,BRD)
+
+Y(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 31, +INF, 0)
+        1       eqpy(MLK)
+        1       eqY(MLK)
+      (-0.5455) eqF(CAP,MLK)
+      (-0.4545) eqF(LAB,MLK)
+
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 6.66666666666667, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(CAP,BRD)
+        1       eqpf(CAP)
+
+F(CAP,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 16.9090909090909, +INF, 0)
+      (-1)      eqpy(MLK)
+        1       eqF(CAP,MLK)
+        1       eqpf(CAP)
+
+F(LAB,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 5, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(LAB,BRD)
+        1       eqpf(LAB)
+
+REMAINING ENTRY SKIPPED
+
+---- X  intermediate input
+
+X(BRD,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 21, +INF, 0)
+        1       eqX(BRD,BRD)
+       -1       eqpqd(BRD)
+
+X(BRD,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqX(BRD,MLK)
+       -1       eqpqd(BRD)
+
+X(MLK,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 34
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+     X  intermediate input
+
+        1       eqX(MLK,BRD)
+       -1       eqpqd(MLK)
+
+REMAINING ENTRY SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 49.6666666666667, +INF, 0)
+       -0.4228  eqX(BRD,BRD)
+       -0.3423  eqX(MLK,BRD)
+       -0.2349  eqY(BRD)
+      (-0.1007) eqTz(BRD)
+        1       eqpzd(BRD)
+      (-0.9396) eqDs(BRD)
+      (-0.1611) eqE(BRD)
+
+Z(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 48, +INF, 0)
+       -0.1667  eqX(BRD,MLK)
+       -0.1875  eqX(MLK,MLK)
+       -0.6458  eqY(MLK)
+      (-0.0833) eqTz(MLK)
+        1       eqpzd(MLK)
+      (-1)      eqDs(MLK)
+      (-0.0833) eqE(MLK)
+
+
+---- Xp  household consumption of the i-th good
+
+Xp(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXp(BRD)
+       -1       eqpqd(BRD)
+      (-0.5102) obj
+
+Xp(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(MLK)
+       -1       eqpqd(MLK)
+      (-0.5102) obj
+
+
+---- Xg  government consumption
+
+Xg(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 19, +INF, 0)
+        1       eqXg(BRD)
+       -1       eqpqd(BRD)
+
+Xg(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 35
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+     Xg  government consumption
+
+                (.LO, .L, .UP, .M = 1E-5, 14, +INF, 0)
+        1       eqXg(MLK)
+       -1       eqpqd(MLK)
+
+
+---- Xv  investment demand
+
+Xv(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 16, +INF, 0)
+        1       eqXv(BRD)
+       -1       eqpqd(BRD)
+
+Xv(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+        1       eqXv(MLK)
+       -1       eqpqd(MLK)
+
+
+---- E  exports
+
+E(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqepsilon
+      (-0.9085) eqpzd(BRD)
+        1       eqE(BRD)
+
+E(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 4, +INF, 0)
+        1       eqepsilon
+      (-0.9231) eqpzd(MLK)
+        1       eqE(MLK)
+
+
+---- M  imports
+
+M(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+       -1       eqepsilon
+      (-1.0769) eqpqs(BRD)
+        1       eqM(BRD)
+
+M(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 11, +INF, 0)
+       -1       eqepsilon
+      (-1.1818) eqpqs(MLK)
+        1       eqM(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 36
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+---- Q  Armington's composite good
+
+Q(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 84, +INF, 0)
+        1       eqpqs(BRD)
+      (-0.1933) eqM(BRD)
+      (-0.5556) eqD(BRD)
+        1       eqpqd(BRD)
+
+Q(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 85, +INF, 0)
+        1       eqpqs(MLK)
+      (-0.2136) eqM(MLK)
+      (-0.5647) eqD(MLK)
+        1       eqpqd(MLK)
+
+
+---- D  domestic good
+
+D(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 46.6666666666667, +INF, 0)
+      (-0.5)    eqRT(BRD)
+      (-1.5)    eqpqs(BRD)
+        1       eqD(BRD)
+      (-0.9085) eqpzd(BRD)
+        1       eqDs(BRD)
+
+D(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 48, +INF, 0)
+      (-0.5)    eqRT(MLK)
+      (-1.5)    eqpqs(MLK)
+        1       eqD(MLK)
+      (-0.9231) eqpzd(MLK)
+        1       eqDs(MLK)
+
+
+---- pf  the h-th factor price
+
+pf(CAP)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       (6.6667) eqF(CAP,BRD)
+      (16.9091) eqF(CAP,MLK)
+       -6.0249  eqTd
+       -4.4532  eqSp
+      (-9.4303) eqXp(BRD)
+     (-14.1455) eqXp(MLK)
+
+pf(LAB)
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+       (5)      eqF(LAB,BRD)
+      (14.0909) eqF(LAB,MLK)
+       -4.8788  eqTd
+       -3.6061  eqSp
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 37
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+     pf  the h-th factor price
+
+      (-7.6364) eqXp(BRD)
+     (-11.4545) eqXp(MLK)
+
+
+---- py  composite factor price
+
+py(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.6667) eqF(CAP,BRD)
+      (-5)      eqF(LAB,BRD)
+       -0.2349  eqpzs(BRD)
+
+py(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-16.9091) eqF(CAP,MLK)
+     (-14.0909) eqF(LAB,MLK)
+       -0.6458  eqpzs(MLK)
+
+
+---- pz  supply price of the i-th good
+
+pz(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD)
+      (-5)      eqTz(BRD)
+      (93.3333) eqDs(BRD)
+      (16)      eqE(BRD)
+
+pz(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(MLK)
+      (-4)      eqTz(MLK)
+      (96)      eqDs(MLK)
+       (8)      eqE(MLK)
+
+
+---- pq  Armington's composite good price
+
+pq(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.4228  eqpzs(BRD)
+       -0.1667  eqpzs(MLK)
+      (19)      eqXg(BRD)
+      (16)      eqXv(BRD)
+      (20)      eqXp(BRD)
+     (-48.7101) eqM(BRD)
+    (-140)      eqD(BRD)
+
+pq(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.3423  eqpzs(BRD)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 38
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+     pq  Armington's composite good price
+
+       -0.1875  eqpzs(MLK)
+      (14)      eqXg(MLK)
+      (15)      eqXv(MLK)
+      (30)      eqXp(MLK)
+     (-54.4711) eqM(MLK)
+    (-144)      eqD(MLK)
+
+
+---- pe  export price in local currency
+
+pe(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD)
+     (-16)      eqE(BRD)
+
+pe(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(MLK)
+      (-8)      eqE(MLK)
+
+
+---- pm  import price in local currency
+
+pm(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpm(BRD)
+      (48.7101) eqM(BRD)
+
+pm(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpm(MLK)
+      (54.4711) eqM(MLK)
+
+
+---- pd  the i-th domestic good price
+
+pd(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-23.3333) eqRT(BRD)
+     (140)      eqD(BRD)
+     (-93.3333) eqDs(BRD)
+
+pd(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-24)      eqRT(MLK)
+     (144)      eqD(MLK)
+     (-96)      eqDs(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 39
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+---- epsilon  exchange rate
+
+epsilon
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.1935) eqXv(BRD)
+      (-5.8065) eqXv(MLK)
+       -1       eqpe(BRD)
+       -1       eqpe(MLK)
+       -1       eqpm(BRD)
+       -1       eqpm(MLK)
+
+
+---- Sp  private saving
+
+Sp
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSp
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+
+---- Sg  government saving
+
+Sg
+                (.LO, .L, .UP, .M = 1E-5, 2, +INF, 0)
+       (0.5758) eqXg(BRD)
+       (0.4242) eqXg(MLK)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSg
+
+
+---- Td  direct tax
+
+Td
+                (.LO, .L, .UP, .M = 1E-5, 23, +INF, 0)
+        1       eqTd
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+
+---- Tz  production tax
+
+Tz(BRD)
+                (.LO, .L, .UP, .M = 0, 5, +INF, 0)
+        1       eqTz(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 40
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+     Tz  production tax
+
+       -0.0571  eqSg
+
+Tz(MLK)
+                (.LO, .L, .UP, .M = 0, 4, +INF, 0)
+        1       eqTz(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- Tm  import tariff
+
+Tm(BRD)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+Tm(MLK)
+                (.LO, .L, .UP, .M = 0, 2, +INF, 0)
+        1       eqTm(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- RT  monopoly rent
+
+RT(BRD)
+                (.LO, .L, .UP, .M = -INF, 23.3333333333333, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(BRD)
+
+RT(MLK)
+                (.LO, .L, .UP, .M = -INF, 24, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(MLK)
+
+
+---- UU  utility [fictitious]
+
+UU
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 41
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Column Listing      SOLVE moncge Using NLP From line 349
+
+
+     UU  utility [fictitious]
+
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 42
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Model Statistics    SOLVE moncge Using NLP From line 349
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          26     SINGLE EQUATIONS           51
+BLOCKS OF VARIABLES          26     SINGLE VARIABLES           51
+NON ZERO ELEMENTS           189     NON LINEAR N-Z             94
+DERIVATIVE POOL              20     CONSTANT POOL              65
+CODE LENGTH                 317
+
+
+GENERATION TIME      =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 43
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+Solution Report     SOLVE moncge Using NLP From line 349
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   moncge              OBJECTIVE  UU
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  349
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/moncge/convert.opt"
+>>  pyomo moncge-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/moncge/convert.opt"
+Pyomo     : moncge-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 44
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+----    384 PARAMETER dY  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dF  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dX  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dZ  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dXp  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dXg  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dXv  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dE  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dM  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dQ  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dD  
+
+                      ( ALL       0.000 )
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 45
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+----    384 PARAMETER dpf  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dpy  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dpz  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dpq  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dpe  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dpm  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dpd  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER depsilon             =        0.000  
+            PARAMETER dTd                  =        0.000  
+
+----    384 PARAMETER dTz  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dTm  
+
+                      ( ALL       0.000 )
+
+
+----    384 PARAMETER dSp                  =        0.000  
+            PARAMETER dSg                  =        0.000  
+
+----    398 PARAMETER EV                   =      -50.000  Hicksian equivalent variations
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 46
+A Monopoly CGE Model in Ch. 10.4 (MONCGE,SEQ=279)
+E x e c u t i o n
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/moncge/moncge.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/moncge/moncge-scalar.py.lst

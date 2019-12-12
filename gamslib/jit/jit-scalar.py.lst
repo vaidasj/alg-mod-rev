@@ -1,0 +1,879 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+   3  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 2
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+C o m p i l a t i o n
+
+
+       
+      This just-in-time flowshop problem involves P products and
+      S stages. Each stage contains identical equipment performing the
+      same type of operation on different products. The objective is
+      to minimize the total equipment related cost.
+       
+       
+      Gunasekaran, A, Goyal, S K, Martikainen T, and Yli-Olli, P,
+      Equipment Selection Problems in just-in-time Manufacturing Systems.
+      Journal of the Operational Research Society 44 (1993), 345-353
+       
+      Gutierrez, R A, and Sahinidis, N, A
+      Lagrangian Approach to the Pooling Problem.
+      Interantional J Production Research 34 (1996), 797-818.
+       
+  22   
+  23  sets p products
+  24       s stages
+  25   
+  26  parameter alpha(p,s) processing cost
+  27            beta(p,s)  production inbalance cost
+  28            delta(p)   demand
+  29            mu(s)      machine cost
+  30            M          maximum amount of money for investment
+  31            pi(p,s)    priority weight
+  32            sigma(p,s) product cycles
+  33            q(p,s)     batch size
+  34            tau(p,s)   processing time
+  35            omega(s)   resource requirements
+  36            bigomega   max resource available for all machines
+  37   
+  38  variables n(s)     number of machines
+  39            pr(p,s)  production rate
+  40            dpr(p,s) absolute value differences
+  41            obj;
+  42   
+  43  integer variable n;
+  44   
+  45  equations objdef, prdef(p,s), budget, resource, abs1, abs2;
+  46   
+  47  objdef.. obj =e= Sum((p,s), alpha(p,s)*sigma(p,s)/pr(p,s))
+  48                 + sum((p,s)$(ord(s)<card(s)), beta(p,s)*dpr(p,s))
+  49                 + sum(s, mu(s)*n(s));
+  50   
+  51  prdef(p,s).. pr(p,s) =e= pi(p,s)/tau(p,s)*n(s);
+  52   
+  53  budget.. sum(s, mu(s)*n(s)) =l= M;
+  54   
+  55  resource.. sum(s, omega(s)*n(s)) =l= bigomega;
+  56   
+  57  abs1(p,s+1).. dpr(p,s) =G= pr(p,s)-pr(p,s+1);
+  58   
+  59  abs2(p,s+1).. dpr(p,s) =G= pr(p,s+1)-pr(p,s);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 3
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+C o m p i l a t i o n
+
+
+  60   
+  61  model jit /all /;
+  62   
+  63   
+  64  sets p / p1*p3 /
+  65       s / s1*s4 /
+  66   
+  67  parameters delta(p) / p1 3000, p2 2000, p3 4000 /
+  68             mubase(s)/ s1 5000, s2 5500, s3 4000, s4 6000 /
+  69             omega(s) / s1   60, s2   50, s3   80, s4   40 /
+  70             M        / 6E6 /
+  71             bigomega / 3000 /
+  72   
+  73   
+  74  table dat(*,p,s) data from table 10.16
+  75   
+  76        p1.s1  p1.s2  p1.s3 p1.s4  p2.s1 p2.s2 p2.s3 p2.s4  p3.s1  p3.s2  p3.s3  p3.s4
+  77   
+  78  alpha  2.0    1.5    3.0    2.0    3.0   2.5   1.0   2.0    2.0    2.0    2.0    1.0
+  79  beta    60     90     60     80     90    80    80    70     80    100     80     90
+  80  kappa  0.2    0.3    0.4    0.3    0.1   0.4   0.3   0.2    0.2    0.3    0.2    0.2
+  81  pi     0.2    0.4    0.5    0.5    0.6   0.3   0.3   0.2    0.2    0.3    0.2    0.3
+  82  tau      1      1      1      1      1     1     1     1      1      1      1      1
+  83  q      800    800    800    800    700   700   700   700    900    900    900    900
+  84   
+  85   
+  86  set        c cases / case1*case9 /;
+  87   
+  88  parameters multq(c)  / case1 1, case2 1,   case3 1,   case4 1, case5 1,   case6 0.5, case7 1.5, case8 2, case9 2.5 /
+  89             multmu(c) / case1 1, case2 0.5, case3 1.5, case4 2, case5 2.5, case6 1,   case7 1,   case8 1, case9 1   /
+  90             rep(c,*) summary report;
+  91   
+  92  n.lo(s)    = 1;
+  93  pr.lo(p,s) = .01;
+  94   
+  95  pi(p,s)    = dat('pi',p,s);
+  96  alpha(p,s) = dat('alpha',p,s);
+  97  beta(p,s)  = dat('beta',p,s)*1e+5;
+  98   
+  99  abort$sum(s, abs(1 - sum(p, pi(p,s))) > 1e-10) 'weight do not add to 1',pi;
+ 100   
+ 101  option optcr=0;
+ 102   
+ 103  loop(c,
+ 104   
+ 105     q(p,s)     = dat('q',p,s) * multq(c);
+ 106     mu(s)      = mubase(s) * multmu(c);
+ 107     tau(p,s)   = q(p,s)*(dat('tau',p,s)-dat('kappa',p,s)*1e-5*mu(s));
+ 108     sigma(p,s) = delta(p)/q(p,s);
+ 109   
+ 110     pr.lo(p,s) = pi(p,s)/tau(p,s);
+ 111   
+ 112     solve jit using minlp min obj;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 4
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+C o m p i l a t i o n
+
+
+ 113   
+ 114     option limrow=0,limcol=0,solprint=off;
+ 115   
+ 116     rep(c,s) = n.l(s);
+ 117   
+ 118     rep(c,'ModelStat')  = jit.modelstat;
+ 119     if (jit.modelstat = 1 or
+ 120         jit.modelstat = 8,
+ 121       rep(c,'Processing') = Sum((p,s), alpha(p,s)*sigma(p,s)/pr.l(p,s));
+ 122       rep(c,'Imbalance')  = sum((p,s)$(ord(s)<card(s)), beta(p,s)*abs(pr.l(p,s)-pr.l(p,s+1)));
+ 123       rep(c,'Investment') = sum(s, mu(s)*n.l(s));
+ 124     )
+ 125  );
+ 126   
+ 127  display rep;
+ 128   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 5
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Equation Listing    SOLVE jit Using MINLP From line 112
+
+
+---- objdef  =E=  
+
+objdef..  - 5000*n(s1) - 5500*n(s2) - 4000*n(s3) - 6000*n(s4) + (117612000)*pr(p1,s1) + (21763625.625)*pr(p1,s2) + (27885772.8)*pr(p1,s3) + (18515020.8)*pr(p1,s4) + (11550291.6666667)*pr(p2,s1) + (37196600)*pr(p2,s2) + (15184462.2222222)*pr(p2,s3)
+     
+      + (68330080)*pr(p2,s4) + (176418000)*pr(p3,s1) + (77381780)*pr(p3,s2) + (177131520)*pr(p3,s3) + (39045760)*pr(p3,s4) - 6000000*dpr(p1,s1) - 9000000*dpr(p1,s2) - 6000000*dpr(p1,s3) - 9000000*dpr(p2,s1) - 8000000*dpr(p2,s2) - 8000000*dpr(p2,s3)
+     
+      - 8000000*dpr(p3,s1) - 10000000*dpr(p3,s2) - 8000000*dpr(p3,s3) + obj =E= 0 ; (LHS = -262037.041666667, INFES = 262037.041666667 ****)
+     
+
+---- prdef  =E=  
+
+prdef(p1,s1)..  - 0.000252525252525253*n(s1) + pr(p1,s1) =E= 0 ; (LHS = 0)
+     
+prdef(p1,s2)..  - 0.000508388408744281*n(s2) + pr(p1,s2) =E= 0 ; (LHS = 0)
+     
+prdef(p1,s3)..  - 0.000635162601626016*n(s3) + pr(p1,s3) =E= 0 ; (LHS = 0)
+     
+REMAINING 9 ENTRIES SKIPPED
+
+
+---- budget  =L=  
+
+budget..  5000*n(s1) + 5500*n(s2) + 4000*n(s3) + 6000*n(s4) =L= 6000000 ; (LHS = 20500)
+     
+
+---- resource  =L=  
+
+resource..  60*n(s1) + 50*n(s2) + 80*n(s3) + 40*n(s4) =L= 3000 ; (LHS = 230)
+     
+
+---- abs1  =G=  
+
+abs1(p1,s2)..  - pr(p1,s1) + pr(p1,s2) + dpr(p1,s1) =G= 0 ; (LHS = 0.000255863156219028)
+     
+abs1(p1,s3)..  - pr(p1,s2) + pr(p1,s3) + dpr(p1,s2) =G= 0 ; (LHS = 0.000126774192881736)
+     
+abs1(p1,s4)..  - pr(p1,s3) + pr(p1,s4) + dpr(p1,s3) =G= 0 ; (LHS = 1.29361018661107E-6)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- abs2  =G=  
+
+abs2(p1,s2)..  pr(p1,s1) - pr(p1,s2) + dpr(p1,s1) =G= 0 ; (LHS = -0.000255863156219028, INFES = 0.000255863156219028 ****)
+     
+abs2(p1,s3)..  pr(p1,s2) - pr(p1,s3) + dpr(p1,s2) =G= 0 ; (LHS = -0.000126774192881736, INFES = 0.000126774192881736 ****)
+     
+abs2(p1,s4)..  pr(p1,s3) - pr(p1,s4) + dpr(p1,s3) =G= 0 ; (LHS = -1.29361018661107E-6, INFES = 1.29361018661107E-6 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 6
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Column Listing      SOLVE jit Using MINLP From line 112
+
+
+---- n  number of machines
+
+n(s1)
+                (.LO, .L, .UP, .M = 1, 1, 100, 0)
+    -5000       objdef
+       -0.0003  prdef(p1,s1)
+       -0.0009  prdef(p2,s1)
+       -0.0002  prdef(p3,s1)
+     5000       budget
+       60       resource
+        0       (OLD LEVEL ****)
+
+n(s2)
+                (.LO, .L, .UP, .M = 1, 1, 100, 0)
+    -5500       objdef
+       -0.0005  prdef(p1,s2)
+       -0.0004  prdef(p2,s2)
+       -0.0003  prdef(p3,s2)
+     5500       budget
+       50       resource
+        0       (OLD LEVEL ****)
+
+n(s3)
+                (.LO, .L, .UP, .M = 1, 1, 100, 0)
+    -4000       objdef
+       -0.0006  prdef(p1,s3)
+       -0.0004  prdef(p2,s3)
+       -0.0002  prdef(p3,s3)
+     4000       budget
+       80       resource
+        0       (OLD LEVEL ****)
+
+REMAINING ENTRY SKIPPED
+
+---- pr  production rate
+
+pr(p1,s1)
+                (.LO, .L, .UP, .M = 0.000252525252525253, 0.000252525252525253, +INF, 0)
+ (1.1761200E+8) objdef
+        1       prdef(p1,s1)
+       -1       abs1(p1,s2)
+        1       abs2(p1,s2)
+        0       (OLD LEVEL ****)
+
+pr(p1,s2)
+                (.LO, .L, .UP, .M = 0.000508388408744281, 0.000508388408744281, +INF, 0)
+ (2.1763626E+7) objdef
+        1       prdef(p1,s2)
+        1       abs1(p1,s2)
+       -1       abs1(p1,s3)
+       -1       abs2(p1,s2)
+        1       abs2(p1,s3)
+        0       (OLD LEVEL ****)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 7
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Column Listing      SOLVE jit Using MINLP From line 112
+
+
+     pr  production rate
+
+
+pr(p1,s3)
+                (.LO, .L, .UP, .M = 0.000635162601626016, 0.000635162601626016, +INF, 0)
+ (2.7885773E+7) objdef
+        1       prdef(p1,s3)
+        1       abs1(p1,s3)
+       -1       abs1(p1,s4)
+       -1       abs2(p1,s3)
+        1       abs2(p1,s4)
+        0       (OLD LEVEL ****)
+
+REMAINING 9 ENTRIES SKIPPED
+
+---- dpr  absolute value differences
+
+dpr(p1,s1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+  -6.000000E+6  objdef
+        1       abs1(p1,s2)
+        1       abs2(p1,s2)
+
+dpr(p1,s2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+  -9.000000E+6  objdef
+        1       abs1(p1,s3)
+        1       abs2(p1,s3)
+
+dpr(p1,s3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+  -6.000000E+6  objdef
+        1       abs1(p1,s4)
+        1       abs2(p1,s4)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 8
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:40 Page 9
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 10
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 11
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case2
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case2
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 12
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 13
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 14
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case3
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 15
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 16
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 17
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case4
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case4
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 18
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 19
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 20
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case5
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case5
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 21
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 22
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 23
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case6
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case6
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 24
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 25
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 26
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case7
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              24
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case7
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 27
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 28
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 29
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case8
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case8
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 30
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 31
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Analysis      SOLVE jit Using MINLP From line 112
+
+
+****
+****  4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+****
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 32
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Model Statistics    SOLVE jit Using MINLP From line 112
+
+
+LOOPS                                    c   case9
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           26  16 projected
+NON ZERO ELEMENTS           112     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              24
+CODE LENGTH                  50     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  c case9
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 33
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+Solution Report     SOLVE jit Using MINLP From line 112
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   jit                 OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  112
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  pyomo jit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+Pyomo     : jit-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:40 Page 34
+Design of Just-in-Time Flowshops (JIT,SEQ=250)
+E x e c u t i o n
+
+
+----    127 PARAMETER rep  summary report
+
+        ModelStat
+
+case1      14.000
+case2      14.000
+case3      14.000
+case4      14.000
+case5      14.000
+case6      14.000
+case7      14.000
+case8      14.000
+case9      14.000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/jit/jit.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/jit/jit-scalar.py.lst

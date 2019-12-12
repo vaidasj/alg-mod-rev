@@ -1,0 +1,600 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+   2  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 2
+Social Golfer Problem  (SGOLFER,SEQ=409)
+C o m p i l a t i o n
+
+
+      In a golf club, there are 32 social golfers, each of whom play golf once a week,
+      and always in groups of 4. The problem is to build a schedule of play for 10
+      weeks with ''maximum socialisation''; that is, as few repeated meetings as
+      possible. More generally the problem is to schedule m groups of n golfers over
+      p weeks, with maximum socialisation.
+       
+       
+      Warwick, H, The Fully Social Golfer Problem. In Smith, B, and Warwick, H, Eds, 
+      Proceedings of the Third International Workshop on Symmetry in Constraint Satisfaction 
+      Problems (SymCon 2003). 2003, pp. 75-85.
+  16   
+  17  * Number of groups, golfers in a group, number of weeks
+  21   
+  23   
+  24  set gf Golfers / 1*32 /
+  25      gr Groups  / 1*8 /
+  26      w  Weeks   / 1*10  /;
+  27   
+  28  Alias (gf,gf1,gf2);
+  29  Set mgf(gf1,gf2) possible meeting; mgf(gf1,gf2) = ord(gf2)>ord(gf1);
+  30   
+  31  Variable
+  32      x(w,gr,gf)      golfer gf is in group gr on week w
+  33      m(w,gr,gf,gf)   golfers meet in week w in some group
+  34      numm(gf,gf)     number of meetings
+  35      redm(gf,gf)     number of redundant meetings
+  36      obj             objective
+  37  Binary Variable x;
+  38   
+  39  Equation
+  40      defx(w,gf)       each golfer is assigned to exactly one group
+  41      defgr(w,gr)      each group contains exactly |gg| golfers
+  42      defm(w,gr,gf,gf) meet in group gr on week w
+  43      defnumm(gf,gf)   number of meetings
+  44      defredm(gf,gf)   number of redundant meetings
+  45      defobj           minimize redundant meetings;
+  47    defm(w,gr,mgf(gf1,gf2)).. m(w,gr,mgf) =e= x(w,gr,gf1) and x(w,gr,gf2);
+  48   
+  49    defredm(mgf).. redm(mgf) =e= max(0,numm(mgf)-1);
+  50   
+  52   
+  53  defx(w,gf)..  sum(gr, x(w,gr,gf)) =e= 1;
+  54   
+  55  defgr(w,gr).. sum(gf, x(w,gr,gf)) =e= 4;
+  56   
+  57  defnumm(mgf).. numm(mgf) =e= sum((w,gr), m(w,gr,mgf));
+  58   
+  59  defobj..       obj =e= sum(mgf, redm(mgf));
+  60   
+  61  x.l(w,gr,gf)$((ord(gr)-1)*4 + 1 <= ord(gf) and ord(gf) <= (ord(gr))*4) = 1;
+  62  display x.l;
+  63   
+  64  model social_golfer /all/;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 3
+Social Golfer Problem  (SGOLFER,SEQ=409)
+C o m p i l a t i o n
+
+
+  65   
+  67    solve social_golfer min obj us minlp;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 4
+Social Golfer Problem  (SGOLFER,SEQ=409)
+E x e c u t i o n
+
+
+----     62 VARIABLE x.L  golfer gf is in group gr on week w
+
+               1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20
+
+1 .1       1.000       1.000       1.000       1.000
+1 .2                                                       1.000       1.000       1.000       1.000
+1 .3                                                                                                       1.000       1.000       1.000       1.000
+1 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+1 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+2 .1       1.000       1.000       1.000       1.000
+2 .2                                                       1.000       1.000       1.000       1.000
+2 .3                                                                                                       1.000       1.000       1.000       1.000
+2 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+2 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+3 .1       1.000       1.000       1.000       1.000
+3 .2                                                       1.000       1.000       1.000       1.000
+3 .3                                                                                                       1.000       1.000       1.000       1.000
+3 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+3 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+4 .1       1.000       1.000       1.000       1.000
+4 .2                                                       1.000       1.000       1.000       1.000
+4 .3                                                                                                       1.000       1.000       1.000       1.000
+4 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+4 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+5 .1       1.000       1.000       1.000       1.000
+5 .2                                                       1.000       1.000       1.000       1.000
+5 .3                                                                                                       1.000       1.000       1.000       1.000
+5 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+5 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+6 .1       1.000       1.000       1.000       1.000
+6 .2                                                       1.000       1.000       1.000       1.000
+6 .3                                                                                                       1.000       1.000       1.000       1.000
+6 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+6 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+7 .1       1.000       1.000       1.000       1.000
+7 .2                                                       1.000       1.000       1.000       1.000
+7 .3                                                                                                       1.000       1.000       1.000       1.000
+7 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+7 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+8 .1       1.000       1.000       1.000       1.000
+8 .2                                                       1.000       1.000       1.000       1.000
+8 .3                                                                                                       1.000       1.000       1.000       1.000
+8 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+8 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+9 .1       1.000       1.000       1.000       1.000
+9 .2                                                       1.000       1.000       1.000       1.000
+9 .3                                                                                                       1.000       1.000       1.000       1.000
+9 .4                                                                                                                                                       1.000       1.000       1.000       1.000
+9 .5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+10.1       1.000       1.000       1.000       1.000
+10.2                                                       1.000       1.000       1.000       1.000
+10.3                                                                                                       1.000       1.000       1.000       1.000
+10.4                                                                                                                                                       1.000       1.000       1.000       1.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 5
+Social Golfer Problem  (SGOLFER,SEQ=409)
+E x e c u t i o n
+
+
+         62 VARIABLE x.L  golfer gf is in group gr on week w
+
+               1           2           3           4           5           6           7           8           9          10          11          12          13          14          15          16          17          18          19          20
+
+10.5                                                                                                                                                                                                       1.000       1.000       1.000       1.000
+
+   +          21          22          23          24          25          26          27          28          29          30          31          32
+
+1 .6       1.000       1.000       1.000       1.000
+1 .7                                                       1.000       1.000       1.000       1.000
+1 .8                                                                                                       1.000       1.000       1.000       1.000
+2 .6       1.000       1.000       1.000       1.000
+2 .7                                                       1.000       1.000       1.000       1.000
+2 .8                                                                                                       1.000       1.000       1.000       1.000
+3 .6       1.000       1.000       1.000       1.000
+3 .7                                                       1.000       1.000       1.000       1.000
+3 .8                                                                                                       1.000       1.000       1.000       1.000
+4 .6       1.000       1.000       1.000       1.000
+4 .7                                                       1.000       1.000       1.000       1.000
+4 .8                                                                                                       1.000       1.000       1.000       1.000
+5 .6       1.000       1.000       1.000       1.000
+5 .7                                                       1.000       1.000       1.000       1.000
+5 .8                                                                                                       1.000       1.000       1.000       1.000
+6 .6       1.000       1.000       1.000       1.000
+6 .7                                                       1.000       1.000       1.000       1.000
+6 .8                                                                                                       1.000       1.000       1.000       1.000
+7 .6       1.000       1.000       1.000       1.000
+7 .7                                                       1.000       1.000       1.000       1.000
+7 .8                                                                                                       1.000       1.000       1.000       1.000
+8 .6       1.000       1.000       1.000       1.000
+8 .7                                                       1.000       1.000       1.000       1.000
+8 .8                                                                                                       1.000       1.000       1.000       1.000
+9 .6       1.000       1.000       1.000       1.000
+9 .7                                                       1.000       1.000       1.000       1.000
+9 .8                                                                                                       1.000       1.000       1.000       1.000
+10.6       1.000       1.000       1.000       1.000
+10.7                                                       1.000       1.000       1.000       1.000
+10.8                                                                                                       1.000       1.000       1.000       1.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 6
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Equation Listing    SOLVE social_golfer Using MINLP From line 67
+
+
+---- defx  =E=  each golfer is assigned to exactly one group
+
+defx(1,1)..  x(1,1,1) + x(1,2,1) + x(1,3,1) + x(1,4,1) + x(1,5,1) + x(1,6,1) + x(1,7,1) + x(1,8,1) =E= 1 ; (LHS = 1)
+     
+defx(1,2)..  x(1,1,2) + x(1,2,2) + x(1,3,2) + x(1,4,2) + x(1,5,2) + x(1,6,2) + x(1,7,2) + x(1,8,2) =E= 1 ; (LHS = 1)
+     
+defx(1,3)..  x(1,1,3) + x(1,2,3) + x(1,3,3) + x(1,4,3) + x(1,5,3) + x(1,6,3) + x(1,7,3) + x(1,8,3) =E= 1 ; (LHS = 1)
+     
+REMAINING 317 ENTRIES SKIPPED
+
+
+---- defgr  =E=  each group contains exactly |gg| golfers
+
+defgr(1,1)..  x(1,1,1) + x(1,1,2) + x(1,1,3) + x(1,1,4) + x(1,1,5) + x(1,1,6) + x(1,1,7) + x(1,1,8) + x(1,1,9) + x(1,1,10) + x(1,1,11) + x(1,1,12) + x(1,1,13) + x(1,1,14) + x(1,1,15) + x(1,1,16) + x(1,1,17) + x(1,1,18) + x(1,1,19) + x(1,1,20) + x(1,1,21)
+     
+      + x(1,1,22) + x(1,1,23) + x(1,1,24) + x(1,1,25) + x(1,1,26) + x(1,1,27) + x(1,1,28) + x(1,1,29) + x(1,1,30) + x(1,1,31) + x(1,1,32) =E= 4 ; (LHS = 4)
+     
+defgr(1,2)..  x(1,2,1) + x(1,2,2) + x(1,2,3) + x(1,2,4) + x(1,2,5) + x(1,2,6) + x(1,2,7) + x(1,2,8) + x(1,2,9) + x(1,2,10) + x(1,2,11) + x(1,2,12) + x(1,2,13) + x(1,2,14) + x(1,2,15) + x(1,2,16) + x(1,2,17) + x(1,2,18) + x(1,2,19) + x(1,2,20) + x(1,2,21)
+     
+      + x(1,2,22) + x(1,2,23) + x(1,2,24) + x(1,2,25) + x(1,2,26) + x(1,2,27) + x(1,2,28) + x(1,2,29) + x(1,2,30) + x(1,2,31) + x(1,2,32) =E= 4 ; (LHS = 4)
+     
+defgr(1,3)..  x(1,3,1) + x(1,3,2) + x(1,3,3) + x(1,3,4) + x(1,3,5) + x(1,3,6) + x(1,3,7) + x(1,3,8) + x(1,3,9) + x(1,3,10) + x(1,3,11) + x(1,3,12) + x(1,3,13) + x(1,3,14) + x(1,3,15) + x(1,3,16) + x(1,3,17) + x(1,3,18) + x(1,3,19) + x(1,3,20) + x(1,3,21)
+     
+      + x(1,3,22) + x(1,3,23) + x(1,3,24) + x(1,3,25) + x(1,3,26) + x(1,3,27) + x(1,3,28) + x(1,3,29) + x(1,3,30) + x(1,3,31) + x(1,3,32) =E= 4 ; (LHS = 4)
+     
+REMAINING 77 ENTRIES SKIPPED
+
+
+---- defm  =E=  meet in group gr on week w
+
+defm(1,1,1,2)..  (0)*x(1,1,1) + (0)*x(1,1,2) + m(1,1,1,2) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+defm(1,1,1,3)..  (0)*x(1,1,1) + (0)*x(1,1,3) + m(1,1,1,3) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+defm(1,1,1,4)..  (0)*x(1,1,1) + (0)*x(1,1,4) + m(1,1,1,4) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+REMAINING 39677 ENTRIES SKIPPED
+
+
+---- defnumm  =E=  number of meetings
+
+defnumm(1,2)..  - m(1,1,1,2) - m(1,2,1,2) - m(1,3,1,2) - m(1,4,1,2) - m(1,5,1,2) - m(1,6,1,2) - m(1,7,1,2) - m(1,8,1,2) - m(2,1,1,2) - m(2,2,1,2) - m(2,3,1,2) - m(2,4,1,2) - m(2,5,1,2) - m(2,6,1,2) - m(2,7,1,2) - m(2,8,1,2) - m(3,1,1,2) - m(3,2,1,2)
+     
+      - m(3,3,1,2) - m(3,4,1,2) - m(3,5,1,2) - m(3,6,1,2) - m(3,7,1,2) - m(3,8,1,2) - m(4,1,1,2) - m(4,2,1,2) - m(4,3,1,2) - m(4,4,1,2) - m(4,5,1,2) - m(4,6,1,2) - m(4,7,1,2) - m(4,8,1,2) - m(5,1,1,2) - m(5,2,1,2) - m(5,3,1,2) - m(5,4,1,2) - m(5,5,1,2)
+     
+      - m(5,6,1,2) - m(5,7,1,2) - m(5,8,1,2) - m(6,1,1,2) - m(6,2,1,2) - m(6,3,1,2) - m(6,4,1,2) - m(6,5,1,2) - m(6,6,1,2) - m(6,7,1,2) - m(6,8,1,2) - m(7,1,1,2) - m(7,2,1,2) - m(7,3,1,2) - m(7,4,1,2) - m(7,5,1,2) - m(7,6,1,2) - m(7,7,1,2) - m(7,8,1,2)
+     
+      - m(8,1,1,2) - m(8,2,1,2) - m(8,3,1,2) - m(8,4,1,2) - m(8,5,1,2) - m(8,6,1,2) - m(8,7,1,2) - m(8,8,1,2) - m(9,1,1,2) - m(9,2,1,2) - m(9,3,1,2) - m(9,4,1,2) - m(9,5,1,2) - m(9,6,1,2) - m(9,7,1,2) - m(9,8,1,2) - m(10,1,1,2) - m(10,2,1,2) - m(10,3,1,2)
+     
+      - m(10,4,1,2) - m(10,5,1,2) - m(10,6,1,2) - m(10,7,1,2) - m(10,8,1,2) + numm(1,2) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 7
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Equation Listing    SOLVE social_golfer Using MINLP From line 67
+
+
+     defnumm  =E=  number of meetings
+
+defnumm(1,3)..  - m(1,1,1,3) - m(1,2,1,3) - m(1,3,1,3) - m(1,4,1,3) - m(1,5,1,3) - m(1,6,1,3) - m(1,7,1,3) - m(1,8,1,3) - m(2,1,1,3) - m(2,2,1,3) - m(2,3,1,3) - m(2,4,1,3) - m(2,5,1,3) - m(2,6,1,3) - m(2,7,1,3) - m(2,8,1,3) - m(3,1,1,3) - m(3,2,1,3)
+     
+      - m(3,3,1,3) - m(3,4,1,3) - m(3,5,1,3) - m(3,6,1,3) - m(3,7,1,3) - m(3,8,1,3) - m(4,1,1,3) - m(4,2,1,3) - m(4,3,1,3) - m(4,4,1,3) - m(4,5,1,3) - m(4,6,1,3) - m(4,7,1,3) - m(4,8,1,3) - m(5,1,1,3) - m(5,2,1,3) - m(5,3,1,3) - m(5,4,1,3) - m(5,5,1,3)
+     
+      - m(5,6,1,3) - m(5,7,1,3) - m(5,8,1,3) - m(6,1,1,3) - m(6,2,1,3) - m(6,3,1,3) - m(6,4,1,3) - m(6,5,1,3) - m(6,6,1,3) - m(6,7,1,3) - m(6,8,1,3) - m(7,1,1,3) - m(7,2,1,3) - m(7,3,1,3) - m(7,4,1,3) - m(7,5,1,3) - m(7,6,1,3) - m(7,7,1,3) - m(7,8,1,3)
+     
+      - m(8,1,1,3) - m(8,2,1,3) - m(8,3,1,3) - m(8,4,1,3) - m(8,5,1,3) - m(8,6,1,3) - m(8,7,1,3) - m(8,8,1,3) - m(9,1,1,3) - m(9,2,1,3) - m(9,3,1,3) - m(9,4,1,3) - m(9,5,1,3) - m(9,6,1,3) - m(9,7,1,3) - m(9,8,1,3) - m(10,1,1,3) - m(10,2,1,3) - m(10,3,1,3)
+     
+      - m(10,4,1,3) - m(10,5,1,3) - m(10,6,1,3) - m(10,7,1,3) - m(10,8,1,3) + numm(1,3) =E= 0 ; (LHS = 0)
+     
+defnumm(1,4)..  - m(1,1,1,4) - m(1,2,1,4) - m(1,3,1,4) - m(1,4,1,4) - m(1,5,1,4) - m(1,6,1,4) - m(1,7,1,4) - m(1,8,1,4) - m(2,1,1,4) - m(2,2,1,4) - m(2,3,1,4) - m(2,4,1,4) - m(2,5,1,4) - m(2,6,1,4) - m(2,7,1,4) - m(2,8,1,4) - m(3,1,1,4) - m(3,2,1,4)
+     
+      - m(3,3,1,4) - m(3,4,1,4) - m(3,5,1,4) - m(3,6,1,4) - m(3,7,1,4) - m(3,8,1,4) - m(4,1,1,4) - m(4,2,1,4) - m(4,3,1,4) - m(4,4,1,4) - m(4,5,1,4) - m(4,6,1,4) - m(4,7,1,4) - m(4,8,1,4) - m(5,1,1,4) - m(5,2,1,4) - m(5,3,1,4) - m(5,4,1,4) - m(5,5,1,4)
+     
+      - m(5,6,1,4) - m(5,7,1,4) - m(5,8,1,4) - m(6,1,1,4) - m(6,2,1,4) - m(6,3,1,4) - m(6,4,1,4) - m(6,5,1,4) - m(6,6,1,4) - m(6,7,1,4) - m(6,8,1,4) - m(7,1,1,4) - m(7,2,1,4) - m(7,3,1,4) - m(7,4,1,4) - m(7,5,1,4) - m(7,6,1,4) - m(7,7,1,4) - m(7,8,1,4)
+     
+      - m(8,1,1,4) - m(8,2,1,4) - m(8,3,1,4) - m(8,4,1,4) - m(8,5,1,4) - m(8,6,1,4) - m(8,7,1,4) - m(8,8,1,4) - m(9,1,1,4) - m(9,2,1,4) - m(9,3,1,4) - m(9,4,1,4) - m(9,5,1,4) - m(9,6,1,4) - m(9,7,1,4) - m(9,8,1,4) - m(10,1,1,4) - m(10,2,1,4) - m(10,3,1,4)
+     
+      - m(10,4,1,4) - m(10,5,1,4) - m(10,6,1,4) - m(10,7,1,4) - m(10,8,1,4) + numm(1,4) =E= 0 ; (LHS = 0)
+     
+REMAINING 493 ENTRIES SKIPPED
+
+
+---- defredm  =E=  number of redundant meetings
+
+defredm(1,2)..  (0)*numm(1,2) + redm(1,2) =E= 0 ; (LHS = 0)
+     
+defredm(1,3)..  (0)*numm(1,3) + redm(1,3) =E= 0 ; (LHS = 0)
+     
+defredm(1,4)..  (0)*numm(1,4) + redm(1,4) =E= 0 ; (LHS = 0)
+     
+REMAINING 493 ENTRIES SKIPPED
+
+
+---- defobj  =E=  minimize redundant meetings
+
+defobj..  - redm(1,2) - redm(1,3) - redm(1,4) - redm(1,5) - redm(1,6) - redm(1,7) - redm(1,8) - redm(1,9) - redm(1,10) - redm(1,11) - redm(1,12) - redm(1,13) - redm(1,14) - redm(1,15) - redm(1,16) - redm(1,17) - redm(1,18) - redm(1,19) - redm(1,20)
+     
+      - redm(1,21) - redm(1,22) - redm(1,23) - redm(1,24) - redm(1,25) - redm(1,26) - redm(1,27) - redm(1,28) - redm(1,29) - redm(1,30) - redm(1,31) - redm(1,32) - redm(2,3) - redm(2,4) - redm(2,5) - redm(2,6) - redm(2,7) - redm(2,8) - redm(2,9)
+     
+      - redm(2,10) - redm(2,11) - redm(2,12) - redm(2,13) - redm(2,14) - redm(2,15) - redm(2,16) - redm(2,17) - redm(2,18) - redm(2,19) - redm(2,20) - redm(2,21) - redm(2,22) - redm(2,23) - redm(2,24) - redm(2,25) - redm(2,26) - redm(2,27) - redm(2,28)
+     
+      - redm(2,29) - redm(2,30) - redm(2,31) - redm(2,32) - redm(3,4) - redm(3,5) - redm(3,6) - redm(3,7) - redm(3,8) - redm(3,9) - redm(3,10) - redm(3,11) - redm(3,12) - redm(3,13) - redm(3,14) - redm(3,15) - redm(3,16) - redm(3,17) - redm(3,18)
+     
+      - redm(3,19) - redm(3,20) - redm(3,21) - redm(3,22) - redm(3,23) - redm(3,24) - redm(3,25) - redm(3,26) - redm(3,27) - redm(3,28) - redm(3,29) - redm(3,30) - redm(3,31) - redm(3,32) - redm(4,5) - redm(4,6) - redm(4,7) - redm(4,8) - redm(4,9)
+     
+      - redm(4,10) - redm(4,11) - redm(4,12) - redm(4,13) - redm(4,14) - redm(4,15) - redm(4,16) - redm(4,17) - redm(4,18) - redm(4,19) - redm(4,20) - redm(4,21) - redm(4,22) - redm(4,23) - redm(4,24) - redm(4,25) - redm(4,26) - redm(4,27) - redm(4,28)
+     
+      - redm(4,29) - redm(4,30) - redm(4,31) - redm(4,32) - redm(5,6) - redm(5,7) - redm(5,8) - redm(5,9) - redm(5,10) - redm(5,11) - redm(5,12) - redm(5,13) - redm(5,14) - redm(5,15) - redm(5,16) - redm(5,17) - redm(5,18) - redm(5,19) - redm(5,20)
+     
+      - redm(5,21) - redm(5,22) - redm(5,23) - redm(5,24) - redm(5,25) - redm(5,26) - redm(5,27) - redm(5,28) - redm(5,29) - redm(5,30) - redm(5,31) - redm(5,32) - redm(6,7) - redm(6,8) - redm(6,9) - redm(6,10) - redm(6,11) - redm(6,12) - redm(6,13)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 8
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Equation Listing    SOLVE social_golfer Using MINLP From line 67
+
+
+     defobj  =E=  minimize redundant meetings     
+     
+      - redm(6,14) - redm(6,15) - redm(6,16) - redm(6,17) - redm(6,18) - redm(6,19) - redm(6,20) - redm(6,21) - redm(6,22) - redm(6,23) - redm(6,24) - redm(6,25) - redm(6,26) - redm(6,27) - redm(6,28) - redm(6,29) - redm(6,30) - redm(6,31) - redm(6,32)
+     
+      - redm(7,8) - redm(7,9) - redm(7,10) - redm(7,11) - redm(7,12) - redm(7,13) - redm(7,14) - redm(7,15) - redm(7,16) - redm(7,17) - redm(7,18) - redm(7,19) - redm(7,20) - redm(7,21) - redm(7,22) - redm(7,23) - redm(7,24) - redm(7,25) - redm(7,26)
+     
+      - redm(7,27) - redm(7,28) - redm(7,29) - redm(7,30) - redm(7,31) - redm(7,32) - redm(8,9) - redm(8,10) - redm(8,11) - redm(8,12) - redm(8,13) - redm(8,14) - redm(8,15) - redm(8,16) - redm(8,17) - redm(8,18) - redm(8,19) - redm(8,20) - redm(8,21)
+     
+      - redm(8,22) - redm(8,23) - redm(8,24) - redm(8,25) - redm(8,26) - redm(8,27) - redm(8,28) - redm(8,29) - redm(8,30) - redm(8,31) - redm(8,32) - redm(9,10) - redm(9,11) - redm(9,12) - redm(9,13) - redm(9,14) - redm(9,15) - redm(9,16) - redm(9,17)
+     
+      - redm(9,18) - redm(9,19) - redm(9,20) - redm(9,21) - redm(9,22) - redm(9,23) - redm(9,24) - redm(9,25) - redm(9,26) - redm(9,27) - redm(9,28) - redm(9,29) - redm(9,30) - redm(9,31) - redm(9,32) - redm(10,11) - redm(10,12) - redm(10,13)
+     
+      - redm(10,14) - redm(10,15) - redm(10,16) - redm(10,17) - redm(10,18) - redm(10,19) - redm(10,20) - redm(10,21) - redm(10,22) - redm(10,23) - redm(10,24) - redm(10,25) - redm(10,26) - redm(10,27) - redm(10,28) - redm(10,29) - redm(10,30)
+     
+      - redm(10,31) - redm(10,32) - redm(11,12) - redm(11,13) - redm(11,14) - redm(11,15) - redm(11,16) - redm(11,17) - redm(11,18) - redm(11,19) - redm(11,20) - redm(11,21) - redm(11,22) - redm(11,23) - redm(11,24) - redm(11,25) - redm(11,26)
+     
+      - redm(11,27) - redm(11,28) - redm(11,29) - redm(11,30) - redm(11,31) - redm(11,32) - redm(12,13) - redm(12,14) - redm(12,15) - redm(12,16) - redm(12,17) - redm(12,18) - redm(12,19) - redm(12,20) - redm(12,21) - redm(12,22) - redm(12,23)
+     
+      - redm(12,24) - redm(12,25) - redm(12,26) - redm(12,27) - redm(12,28) - redm(12,29) - redm(12,30) - redm(12,31) - redm(12,32) - redm(13,14) - redm(13,15) - redm(13,16) - redm(13,17) - redm(13,18) - redm(13,19) - redm(13,20) - redm(13,21)
+     
+      - redm(13,22) - redm(13,23) - redm(13,24) - redm(13,25) - redm(13,26) - redm(13,27) - redm(13,28) - redm(13,29) - redm(13,30) - redm(13,31) - redm(13,32) - redm(14,15) - redm(14,16) - redm(14,17) - redm(14,18) - redm(14,19) - redm(14,20)
+     
+      - redm(14,21) - redm(14,22) - redm(14,23) - redm(14,24) - redm(14,25) - redm(14,26) - redm(14,27) - redm(14,28) - redm(14,29) - redm(14,30) - redm(14,31) - redm(14,32) - redm(15,16) - redm(15,17) - redm(15,18) - redm(15,19) - redm(15,20)
+     
+      - redm(15,21) - redm(15,22) - redm(15,23) - redm(15,24) - redm(15,25) - redm(15,26) - redm(15,27) - redm(15,28) - redm(15,29) - redm(15,30) - redm(15,31) - redm(15,32) - redm(16,17) - redm(16,18) - redm(16,19) - redm(16,20) - redm(16,21)
+     
+      - redm(16,22) - redm(16,23) - redm(16,24) - redm(16,25) - redm(16,26) - redm(16,27) - redm(16,28) - redm(16,29) - redm(16,30) - redm(16,31) - redm(16,32) - redm(17,18) - redm(17,19) - redm(17,20) - redm(17,21) - redm(17,22) - redm(17,23)
+     
+      - redm(17,24) - redm(17,25) - redm(17,26) - redm(17,27) - redm(17,28) - redm(17,29) - redm(17,30) - redm(17,31) - redm(17,32) - redm(18,19) - redm(18,20) - redm(18,21) - redm(18,22) - redm(18,23) - redm(18,24) - redm(18,25) - redm(18,26)
+     
+      - redm(18,27) - redm(18,28) - redm(18,29) - redm(18,30) - redm(18,31) - redm(18,32) - redm(19,20) - redm(19,21) - redm(19,22) - redm(19,23) - redm(19,24) - redm(19,25) - redm(19,26) - redm(19,27) - redm(19,28) - redm(19,29) - redm(19,30)
+     
+      - redm(19,31) - redm(19,32) - redm(20,21) - redm(20,22) - redm(20,23) - redm(20,24) - redm(20,25) - redm(20,26) - redm(20,27) - redm(20,28) - redm(20,29) - redm(20,30) - redm(20,31) - redm(20,32) - redm(21,22) - redm(21,23) - redm(21,24)
+     
+      - redm(21,25) - redm(21,26) - redm(21,27) - redm(21,28) - redm(21,29) - redm(21,30) - redm(21,31) - redm(21,32) - redm(22,23) - redm(22,24) - redm(22,25) - redm(22,26) - redm(22,27) - redm(22,28) - redm(22,29) - redm(22,30) - redm(22,31)
+     
+      - redm(22,32) - redm(23,24) - redm(23,25) - redm(23,26) - redm(23,27) - redm(23,28) - redm(23,29) - redm(23,30) - redm(23,31) - redm(23,32) - redm(24,25) - redm(24,26) - redm(24,27) - redm(24,28) - redm(24,29) - redm(24,30) - redm(24,31)
+     
+      - redm(24,32) - redm(25,26) - redm(25,27) - redm(25,28) - redm(25,29) - redm(25,30) - redm(25,31) - redm(25,32) - redm(26,27) - redm(26,28) - redm(26,29) - redm(26,30) - redm(26,31) - redm(26,32) - redm(27,28) - redm(27,29) - redm(27,30)
+     
+      - redm(27,31) - redm(27,32) - redm(28,29) - redm(28,30) - redm(28,31) - redm(28,32) - redm(29,30) - redm(29,31) - redm(29,32) - redm(30,31) - redm(30,32) - redm(31,32) + obj =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:43 Page 9
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Column Listing      SOLVE social_golfer Using MINLP From line 67
+
+
+---- x  golfer gf is in group gr on week w
+
+x(1,1,1)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+        1       defx(1,1)
+        1       defgr(1,1)
+       (0)      defm(1,1,1,2)
+       (0)      defm(1,1,1,3)
+       (0)      defm(1,1,1,4)
+       (0)      defm(1,1,1,5)
+       (0)      defm(1,1,1,6)
+       (0)      defm(1,1,1,7)
+       (0)      defm(1,1,1,8)
+       (0)      defm(1,1,1,9)
+       (0)      defm(1,1,1,10)
+       (0)      defm(1,1,1,11)
+       (0)      defm(1,1,1,12)
+       (0)      defm(1,1,1,13)
+       (0)      defm(1,1,1,14)
+       (0)      defm(1,1,1,15)
+       (0)      defm(1,1,1,16)
+       (0)      defm(1,1,1,17)
+       (0)      defm(1,1,1,18)
+       (0)      defm(1,1,1,19)
+       (0)      defm(1,1,1,20)
+       (0)      defm(1,1,1,21)
+       (0)      defm(1,1,1,22)
+       (0)      defm(1,1,1,23)
+       (0)      defm(1,1,1,24)
+       (0)      defm(1,1,1,25)
+       (0)      defm(1,1,1,26)
+       (0)      defm(1,1,1,27)
+       (0)      defm(1,1,1,28)
+       (0)      defm(1,1,1,29)
+       (0)      defm(1,1,1,30)
+       (0)      defm(1,1,1,31)
+       (0)      defm(1,1,1,32)
+
+x(1,1,2)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+        1       defx(1,2)
+        1       defgr(1,1)
+       (0)      defm(1,1,1,2)
+       (0)      defm(1,1,2,3)
+       (0)      defm(1,1,2,4)
+       (0)      defm(1,1,2,5)
+       (0)      defm(1,1,2,6)
+       (0)      defm(1,1,2,7)
+       (0)      defm(1,1,2,8)
+       (0)      defm(1,1,2,9)
+       (0)      defm(1,1,2,10)
+       (0)      defm(1,1,2,11)
+       (0)      defm(1,1,2,12)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:43 Page 10
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Column Listing      SOLVE social_golfer Using MINLP From line 67
+
+
+     x  golfer gf is in group gr on week w
+
+       (0)      defm(1,1,2,13)
+       (0)      defm(1,1,2,14)
+       (0)      defm(1,1,2,15)
+       (0)      defm(1,1,2,16)
+       (0)      defm(1,1,2,17)
+       (0)      defm(1,1,2,18)
+       (0)      defm(1,1,2,19)
+       (0)      defm(1,1,2,20)
+       (0)      defm(1,1,2,21)
+       (0)      defm(1,1,2,22)
+       (0)      defm(1,1,2,23)
+       (0)      defm(1,1,2,24)
+       (0)      defm(1,1,2,25)
+       (0)      defm(1,1,2,26)
+       (0)      defm(1,1,2,27)
+       (0)      defm(1,1,2,28)
+       (0)      defm(1,1,2,29)
+       (0)      defm(1,1,2,30)
+       (0)      defm(1,1,2,31)
+       (0)      defm(1,1,2,32)
+
+x(1,1,3)
+                (.LO, .L, .UP, .M = 0, 1, 1, 0)
+        1       defx(1,3)
+        1       defgr(1,1)
+       (0)      defm(1,1,1,3)
+       (0)      defm(1,1,2,3)
+       (0)      defm(1,1,3,4)
+       (0)      defm(1,1,3,5)
+       (0)      defm(1,1,3,6)
+       (0)      defm(1,1,3,7)
+       (0)      defm(1,1,3,8)
+       (0)      defm(1,1,3,9)
+       (0)      defm(1,1,3,10)
+       (0)      defm(1,1,3,11)
+       (0)      defm(1,1,3,12)
+       (0)      defm(1,1,3,13)
+       (0)      defm(1,1,3,14)
+       (0)      defm(1,1,3,15)
+       (0)      defm(1,1,3,16)
+       (0)      defm(1,1,3,17)
+       (0)      defm(1,1,3,18)
+       (0)      defm(1,1,3,19)
+       (0)      defm(1,1,3,20)
+       (0)      defm(1,1,3,21)
+       (0)      defm(1,1,3,22)
+       (0)      defm(1,1,3,23)
+       (0)      defm(1,1,3,24)
+       (0)      defm(1,1,3,25)
+       (0)      defm(1,1,3,26)
+       (0)      defm(1,1,3,27)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:43 Page 11
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Column Listing      SOLVE social_golfer Using MINLP From line 67
+
+
+     x  golfer gf is in group gr on week w
+
+       (0)      defm(1,1,3,28)
+       (0)      defm(1,1,3,29)
+       (0)      defm(1,1,3,30)
+       (0)      defm(1,1,3,31)
+       (0)      defm(1,1,3,32)
+
+REMAINING 2557 ENTRIES SKIPPED
+
+---- m  golfers meet in week w in some group
+
+m(1,1,1,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defm(1,1,1,2)
+       -1       defnumm(1,2)
+
+m(1,1,1,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defm(1,1,1,3)
+       -1       defnumm(1,3)
+
+m(1,1,1,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defm(1,1,1,4)
+       -1       defnumm(1,4)
+
+REMAINING 39677 ENTRIES SKIPPED
+
+---- numm  number of meetings
+
+numm(1,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defnumm(1,2)
+       (0)      defredm(1,2)
+
+numm(1,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defnumm(1,3)
+       (0)      defredm(1,3)
+
+numm(1,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defnumm(1,4)
+       (0)      defredm(1,4)
+
+REMAINING 493 ENTRIES SKIPPED
+
+---- redm  number of redundant meetings
+
+redm(1,2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defredm(1,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:43 Page 12
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Column Listing      SOLVE social_golfer Using MINLP From line 67
+
+
+     redm  number of redundant meetings
+
+       -1       defobj
+
+redm(1,3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defredm(1,3)
+       -1       defobj
+
+redm(1,4)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defredm(1,4)
+       -1       defobj
+
+REMAINING 493 ENTRIES SKIPPED
+
+---- obj  objective
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:43 Page 13
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Model Statistics    SOLVE social_golfer Using MINLP From line 67
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS       41,073
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES       43,233
+NON ZERO ELEMENTS       165,825     NON LINEAR N-Z         79,856
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH             241,552     DISCRETE VARIABLES      2,560
+
+
+GENERATION TIME      =        0.125 SECONDS     24 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.127 SECONDS     24 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:43 Page 14
+Social Golfer Problem  (SGOLFER,SEQ=409)
+Solution Report     SOLVE social_golfer Using MINLP From line 67
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   social_golfer       OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  67
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/sgolfer/convert.opt"
+>>  gams sgolfer-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/sgolfer/convert.opt"
+Gams      : sgolfer-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/sgolfer/sgolfer.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/sgolfer/sgolfer-scalar.gms.lst

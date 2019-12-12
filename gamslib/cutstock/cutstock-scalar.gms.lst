@@ -1,0 +1,312 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 2
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+C o m p i l a t i o n
+
+
+   4   
+       The task is to cut out some paper products of different sizes from a
+       large raw paper roll, in order to meet a customer's order. The objective
+       is to minimize the required number of paper rolls.
+       
+       
+      P. C. Gilmore and R. E. Gomory, A linear programming approach to the
+      cutting stock problem, Part I, Operations Research 9 (1961), 849-859.
+       
+      P. C. Gilmore and R. E. Gomory, A linear programming approach to the
+      cutting stock problem, Part II, Operations Research 11 (1963), 863-888.
+  17   
+  18  Set  i    widths    /w1*w4/
+  19  Parameter
+  20       r    raw width /100/
+  21       w(i) width     /w1  45
+  22                       w2  36
+  23                       w3  31
+  24                       w4  14/
+  25       d(i) demand    /w1  97
+  26                       w2 610
+  27                       w3 395
+  28                       w4 211/
+  29   
+  30  * Gilmore-Gomory column generation algorithm
+  31   
+  32  Set  p        possible patterns  /p1*p1000/
+  33       pp(p)    dynamic subset of p
+  34  Parameter
+  35       aip(i,p) number of width i in pattern growing in p;
+  36   
+  37   
+  38  * Master model
+  39  Variable xp(p)     patterns used
+  40           z         objective variable
+  41  Integer variable xp; xp.up(p) = sum(i, d(i));
+  42   
+  43  Equation numpat    number of patterns used
+  44           demand(i) meet demand;
+  45   
+  46  numpat..     z =e= sum(pp, xp(pp));
+  47  demand(i)..  sum(pp, aip(i,pp)*xp(pp)) =g= d(i);
+  48   
+  49  model master /numpat, demand/;
+  50   
+  51  * Pricing problem - Knapsack model
+  52  Variable  y(i) new pattern;
+  53  Integer variable y; y.up(i) = ceil(r/w(i));
+  54   
+  55  Equation defobj
+  56           knapsack knapsack constraint;
+  57   
+  58  defobj..     z =e= 1 - sum(i, demand.m(i)*y(i));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 3
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+C o m p i l a t i o n
+
+
+  59  knapsack..   sum(i, w(i)*y(i)) =l= r;
+  60   
+  61  model pricing /defobj, knapsack/;
+  62   
+  63  * Initialization - the initial patterns have a single width
+  64  pp(p) = ord(p)<=card(i);
+  65  aip(i,pp(p))$(ord(i)=ord(p)) = floor(r/w(i));
+  66  *display aip;
+  67   
+  68  Scalar done  loop indicator /0/
+  69  Set    pi(p) set of the last pattern; pi(p) = ord(p)=card(pp)+1;
+  70   
+  71  option optcr=0,limrow=0,limcol=0,solprint=off;
+  72   
+  73  While(not done and card(pp)<card(p),
+  74     solve master using rmip minimizing z;
+  75     solve pricing using mip minimizing z;
+  76   
+  77  * pattern that might improve the master model found?
+  78     if(z.l < -0.001,
+  79        aip(i,pi) = round(y.l(i));
+  80        pp(pi) = yes; pi(p) = pi(p-1);
+  81     else
+  82        done = 1;
+  83     );
+  84  );
+  85  display 'lower bound for number of rolls', master.objval;
+  86   
+  87  option solprint=on;
+  88  solve master using mip minimizing z;
+  89   
+  90  Parameter patrep Solution pattern report
+  91            demrep Solution demand supply report;
+  92   
+  93  patrep('# produced',p) = round(xp.l(p));
+  94  patrep(i,p)$patrep('# produced',p) = aip(i,p);
+  95  patrep(i,'total') = sum(p, patrep(i,p));
+  96  patrep('# produced','total') = sum(p, patrep('# produced',p));
+  97   
+  98  demrep(i,'produced') = sum(p,patrep(i,p)*patrep('# produced',p));
+  99  demrep(i,'demand') = d(i);
+ 100  demrep(i,'over') = demrep(i,'produced') - demrep(i,'demand');
+ 101   
+ 102  display patrep, demrep;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 4
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+Model Statistics    SOLVE master Using RMIP From line 74
+
+
+LOOPS                            FOR/WHILE   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             9     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 5
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+Solution Report     SOLVE master Using RMIP From line 74
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   master              OBJECTIVE  z
+     TYPE    RMIP                DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  74
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE              515.3095
+
+ RESOURCE USAGE, LIMIT          0.005      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/cutstock/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.00 ticks)
+Optimal solution found.
+Objective :         515.309524
+
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 6
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+Model Statistics    SOLVE pricing Using MIP From line 75
+
+
+LOOPS                            FOR/WHILE   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            2
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             9     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S          FOR/WHILE 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 7
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+Solution Report     SOLVE pricing Using MIP From line 75
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   pricing             OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  75
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cutstock/convert.opt"
+>>  gams cutstock-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cutstock/convert.opt"
+Gams      : cutstock-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 8
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+E x e c u t i o n
+
+
+----     85 lower bound for number of rolls
+            MODEL master.ObjVal            =      515.310  
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 9
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+Model Statistics    SOLVE master Using MIP From line 88
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS             9     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 10
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+Solution Report     SOLVE master Using MIP From line 88
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   master              OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  88
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/cutstock/convert.opt"
+>>  gams cutstock-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/cutstock/convert.opt"
+Gams      : cutstock-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:27 Page 11
+Cutting Stock - A Column Generation Approach (CUTSTOCK,SEQ=294)
+E x e c u t i o n
+
+
+----    102 PARAMETER patrep  Solution pattern report
+
+                    p1          p2          p3          p4       total
+
+w1               2.000                                           2.000
+w2                           2.000                               2.000
+w3                                       3.000                   3.000
+w4                                                   7.000       7.000
+# produced      49.000     305.000     132.000      30.000     516.000
+
+
+----    102 PARAMETER demrep  Solution demand supply report
+
+      produced      demand        over
+
+w1      98.000      97.000       1.000
+w2     610.000     610.000
+w3     396.000     395.000       1.000
+w4     210.000     211.000      -1.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/cutstock/cutstock.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/cutstock/cutstock-scalar.gms.lst

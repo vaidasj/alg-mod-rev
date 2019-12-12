@@ -1,0 +1,75 @@
+--- Job railcirc.gms Start 12/13/18 10:32:28 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- railcirc.gms(250) 3 Mb
+--- Starting execution: elapsed 0:00:00.004
+--- railcirc.gms(214) 4 Mb
+--- Generating MIP model nscirc
+--- railcirc.gms(215) 4 Mb
+---   496 rows  298 columns  896 non-zeroes
+---   297 discrete-columns
+***
+***   297 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.009
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+>>  ampl railcirc-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+--- Writing Ampl      : railcirc-scalar.mod
+
+--- Restarting execution
+--- railcirc.gms(215) 2 Mb
+--- Reading solution for model nscirc
+--- railcirc.gms(226) 3 Mb
+--- Generating MIP model nscirc
+--- railcirc.gms(227) 3 Mb
+---   496 rows  298 columns  896 non-zeroes
+---   297 discrete-columns
+***
+***   297 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.029
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+>>  ampl railcirc-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+--- Writing Ampl      : railcirc-scalar.mod
+
+--- Restarting execution
+--- railcirc.gms(227) 2 Mb
+--- Reading solution for model nscirc
+--- railcirc.gms(242) 3 Mb
+--- Generating MIP model nscirc
+--- railcirc.gms(244) 3 Mb
+---   694 rows  595 columns  1,791 non-zeroes
+---   594 discrete-columns
+***
+***   594 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.050
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+>>  ampl railcirc-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/railcirc/convert.opt"
+--- Writing Ampl      : railcirc-scalar.mod
+
+--- Restarting execution
+--- railcirc.gms(244) 2 Mb
+--- Reading solution for model nscirc
+--- railcirc.gms(250) 3 Mb
+*** Status: Normal completion
+--- Job railcirc.gms Stop 12/13/18 10:32:28 elapsed 0:00:00.066

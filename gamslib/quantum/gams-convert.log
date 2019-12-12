@@ -1,0 +1,50 @@
+--- Job quantum.gms Start 12/13/18 11:24:22 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- quantum.gms(64) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- quantum.gms(42) 4 Mb
+--- Generating DNLP model m
+--- quantum.gms(46) 6 Mb
+---   1 rows  3 columns  3 non-zeroes
+---   66 nl-code  2 nl-non-zeroes
+--- quantum.gms(46) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+>>  gams quantum-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+--- Writing Gams      : quantum-scalar.gms
+
+--- Restarting execution
+--- quantum.gms(46) 2 Mb
+--- Reading solution for model m
+--- quantum.gms(57) 3 Mb
+--- Generating DNLP model m
+--- quantum.gms(58) 5 Mb
+---   1 rows  3 columns  3 non-zeroes
+---   66 nl-code  2 nl-non-zeroes
+--- quantum.gms(58) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.019
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+>>  gams quantum-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quantum/convert.opt"
+--- Writing Gams      : quantum-scalar.gms
+
+--- Restarting execution
+--- quantum.gms(58) 2 Mb
+--- Reading solution for model m
+--- quantum.gms(64) 3 Mb
+*** Status: Normal completion
+--- Job quantum.gms Stop 12/13/18 11:24:22 elapsed 0:00:00.032

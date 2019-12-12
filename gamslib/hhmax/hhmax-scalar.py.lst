@@ -1,0 +1,180 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 2
+A Household's Utility Max. Model in Ch. 3 (HHMAX,SEQ=274)
+C o m p i l a t i o n
+
+
+   5   
+      No description.
+       
+       
+      Hosoe, N, Gasawa, K, and Hashimoto, H
+      Handbook of Computible General Equilibrium Modeling
+      University of Tokyo Press, Tokyo, Japan, 2004
+  14   
+  15   
+  16  * Definition of the Index Sets ---------------------------------------
+  17  Set     i       goods                   /BRD    bread,
+  18                                           MLK    milk/
+  19          h       factors                 /CAP    capital,
+  20                                           LAB    labor/;
+  21   
+  22  * Definition of Parameters -------------------------------------------
+  23  Parameter       alpha(i)        share parameter in utility function
+  24                  /BRD   0.2
+  25                   MLK   0.8/;
+  26   
+  27  Parameter       px(i)           price of the i-th good
+  28                  /BRD   1
+  29                   MLK   2/;
+  30   
+  31  Parameter       pf(h)           price of the h-th factor
+  32                  /CAP    2
+  33                   LAB    1/;
+  34   
+  35  Parameter       FF(h)           factor endowment
+  36                  /CAP    10
+  37                   LAB    20/;
+  38   
+  39  * Definition of Primal/Dual Variables --------------------------------
+  40  Positive Variable X(i)          consumption of the i-th good
+  41  ;
+  42  Variable        UU              utility
+  43  ;
+  44  Equation        eqX(i)          household demand function
+  45                  obj             utility function
+  46  ;
+  47  * Specification of Equations ------------------------------------------
+  48   
+  49  eqX(i)..        X(i)      =e= alpha(i)*sum(h, pf(h)*FF(h))/px(i);
+  50  obj..           UU        =e= prod(i, X(i)**alpha(i));
+  51   
+  52  * Setting Lower Bounds on Variables to Avoid Division by Zero ---------
+  53  X.lo(i)=0.001;
+  54   
+  55  * Defining the Model --------------------------------------------------
+  56  Model HHmax /all/;
+  57   
+  58  * Solving the Model ---------------------------------------------------
+  59  Solve HHmax maximizing UU using NLP;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 3
+A Household's Utility Max. Model in Ch. 3 (HHMAX,SEQ=274)
+C o m p i l a t i o n
+
+
+  60  * ---------------------------------------------------------------------
+  61  * end of model --------------------------------------------------------
+  62  * ---------------------------------------------------------------------
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 4
+A Household's Utility Max. Model in Ch. 3 (HHMAX,SEQ=274)
+Equation Listing    SOLVE HHmax Using NLP From line 59
+
+
+---- eqX  =E=  household demand function
+
+eqX(BRD)..  X(BRD) =E= 8 ; (LHS = 0.00100000000000033, INFES = 7.999 ****)
+     
+eqX(MLK)..  X(MLK) =E= 16 ; (LHS = 0.000999999999999446, INFES = 15.999 ****)
+     
+
+---- obj  =E=  utility function
+
+obj..  - (0.2)*X(BRD) - (0.8)*X(MLK) + UU =E= 0 ; (LHS = -0.001, INFES = 0.001 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 5
+A Household's Utility Max. Model in Ch. 3 (HHMAX,SEQ=274)
+Column Listing      SOLVE HHmax Using NLP From line 59
+
+
+---- X  consumption of the i-th good
+
+X(BRD)
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+        1       eqX(BRD)
+      (-0.2)    obj
+        0       (OLD LEVEL ****)
+
+X(MLK)
+                (.LO, .L, .UP, .M = 0.001, 0.001, +INF, 0)
+        1       eqX(MLK)
+      (-0.8)    obj
+        0       (OLD LEVEL ****)
+
+
+---- UU  utility
+
+UU
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 6
+A Household's Utility Max. Model in Ch. 3 (HHMAX,SEQ=274)
+Model Statistics    SOLVE HHmax Using NLP From line 59
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            3  2 projected
+NON ZERO ELEMENTS             5     NON LINEAR N-Z              2
+DERIVATIVE POOL              20     CONSTANT POOL              18
+CODE LENGTH                  11
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:23 Page 7
+A Household's Utility Max. Model in Ch. 3 (HHMAX,SEQ=274)
+Solution Report     SOLVE HHmax Using NLP From line 59
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   HHmax               OBJECTIVE  UU
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  59
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/hhmax/convert.opt"
+>>  pyomo hhmax-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/hhmax/convert.opt"
+Pyomo     : hhmax-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/hhmax/hhmax.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/hhmax/hhmax-scalar.py.lst

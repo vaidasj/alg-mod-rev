@@ -1,0 +1,88 @@
+--- Job harkmcp.gms Start 12/13/18 10:30:48 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- harkmcp.gms(260) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- harkmcp.gms(215) 4 Mb
+--- Generating MCP model harker
+--- harkmcp.gms(216) 6 Mb
+---   32 rows  32 columns  100 non-zeroes
+---   69 nl-code  14 nl-non-zeroes
+--- harkmcp.gms(216) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  ampl harkmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Ampl      : harkmcp-scalar.mod
+
+--- Restarting execution
+--- harkmcp.gms(216) 2 Mb
+--- Reading solution for model harker
+--- harkmcp.gms(226) 3 Mb
+--- Generating MCP model harker
+--- harkmcp.gms(227) 5 Mb
+---   32 rows  32 columns  103 non-zeroes
+---   70 nl-code  14 nl-non-zeroes
+--- harkmcp.gms(227) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.019
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  ampl harkmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Ampl      : harkmcp-scalar.mod
+
+--- Restarting execution
+--- harkmcp.gms(227) 2 Mb
+--- Reading solution for model harker
+--- harkmcp.gms(236) 3 Mb
+--- Generating MCP model harker
+--- harkmcp.gms(237) 5 Mb
+---   32 rows  32 columns  103 non-zeroes
+---   69 nl-code  14 nl-non-zeroes
+--- harkmcp.gms(237) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.035
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  ampl harkmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Ampl      : harkmcp-scalar.mod
+
+--- Restarting execution
+--- harkmcp.gms(237) 2 Mb
+--- Reading solution for model harker
+--- harkmcp.gms(246) 3 Mb
+--- Generating MCP model harkoli
+--- harkmcp.gms(247) 5 Mb
+---   92 rows  92 columns  329 non-zeroes
+---   207 nl-code  42 nl-non-zeroes
+--- harkmcp.gms(247) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.054
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+>>  ampl harkmcp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/harkmcp/convert.opt"
+--- Writing Ampl      : harkmcp-scalar.mod
+
+--- Restarting execution
+--- harkmcp.gms(247) 2 Mb
+--- Reading solution for model harkoli
+--- harkmcp.gms(259) 3 Mb
+*** Status: Normal completion
+--- Job harkmcp.gms Stop 12/13/18 10:30:49 elapsed 0:00:00.066

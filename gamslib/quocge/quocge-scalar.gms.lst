@@ -1,0 +1,2271 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 2
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+   4   
+      No description.
+       
+       
+      Hosoe, N, Gasawa, K, and Hashimoto, H
+      Handbook of Computible General Equilibrium Modeling
+      University of Tokyo Press, Tokyo, Japan, 2004
+  13   
+  14   
+  15  * Definition of sets for suffix ---------------------------------------
+  16  Set     u       SAM entry     /BRD, MLK, CAP, LAB, IDT, TRF, HOH, GOV,
+  17                                 INV, EXT/
+  18          i(u)    goods         /BRD, MLK/
+  19          h(u)    factor        /CAP, LAB/;
+  20  Alias (u,v), (i,j), (h,k);
+  21  * ---------------------------------------------------------------------
+  22   
+  23  * Loading data --------------------------------------------------------
+  24  Table   SAM(u,v)        social accounting matrix
+  25          BRD     MLK     CAP     LAB     IDT
+  26  BRD     21      8
+  27  MLK     17      9
+  28  CAP     20      30
+  29  LAB     15      25
+  30  IDT     5       4
+  31  TRF     1       2
+  32  HOH                     50      40
+  33  GOV                                     9
+  34  INV
+  35  EXT     13      11
+  36   
+  37  +       TRF     HOH     GOV     INV     EXT
+  38  BRD             20      19      16      8
+  39  MLK             30      14      15      4
+  40  CAP
+  41  LAB
+  42  IDT
+  43  TRF
+  44  HOH
+  45  GOV     3       23
+  46  INV             17      2               12
+  47  EXT
+  48  ;
+  49  * Loading the initial values ------------------------------------------
+  50  Parameter       Y0(j)           composite factor
+  51                  F0(h,j)         the h-th factor input by the j-th firm
+  52                  X0(i,j)         intermediate input
+  53                  Z0(j)           output of the j-th good
+  54                  Xp0(i)          household consumption of the i-th good
+  55                  Xg0(i)          government consumption
+  56                  Xv0(i)          investment demand
+  57                  E0(i)           exports
+  58                  M0(i)           imports
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 3
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+  59                  Q0(i)           Armington's composite good
+  60                  D0(i)           domestic good
+  61                  Sp0             private saving
+  62                  Sg0             government saving
+  63                  Td0             direct tax
+  64                  Tz0(j)          production tax
+  65                  Tm0(j)          import tariff
+  66   
+  67                  FF(h)           factor endowment of the h-th factor
+  68                  Sf              foreign saving in US dollars
+  69                  pWe(i)          export price in US dollars
+  70                  pWm(i)          import price in US dollars
+  71                  tauz(i)         production tax rate
+  72                  taum(i)         import tariff rate
+  73                  Mquota(i)       import quotas
+  74  ;
+  75  Td0     =SAM("GOV","HOH");
+  76  Tz0(j)  =SAM("IDT",j);
+  77  Tm0(j)  =SAM("TRF",J);
+  78   
+  79  F0(h,j) =SAM(h,j);
+  80  Y0(j)   =sum(h, F0(h,j));
+  81  X0(i,j) =SAM(i,j);
+  82  Z0(j)   =Y0(j) +sum(i,X0(i,j));
+  83  M0(i)   =SAM("EXT",i);
+  84   
+  85  tauz(j) =Tz0(j)/Z0(j);
+  86  taum(j) =Tm0(j)/M0(j);
+  87  Mquota(i)=M0(i)*100;
+  88   
+  89  Xp0(i)  =SAM(i,"HOH");
+  90  FF(h)   =SAM("HOH",h);
+  91   
+  92  Xg0(i)  =SAM(i,"GOV");
+  93  Xv0(i)  =SAM(i,"INV");
+  94  E0(i)   =SAM(i,"EXT");
+  95  Q0(i)   =Xp0(i)+Xg0(i)+Xv0(i)+sum(j, X0(i,j));
+  96  D0(i)   =(1+tauz(i))*Z0(i)-E0(i);
+  97  Sp0     =SAM("INV","HOH");
+  98  Sg0     =SAM("INV","GOV");
+  99  Sf      =SAM("INV","EXT");
+ 100   
+ 101  pWe(i)  =1;
+ 102  pWm(i)  =1;
+ 103   
+ 104  Display Y0,F0,X0,Z0,Xp0,Xg0,Xv0,E0,M0,Q0,D0,Sp0,Sg0,Td0,Tz0,Tm0,
+ 105          FF,Sf,tauz,taum;
+ 106  * Calibration ---------------------------------------------------------
+ 107  Parameter       sigma(i)        elasticity of substitution
+ 108                  psi(i)          elasticity of transformation
+ 109                  eta(i)          substitution elasticity parameter
+ 110                  phi(i)          transformation elasticity parameter
+ 111  ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 4
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+ 112  sigma(i)=2;
+ 113  psi(i)  =2;
+ 114  eta(i)  =(sigma(i)-1)/sigma(i);
+ 115  phi(i)  =(psi(i)+1)/psi(i);
+ 116   
+ 117  Parameter       alpha(i)        share parameter in utility func.
+ 118                  beta(h,j)       share parameter in production func.
+ 119                  b(j)            scale parameter in production func.
+ 120                  ax(i,j)         intermediate input requirement coeff.
+ 121                  ay(j)           composite fact. input req. coeff.
+ 122                  mu(i)           government consumption share
+ 123                  lambda(i)       investment demand share
+ 124                  deltam(i)       share parameter in Armington func.
+ 125                  deltad(i)       share parameter in Armington func.
+ 126                  gamma(i)        scale parameter in Armington func.
+ 127                  xid(i)          share parameter in transformation func.
+ 128                  xie(i)          share parameter in transformation func.
+ 129                  theta(i)        scale parameter in transformation func.
+ 130                  ssp             average propensity for private saving
+ 131                  ssg             average propensity for government saving
+ 132                  taud            direct tax rate
+ 133  ;
+ 134   
+ 135  alpha(i)=Xp0(i)/sum(j, Xp0(j));
+ 136  beta(h,j)=F0(h,j)/sum(k, F0(k,j));
+ 137  b(j)    =Y0(j)/prod(h, F0(h,j)**beta(h,j));
+ 138   
+ 139  ax(i,j) =X0(i,j)/Z0(j);
+ 140  ay(j)   =Y0(j)/Z0(j);
+ 141  mu(i)   =Xg0(i)/sum(j, Xg0(j));
+ 142  lambda(i)=Xv0(i)/(Sp0+Sg0+Sf);
+ 143   
+ 144  deltam(i)=(1+taum(i))*M0(i)**(1-eta(i))
+ 145          /((1+taum(i))*M0(i)**(1-eta(i)) +D0(i)**(1-eta(i)));
+ 146  deltad(i)=D0(i)**(1-eta(i))
+ 147          /((1+taum(i))*M0(i)**(1-eta(i)) +D0(i)**(1-eta(i)));
+ 148  gamma(i)=Q0(i)/(deltam(i)*M0(i)**eta(i)+deltad(i)*D0(i)**eta(i))
+ 149          **(1/eta(i));
+ 150   
+ 151  xie(i)=E0(i)**(1-phi(i))/(E0(i)**(1-phi(i))+D0(i)**(1-phi(i)));
+ 152  xid(i)=D0(i)**(1-phi(i))/(E0(i)**(1-phi(i))+D0(i)**(1-phi(i)));
+ 153  theta(i)=Z0(i)/(xie(i)*E0(i)**phi(i)+xid(i)*D0(i)**phi(i))**(1/phi(i));
+ 154   
+ 155  ssp     =Sp0/sum(h, FF(h));
+ 156  ssg     =Sg0/(Td0+sum(j, Tz0(j))+sum(j, Tm0(j)));
+ 157  taud    =Td0/sum(h, FF(h));
+ 158   
+ 159   
+ 160  Display alpha,beta,b,ax,ay,mu,lambda,deltam,deltad,gamma,xie,
+ 161          xid,theta,ssp,ssg,taud;
+ 162  * ---------------------------------------------------------------------
+ 163   
+ 164  * Defining model system -----------------------------------------------
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 5
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+ 165  Variable        Y(j)            composite factor
+ 166                  F(h,j)          the h-th factor input by the j-th firm
+ 167                  X(i,j)          intermediate input
+ 168                  Z(j)            output of the j-th good
+ 169                  Xp(i)           household consumption of the i-th good
+ 170                  Xg(i)           government consumption
+ 171                  Xv(i)           investment demand
+ 172                  E(i)            exports
+ 173                  M(i)            imports
+ 174                  Q(i)            Armington's composite good
+ 175                  D(i)            domestic good
+ 176   
+ 177                  pf(h)           the h-th factor price
+ 178                  py(j)           composite factor price
+ 179                  pz(j)           supply price of the i-th good
+ 180                  pq(i)           Armington's composite good price
+ 181                  pe(i)           export price in local currency
+ 182                  pm(i)           import price in local currency
+ 183                  pd(i)           the i-th domestic good price
+ 184                  epsilon         exchange rate
+ 185   
+ 186                  Sp              private saving
+ 187                  Sg              government saving
+ 188                  Td              direct tax
+ 189                  Tz(j)           production tax
+ 190                  Tm(i)           import tariff
+ 191                  RT(i)           rent accruing from import quotas
+ 192                  UU              utility [fictitious]
+ 193  ;
+ 194  Positive Variable
+ 195                  chi(i)          marginal quasi-rent
+ 196  ;
+ 197  Equation        eqpy(j)         composite factor aggregation func.
+ 198                  eqX(i,j)        intermediate demand function
+ 199                  eqY(j)          composite factor demand function
+ 200                  eqF(h,j)        factor demand function
+ 201                  eqpzs(j)        unit cost function
+ 202   
+ 203                  eqTd            direct tax revenue function
+ 204                  eqTz(j)         production tax revenue function
+ 205                  eqTm(i)         import tariff revenue function
+ 206                  eqXg(i)         government demand function
+ 207   
+ 208                  eqXv(i)         investment demand function
+ 209                  eqSp            private saving function
+ 210                  eqSg            government saving function
+ 211   
+ 212                  eqXp(i)         household demand function
+ 213                  eqRT(i)         quasi-rent function
+ 214                  eqpe(i)         world export price equation
+ 215                  eqpm(i)         world import price equation
+ 216                  eqepsilon       balance of payments
+ 217   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 6
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+ 218                  eqpqs(i)        Armington function
+ 219                  eqM(i)          import demand function
+ 220                  eqD(i)          domestic good demand function
+ 221                  eqchi1(i)       import quota complementarity condition
+ 222                  eqchi2(i)       import quota complementarity condition
+ 223   
+ 224                  eqpzd(i)        transformation function
+ 225                  eqDs(i)         domestic good supply function
+ 226                  eqE(i)          export supply function
+ 227   
+ 228                  eqpqd(i)        market clearing cond. for comp. good
+ 229                  eqpf(h)         factor market clearing condition
+ 230   
+ 231                  obj             utility function [fictitious]
+ 232  ;
+ 233  *[domestic production] ----
+ 234  eqpy(j)..       Y(j)    =e= b(j)*prod(h, F(h,j)**beta(h,j));
+ 235  eqX(i,j)..      X(i,j)  =e= ax(i,j)*Z(j);
+ 236  eqY(j)..        Y(j)    =e= ay(j)*Z(j);
+ 237  eqF(h,j)..      F(h,j)  =e= beta(h,j)*py(j)*Y(j)/pf(h);
+ 238  eqpzs(j)..      pz(j)   =e= ay(j)*py(j) +sum(i, ax(i,j)*pq(i));
+ 239   
+ 240  *[government behavior] ----
+ 241  eqTd..          Td      =e= taud*(sum(h, pf(h)*FF(h))+sum(j, RT(j)));
+ 242  eqTz(j)..       Tz(j)   =e= tauz(j)*pz(j)*Z(j);
+ 243  eqTm(i)..       Tm(i)   =e= taum(i)*pm(i)*M(i);
+ 244  eqXg(i)..       Xg(i)   =e= mu(i)*(Td +sum(j, Tz(j)) +sum(j, Tm(j))
+ 245                              -Sg)/pq(i);
+ 246   
+ 247  *[investment behavior] ----
+ 248  eqXv(i)..       Xv(i)   =e= lambda(i)*(Sp +Sg +epsilon*Sf)/pq(i);
+ 249   
+ 250  *[savings] ----------------
+ 251  eqSp..          Sp      =e= ssp*(sum(h, pf(h)*FF(h))+sum(j, RT(j)));
+ 252  eqSg..          Sg      =e= ssg*(Td +sum(j, Tz(j))+sum(j, Tm(j)));
+ 253   
+ 254  *[household consumption] --
+ 255  eqXp(i)..       Xp(i)   =e= alpha(i)*(sum(h, pf(h)*FF(h)) +sum(j, RT(j))
+ 256                              -Sp -Td)/pq(i);
+ 257  eqRT(i)..       RT(i)   =e= chi(i)*pm(i)*M(i);
+ 258   
+ 259  *[international trade] ----
+ 260  eqpe(i)..       pe(i)   =e= epsilon*pWe(i);
+ 261  eqpm(i)..       pm(i)   =e= epsilon*pWm(i);
+ 262  eqepsilon..     sum(i, pWe(i)*E(i)) +Sf
+ 263                          =e= sum(i, pWm(i)*M(i));
+ 264   
+ 265  *[Armington function] -----
+ 266  eqpqs(i)..      Q(i)    =e= gamma(i)*(deltam(i)*M(i)**eta(i)
+ 267                              +deltad(i)*D(i)**eta(i))**(1/eta(i));
+ 268  eqM(i)..        M(i)    =e= (gamma(i)**eta(i)*deltam(i)*pq(i)
+ 269                              /((1+chi(i)+taum(i))*pm(i)))
+ 270                              **(1/(1-eta(i)))*Q(i);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 7
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+ 271  eqD(i)..        D(i)    =e= (gamma(i)**eta(i)*deltad(i)*pq(i)/pd(i))
+ 272                              **(1/(1-eta(i)))*Q(i);
+ 273  eqchi1(i)..     chi(i)*(Mquota(i) -M(i)) =e= 0;
+ 274  eqchi2(i)..     Mquota(i) -M(i) =g= 0;
+ 275   
+ 276  *[transformation function] -----
+ 277  eqpzd(i)..      Z(i)    =e= theta(i)*(xie(i)*E(i)**phi(i)+xid(i)
+ 278                              *D(i)**phi(i))**(1/phi(i));
+ 279  eqE(i)..        E(i)    =e= (theta(i)**phi(i)*xie(i)*(1+tauz(i))*pz(i)
+ 280                              /pe(i))**(1/(1-phi(i)))*Z(i);
+ 281  eqDs(i)..       D(i)    =e= (theta(i)**phi(i)*xid(i)*(1+tauz(i))*pz(i)
+ 282                              /pd(i))**(1/(1-phi(i)))*Z(i);
+ 283   
+ 284  *[market clearing condition]
+ 285  eqpqd(i)..      Q(i)    =e= Xp(i) +Xg(i) +Xv(i) +sum(j, X(i,j));
+ 286  eqpf(h)..       FF(h)   =e= sum(j, F(h,j));
+ 287   
+ 288  *[fictitious objective function]
+ 289  obj..           UU      =e= prod(i, Xp(i)**alpha(i));
+ 290  * ---------------------------------------------------------------------
+ 291   
+ 292  * Initializing variables ----------------------------------------------
+ 293  Y.l(j)  =Y0(j);
+ 294  F.l(h,j)=F0(h,j);
+ 295  X.l(i,j)=X0(i,j);
+ 296  Z.l(j)  =Z0(j);
+ 297  Xp.l(i) =Xp0(i);
+ 298  Xg.l(i) =Xg0(i);
+ 299  Xv.l(i) =Xv0(i);
+ 300  E.l(i)  =E0(i);
+ 301  M.l(i)  =M0(i);
+ 302  Q.l(i)  =Q0(i);
+ 303  D.l(i)  =D0(i);
+ 304  pf.l(h) =1;
+ 305  py.l(j) =1;
+ 306  pz.l(j) =1;
+ 307  pq.l(i) =1;
+ 308  pe.l(i) =1;
+ 309  pm.l(i) =1;
+ 310  pd.l(i) =1;
+ 311  epsilon.l=1;
+ 312  Sp.l    =Sp0;
+ 313  Sg.l    =Sg0;
+ 314  Td.l    =Td0;
+ 315  Tz.l(j) =Tz0(j);
+ 316  Tm.l(i) =Tm0(i);
+ 317  RT.l(i) =0;
+ 318  chi.l(i)=0;
+ 319  * ---------------------------------------------------------------------
+ 320   
+ 321  * Setting lower bounds to avoid division by zero ----------------------
+ 322  Y.lo(j) =0.00001;
+ 323  F.lo(h,j)=0.00001;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 8
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+ 324  X.lo(i,j)=0.00001;
+ 325  Z.lo(j) =0.00001;
+ 326  Xp.lo(i)=0.00001;
+ 327  Xg.lo(i)=0.00001;
+ 328  Xv.lo(i)=0.00001;
+ 329  E.lo(i) =0.00001;
+ 330  M.lo(i) =0.00001;
+ 331  Q.lo(i) =0.00001;
+ 332  D.lo(i) =0.00001;
+ 333  pf.lo(h) =0.00001;
+ 334  py.lo(j)=0.00001;
+ 335  pz.lo(j)=0.00001;
+ 336  pq.lo(i)=0.00001;
+ 337  pe.lo(i)=0.00001;
+ 338  pm.lo(i)=0.00001;
+ 339  pd.lo(i)=0.00001;
+ 340  epsilon.lo=0.00001;
+ 341  Sp.lo   =0.00001;
+ 342  Sg.lo   =0.00001;
+ 343  Td.lo   =0.00001;
+ 344  Tz.lo(j)=0.0000;
+ 345  Tm.lo(i)=0.0000;
+ 346  * ---------------------------------------------------------------------
+ 347  * numeraire ---
+ 348  pf.fx("LAB")=1;
+ 349  * ---------------------------------------------------------------------
+ 350  * Defining and solving the model --------------------------------------
+ 351  Model quocge /all/;
+ 352  Solve quocge maximizing UU using nlp;
+ 353   
+ 354  * ---------------------------------------------------------------------
+ 355  * Simulation Runs: Imposition of Quotas on Bread Imports
+ 356  Mquota("BRD")=M0("BRD")*0.9;
+ 357  option bratio=1;
+ 358  Solve quocge maximizing UU using nlp;
+ 359  * ---------------------------------------------------------------------
+ 360  * Display of changes --------------------------------------------------
+ 361  Parameter
+ 362  dY(j),dF(h,j),dX(i,j),dZ(j),dXp(i),dXg(i),dXv(i),
+ 363  dE(i),dM(i),dQ(i),dD(i),dpf(h),dpy(j),dpz(i),dpq(i),
+ 364  dpe(i),dpm(i),dpd(i),depsilon,dTd,dTz(i),dTm(i),dSp,dSg;
+ 365   
+ 366  dY(j)  =(Y.l(j)  /Y0(j)  -1)*100;
+ 367  dF(h,j)=(F.l(h,j)/F0(h,j)-1)*100;
+ 368  dX(i,j)=(X.l(i,j)/X0(i,j)-1)*100;
+ 369  dZ(j)  =(Z.l(j)  /Z0(j)  -1)*100;
+ 370  dXp(i) =(Xp.l(i) /Xp0(i) -1)*100;
+ 371  dXg(i) =(Xg.l(i) /Xg0(i) -1)*100;
+ 372  dXv(i) =(Xv.l(i) /Xv0(i) -1)*100;
+ 373  dE(i)  =(E.l(i)  /E0(i)  -1)*100;
+ 374  dM(i)  =(M.l(i)  /M0(i)  -1)*100;
+ 375  dQ(i)  =(Q.l(i)  /Q0(i)  -1)*100;
+ 376  dD(i)  =(D.l(i)  /D0(i)  -1)*100;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:24 Page 9
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+C o m p i l a t i o n
+
+
+ 377  dpf(h) =(pf.l(h) /1 -1)*100;
+ 378  dpy(j) =(py.l(j) /1 -1)*100;
+ 379  dpz(j) =(pz.l(j) /1 -1)*100;
+ 380  dpq(i) =(pq.l(i) /1 -1)*100;
+ 381  dpe(i) =(pe.l(i) /1 -1)*100;
+ 382  dpm(i) =(pm.l(i) /1 -1)*100;
+ 383  dpd(i) =(pd.l(i) /1 -1)*100;
+ 384  depsilon=(epsilon.l/1 -1)*100;
+ 385  dTd    =(Td.l    /Td0    -1)*100;
+ 386  dTz(j) =(Tz.l(j) /Tz0(j) -1)*100;
+ 387  dTm(i) =(Tm.l(i) /Tm0(i) -1)*100;
+ 388  dSp    =(Sp.l    /Sp0    -1)*100;
+ 389  dSg    =(Sg.l    /Sg0    -1)*100;
+ 390   
+ 391  Display
+ 392  dY,dF,dX,dZ,dXp,dXg,dXv,dE,dM,dQ,dD,dpf,dpy,dpz,
+ 393  dpq,dpe,dpm,dpd,depsilon,dTd,dTz,dTm,dSp,dSg;
+ 394   
+ 395  * Welfare measure: Hicksian equivalent variations ---------------------
+ 396  Parameter       UU0             utility level in the Base Run Eq.
+ 397                  ep0             expenditure func. in the Base Run Eq.
+ 398                  ep1             expenditure func. in the C-f Eq.
+ 399                  EV              Hicksian equivalent variations
+ 400  ;
+ 401  UU0     =prod(i, Xp0(i)**alpha(i));
+ 402  ep0     =UU0 /prod(i, (alpha(i)/1)**alpha(i));
+ 403  ep1     =UU.l/prod(i, (alpha(i)/1)**alpha(i));
+ 404  EV      =ep1-ep0;
+ 405   
+ 406  Display EV;
+ 407  * ---------------------------------------------------------------------
+ 408  * end of model --------------------------------------------------------
+ 409  * ---------------------------------------------------------------------
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 10
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+----    104 PARAMETER Y0  composite factor
+
+BRD 35.000,    MLK 55.000
+
+
+----    104 PARAMETER F0  the h-th factor input by the j-th firm
+
+            BRD         MLK
+
+CAP      20.000      30.000
+LAB      15.000      25.000
+
+
+----    104 PARAMETER X0  intermediate input
+
+            BRD         MLK
+
+BRD      21.000       8.000
+MLK      17.000       9.000
+
+
+----    104 PARAMETER Z0  output of the j-th good
+
+BRD 73.000,    MLK 72.000
+
+
+----    104 PARAMETER Xp0  household consumption of the i-th good
+
+BRD 20.000,    MLK 30.000
+
+
+----    104 PARAMETER Xg0  government consumption
+
+BRD 19.000,    MLK 14.000
+
+
+----    104 PARAMETER Xv0  investment demand
+
+BRD 16.000,    MLK 15.000
+
+
+----    104 PARAMETER E0  exports
+
+BRD 8.000,    MLK 4.000
+
+
+----    104 PARAMETER M0  imports
+
+BRD 13.000,    MLK 11.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 11
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+----    104 PARAMETER Q0  Armington's composite good
+
+BRD 84.000,    MLK 85.000
+
+
+----    104 PARAMETER D0  domestic good
+
+BRD 70.000,    MLK 72.000
+
+
+----    104 PARAMETER Sp0                  =       17.000  private saving
+            PARAMETER Sg0                  =        2.000  government saving
+            PARAMETER Td0                  =       23.000  direct tax
+
+----    104 PARAMETER Tz0  production tax
+
+BRD 5.000,    MLK 4.000
+
+
+----    104 PARAMETER Tm0  import tariff
+
+BRD 1.000,    MLK 2.000
+
+
+----    104 PARAMETER FF  factor endowment of the h-th factor
+
+CAP 50.000,    LAB 40.000
+
+
+----    104 PARAMETER Sf                   =       12.000  foreign saving in US dollars
+
+----    104 PARAMETER tauz  production tax rate
+
+BRD 0.068,    MLK 0.056
+
+
+----    104 PARAMETER taum  import tariff rate
+
+BRD 0.077,    MLK 0.182
+
+
+----    160 PARAMETER alpha  share parameter in utility func.
+
+BRD 0.400,    MLK 0.600
+
+
+----    160 PARAMETER beta  share parameter in production func.
+
+            BRD         MLK
+
+CAP       0.571       0.545
+LAB       0.429       0.455
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 12
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+----    160 PARAMETER b  scale parameter in production func.
+
+BRD 1.980,    MLK 1.992
+
+
+----    160 PARAMETER ax  intermediate input requirement coeff.
+
+            BRD         MLK
+
+BRD       0.288       0.111
+MLK       0.233       0.125
+
+
+----    160 PARAMETER ay  composite fact. input req. coeff.
+
+BRD 0.479,    MLK 0.764
+
+
+----    160 PARAMETER mu  government consumption share
+
+BRD 0.576,    MLK 0.424
+
+
+----    160 PARAMETER lambda  investment demand share
+
+BRD 0.516,    MLK 0.484
+
+
+----    160 PARAMETER deltam  share parameter in Armington func.
+
+BRD 0.317,    MLK 0.316
+
+
+----    160 PARAMETER deltad  share parameter in Armington func.
+
+BRD 0.683,    MLK 0.684
+
+
+----    160 PARAMETER gamma  scale parameter in Armington func.
+
+BRD 1.786,    MLK 1.810
+
+
+----    160 PARAMETER xie  share parameter in transformation func.
+
+BRD 0.747,    MLK 0.809
+
+
+----    160 PARAMETER xid  share parameter in transformation func.
+
+BRD 0.253,    MLK 0.191
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 13
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+----    160 PARAMETER theta  scale parameter in transformation func.
+
+BRD 2.428,    MLK 2.911
+
+
+----    160 PARAMETER ssp                  =        0.189  average propensity for private saving
+            PARAMETER ssg                  =        0.057  average propensity for government saving
+            PARAMETER taud                 =        0.256  direct tax rate
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 14
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 352
+
+
+---- eqpy  =E=  composite factor aggregation func.
+
+eqpy(BRD)..  Y(BRD) - (1)*F(CAP,BRD) - (1)*F(LAB,BRD) =E= 0 ; (LHS = 0)
+     
+eqpy(MLK)..  Y(MLK) - (1)*F(CAP,MLK) - (1)*F(LAB,MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqX  =E=  intermediate demand function
+
+eqX(BRD,BRD)..  X(BRD,BRD) - 0.287671232876712*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,MLK)..  X(BRD,MLK) - 0.111111111111111*Z(MLK) =E= 0 ; (LHS = 0)
+     
+eqX(MLK,BRD)..  X(MLK,BRD) - 0.232876712328767*Z(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqY  =E=  composite factor demand function
+
+eqY(BRD)..  Y(BRD) - 0.479452054794521*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqY(MLK)..  Y(MLK) - 0.763888888888889*Z(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD)..  - (0.571428571428571)*Y(BRD) + F(CAP,BRD) + (20)*pf(CAP) - (20)*py(BRD) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK)..  - (0.545454545454545)*Y(MLK) + F(CAP,MLK) + (30)*pf(CAP) - (30)*py(MLK) =E= 0 ; (LHS = 0)
+     
+eqF(LAB,BRD)..  - (0.428571428571429)*Y(BRD) + F(LAB,BRD) + (15)*pf(LAB) - (15)*py(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpzs  =E=  unit cost function
+
+eqpzs(BRD)..  - 0.479452054794521*py(BRD) + pz(BRD) - 0.287671232876712*pq(BRD) - 0.232876712328767*pq(MLK) =E= 0 ; (LHS = 0)
+     
+eqpzs(MLK)..  - 0.763888888888889*py(MLK) + pz(MLK) - 0.111111111111111*pq(BRD) - 0.125*pq(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTd  =E=  direct tax revenue function
+
+eqTd..  - 12.7777777777778*pf(CAP) - 10.2222222222222*pf(LAB) + Td - 0.255555555555556*RT(BRD) - 0.255555555555556*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTz  =E=  production tax revenue function
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 15
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 352
+
+
+     eqTz  =E=  production tax revenue function
+
+eqTz(BRD)..  - (0.0684931506849315)*Z(BRD) - (5)*pz(BRD) + Tz(BRD) =E= 0 ; (LHS = 0)
+     
+eqTz(MLK)..  - (0.0555555555555556)*Z(MLK) - (4)*pz(MLK) + Tz(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTm  =E=  import tariff revenue function
+
+eqTm(BRD)..  - (0.0769230769230769)*M(BRD) - (1)*pm(BRD) + Tm(BRD) =E= 0 ; (LHS = 0)
+     
+eqTm(MLK)..  - (0.181818181818182)*M(MLK) - (2)*pm(MLK) + Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXg  =E=  government demand function
+
+eqXg(BRD)..  Xg(BRD) + (19)*pq(BRD) + (0.575757575757576)*Sg - (0.575757575757576)*Td - (0.575757575757576)*Tz(BRD) - (0.575757575757576)*Tz(MLK) - (0.575757575757576)*Tm(BRD) - (0.575757575757576)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+eqXg(MLK)..  Xg(MLK) + (14)*pq(MLK) + (0.424242424242424)*Sg - (0.424242424242424)*Td - (0.424242424242424)*Tz(BRD) - (0.424242424242424)*Tz(MLK) - (0.424242424242424)*Tm(BRD) - (0.424242424242424)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXv  =E=  investment demand function
+
+eqXv(BRD)..  Xv(BRD) + (16)*pq(BRD) - (6.19354838709677)*epsilon - (0.516129032258065)*Sp - (0.516129032258065)*Sg =E= 0 ; (LHS = 0)
+     
+eqXv(MLK)..  Xv(MLK) + (15)*pq(MLK) - (5.80645161290323)*epsilon - (0.483870967741935)*Sp - (0.483870967741935)*Sg =E= 0 ; (LHS = 0)
+     
+
+---- eqSp  =E=  private saving function
+
+eqSp..  - 9.44444444444444*pf(CAP) - 7.55555555555556*pf(LAB) + Sp - 0.188888888888889*RT(BRD) - 0.188888888888889*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqSg  =E=  government saving function
+
+eqSg..  Sg - 0.0571428571428571*Td - 0.0571428571428571*Tz(BRD) - 0.0571428571428571*Tz(MLK) - 0.0571428571428571*Tm(BRD) - 0.0571428571428571*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXp  =E=  household demand function
+
+eqXp(BRD)..  Xp(BRD) - (20)*pf(CAP) - (16)*pf(LAB) + (20)*pq(BRD) + (0.4)*Sp + (0.4)*Td - (0.4)*RT(BRD) - (0.4)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+eqXp(MLK)..  Xp(MLK) - (30)*pf(CAP) - (24)*pf(LAB) + (30)*pq(MLK) + (0.6)*Sp + (0.6)*Td - (0.6)*RT(BRD) - (0.6)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqRT  =E=  quasi-rent function
+
+eqRT(BRD)..  (0)*M(BRD) + (0)*pm(BRD) + RT(BRD) - (13)*chi(BRD) =E= 0 ; (LHS = 0)
+     
+eqRT(MLK)..  (0)*M(MLK) + (0)*pm(MLK) + RT(MLK) - (11)*chi(MLK) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 16
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 352
+
+
+---- eqpe  =E=  world export price equation
+
+eqpe(BRD)..  pe(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpe(MLK)..  pe(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqpm  =E=  world import price equation
+
+eqpm(BRD)..  pm(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpm(MLK)..  pm(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqepsilon  =E=  balance of payments
+
+eqepsilon..  E(BRD) + E(MLK) - M(BRD) - M(MLK) =E= -12 ; (LHS = -12)
+     
+
+---- eqpqs  =E=  Armington function
+
+eqpqs(BRD)..  - (1.07692307692308)*M(BRD) + Q(BRD) - (1)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqs(MLK)..  - (1.18181818181818)*M(MLK) + Q(MLK) - (1)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqM  =E=  import demand function
+
+eqM(BRD)..  M(BRD) - (0.154761904761905)*Q(BRD) - (26)*pq(BRD) + (26)*pm(BRD) + (24.1428571428571)*chi(BRD) =E= 0 ; (LHS = 0)
+     
+eqM(MLK)..  M(MLK) - (0.129411764705882)*Q(MLK) - (22)*pq(MLK) + (22)*pm(MLK) + (18.6153846153846)*chi(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqD  =E=  domestic good demand function
+
+eqD(BRD)..  - (0.833333333333333)*Q(BRD) + D(BRD) - (140)*pq(BRD) + (140)*pd(BRD) =E= 0 ; (LHS = 0)
+     
+eqD(MLK)..  - (0.847058823529412)*Q(MLK) + D(MLK) - (144)*pq(MLK) + (144)*pd(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqchi1  =E=  import quota complementarity condition
+
+eqchi1(BRD)..  (0)*M(BRD) + (1287)*chi(BRD) =E= 0 ; (LHS = 0)
+     
+eqchi1(MLK)..  (0)*M(MLK) + (1089)*chi(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqchi2  =G=  import quota complementarity condition
+
+eqchi2(BRD)..  - M(BRD) =G= -1300 ; (LHS = -13)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 17
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 352
+
+
+     eqchi2  =G=  import quota complementarity condition
+
+eqchi2(MLK)..  - M(MLK) =G= -1100 ; (LHS = -11)
+     
+
+---- eqpzd  =E=  transformation function
+
+eqpzd(BRD)..  Z(BRD) - (0.935897435897435)*E(BRD) - (0.935897435897436)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpzd(MLK)..  Z(MLK) - (0.947368421052632)*E(MLK) - (0.947368421052632)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqDs  =E=  domestic good supply function
+
+eqDs(BRD)..  - (0.958904109589043)*Z(BRD) + D(BRD) + (140)*pz(BRD) - (140)*pd(BRD) =E= 0 ; (LHS = -1.4210854715202E-13, INFES = 1.4210854715202E-13 ****)
+     
+eqDs(MLK)..  - (0.999999999999997)*Z(MLK) + D(MLK) + (144)*pz(MLK) - (144)*pd(MLK) =E= 0 ; (LHS = 1.98951966012828E-13, INFES = 1.98951966012828E-13 ****)
+     
+
+---- eqE  =E=  export supply function
+
+eqE(BRD)..  - (0.109589041095891)*Z(BRD) + E(BRD) + (16)*pz(BRD) - (16)*pe(BRD) =E= 0 ; (LHS = 0)
+     
+eqE(MLK)..  - (0.0555555555555554)*Z(MLK) + E(MLK) + (7.99999999999998)*pz(MLK) - (7.99999999999998)*pe(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpqd  =E=  market clearing cond. for comp. good
+
+eqpqd(BRD)..  - X(BRD,BRD) - X(BRD,MLK) - Xp(BRD) - Xg(BRD) - Xv(BRD) + Q(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqd(MLK)..  - X(MLK,BRD) - X(MLK,MLK) - Xp(MLK) - Xg(MLK) - Xv(MLK) + Q(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP)..  - F(CAP,BRD) - F(CAP,MLK) =E= -50 ; (LHS = -50)
+     
+eqpf(LAB)..  - F(LAB,BRD) - F(LAB,MLK) =E= -40 ; (LHS = -40)
+     
+
+---- obj  =E=  utility function [fictitious]
+
+obj..  - (0.510169800250316)*Xp(BRD) - (0.510169800250316)*Xp(MLK) + UU =E= 0 ; (LHS = -25.5084900125158, INFES = 25.5084900125158 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 18
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+---- Y  composite factor
+
+Y(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 35, +INF, 0)
+        1       eqpy(BRD)
+        1       eqY(BRD)
+      (-0.5714) eqF(CAP,BRD)
+      (-0.4286) eqF(LAB,BRD)
+
+Y(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 55, +INF, 0)
+        1       eqpy(MLK)
+        1       eqY(MLK)
+      (-0.5455) eqF(CAP,MLK)
+      (-0.4545) eqF(LAB,MLK)
+
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(CAP,BRD)
+       -1       eqpf(CAP)
+
+F(CAP,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+      (-1)      eqpy(MLK)
+        1       eqF(CAP,MLK)
+       -1       eqpf(CAP)
+
+F(LAB,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(LAB,BRD)
+       -1       eqpf(LAB)
+
+REMAINING ENTRY SKIPPED
+
+---- X  intermediate input
+
+X(BRD,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 21, +INF, 0)
+        1       eqX(BRD,BRD)
+       -1       eqpqd(BRD)
+
+X(BRD,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqX(BRD,MLK)
+       -1       eqpqd(BRD)
+
+X(MLK,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 19
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+     X  intermediate input
+
+        1       eqX(MLK,BRD)
+       -1       eqpqd(MLK)
+
+REMAINING ENTRY SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 73, +INF, 0)
+       -0.2877  eqX(BRD,BRD)
+       -0.2329  eqX(MLK,BRD)
+       -0.4795  eqY(BRD)
+      (-0.0685) eqTz(BRD)
+        1       eqpzd(BRD)
+      (-0.9589) eqDs(BRD)
+      (-0.1096) eqE(BRD)
+
+Z(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+       -0.1111  eqX(BRD,MLK)
+       -0.125   eqX(MLK,MLK)
+       -0.7639  eqY(MLK)
+      (-0.0556) eqTz(MLK)
+        1       eqpzd(MLK)
+      (-1)      eqDs(MLK)
+      (-0.0556) eqE(MLK)
+
+
+---- Xp  household consumption of the i-th good
+
+Xp(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXp(BRD)
+       -1       eqpqd(BRD)
+      (-0.5102) obj
+
+Xp(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(MLK)
+       -1       eqpqd(MLK)
+      (-0.5102) obj
+
+
+---- Xg  government consumption
+
+Xg(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 19, +INF, 0)
+        1       eqXg(BRD)
+       -1       eqpqd(BRD)
+
+Xg(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 20
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+     Xg  government consumption
+
+                (.LO, .L, .UP, .M = 1E-5, 14, +INF, 0)
+        1       eqXg(MLK)
+       -1       eqpqd(MLK)
+
+
+---- Xv  investment demand
+
+Xv(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 16, +INF, 0)
+        1       eqXv(BRD)
+       -1       eqpqd(BRD)
+
+Xv(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+        1       eqXv(MLK)
+       -1       eqpqd(MLK)
+
+
+---- E  exports
+
+E(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqepsilon
+      (-0.9359) eqpzd(BRD)
+        1       eqE(BRD)
+
+E(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 4, +INF, 0)
+        1       eqepsilon
+      (-0.9474) eqpzd(MLK)
+        1       eqE(MLK)
+
+
+---- M  imports
+
+M(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+      (-0.0769) eqTm(BRD)
+       (0)      eqRT(BRD)
+       -1       eqepsilon
+      (-1.0769) eqpqs(BRD)
+        1       eqM(BRD)
+       (0)      eqchi1(BRD)
+       -1       eqchi2(BRD)
+
+M(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 11, +INF, 0)
+      (-0.1818) eqTm(MLK)
+       (0)      eqRT(MLK)
+       -1       eqepsilon
+      (-1.1818) eqpqs(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 21
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+     M  imports
+
+        1       eqM(MLK)
+       (0)      eqchi1(MLK)
+       -1       eqchi2(MLK)
+
+
+---- Q  Armington's composite good
+
+Q(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 84, +INF, 0)
+        1       eqpqs(BRD)
+      (-0.1548) eqM(BRD)
+      (-0.8333) eqD(BRD)
+        1       eqpqd(BRD)
+
+Q(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 85, +INF, 0)
+        1       eqpqs(MLK)
+      (-0.1294) eqM(MLK)
+      (-0.8471) eqD(MLK)
+        1       eqpqd(MLK)
+
+
+---- D  domestic good
+
+D(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 70, +INF, 0)
+      (-1)      eqpqs(BRD)
+        1       eqD(BRD)
+      (-0.9359) eqpzd(BRD)
+        1       eqDs(BRD)
+
+D(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+      (-1)      eqpqs(MLK)
+        1       eqD(MLK)
+      (-0.9474) eqpzd(MLK)
+        1       eqDs(MLK)
+
+
+---- pf  the h-th factor price
+
+pf(CAP)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (20)      eqF(CAP,BRD)
+      (30)      eqF(CAP,MLK)
+      -12.7778  eqTd
+       -9.4444  eqSp
+     (-20)      eqXp(BRD)
+     (-30)      eqXp(MLK)
+
+pf(LAB)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 22
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+     pf  the h-th factor price
+
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (15)      eqF(LAB,BRD)
+      (25)      eqF(LAB,MLK)
+      -10.2222  eqTd
+       -7.5556  eqSp
+     (-16)      eqXp(BRD)
+     (-24)      eqXp(MLK)
+
+
+---- py  composite factor price
+
+py(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-20)      eqF(CAP,BRD)
+     (-15)      eqF(LAB,BRD)
+       -0.4795  eqpzs(BRD)
+
+py(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-30)      eqF(CAP,MLK)
+     (-25)      eqF(LAB,MLK)
+       -0.7639  eqpzs(MLK)
+
+
+---- pz  supply price of the i-th good
+
+pz(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD)
+      (-5)      eqTz(BRD)
+     (140)      eqDs(BRD)
+      (16)      eqE(BRD)
+
+pz(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(MLK)
+      (-4)      eqTz(MLK)
+     (144)      eqDs(MLK)
+       (8)      eqE(MLK)
+
+
+---- pq  Armington's composite good price
+
+pq(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2877  eqpzs(BRD)
+       -0.1111  eqpzs(MLK)
+      (19)      eqXg(BRD)
+      (16)      eqXv(BRD)
+      (20)      eqXp(BRD)
+     (-26)      eqM(BRD)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 23
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+     pq  Armington's composite good price
+
+    (-140)      eqD(BRD)
+
+pq(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2329  eqpzs(BRD)
+       -0.125   eqpzs(MLK)
+      (14)      eqXg(MLK)
+      (15)      eqXv(MLK)
+      (30)      eqXp(MLK)
+     (-22)      eqM(MLK)
+    (-144)      eqD(MLK)
+
+
+---- pe  export price in local currency
+
+pe(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD)
+     (-16)      eqE(BRD)
+
+pe(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(MLK)
+      (-8)      eqE(MLK)
+
+
+---- pm  import price in local currency
+
+pm(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqTm(BRD)
+       (0)      eqRT(BRD)
+        1       eqpm(BRD)
+      (26)      eqM(BRD)
+
+pm(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-2)      eqTm(MLK)
+       (0)      eqRT(MLK)
+        1       eqpm(MLK)
+      (22)      eqM(MLK)
+
+
+---- pd  the i-th domestic good price
+
+pd(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (140)      eqD(BRD)
+    (-140)      eqDs(BRD)
+
+pd(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 24
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+     pd  the i-th domestic good price
+
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (144)      eqD(MLK)
+    (-144)      eqDs(MLK)
+
+
+---- epsilon  exchange rate
+
+epsilon
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.1935) eqXv(BRD)
+      (-5.8065) eqXv(MLK)
+       -1       eqpe(BRD)
+       -1       eqpe(MLK)
+       -1       eqpm(BRD)
+       -1       eqpm(MLK)
+
+
+---- Sp  private saving
+
+Sp
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSp
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+
+---- Sg  government saving
+
+Sg
+                (.LO, .L, .UP, .M = 1E-5, 2, +INF, 0)
+       (0.5758) eqXg(BRD)
+       (0.4242) eqXg(MLK)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSg
+
+
+---- Td  direct tax
+
+Td
+                (.LO, .L, .UP, .M = 1E-5, 23, +INF, 0)
+        1       eqTd
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 25
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+---- Tz  production tax
+
+Tz(BRD)
+                (.LO, .L, .UP, .M = 0, 5, +INF, 0)
+        1       eqTz(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+Tz(MLK)
+                (.LO, .L, .UP, .M = 0, 4, +INF, 0)
+        1       eqTz(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- Tm  import tariff
+
+Tm(BRD)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+Tm(MLK)
+                (.LO, .L, .UP, .M = 0, 2, +INF, 0)
+        1       eqTm(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- RT  rent accruing from import quotas
+
+RT(BRD)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(BRD)
+
+RT(MLK)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 26
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 352
+
+
+---- UU  utility [fictitious]
+
+UU
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- chi  marginal quasi-rent
+
+chi(BRD)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     (-13)      eqRT(BRD)
+      (24.1429) eqM(BRD)
+    (1287)      eqchi1(BRD)
+
+chi(MLK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     (-11)      eqRT(MLK)
+      (18.6154) eqM(MLK)
+    (1089)      eqchi1(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 27
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Model Statistics    SOLVE quocge Using NLP From line 352
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          28     SINGLE EQUATIONS           55
+BLOCKS OF VARIABLES          27     SINGLE VARIABLES           53
+NON ZERO ELEMENTS           203     NON LINEAR N-Z            106
+DERIVATIVE POOL              20     CONSTANT POOL              69
+CODE LENGTH                 343
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 28
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Solution Report     SOLVE quocge Using NLP From line 352
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   quocge              OBJECTIVE  UU
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  352
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+>>  gams quocge-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+Gams      : quocge-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 29
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 358
+
+
+---- eqpy  =E=  composite factor aggregation func.
+
+eqpy(BRD)..  Y(BRD) - (1)*F(CAP,BRD) - (1)*F(LAB,BRD) =E= 0 ; (LHS = 0)
+     
+eqpy(MLK)..  Y(MLK) - (1)*F(CAP,MLK) - (1)*F(LAB,MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqX  =E=  intermediate demand function
+
+eqX(BRD,BRD)..  X(BRD,BRD) - 0.287671232876712*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqX(BRD,MLK)..  X(BRD,MLK) - 0.111111111111111*Z(MLK) =E= 0 ; (LHS = 0)
+     
+eqX(MLK,BRD)..  X(MLK,BRD) - 0.232876712328767*Z(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqY  =E=  composite factor demand function
+
+eqY(BRD)..  Y(BRD) - 0.479452054794521*Z(BRD) =E= 0 ; (LHS = 0)
+     
+eqY(MLK)..  Y(MLK) - 0.763888888888889*Z(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqF  =E=  factor demand function
+
+eqF(CAP,BRD)..  - (0.571428571428571)*Y(BRD) + F(CAP,BRD) + (20)*pf(CAP) - (20)*py(BRD) =E= 0 ; (LHS = 0)
+     
+eqF(CAP,MLK)..  - (0.545454545454545)*Y(MLK) + F(CAP,MLK) + (30)*pf(CAP) - (30)*py(MLK) =E= 0 ; (LHS = 0)
+     
+eqF(LAB,BRD)..  - (0.428571428571429)*Y(BRD) + F(LAB,BRD) + (15)*pf(LAB) - (15)*py(BRD) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- eqpzs  =E=  unit cost function
+
+eqpzs(BRD)..  - 0.479452054794521*py(BRD) + pz(BRD) - 0.287671232876712*pq(BRD) - 0.232876712328767*pq(MLK) =E= 0 ; (LHS = 0)
+     
+eqpzs(MLK)..  - 0.763888888888889*py(MLK) + pz(MLK) - 0.111111111111111*pq(BRD) - 0.125*pq(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTd  =E=  direct tax revenue function
+
+eqTd..  - 12.7777777777778*pf(CAP) - 10.2222222222222*pf(LAB) + Td - 0.255555555555556*RT(BRD) - 0.255555555555556*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTz  =E=  production tax revenue function
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 30
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 358
+
+
+     eqTz  =E=  production tax revenue function
+
+eqTz(BRD)..  - (0.0684931506849315)*Z(BRD) - (5)*pz(BRD) + Tz(BRD) =E= 0 ; (LHS = 0)
+     
+eqTz(MLK)..  - (0.0555555555555556)*Z(MLK) - (4)*pz(MLK) + Tz(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqTm  =E=  import tariff revenue function
+
+eqTm(BRD)..  - (0.0769230769230769)*M(BRD) - (1)*pm(BRD) + Tm(BRD) =E= 0 ; (LHS = 0)
+     
+eqTm(MLK)..  - (0.181818181818182)*M(MLK) - (2)*pm(MLK) + Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXg  =E=  government demand function
+
+eqXg(BRD)..  Xg(BRD) + (19)*pq(BRD) + (0.575757575757576)*Sg - (0.575757575757576)*Td - (0.575757575757576)*Tz(BRD) - (0.575757575757576)*Tz(MLK) - (0.575757575757576)*Tm(BRD) - (0.575757575757576)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+eqXg(MLK)..  Xg(MLK) + (14)*pq(MLK) + (0.424242424242424)*Sg - (0.424242424242424)*Td - (0.424242424242424)*Tz(BRD) - (0.424242424242424)*Tz(MLK) - (0.424242424242424)*Tm(BRD) - (0.424242424242424)*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXv  =E=  investment demand function
+
+eqXv(BRD)..  Xv(BRD) + (16)*pq(BRD) - (6.19354838709677)*epsilon - (0.516129032258065)*Sp - (0.516129032258065)*Sg =E= 0 ; (LHS = 0)
+     
+eqXv(MLK)..  Xv(MLK) + (15)*pq(MLK) - (5.80645161290323)*epsilon - (0.483870967741935)*Sp - (0.483870967741935)*Sg =E= 0 ; (LHS = 0)
+     
+
+---- eqSp  =E=  private saving function
+
+eqSp..  - 9.44444444444444*pf(CAP) - 7.55555555555556*pf(LAB) + Sp - 0.188888888888889*RT(BRD) - 0.188888888888889*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqSg  =E=  government saving function
+
+eqSg..  Sg - 0.0571428571428571*Td - 0.0571428571428571*Tz(BRD) - 0.0571428571428571*Tz(MLK) - 0.0571428571428571*Tm(BRD) - 0.0571428571428571*Tm(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqXp  =E=  household demand function
+
+eqXp(BRD)..  Xp(BRD) - (20)*pf(CAP) - (16)*pf(LAB) + (20)*pq(BRD) + (0.4)*Sp + (0.4)*Td - (0.4)*RT(BRD) - (0.4)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+eqXp(MLK)..  Xp(MLK) - (30)*pf(CAP) - (24)*pf(LAB) + (30)*pq(MLK) + (0.6)*Sp + (0.6)*Td - (0.6)*RT(BRD) - (0.6)*RT(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqRT  =E=  quasi-rent function
+
+eqRT(BRD)..  (0)*M(BRD) + (0)*pm(BRD) + RT(BRD) - (13)*chi(BRD) =E= 0 ; (LHS = 0)
+     
+eqRT(MLK)..  (0)*M(MLK) + (0)*pm(MLK) + RT(MLK) - (11)*chi(MLK) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 31
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 358
+
+
+---- eqpe  =E=  world export price equation
+
+eqpe(BRD)..  pe(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpe(MLK)..  pe(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqpm  =E=  world import price equation
+
+eqpm(BRD)..  pm(BRD) - epsilon =E= 0 ; (LHS = 0)
+     
+eqpm(MLK)..  pm(MLK) - epsilon =E= 0 ; (LHS = 0)
+     
+
+---- eqepsilon  =E=  balance of payments
+
+eqepsilon..  E(BRD) + E(MLK) - M(BRD) - M(MLK) =E= -12 ; (LHS = -12)
+     
+
+---- eqpqs  =E=  Armington function
+
+eqpqs(BRD)..  - (1.07692307692308)*M(BRD) + Q(BRD) - (1)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqs(MLK)..  - (1.18181818181818)*M(MLK) + Q(MLK) - (1)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqM  =E=  import demand function
+
+eqM(BRD)..  M(BRD) - (0.154761904761905)*Q(BRD) - (26)*pq(BRD) + (26)*pm(BRD) + (24.1428571428571)*chi(BRD) =E= 0 ; (LHS = 0)
+     
+eqM(MLK)..  M(MLK) - (0.129411764705882)*Q(MLK) - (22)*pq(MLK) + (22)*pm(MLK) + (18.6153846153846)*chi(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqD  =E=  domestic good demand function
+
+eqD(BRD)..  - (0.833333333333333)*Q(BRD) + D(BRD) - (140)*pq(BRD) + (140)*pd(BRD) =E= 0 ; (LHS = 0)
+     
+eqD(MLK)..  - (0.847058823529412)*Q(MLK) + D(MLK) - (144)*pq(MLK) + (144)*pd(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqchi1  =E=  import quota complementarity condition
+
+eqchi1(BRD)..  (0)*M(BRD) - (1.3)*chi(BRD) =E= 0 ; (LHS = 0)
+     
+eqchi1(MLK)..  (0)*M(MLK) + (1089)*chi(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqchi2  =G=  import quota complementarity condition
+
+eqchi2(BRD)..  - M(BRD) =G= -11.7 ; (LHS = -13, INFES = 1.3 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 32
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Equation Listing    SOLVE quocge Using NLP From line 358
+
+
+     eqchi2  =G=  import quota complementarity condition
+
+eqchi2(MLK)..  - M(MLK) =G= -1100 ; (LHS = -11)
+     
+
+---- eqpzd  =E=  transformation function
+
+eqpzd(BRD)..  Z(BRD) - (0.935897435897435)*E(BRD) - (0.935897435897436)*D(BRD) =E= 0 ; (LHS = 0)
+     
+eqpzd(MLK)..  Z(MLK) - (0.947368421052632)*E(MLK) - (0.947368421052632)*D(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqDs  =E=  domestic good supply function
+
+eqDs(BRD)..  - (0.958904109589043)*Z(BRD) + D(BRD) + (140)*pz(BRD) - (140)*pd(BRD) =E= 0 ; (LHS = -1.4210854715202E-13, INFES = 1.4210854715202E-13 ****)
+     
+eqDs(MLK)..  - (0.999999999999997)*Z(MLK) + D(MLK) + (144)*pz(MLK) - (144)*pd(MLK) =E= 0 ; (LHS = 1.98951966012828E-13, INFES = 1.98951966012828E-13 ****)
+     
+
+---- eqE  =E=  export supply function
+
+eqE(BRD)..  - (0.109589041095891)*Z(BRD) + E(BRD) + (16)*pz(BRD) - (16)*pe(BRD) =E= 0 ; (LHS = 0)
+     
+eqE(MLK)..  - (0.0555555555555554)*Z(MLK) + E(MLK) + (7.99999999999998)*pz(MLK) - (7.99999999999998)*pe(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpqd  =E=  market clearing cond. for comp. good
+
+eqpqd(BRD)..  - X(BRD,BRD) - X(BRD,MLK) - Xp(BRD) - Xg(BRD) - Xv(BRD) + Q(BRD) =E= 0 ; (LHS = 0)
+     
+eqpqd(MLK)..  - X(MLK,BRD) - X(MLK,MLK) - Xp(MLK) - Xg(MLK) - Xv(MLK) + Q(MLK) =E= 0 ; (LHS = 0)
+     
+
+---- eqpf  =E=  factor market clearing condition
+
+eqpf(CAP)..  - F(CAP,BRD) - F(CAP,MLK) =E= -50 ; (LHS = -50)
+     
+eqpf(LAB)..  - F(LAB,BRD) - F(LAB,MLK) =E= -40 ; (LHS = -40)
+     
+
+---- obj  =E=  utility function [fictitious]
+
+obj..  - (0.510169800250316)*Xp(BRD) - (0.510169800250316)*Xp(MLK) + UU =E= 0 ; (LHS = -25.5084900125158, INFES = 25.5084900125158 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 33
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+---- Y  composite factor
+
+Y(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 35, +INF, 0)
+        1       eqpy(BRD)
+        1       eqY(BRD)
+      (-0.5714) eqF(CAP,BRD)
+      (-0.4286) eqF(LAB,BRD)
+
+Y(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 55, +INF, 0)
+        1       eqpy(MLK)
+        1       eqY(MLK)
+      (-0.5455) eqF(CAP,MLK)
+      (-0.4545) eqF(LAB,MLK)
+
+
+---- F  the h-th factor input by the j-th firm
+
+F(CAP,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(CAP,BRD)
+       -1       eqpf(CAP)
+
+F(CAP,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+      (-1)      eqpy(MLK)
+        1       eqF(CAP,MLK)
+       -1       eqpf(CAP)
+
+F(LAB,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+      (-1)      eqpy(BRD)
+        1       eqF(LAB,BRD)
+       -1       eqpf(LAB)
+
+REMAINING ENTRY SKIPPED
+
+---- X  intermediate input
+
+X(BRD,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 21, +INF, 0)
+        1       eqX(BRD,BRD)
+       -1       eqpqd(BRD)
+
+X(BRD,MLK)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqX(BRD,MLK)
+       -1       eqpqd(BRD)
+
+X(MLK,BRD)
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 34
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+     X  intermediate input
+
+        1       eqX(MLK,BRD)
+       -1       eqpqd(MLK)
+
+REMAINING ENTRY SKIPPED
+
+---- Z  output of the j-th good
+
+Z(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 73, +INF, 0)
+       -0.2877  eqX(BRD,BRD)
+       -0.2329  eqX(MLK,BRD)
+       -0.4795  eqY(BRD)
+      (-0.0685) eqTz(BRD)
+        1       eqpzd(BRD)
+      (-0.9589) eqDs(BRD)
+      (-0.1096) eqE(BRD)
+
+Z(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+       -0.1111  eqX(BRD,MLK)
+       -0.125   eqX(MLK,MLK)
+       -0.7639  eqY(MLK)
+      (-0.0556) eqTz(MLK)
+        1       eqpzd(MLK)
+      (-1)      eqDs(MLK)
+      (-0.0556) eqE(MLK)
+
+
+---- Xp  household consumption of the i-th good
+
+Xp(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 20, +INF, 0)
+        1       eqXp(BRD)
+       -1       eqpqd(BRD)
+      (-0.5102) obj
+
+Xp(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 30, +INF, 0)
+        1       eqXp(MLK)
+       -1       eqpqd(MLK)
+      (-0.5102) obj
+
+
+---- Xg  government consumption
+
+Xg(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 19, +INF, 0)
+        1       eqXg(BRD)
+       -1       eqpqd(BRD)
+
+Xg(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 35
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+     Xg  government consumption
+
+                (.LO, .L, .UP, .M = 1E-5, 14, +INF, 0)
+        1       eqXg(MLK)
+       -1       eqpqd(MLK)
+
+
+---- Xv  investment demand
+
+Xv(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 16, +INF, 0)
+        1       eqXv(BRD)
+       -1       eqpqd(BRD)
+
+Xv(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 15, +INF, 0)
+        1       eqXv(MLK)
+       -1       eqpqd(MLK)
+
+
+---- E  exports
+
+E(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 8, +INF, 0)
+        1       eqepsilon
+      (-0.9359) eqpzd(BRD)
+        1       eqE(BRD)
+
+E(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 4, +INF, 0)
+        1       eqepsilon
+      (-0.9474) eqpzd(MLK)
+        1       eqE(MLK)
+
+
+---- M  imports
+
+M(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 13, +INF, 0)
+      (-0.0769) eqTm(BRD)
+       (0)      eqRT(BRD)
+       -1       eqepsilon
+      (-1.0769) eqpqs(BRD)
+        1       eqM(BRD)
+       (0)      eqchi1(BRD)
+       -1       eqchi2(BRD)
+
+M(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 11, +INF, 0)
+      (-0.1818) eqTm(MLK)
+       (0)      eqRT(MLK)
+       -1       eqepsilon
+      (-1.1818) eqpqs(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 36
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+     M  imports
+
+        1       eqM(MLK)
+       (0)      eqchi1(MLK)
+       -1       eqchi2(MLK)
+
+
+---- Q  Armington's composite good
+
+Q(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 84, +INF, 0)
+        1       eqpqs(BRD)
+      (-0.1548) eqM(BRD)
+      (-0.8333) eqD(BRD)
+        1       eqpqd(BRD)
+
+Q(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 85, +INF, 0)
+        1       eqpqs(MLK)
+      (-0.1294) eqM(MLK)
+      (-0.8471) eqD(MLK)
+        1       eqpqd(MLK)
+
+
+---- D  domestic good
+
+D(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 70, +INF, 0)
+      (-1)      eqpqs(BRD)
+        1       eqD(BRD)
+      (-0.9359) eqpzd(BRD)
+        1       eqDs(BRD)
+
+D(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 72, +INF, 0)
+      (-1)      eqpqs(MLK)
+        1       eqD(MLK)
+      (-0.9474) eqpzd(MLK)
+        1       eqDs(MLK)
+
+
+---- pf  the h-th factor price
+
+pf(CAP)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (20)      eqF(CAP,BRD)
+      (30)      eqF(CAP,MLK)
+      -12.7778  eqTd
+       -9.4444  eqSp
+     (-20)      eqXp(BRD)
+     (-30)      eqXp(MLK)
+
+pf(LAB)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 37
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+     pf  the h-th factor price
+
+                (.LO, .L, .UP, .M = 1, 1, 1, 0)
+      (15)      eqF(LAB,BRD)
+      (25)      eqF(LAB,MLK)
+      -10.2222  eqTd
+       -7.5556  eqSp
+     (-16)      eqXp(BRD)
+     (-24)      eqXp(MLK)
+
+
+---- py  composite factor price
+
+py(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-20)      eqF(CAP,BRD)
+     (-15)      eqF(LAB,BRD)
+       -0.4795  eqpzs(BRD)
+
+py(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (-30)      eqF(CAP,MLK)
+     (-25)      eqF(LAB,MLK)
+       -0.7639  eqpzs(MLK)
+
+
+---- pz  supply price of the i-th good
+
+pz(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(BRD)
+      (-5)      eqTz(BRD)
+     (140)      eqDs(BRD)
+      (16)      eqE(BRD)
+
+pz(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpzs(MLK)
+      (-4)      eqTz(MLK)
+     (144)      eqDs(MLK)
+       (8)      eqE(MLK)
+
+
+---- pq  Armington's composite good price
+
+pq(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2877  eqpzs(BRD)
+       -0.1111  eqpzs(MLK)
+      (19)      eqXg(BRD)
+      (16)      eqXv(BRD)
+      (20)      eqXp(BRD)
+     (-26)      eqM(BRD)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 38
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+     pq  Armington's composite good price
+
+    (-140)      eqD(BRD)
+
+pq(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+       -0.2329  eqpzs(BRD)
+       -0.125   eqpzs(MLK)
+      (14)      eqXg(MLK)
+      (15)      eqXv(MLK)
+      (30)      eqXp(MLK)
+     (-22)      eqM(MLK)
+    (-144)      eqD(MLK)
+
+
+---- pe  export price in local currency
+
+pe(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(BRD)
+     (-16)      eqE(BRD)
+
+pe(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+        1       eqpe(MLK)
+      (-8)      eqE(MLK)
+
+
+---- pm  import price in local currency
+
+pm(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-1)      eqTm(BRD)
+       (0)      eqRT(BRD)
+        1       eqpm(BRD)
+      (26)      eqM(BRD)
+
+pm(MLK)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-2)      eqTm(MLK)
+       (0)      eqRT(MLK)
+        1       eqpm(MLK)
+      (22)      eqM(MLK)
+
+
+---- pd  the i-th domestic good price
+
+pd(BRD)
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (140)      eqD(BRD)
+    (-140)      eqDs(BRD)
+
+pd(MLK)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 39
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+     pd  the i-th domestic good price
+
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+     (144)      eqD(MLK)
+    (-144)      eqDs(MLK)
+
+
+---- epsilon  exchange rate
+
+epsilon
+                (.LO, .L, .UP, .M = 1E-5, 1, +INF, 0)
+      (-6.1935) eqXv(BRD)
+      (-5.8065) eqXv(MLK)
+       -1       eqpe(BRD)
+       -1       eqpe(MLK)
+       -1       eqpm(BRD)
+       -1       eqpm(MLK)
+
+
+---- Sp  private saving
+
+Sp
+                (.LO, .L, .UP, .M = 1E-5, 17, +INF, 0)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSp
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+
+---- Sg  government saving
+
+Sg
+                (.LO, .L, .UP, .M = 1E-5, 2, +INF, 0)
+       (0.5758) eqXg(BRD)
+       (0.4242) eqXg(MLK)
+      (-0.5161) eqXv(BRD)
+      (-0.4839) eqXv(MLK)
+        1       eqSg
+
+
+---- Td  direct tax
+
+Td
+                (.LO, .L, .UP, .M = 1E-5, 23, +INF, 0)
+        1       eqTd
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+       (0.4)    eqXp(BRD)
+       (0.6)    eqXp(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 40
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+---- Tz  production tax
+
+Tz(BRD)
+                (.LO, .L, .UP, .M = 0, 5, +INF, 0)
+        1       eqTz(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+Tz(MLK)
+                (.LO, .L, .UP, .M = 0, 4, +INF, 0)
+        1       eqTz(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- Tm  import tariff
+
+Tm(BRD)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+        1       eqTm(BRD)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+Tm(MLK)
+                (.LO, .L, .UP, .M = 0, 2, +INF, 0)
+        1       eqTm(MLK)
+      (-0.5758) eqXg(BRD)
+      (-0.4242) eqXg(MLK)
+       -0.0571  eqSg
+
+
+---- RT  rent accruing from import quotas
+
+RT(BRD)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(BRD)
+
+RT(MLK)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.2556  eqTd
+       -0.1889  eqSp
+      (-0.4)    eqXp(BRD)
+      (-0.6)    eqXp(MLK)
+        1       eqRT(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 41
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Column Listing      SOLVE quocge Using NLP From line 358
+
+
+---- UU  utility [fictitious]
+
+UU
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- chi  marginal quasi-rent
+
+chi(BRD)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     (-13)      eqRT(BRD)
+      (24.1429) eqM(BRD)
+      (-1.3)    eqchi1(BRD)
+
+chi(MLK)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+     (-11)      eqRT(MLK)
+      (18.6154) eqM(MLK)
+    (1089)      eqchi1(MLK)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 42
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Model Statistics    SOLVE quocge Using NLP From line 358
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          28     SINGLE EQUATIONS           55
+BLOCKS OF VARIABLES          27     SINGLE VARIABLES           53
+NON ZERO ELEMENTS           203     NON LINEAR N-Z            106
+DERIVATIVE POOL              20     CONSTANT POOL              69
+CODE LENGTH                 343
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 43
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+Solution Report     SOLVE quocge Using NLP From line 358
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   quocge              OBJECTIVE  UU
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  358
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+>>  gams quocge-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/quocge/convert.opt"
+Gams      : quocge-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 44
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+----    392 PARAMETER dY  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dF  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dX  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dZ  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dXp  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dXg  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dXv  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dE  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dM  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dQ  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dD  
+
+                      ( ALL       0.000 )
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 45
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+----    392 PARAMETER dpf  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dpy  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dpz  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dpq  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dpe  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dpm  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dpd  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER depsilon             =        0.000  
+            PARAMETER dTd                  =        0.000  
+
+----    392 PARAMETER dTz  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dTm  
+
+                      ( ALL       0.000 )
+
+
+----    392 PARAMETER dSp                  =        0.000  
+            PARAMETER dSg                  =        0.000  
+
+----    406 PARAMETER EV                   =      -50.000  Hicksian equivalent variations
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:23:24 Page 46
+A CGE Model with Quotas in Ch. 10.5 (QUOCGE,SEQ=280)
+E x e c u t i o n
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/quocge/quocge.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/quocge/quocge-scalar.gms.lst

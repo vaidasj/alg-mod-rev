@@ -1,0 +1,872 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 2
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+C o m p i l a t i o n
+
+
+   4   
+       
+      Maximize the final horizontal position of a thermal updraft.
+       
+      This model is from the COPS benchmarking suite.
+      See http://www-unix.mcs.anl.gov/~more/cops/.
+       
+      The number of discretization points can be specified using the GAMS
+      user1 parameter. COPS performance tests have been reported for nh =
+      50, 100, 200, 400
+       
+       
+      Dolan, E D, and More, J J, Benchmarking Optimization
+      Software with COPS. Tech. rep., Mathematics and Computer
+      Science Division, 2000.
+       
+      Bulirsch, R, Nerz, E, Pesch, H J, and von Stryk, O,
+      Combining Direct and Indirect Methods in Nonlinear Optimal
+      Control: Range Maximization of a Hang Glider. In Bulirsch,
+      R, Miele, A, Stoer, J, and Well, K H, Eds, Optimal Control.
+      Birkhauser Verlag, 1993, pp. 273-288.
+       
+  28   
+  29   
+  32   
+  33   
+  34  sets
+  35     c coordinates / x  distance
+  36                     y  altitude /
+  37     h intervals / h0 * h50/ ;
+  38   
+  39  scalars
+  40     nh  Number of intervals in mesh / 50 /
+  41     cL_min bound on control variable / 0.0 /
+  42     cL_max bound on control variable / 1.4 /
+  43     u_c  / 2.5 /
+  44     r_0  / 100 /
+  45     m    / 100 /
+  46     g    / 9.81 /
+  47     c0   / 0.034 /
+  48     c1   / 0.069662 /
+  49     S    / 14 /
+  50     rho  / 1.13 / ;
+  51   
+  52  parameters
+  53     c_0(c) initial position / x 0, y 1000/
+  54     v_0(c) initial velocity / x 13.23, y -1.288/
+  55     c_f(c) final position / y 900/
+  56     v_f(c) final velocity / x 13.23, y -1.288/
+  57   
+  58  ;
+  59   
+  60   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 3
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+C o m p i l a t i o n
+
+
+  61  variables
+  62     t_f
+  63     pos(c,h)  position x distance  y altitude
+  64     vel(c,h)  velocity x distance  y altitude
+  65     cl(h)   control variables
+  66     r(h)    the r function
+  67     u(h)    the u function
+  68     w(h)    the w function
+  69     v(h)    the v function
+  70     D(h)    the D function
+  71     L(h)    the L function
+  72     v_dot(c,h)
+  73     final_x
+  74     step   step size
+  75   
+  76  positive variables
+  77     step;
+  78   
+  79  equations
+  80     tf_eqn
+  81     rdef(h)
+  82     udef(h)
+  83     wdef(h)
+  84     vdef(h)
+  85     Ddef(h)
+  86     Ldef(h)
+  87     vx_dot_def(h)
+  88     vy_dot_def(h)
+  89     obj
+  90     pos_eqn(c,h)
+  91     vel_eqn(c,h);
+  92   
+  93  alias(h,i);
+  94   
+  95  tf_eqn.. t_f =e= step*nh;
+  96   
+  97  rdef(i).. r[i] =e= sqr(pos['x',i]/r_0 - 2.5);
+  98  udef(i).. u[i] =e= u_c*(1-r[i])*exp(-r[i]);
+  99   
+ 100  wdef(i).. w[i] =e=          vel['y',i]  -     u[i];
+ 101  vdef(i).. v[i] =e= sqrt(sqr(vel['x',i]) + sqr(w[i]));
+ 102   
+ 103  Ddef(i).. D[i] =e= .5*(c0+c1*sqr(cL[i]))*rho*S*sqr(v[i]);
+ 104  Ldef(i).. L[i] =e= .5*           cL[i]  *rho*S*sqr(v[i]);
+ 105   
+ 106  vx_dot_def(i).. v_dot['x',i] =e= (-L[i]*w[i]/v[i] - D[i]*vel['x',i]/v[i])/m;
+ 107  vy_dot_def(i).. v_dot['y',i] =e= ( L[i]*vel['x',i]/v[i] - D[i]*w[i]/v[i])/m - g;
+ 108   
+ 109   
+ 110  obj.. final_x =e= pos('x','h50');
+ 111   
+ 112   
+ 113  pos_eqn(c,i-1).. pos[c,i] =e= pos[c,i-1] + .5*step*(vel[c,i]   + vel[c,i-1]);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 4
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+C o m p i l a t i o n
+
+
+ 114   
+ 115  vel_eqn(c,i-1).. vel[c,i] =e= vel[c,i-1] + .5*step*(v_dot[c,i] + v_dot[c,i-1]);
+ 116   
+ 117  cl.lo(h) = cL_min; cl.up(h) = cL_max;
+ 118  pos.lo('x',h) = 0;
+ 119  vel.lo('x',h) = 0;
+ 120  v.lo(h) = 0.01;
+ 121   
+ 122  * Boundary Conditions
+ 123   
+ 124  pos.fx(c,'h0') = c_0(c);
+ 125  pos.fx('y','h50') = c_f('y');
+ 126  vel.fx(c,'h0') = v_0(c);
+ 127  vel.fx(c,'h50') = v_f(c);
+ 128   
+ 129  * initial point
+ 130  pos.l('x',h) = c_0('x') + v_0('x')*((ord(h)-1)/nh);
+ 131  pos.l('y',h) = c_0('y') + ((ord(h)-1)/nh)*(c_f('y') - c_0('y'));
+ 132  vel.l(c,h) = v_0(c);
+ 133  cL.l(h) = cL_max/2;
+ 134   
+ 135  step.l = 1.0/nh;
+ 136   
+ 137  * Initial values for intermediate variables
+ 138  t_f.l  = step.l*nh;
+ 139  r.l[i] = sqr(pos.l['x',i]/r_0 - 2.5);
+ 140  u.l[i] = u_c*(1-r.l[i])*exp(-r.l[i]);
+ 141  w.l[i] =        vel.l['y',i]  -     u.l[i];
+ 142  v.l[i] = sqrt(sqr(vel.l['x',i]) + sqr(w.l[i]));
+ 143  D.l[i] = .5*(c0+c1*sqr(cL.l[i]))*rho*S*sqr(v.l[i]);
+ 144  L.l[i] = .5*           cL.l[i]  *rho*S*sqr(v.l[i]);
+ 145  v_dot.l['x',i] = (-L.l[i]*w.l[i]/v.l[i] - D.l[i]*vel.l['x',i]/v.l[i])/m;
+ 146  v_dot.l['y',i] = ( L.l[i]*vel.l['x',i]/v.l[i] - D.l[i]*w.l[i]/v.l[i])/m - g;
+ 147   
+ 148  model glider /all/;
+ 149   
+ 150  glider.workspace = 5;
+ 151   
+ 152  solve glider maximizing final_x using nlp;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 5
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Equation Listing    SOLVE glider Using NLP From line 152
+
+
+---- tf_eqn  =E=  
+
+tf_eqn..  t_f - 50*step =E= 0 ; (LHS = 0)
+     
+
+---- rdef  =E=  
+
+rdef(h0)..  (0.05)*pos(x,h0) + r(h0) =E= 0 ; (LHS = 0)
+     
+rdef(h1)..  (0.04994708)*pos(x,h1) + r(h1) =E= 0 ; (LHS = 0)
+     
+rdef(h2)..  (0.04989416)*pos(x,h2) + r(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- udef  =E=  
+
+udef(h0)..  - (0.0205110751974194)*r(h0) + u(h0) =E= 0 ; (LHS = 0)
+     
+udef(h1)..  - (0.0207194287810949)*r(h1) + u(h1) =E= 0 ; (LHS = 0)
+     
+udef(h2)..  - (0.0209294712903312)*r(h2) + u(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- wdef  =E=  
+
+wdef(h0)..  - vel(y,h0) + u(h0) + w(h0) =E= 0 ; (LHS = 0)
+     
+wdef(h1)..  - vel(y,h1) + u(h1) + w(h1) =E= 0 ; (LHS = 0)
+     
+wdef(h2)..  - vel(y,h2) + u(h2) + w(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- vdef  =E=  
+
+vdef(h0)..  - (0.995476542541093)*vel(x,h0) + (0.0950076483786043)*w(h0) + v(h0) =E= 0 ; (LHS = 0)
+     
+vdef(h1)..  - (0.995478482222622)*vel(x,h1) + (0.0949873224790786)*w(h1) + v(h1) =E= 0 ; (LHS = 0)
+     
+vdef(h2)..  - (0.995480439099675)*vel(x,h2) + (0.0949668119393249)*w(h2) + v(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 6
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Equation Listing    SOLVE glider Using NLP From line 152
+
+
+---- Ddef  =E=  
+
+Ddef(h0)..  - (136.256768528079)*cl(h0) - (14.3252299139729)*v(h0) + D(h0) =E= 0 ; (LHS = 0)
+     
+Ddef(h1)..  - (136.256237538239)*cl(h1) - (14.3252020013818)*v(h1) + D(h1) =E= 0 ; (LHS = 0)
+     
+Ddef(h2)..  - (136.255701844253)*cl(h2) - (14.3251738414522)*v(h2) + D(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- Ldef  =E=  
+
+Ldef(h0)..  - (1397.12128900035)*cl(h0) - (147.174758760277)*v(h0) + L(h0) =E= 0 ; (LHS = 0)
+     
+Ldef(h1)..  - (1397.11584444726)*cl(h1) - (147.174471991486)*v(h1) + L(h1) =E= 0 ; (LHS = 0)
+     
+Ldef(h2)..  - (1397.11035165978)*cl(h2) - (147.174182681585)*v(h2) + L(h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- vx_dot_def  =E=  
+
+vx_dot_def(h0)..  (0.0716261495698646)*vel(x,h0) + (0.735873793801385)*w(h0) - (0.00138851307682843)*v(h0) + (0.00995476542541093)*D(h0) - (0.000950076483786043)*L(h0) + v_dot(x,h0) =E= 0 ; (LHS = 0)
+     
+vx_dot_def(h1)..  (0.0716260100069089)*vel(x,h1) + (0.735872359957429)*w(h1) - (0.00140360657062315)*v(h1) + (0.00995478482222622)*D(h1) - (0.000949873224790786)*L(h1) + v_dot(x,h1) =E= 0 ; (LHS = 0)
+     
+vx_dot_def(h2)..  (0.071625869207261)*vel(x,h2) + (0.735870913407925)*w(h2) - (0.00141883708411036)*v(h2) + (0.00995480439099675)*D(h2) - (0.000949668119393249)*L(h2) + v_dot(x,h2) =E= 0 ; (LHS = 0)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- vy_dot_def  =E=  
+
+vy_dot_def(h0)..  - (0.735873793801385)*vel(x,h0) + (0.0716261495698646)*w(h0) + (0.739350132033047)*v(h0) - (0.000950076483786043)*D(h0) - (0.00995476542541093)*L(h0) + v_dot(y,h0) =E= -9.81 ; (LHS = -9.81)
+     
+vy_dot_def(h1)..  - (0.735872359957429)*vel(x,h1) + (0.0716260100069089)*w(h1) + (0.739348662910416)*v(h1) - (0.000949873224790786)*D(h1) - (0.00995478482222622)*L(h1) + v_dot(y,h1) =E= -9.81 ; (LHS = -9.81)
+     
+vy_dot_def(h2)..  - (0.735870913407925)*vel(x,h2) + (0.071625869207261)*w(h2) + (0.739347180450996)*v(h2) - (0.000949668119393249)*D(h2) - (0.00995480439099675)*L(h2) + v_dot(y,h2) =E= -9.81 ; (LHS = -9.81)
+     
+REMAINING 48 ENTRIES SKIPPED
+
+
+---- obj  =E=  
+
+obj..  - pos(x,h50) + final_x =E= 0 ; (LHS = -13.23, INFES = 13.23 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 7
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Equation Listing    SOLVE glider Using NLP From line 152
+
+
+---- pos_eqn  =E=  
+
+pos_eqn(x,h0)..  - pos(x,h0) + pos(x,h1) - (0.01)*vel(x,h0) - (0.01)*vel(x,h1) - (13.23)*step =E= 0 ; (LHS = 0)
+     
+pos_eqn(x,h1)..  - pos(x,h1) + pos(x,h2) - (0.01)*vel(x,h1) - (0.01)*vel(x,h2) - (13.23)*step =E= 0 ; (LHS = 0)
+     
+pos_eqn(x,h2)..  - pos(x,h2) + pos(x,h3) - (0.01)*vel(x,h2) - (0.01)*vel(x,h3) - (13.23)*step =E= 0 ; (LHS = 0)
+     
+REMAINING 97 ENTRIES SKIPPED
+
+
+---- vel_eqn  =E=  
+
+vel_eqn(x,h0)..  - vel(x,h0) + vel(x,h1) - (0.01)*v_dot(x,h0) - (0.01)*v_dot(x,h1) + (0.0185537806137329)*step =E= 0 ; (LHS = 0.000371075612275007, INFES = 0.000371075612275007 ****)
+     
+vel_eqn(x,h1)..  - vel(x,h1) + vel(x,h2) - (0.01)*v_dot(x,h1) - (0.01)*v_dot(x,h2) + (0.0187552485157806)*step =E= 0 ; (LHS = 0.000375104970315121, INFES = 0.000375104970315121 ****)
+     
+vel_eqn(x,h2)..  - vel(x,h2) + vel(x,h3) - (0.01)*v_dot(x,h2) - (0.01)*v_dot(x,h3) + (0.0189585423626752)*step =E= 0 ; (LHS = 0.000379170847253363, INFES = 0.000379170847253363 ****)
+     
+REMAINING 97 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 8
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+---- t_f  
+
+t_f
+                (.LO, .L, .UP, .M = -INF, 1, +INF, 0)
+        1       tf_eqn
+
+
+---- pos  position x distance  y altitude
+
+pos(x,h0)
+                (.LO, .L, .UP, .M = 0, 0, 0, 0)
+       (0.05)   rdef(h0)
+       -1       pos_eqn(x,h0)
+
+pos(x,h1)
+                (.LO, .L, .UP, .M = 0, 0.2646, +INF, 0)
+       (0.0499) rdef(h1)
+        1       pos_eqn(x,h0)
+       -1       pos_eqn(x,h1)
+
+pos(x,h2)
+                (.LO, .L, .UP, .M = 0, 0.5292, +INF, 0)
+       (0.0499) rdef(h2)
+        1       pos_eqn(x,h1)
+       -1       pos_eqn(x,h2)
+
+REMAINING 99 ENTRIES SKIPPED
+
+---- vel  velocity x distance  y altitude
+
+vel(x,h0)
+                (.LO, .L, .UP, .M = 13.23, 13.23, 13.23, 0)
+      (-0.9955) vdef(h0)
+       (0.0716) vx_dot_def(h0)
+      (-0.7359) vy_dot_def(h0)
+      (-0.01)   pos_eqn(x,h0)
+       -1       vel_eqn(x,h0)
+
+vel(x,h1)
+                (.LO, .L, .UP, .M = 0, 13.23, +INF, 0)
+      (-0.9955) vdef(h1)
+       (0.0716) vx_dot_def(h1)
+      (-0.7359) vy_dot_def(h1)
+      (-0.01)   pos_eqn(x,h0)
+      (-0.01)   pos_eqn(x,h1)
+        1       vel_eqn(x,h0)
+       -1       vel_eqn(x,h1)
+
+vel(x,h2)
+                (.LO, .L, .UP, .M = 0, 13.23, +INF, 0)
+      (-0.9955) vdef(h2)
+       (0.0716) vx_dot_def(h2)
+      (-0.7359) vy_dot_def(h2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:33 Page 9
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     vel  velocity x distance  y altitude
+
+      (-0.01)   pos_eqn(x,h1)
+      (-0.01)   pos_eqn(x,h2)
+        1       vel_eqn(x,h1)
+       -1       vel_eqn(x,h2)
+
+REMAINING 99 ENTRIES SKIPPED
+
+---- cl  control variables
+
+cl(h0)
+                (.LO, .L, .UP, .M = 0, 0.7, 1.4, 0)
+    (-136.2568) Ddef(h0)
+   (-1397.1213) Ldef(h0)
+
+cl(h1)
+                (.LO, .L, .UP, .M = 0, 0.7, 1.4, 0)
+    (-136.2562) Ddef(h1)
+   (-1397.1158) Ldef(h1)
+
+cl(h2)
+                (.LO, .L, .UP, .M = 0, 0.7, 1.4, 0)
+    (-136.2557) Ddef(h2)
+   (-1397.1104) Ldef(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- r  the r function
+
+r(h0)
+                (.LO, .L, .UP, .M = -INF, 6.25, +INF, 0)
+        1       rdef(h0)
+      (-0.0205) udef(h0)
+
+r(h1)
+                (.LO, .L, .UP, .M = -INF, 6.236777001316, +INF, 0)
+        1       rdef(h1)
+      (-0.0207) udef(h1)
+
+r(h2)
+                (.LO, .L, .UP, .M = -INF, 6.223568005264, +INF, 0)
+        1       rdef(h2)
+      (-0.0209) udef(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- u  the u function
+
+u(h0)
+                (.LO, .L, .UP, .M = -INF, -0.0253372105379887, +INF, 0)
+        1       udef(h0)
+        1       wdef(h0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 10
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     u  the u function
+
+
+u(h1)
+                (.LO, .L, .UP, .M = -INF, -0.0256098038880829, +INF, 0)
+        1       udef(h1)
+        1       wdef(h1)
+
+u(h2)
+                (.LO, .L, .UP, .M = -INF, -0.0258848718578717, +INF, 0)
+        1       udef(h2)
+        1       wdef(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- w  the w function
+
+w(h0)
+                (.LO, .L, .UP, .M = -INF, -1.26266278946201, +INF, 0)
+        1       wdef(h0)
+       (0.095)  vdef(h0)
+       (0.7359) vx_dot_def(h0)
+       (0.0716) vy_dot_def(h0)
+
+w(h1)
+                (.LO, .L, .UP, .M = -INF, -1.26239019611192, +INF, 0)
+        1       wdef(h1)
+       (0.095)  vdef(h1)
+       (0.7359) vx_dot_def(h1)
+       (0.0716) vy_dot_def(h1)
+
+w(h2)
+                (.LO, .L, .UP, .M = -INF, -1.26211512814213, +INF, 0)
+        1       wdef(h2)
+       (0.095)  vdef(h2)
+       (0.7359) vx_dot_def(h2)
+       (0.0716) vy_dot_def(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- v  the v function
+
+v(h0)
+                (.LO, .L, .UP, .M = 0.01, 13.2901172801406, +INF, 0)
+        1       vdef(h0)
+     (-14.3252) Ddef(h0)
+    (-147.1748) Ldef(h0)
+      (-0.0014) vx_dot_def(h0)
+       (0.7394) vy_dot_def(h0)
+
+v(h1)
+                (.LO, .L, .UP, .M = 0.01, 13.2900913844578, +INF, 0)
+        1       vdef(h1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 11
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     v  the v function
+
+     (-14.3252) Ddef(h1)
+    (-147.1745) Ldef(h1)
+      (-0.0014) vx_dot_def(h1)
+       (0.7393) vy_dot_def(h1)
+
+v(h2)
+                (.LO, .L, .UP, .M = 0.01, 13.2900652593087, +INF, 0)
+        1       vdef(h2)
+     (-14.3252) Ddef(h2)
+    (-147.1742) Ldef(h2)
+      (-0.0014) vx_dot_def(h2)
+       (0.7393) vy_dot_def(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- D  the D function
+
+D(h0)
+                (.LO, .L, .UP, .M = -INF, 95.1919928108394, +INF, 0)
+        1       Ddef(h0)
+       (0.01)   vx_dot_def(h0)
+      (-0.001)  vy_dot_def(h0)
+
+D(h1)
+                (.LO, .L, .UP, .M = -INF, 95.1916218495908, +INF, 0)
+        1       Ddef(h1)
+       (0.01)   vx_dot_def(h1)
+      (-0.0009) vy_dot_def(h1)
+
+D(h2)
+                (.LO, .L, .UP, .M = -INF, 95.1912476019211, +INF, 0)
+        1       Ddef(h2)
+       (0.01)   vx_dot_def(h2)
+      (-0.0009) vy_dot_def(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- L  the L function
+
+L(h0)
+                (.LO, .L, .UP, .M = -INF, 977.984902300242, +INF, 0)
+        1       Ldef(h0)
+      (-0.001)  vx_dot_def(h0)
+      (-0.01)   vy_dot_def(h0)
+
+L(h1)
+                (.LO, .L, .UP, .M = -INF, 977.981091113085, +INF, 0)
+        1       Ldef(h1)
+      (-0.0009) vx_dot_def(h1)
+      (-0.01)   vy_dot_def(h1)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 12
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     L  the L function
+
+L(h2)
+                (.LO, .L, .UP, .M = -INF, 977.977246161846, +INF, 0)
+        1       Ldef(h2)
+      (-0.0009) vx_dot_def(h2)
+      (-0.01)   vy_dot_def(h2)
+
+REMAINING 48 ENTRIES SKIPPED
+
+---- v_dot  
+
+v_dot(x,h0)
+                (.LO, .L, .UP, .M = -INF, -0.0184535016360587, +INF, 0)
+        1       vx_dot_def(h0)
+      (-0.01)   vel_eqn(x,h0)
+
+v_dot(x,h1)
+                (.LO, .L, .UP, .M = -INF, -0.0186540595914072, +INF, 0)
+        1       vx_dot_def(h1)
+      (-0.01)   vel_eqn(x,h0)
+      (-0.01)   vel_eqn(x,h1)
+
+v_dot(x,h2)
+                (.LO, .L, .UP, .M = -INF, -0.018856437440154, +INF, 0)
+        1       vx_dot_def(h2)
+      (-0.01)   vel_eqn(x,h1)
+      (-0.01)   vel_eqn(x,h2)
+
+REMAINING 99 ENTRIES SKIPPED
+
+---- final_x  
+
+final_x
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- step  step size
+
+step
+                (.LO, .L, .UP, .M = 0, 0.02, +INF, 0)
+      -50       tf_eqn
+     (-13.23)   pos_eqn(x,h0)
+     (-13.23)   pos_eqn(x,h1)
+     (-13.23)   pos_eqn(x,h2)
+     (-13.23)   pos_eqn(x,h3)
+     (-13.23)   pos_eqn(x,h4)
+     (-13.23)   pos_eqn(x,h5)
+     (-13.23)   pos_eqn(x,h6)
+     (-13.23)   pos_eqn(x,h7)
+     (-13.23)   pos_eqn(x,h8)
+     (-13.23)   pos_eqn(x,h9)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 13
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     step  step size
+
+     (-13.23)   pos_eqn(x,h10)
+     (-13.23)   pos_eqn(x,h11)
+     (-13.23)   pos_eqn(x,h12)
+     (-13.23)   pos_eqn(x,h13)
+     (-13.23)   pos_eqn(x,h14)
+     (-13.23)   pos_eqn(x,h15)
+     (-13.23)   pos_eqn(x,h16)
+     (-13.23)   pos_eqn(x,h17)
+     (-13.23)   pos_eqn(x,h18)
+     (-13.23)   pos_eqn(x,h19)
+     (-13.23)   pos_eqn(x,h20)
+     (-13.23)   pos_eqn(x,h21)
+     (-13.23)   pos_eqn(x,h22)
+     (-13.23)   pos_eqn(x,h23)
+     (-13.23)   pos_eqn(x,h24)
+     (-13.23)   pos_eqn(x,h25)
+     (-13.23)   pos_eqn(x,h26)
+     (-13.23)   pos_eqn(x,h27)
+     (-13.23)   pos_eqn(x,h28)
+     (-13.23)   pos_eqn(x,h29)
+     (-13.23)   pos_eqn(x,h30)
+     (-13.23)   pos_eqn(x,h31)
+     (-13.23)   pos_eqn(x,h32)
+     (-13.23)   pos_eqn(x,h33)
+     (-13.23)   pos_eqn(x,h34)
+     (-13.23)   pos_eqn(x,h35)
+     (-13.23)   pos_eqn(x,h36)
+     (-13.23)   pos_eqn(x,h37)
+     (-13.23)   pos_eqn(x,h38)
+     (-13.23)   pos_eqn(x,h39)
+     (-13.23)   pos_eqn(x,h40)
+     (-13.23)   pos_eqn(x,h41)
+     (-13.23)   pos_eqn(x,h42)
+     (-13.23)   pos_eqn(x,h43)
+     (-13.23)   pos_eqn(x,h44)
+     (-13.23)   pos_eqn(x,h45)
+     (-13.23)   pos_eqn(x,h46)
+     (-13.23)   pos_eqn(x,h47)
+     (-13.23)   pos_eqn(x,h48)
+     (-13.23)   pos_eqn(x,h49)
+       (1.288)  pos_eqn(y,h0)
+       (1.288)  pos_eqn(y,h1)
+       (1.288)  pos_eqn(y,h2)
+       (1.288)  pos_eqn(y,h3)
+       (1.288)  pos_eqn(y,h4)
+       (1.288)  pos_eqn(y,h5)
+       (1.288)  pos_eqn(y,h6)
+       (1.288)  pos_eqn(y,h7)
+       (1.288)  pos_eqn(y,h8)
+       (1.288)  pos_eqn(y,h9)
+       (1.288)  pos_eqn(y,h10)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 14
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     step  step size
+
+       (1.288)  pos_eqn(y,h11)
+       (1.288)  pos_eqn(y,h12)
+       (1.288)  pos_eqn(y,h13)
+       (1.288)  pos_eqn(y,h14)
+       (1.288)  pos_eqn(y,h15)
+       (1.288)  pos_eqn(y,h16)
+       (1.288)  pos_eqn(y,h17)
+       (1.288)  pos_eqn(y,h18)
+       (1.288)  pos_eqn(y,h19)
+       (1.288)  pos_eqn(y,h20)
+       (1.288)  pos_eqn(y,h21)
+       (1.288)  pos_eqn(y,h22)
+       (1.288)  pos_eqn(y,h23)
+       (1.288)  pos_eqn(y,h24)
+       (1.288)  pos_eqn(y,h25)
+       (1.288)  pos_eqn(y,h26)
+       (1.288)  pos_eqn(y,h27)
+       (1.288)  pos_eqn(y,h28)
+       (1.288)  pos_eqn(y,h29)
+       (1.288)  pos_eqn(y,h30)
+       (1.288)  pos_eqn(y,h31)
+       (1.288)  pos_eqn(y,h32)
+       (1.288)  pos_eqn(y,h33)
+       (1.288)  pos_eqn(y,h34)
+       (1.288)  pos_eqn(y,h35)
+       (1.288)  pos_eqn(y,h36)
+       (1.288)  pos_eqn(y,h37)
+       (1.288)  pos_eqn(y,h38)
+       (1.288)  pos_eqn(y,h39)
+       (1.288)  pos_eqn(y,h40)
+       (1.288)  pos_eqn(y,h41)
+       (1.288)  pos_eqn(y,h42)
+       (1.288)  pos_eqn(y,h43)
+       (1.288)  pos_eqn(y,h44)
+       (1.288)  pos_eqn(y,h45)
+       (1.288)  pos_eqn(y,h46)
+       (1.288)  pos_eqn(y,h47)
+       (1.288)  pos_eqn(y,h48)
+       (1.288)  pos_eqn(y,h49)
+       (0.0186) vel_eqn(x,h0)
+       (0.0188) vel_eqn(x,h1)
+       (0.019)  vel_eqn(x,h2)
+       (0.0192) vel_eqn(x,h3)
+       (0.0194) vel_eqn(x,h4)
+       (0.0196) vel_eqn(x,h5)
+       (0.0198) vel_eqn(x,h6)
+       (0.02)   vel_eqn(x,h7)
+       (0.0202) vel_eqn(x,h8)
+       (0.0204) vel_eqn(x,h9)
+       (0.0207) vel_eqn(x,h10)
+       (0.0209) vel_eqn(x,h11)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 15
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     step  step size
+
+       (0.0211) vel_eqn(x,h12)
+       (0.0213) vel_eqn(x,h13)
+       (0.0215) vel_eqn(x,h14)
+       (0.0218) vel_eqn(x,h15)
+       (0.022)  vel_eqn(x,h16)
+       (0.0222) vel_eqn(x,h17)
+       (0.0225) vel_eqn(x,h18)
+       (0.0227) vel_eqn(x,h19)
+       (0.0229) vel_eqn(x,h20)
+       (0.0232) vel_eqn(x,h21)
+       (0.0234) vel_eqn(x,h22)
+       (0.0237) vel_eqn(x,h23)
+       (0.0239) vel_eqn(x,h24)
+       (0.0242) vel_eqn(x,h25)
+       (0.0244) vel_eqn(x,h26)
+       (0.0247) vel_eqn(x,h27)
+       (0.0249) vel_eqn(x,h28)
+       (0.0252) vel_eqn(x,h29)
+       (0.0254) vel_eqn(x,h30)
+       (0.0257) vel_eqn(x,h31)
+       (0.026)  vel_eqn(x,h32)
+       (0.0262) vel_eqn(x,h33)
+       (0.0265) vel_eqn(x,h34)
+       (0.0268) vel_eqn(x,h35)
+       (0.027)  vel_eqn(x,h36)
+       (0.0273) vel_eqn(x,h37)
+       (0.0276) vel_eqn(x,h38)
+       (0.0279) vel_eqn(x,h39)
+       (0.0282) vel_eqn(x,h40)
+       (0.0284) vel_eqn(x,h41)
+       (0.0287) vel_eqn(x,h42)
+       (0.029)  vel_eqn(x,h43)
+       (0.0293) vel_eqn(x,h44)
+       (0.0296) vel_eqn(x,h45)
+       (0.0299) vel_eqn(x,h46)
+       (0.0302) vel_eqn(x,h47)
+       (0.0305) vel_eqn(x,h48)
+       (0.0308) vel_eqn(x,h49)
+      (-0.016)  vel_eqn(y,h0)
+      (-0.016)  vel_eqn(y,h1)
+      (-0.016)  vel_eqn(y,h2)
+      (-0.0159) vel_eqn(y,h3)
+      (-0.0159) vel_eqn(y,h4)
+      (-0.0158) vel_eqn(y,h5)
+      (-0.0158) vel_eqn(y,h6)
+      (-0.0158) vel_eqn(y,h7)
+      (-0.0157) vel_eqn(y,h8)
+      (-0.0157) vel_eqn(y,h9)
+      (-0.0156) vel_eqn(y,h10)
+      (-0.0156) vel_eqn(y,h11)
+      (-0.0155) vel_eqn(y,h12)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 16
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Column Listing      SOLVE glider Using NLP From line 152
+
+
+     step  step size
+
+      (-0.0155) vel_eqn(y,h13)
+      (-0.0155) vel_eqn(y,h14)
+      (-0.0154) vel_eqn(y,h15)
+      (-0.0154) vel_eqn(y,h16)
+      (-0.0153) vel_eqn(y,h17)
+      (-0.0153) vel_eqn(y,h18)
+      (-0.0152) vel_eqn(y,h19)
+      (-0.0152) vel_eqn(y,h20)
+      (-0.0151) vel_eqn(y,h21)
+      (-0.0151) vel_eqn(y,h22)
+      (-0.015)  vel_eqn(y,h23)
+      (-0.015)  vel_eqn(y,h24)
+      (-0.015)  vel_eqn(y,h25)
+      (-0.0149) vel_eqn(y,h26)
+      (-0.0149) vel_eqn(y,h27)
+      (-0.0148) vel_eqn(y,h28)
+      (-0.0148) vel_eqn(y,h29)
+      (-0.0147) vel_eqn(y,h30)
+      (-0.0147) vel_eqn(y,h31)
+      (-0.0146) vel_eqn(y,h32)
+      (-0.0146) vel_eqn(y,h33)
+      (-0.0145) vel_eqn(y,h34)
+      (-0.0144) vel_eqn(y,h35)
+      (-0.0144) vel_eqn(y,h36)
+      (-0.0143) vel_eqn(y,h37)
+      (-0.0143) vel_eqn(y,h38)
+      (-0.0142) vel_eqn(y,h39)
+      (-0.0142) vel_eqn(y,h40)
+      (-0.0141) vel_eqn(y,h41)
+      (-0.0141) vel_eqn(y,h42)
+      (-0.014)  vel_eqn(y,h43)
+      (-0.014)  vel_eqn(y,h44)
+      (-0.0139) vel_eqn(y,h45)
+      (-0.0138) vel_eqn(y,h46)
+      (-0.0138) vel_eqn(y,h47)
+      (-0.0137) vel_eqn(y,h48)
+      (-0.0137) vel_eqn(y,h49)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 17
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Model Statistics    SOLVE glider Using NLP From line 152
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          12     SINGLE EQUATIONS          610
+BLOCKS OF VARIABLES          13     SINGLE VARIABLES          666
+NON ZERO ELEMENTS         2,432     NON LINEAR N-Z          1,518
+DERIVATIVE POOL              20     CONSTANT POOL              24
+CODE LENGTH               5,324
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:22:33 Page 18
+Hang glider COPS 2.0 #11 (GLIDER,SEQ=239)
+Solution Report     SOLVE glider Using NLP From line 152
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   glider              OBJECTIVE  final_x
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  152
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/glider/convert.opt"
+>>  gams glider-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/glider/convert.opt"
+Gams      : glider-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/glider/glider.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/glider/glider-scalar.gms.lst

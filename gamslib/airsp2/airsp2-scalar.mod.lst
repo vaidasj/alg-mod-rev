@@ -1,0 +1,1665 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 2
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+C o m p i l a t i o n
+
+
+   3   
+       
+      The objective of this model is to allocate aircrafts to routes to maximize
+      the expected profit when traffic demand is uncertain. Several problems
+      are solved with standard LP solvers and DECIS:
+       
+           fixed demand
+           expected value
+           deterministic equivalent
+       
+           DECIS formulation with sampling
+                             exact (deterministic equivalent)
+                             expected value
+       
+      Also see models AIRCRAFT and AIRSP.
+       
+       
+      Dantzig, G B, Chapter 28. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  25   
+  27   
+  28  set i     aircraft types and unassigned passengers / a, b, c, d /
+  29      j     assigned and unassigned routes           / route-1, route-2, route-3, route-4, route-5 /
+  30  ;
+  31   
+  32  table  c(i,j)       costs per aircraft (1000s)
+  33   
+  34            route-1    route-2    route-3     route-4     route-5
+  35   a          18         21         18          16           10
+  36   b                     15         16          14            9
+  37   c                     10                      9            6
+  38   d          17         16         17          15           10
+  39  ;
+  40  table  pcap(i,j)    passenger capacity of aircraft i on route j
+  41   
+  42           route-1     route-2     route-3     route-4     route-5
+  43   a          16         15          28          23          81
+  44   b                     10          14          15          57
+  45   c                      5                       7          29
+  46   d           9         11          22          17          55
+  47  ;
+  48  parameter aircraft(i)  aircraft availability  / a   10
+  49                                                  b   19
+  50                                                  c   25
+  51                                                  d   15 /;
+  52   
+  53  parameter fixeddemand(j) fixed demand (passengers in hundreds)
+  54         / route-1 250
+  55           route-2 120
+  56           route-3 180
+  57           route-4  90
+  58           route-5 600 /;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 3
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+C o m p i l a t i o n
+
+
+  59   
+  60  parameter costbumped(j) costs associated with bumping passengers
+  61         / route-1 13
+  62           route-2 13
+  63           route-3  7
+  64           route-4  7
+  65           route-5  1 /;
+  66   
+  67   
+  68  *---------------------------------------------------------------------
+  69  * First we solve the "fixed demand" (deterministic demand) case.
+  70  * Notice that Dantzig reports a slightly different optimal solution
+  71  * for this problem in table 28-2-II on page 583. The solution
+  72  * reported there is slightly infeasible.
+  73  *---------------------------------------------------------------------
+  74   
+  75  positive variable x(i,j)    number of aircraft type i assigned to route j;
+  76  positive variable bumped(j) passengers bumped;
+  77  variable          z         objective variable;
+  78   
+  79  equation          avail(i)  aircraft availability constraints;
+  80  equation          demand(j) demand constraints;
+  81  equation          cost      objective;
+  82   
+  83   
+  84  cost..       z =e= sum((i,j), c(i,j)*x(i,j)) + sum(j, costbumped(j)*bumped(j));
+  85  avail(i)..   sum(j, x(i,j)) =l= aircraft(i);
+  86  demand(j)..  sum(i, pcap(i,j)*x(i,j)) + bumped(j) =g= fixeddemand(j);
+  87   
+  88   
+  89  model fixed /cost,avail,demand/;
+  90   
+  91  solve fixed using lp minimizing z;
+  92   
+  93  parameter results(*,i,j) first stage results;
+  94  parameter obj(*);
+  95   
+  96  results('Fixed demand',i,j) = x.l(i,j);
+  97  obj('Fixed demand') = z.l;
+  98   
+  99  *---------------------------------------------------------------------
+ 100  * Now introduce stochastic demand
+ 101  *---------------------------------------------------------------------
+ 102   
+ 103  option limcol=0,limrow=0;
+ 104   
+ 105  set k possible outcomes /k1*k5/;
+ 106   
+ 107  table  stochasticdemand(j,k)     demand distribution on route j
+ 108               k1      k2     k3     k4     k5
+ 109   route-1    200     220    250    270    300
+ 110   route-2     50     150
+ 111   route-3    140     160    180    200    220
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 4
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+C o m p i l a t i o n
+
+
+ 112   route-4     10      50     80    100    340
+ 113   route-5    580     600    620
+ 114  ;
+ 115   
+ 116  table  probability(j,k)  "probabilities corresponding to sd(j,k)"
+ 117   
+ 118                k1     k2     k3     k4     k5
+ 119   route-1      .2     .05    .35    .2     .2
+ 120   route-2      .3     .7
+ 121   route-3      .1     .2     .4     .2     .1
+ 122   route-4      .2     .2     .3     .2     .1
+ 123   route-5      .1     .8     .1
+ 124   
+ 125  ;
+ 126   
+ 127  *---------------------------------------------------------------------
+ 128  * Solve expected value problem directly
+ 129  * expected value of demand is slightly different from
+ 130  * fixed demand.
+ 131  *---------------------------------------------------------------------
+ 132   
+ 133  parameter expdemand(j) expected value demand;
+ 134  expdemand(j) =  sum(k, probability(j,k)*stochasticdemand(j,k));
+ 135  display expdemand, fixeddemand;
+ 136   
+ 137  equation expvaldemand(j);
+ 138   
+ 139  expvaldemand(j)..  sum(i, pcap(i,j)*x(i,j)) + bumped(j) =g= expdemand(j);
+ 140   
+ 141  model expval /cost,avail,expvaldemand/;
+ 142   
+ 143  solve expval using lp minimizing z;
+ 144   
+ 145  results('Expected value problem',i,j) = x.l(i,j);
+ 146  obj('Expected value problem') = z.l;
+ 147  display results;
+ 148   
+ 149  *---------------------------------------------------------------------
+ 150  * Solve deterministic equivalent problem
+ 151  * There are 750 scenario's.
+ 152  *---------------------------------------------------------------------
+ 153   
+ 154  set s scenarios / scen1 * scen750 /;
+ 155  alias (k,k1,k2,k3,k4,k5);
+ 156   
+ 157  set ss(s) auxiliary set;
+ 158  scalar jprob joint probabilities;
+ 159  scalar cnt counter;
+ 160   
+ 161  parameter scenprob(s) scenario probabilities;
+ 162  parameter scendemand(s,j) demand for route j under scenario s;
+ 163   
+ 164  cnt = 0;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 5
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+C o m p i l a t i o n
+
+
+ 165  loop( (k1,k2,k3,k4,k5),
+ 166   
+ 167     jprob =     probability('route-1',k1)*probability('route-2',k2)*
+ 168                 probability('route-3',k3)*probability('route-4',k4)*
+ 169                 probability('route-5',k5);
+ 170   
+ 171     if(jprob,
+ 172   
+ 173           cnt = cnt + 1;
+ 174   
+ 175  * set ss to current element
+ 176           ss(s) = no;
+ 177           ss(s)$(ord(s) = cnt) = yes;
+ 178   
+ 179           scenprob(ss) = jprob;
+ 180           scendemand(ss,'route-1') =  stochasticdemand('route-1',k1);
+ 181           scendemand(ss,'route-2') =  stochasticdemand('route-2',k2);
+ 182           scendemand(ss,'route-3') =  stochasticdemand('route-3',k3);
+ 183           scendemand(ss,'route-4') =  stochasticdemand('route-4',k4);
+ 184           scendemand(ss,'route-5') =  stochasticdemand('route-5',k5);
+ 185     );
+ 186  );
+ 187   
+ 188  scalar sumprob;
+ 189  sumprob = sum(s,scenprob(s));
+ 190  display sumprob;
+ 191  abort$(abs(sumprob - 1) > 0.001) "Error in probabilities";
+ 192   
+ 193  positive variables scenbumped(s, j) passengers bumped under scenario s;
+ 194  variables          capacityuse(j)   intermediate variables to reduce number of nonzeroes;
+ 195   
+ 196  equations deteqobj, deteqdemand(s,j),defcap(j);
+ 197   
+ 198  deteqobj .. z =e= sum((i,j), c(i,j)*x(i,j)) +
+ 199                    sum(s, scenprob(s)* sum(j, costbumped(j)*scenbumped(s,j)));
+ 200   
+ 201  *deteqdemand(s,j).. sum(i, pcap(i,j)*x(i,j)) + scenbumped(s,j) =g= scendemand(s,j);
+ 202  * the above formulation is intuitive but repeats sum(i, pcap(i,j)*x(i,j)) for
+ 203  * every s, we introduce the intermediate variable capacityuse instead.
+ 204   
+ 205  deteqdemand(s,j).. capacityuse(j) + scenbumped(s,j) =g= scendemand(s,j);
+ 206   
+ 207  defcap(j).. capacityuse(j) =e= sum(i, pcap(i,j)*x(i,j));
+ 208   
+ 209  model deteq /deteqobj, avail, deteqdemand, defcap /;
+ 210   
+ 211  solve deteq using lp minimizing z;
+ 212   
+ 213  results('Deterministic equivalent',i,j) = x.l(i,j);
+ 214  obj('Deterministic equivalent') = z.l;
+ 215   
+ 216  *---------------------------------------------------------------------
+ 217  * Output stochastic file
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 6
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+C o m p i l a t i o n
+
+
+ 218  *---------------------------------------------------------------------
+ 219   
+ 220  file stg / MODEL.STG /;
+ 221  put stg "INDEP DISCRETE"/;
+ 222  loop(j,
+ 223     loop(k$probability(j,k),
+ 224         put "RHS demand ",j.tl," ",stochasticdemand(j,k)," PERIOD2 ",probability(j,k)/;
+ 225     );
+ 226  );
+ 227  putclose;
+ 228   
+      The file MODEL.STG will look like:
+       
+      INDEP DISCRETE
+      RHS demand route-1            200.00 PERIOD2         0.20
+      RHS demand route-1            220.00 PERIOD2         0.05
+      .
+      .
+      RHS demand route-5            600.00 PERIOD2         0.80
+      RHS demand route-5            620.00 PERIOD2         0.10
+       
+ 241   
+ 242  *---------------------------------------------------------------------
+ 243  * Define stages
+ 244  *---------------------------------------------------------------------
+ 245   
+ 246  x.stage(i,j) = 1;
+ 247  bumped.stage(j) = 2;
+ 248   
+ 249  avail.stage(i) = 1;
+ 250  demand.stage(j) = 2;
+ 251   
+ 252   
+ 253  *---------------------------------------------------------------------
+ 254  * Output a MINOS option file
+ 255  *---------------------------------------------------------------------
+ 256   
+ 257  file mopt / MINOS.SPC /;
+ 258  put mopt;
+ 259  put "begin"/;
+ 260  put "rows 250"/;
+ 261  put "columns 250"/;
+ 262  put "elements 10000"/;
+ 263  put "end"/;
+ 264  putclose;
+ 265   
+ 266  *---------------------------------------------------------------------
+ 267  * solve the stochastic model
+ 268  *---------------------------------------------------------------------
+ 269   
+ 270  option lp=decism;
+ 271  solve fixed using lp minimizing z;
+ 272  results('DECIS default sampling',i,j) = x.l(i,j);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 7
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+C o m p i l a t i o n
+
+
+ 273  obj('DECIS default sampling') = z.l;
+ 274   
+ 275   
+ 276  *---------------------------------------------------------------------
+ 277  * Let DECIS solve the model exactly
+ 278  * Stochastic Universe option: 4 "ISTRAT"
+ 279  *---------------------------------------------------------------------
+ 280   
+ 281  file decopt / decism.opt /;
+ 282  put decopt;
+ 283  put '4 "ISTRAT"'/;
+ 284  putclose;
+ 285   
+ 286  fixed.optfile=1;
+ 287  solve fixed using lp minimizing z;
+ 288   
+ 289  results('DECIS universe problem',i,j) = x.l(i,j);
+ 290  obj('DECIS universe problem') = z.l;
+ 291   
+ 292  *---------------------------------------------------------------------
+ 293  * Solve expected value problem using DECIS
+ 294  *---------------------------------------------------------------------
+ 295   
+ 296  put decopt;
+ 297  put '1 "ISTRAT"'/;
+ 298  putclose;
+ 299   
+ 300  option lp=decism;
+ 301  solve fixed using lp minimizing z;
+ 302   
+ 303  results('DECIS expected value problem',i,j) = x.l(i,j);
+ 304  obj('DECIS expected value problem') = z.l;
+ 305   
+ 306  option obj:2:0:1;
+ 307  display obj;
+ 308   
+ 309  option results:2:1:2;
+ 310  display results;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 8
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Equation Listing    SOLVE fixed Using LP From line 91
+
+
+---- cost  =E=  objective
+
+cost..  - 18*x(a,route-1) - 21*x(a,route-2) - 18*x(a,route-3) - 16*x(a,route-4) - 10*x(a,route-5) - 15*x(b,route-2) - 16*x(b,route-3) - 14*x(b,route-4) - 9*x(b,route-5) - 10*x(c,route-2) - 9*x(c,route-4) - 6*x(c,route-5) - 17*x(d,route-1)
+     
+      - 16*x(d,route-2) - 17*x(d,route-3) - 15*x(d,route-4) - 10*x(d,route-5) - 13*bumped(route-1) - 13*bumped(route-2) - 7*bumped(route-3) - 7*bumped(route-4) - bumped(route-5) + z =E= 0 ; (LHS = 0)
+     
+
+---- avail  =L=  aircraft availability constraints
+
+avail(a)..  x(a,route-1) + x(a,route-2) + x(a,route-3) + x(a,route-4) + x(a,route-5) =L= 10 ; (LHS = 0)
+     
+avail(b)..  x(b,route-1) + x(b,route-2) + x(b,route-3) + x(b,route-4) + x(b,route-5) =L= 19 ; (LHS = 0)
+     
+avail(c)..  x(c,route-1) + x(c,route-2) + x(c,route-3) + x(c,route-4) + x(c,route-5) =L= 25 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- demand  =G=  demand constraints
+
+demand(route-1)..  16*x(a,route-1) + 9*x(d,route-1) + bumped(route-1) =G= 250 ; (LHS = 0, INFES = 250 ****)
+     
+demand(route-2)..  15*x(a,route-2) + 10*x(b,route-2) + 5*x(c,route-2) + 11*x(d,route-2) + bumped(route-2) =G= 120 ; (LHS = 0, INFES = 120 ****)
+     
+demand(route-3)..  28*x(a,route-3) + 14*x(b,route-3) + 22*x(d,route-3) + bumped(route-3) =G= 180 ; (LHS = 0, INFES = 180 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:18 Page 9
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Column Listing      SOLVE fixed Using LP From line 91
+
+
+---- x  number of aircraft type i assigned to route j
+
+x(a,route-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -18       cost
+        1       avail(a)
+       16       demand(route-1)
+
+x(a,route-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -21       cost
+        1       avail(a)
+       15       demand(route-2)
+
+x(a,route-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -18       cost
+        1       avail(a)
+       28       demand(route-3)
+
+REMAINING 17 ENTRIES SKIPPED
+
+---- bumped  passengers bumped
+
+bumped(route-1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -13       cost
+        1       demand(route-1)
+
+bumped(route-2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -13       cost
+        1       demand(route-2)
+
+bumped(route-3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -7       cost
+        1       demand(route-3)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cost
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 10
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Model Statistics    SOLVE fixed Using LP From line 91
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           26
+NON ZERO ELEMENTS            65
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 11
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixed               OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+>>  ampl airsp2-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+Ampl      : airsp2-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 12
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+E x e c u t i o n
+
+
+----    135 PARAMETER expdemand  expected value demand
+
+route-1 252.500,    route-2 120.000,    route-3 180.000,    route-4  90.000,    route-5 600.000
+
+
+----    135 PARAMETER fixeddemand  fixed demand (passengers in hundreds)
+
+route-1 250.000,    route-2 120.000,    route-3 180.000,    route-4  90.000,    route-5 600.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 13
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Model Statistics    SOLVE expval Using LP From line 143
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           26
+NON ZERO ELEMENTS            65
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 14
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE expval Using LP From line 143
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   expval              OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  143
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+>>  ampl airsp2-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+Ampl      : airsp2-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 15
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+E x e c u t i o n
+
+
+----    147 PARAMETER results  first stage results
+
+                      ( ALL       0.000 )
+
+
+----    190 PARAMETER sumprob              =        1.000  
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 16
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Model Statistics    SOLVE deteq Using LP From line 211
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS        3,760
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES        3,776
+NON ZERO ELEMENTS        11,310
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.038 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 17
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE deteq Using LP From line 211
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   deteq               OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  211
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+>>  ampl airsp2-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/convert.opt"
+Ampl      : airsp2-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 18
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Model Statistics    SOLVE fixed Using LP From line 271
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           26
+NON ZERO ELEMENTS            65
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 19
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixed               OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  DECISM              FROM LINE  271
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE             1572.5280
+
+ RESOURCE USAGE, LIMIT          0.040      1000.000
+ ITERATION COUNT, LIMIT        23    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+*** WARNING:
+Error opening option file:/home/renigijus/gams/opt-mod-lib/gamslib/airsp2/decism.opt
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  3
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 20
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+ iscratch  =  17
+ iresamp   =  1
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   5
+ jsum:   20
+ itoc:   5
+ itele:  20
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000021  R0000006   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+
+ nwcore1:  9004769
+ nwcore2:  6609
+ nwcore :  9017987
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 10 cols 25 nonz 64
+ master: rows 5 cols 21 nonz 37
+ B:      rows 6 cols 20 nonz 17
+ sub:    rows 6 cols 5 nonz 10
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 6 cols: 20 nonz: 17
+ Successful input of stochastic file:
+ Independent random parameters:  5
+ Total number of outcomes     :  20
+ Universe scenarios           :   750.
+ start deterministic benders (exp.values)
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm  0.
+ theta : -1.E+09
+ evaluating w/ expected values
+ sub obj:  7332.5
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 21
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+ solve master, iteration:  1
+ master objective:  -182.5
+ lower bnd.: -182.5  var.:  0.
+ upper bnd.:  7332.5  var.:  0.
+ objm  970.
+ evaluating w/ expected values
+ sub obj:  2432.5
+ solve master, iteration:  2
+ master objective:   512.428571
+ lower bnd.:  512.428571  var.:  0.
+ upper bnd.:  3402.5  var.:  0.
+ objm  936.519481
+ evaluating w/ expected values
+ sub obj:  1867.5
+ solve master, iteration:  3
+ master objective:   845.222944
+ lower bnd.:  845.222944  var.:  0.
+ upper bnd.:  2804.01948  var.:  0.
+ objm  945.619048
+ evaluating w/ expected values
+ sub obj:  3019.6039
+ solve master, iteration:  4
+ master objective:   981.928571
+ lower bnd.:  981.928571  var.:  0.
+ upper bnd.:  2804.01948  var.:  0.
+ objm  971.714286
+ evaluating w/ expected values
+ sub obj:  562.714286
+ solve master, iteration:  5
+ master objective:   1037.24603
+ lower bnd.:  1037.24603  var.:  0.
+ upper bnd.:  1534.42857  var.:  0.
+ objm  904.928571
+ evaluating w/ expected values
+ sub obj:  132.31746
+ solve master, iteration:  6
+ master objective:   1037.24603
+ lower bnd.:  1037.24603  var.:  0.
+ upper bnd.:  1037.24603  var.:  0.
+ objm  904.928571
+ re-evaluating best solution for upper bnd
+ evaluating w/ expected values
+ sub obj:  132.31746
+ upper bnd.:  1037.24603 var.:  0.
+  solution :
+  obj :   1037.24603
+ x1p( 1):   10.
+ x1p( 7):   7.56349206
+ x1p( 8):   5.43650794
+ x1p( 9):   6.
+ x1p( 12):   8.87301587
+ x1p( 15):   16.1269841
+ x1p( 16):   10.2777778
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 22
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+ x1p( 18):   4.72222222
+ x1p( 21):   132.31746
+ theta:   132.31746 zsub:   132.31746
+ start benders w/ importance sampling
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj:  1037.24603
+ objm  904.928571
+ theta :  132.31746
+ evaluating w/ importance sampling
+ solve master, iteration:  7
+ master objective:   1148.80246
+ lower bnd.:  1148.80246  var.:  6.0063012E-29
+ upper bnd.:  1724.24603  var.:  1.25622078E-27
+ objm  868.219555
+ evaluating w/ importance sampling
+ solve master, iteration:  8
+ master objective:   1340.40744
+ lower bnd.:  1340.40744  var.:  5.86108385E-28
+ upper bnd.:  1724.24603  var.:  1.25622078E-27
+ objm  862.837955
+ evaluating w/ importance sampling
+ solve master, iteration:  9
+ master objective:   1432.53412
+ lower bnd.:  1432.53412  var.:  9.23997791E-28
+ upper bnd.:  1724.24603  var.:  1.25622078E-27
+ objm  871.711678
+ evaluating w/ importance sampling
+ solve master, iteration:  10
+ master objective:   1435.05897
+ lower bnd.:  1435.05897  var.:  9.24736511E-28
+ upper bnd.:  1724.24603  var.:  1.25622078E-27
+ objm  906.657301
+ evaluating w/ importance sampling
+ solve master, iteration:  11
+ master objective:   1489.97648
+ lower bnd.:  1489.97648  var.:  9.89097946E-28
+ upper bnd.:  1674.19597  var.:  4.68811961E-27
+ objm  888.629907
+ evaluating w/ importance sampling
+ solve master, iteration:  12
+ master objective:   1496.34866
+ lower bnd.:  1496.34866  var.:  1.01623139E-27
+ upper bnd.:  1658.68743  var.:  2.67888488E-27
+ objm  888.731793
+ evaluating w/ importance sampling
+ solve master, iteration:  13
+ master objective:   1535.76373
+ lower bnd.:  1535.76373  var.:  1.35438485E-27
+ upper bnd.:  1606.29756  var.:  2.42609149E-27
+ objm  893.594708
+ evaluating w/ importance sampling
+ solve master, iteration:  14
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 23
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+ master objective:   1553.20628
+ lower bnd.:  1553.20628  var.:  1.08361245E-27
+ upper bnd.:  1606.29756  var.:  2.42609149E-27
+ objm  882.769428
+ evaluating w/ importance sampling
+ solve master, iteration:  15
+ master objective:   1562.886
+ lower bnd.:  1562.886  var.:  1.59842689E-27
+ upper bnd.:  1606.29756  var.:  2.42609149E-27
+ objm  878.483697
+ evaluating w/ importance sampling
+ solve master, iteration:  16
+ master objective:   1567.60111
+ lower bnd.:  1567.60111  var.:  1.90275183E-27
+ upper bnd.:  1606.29756  var.:  2.42609149E-27
+ objm  885.71808
+ evaluating w/ importance sampling
+ solve master, iteration:  17
+ master objective:   1568.49537
+ lower bnd.:  1568.49537  var.:  1.95430225E-27
+ upper bnd.:  1606.29756  var.:  2.42609149E-27
+ objm  882.543254
+ evaluating w/ importance sampling
+ solve master, iteration:  18
+ master objective:   1569.61357
+ lower bnd.:  1569.61357  var.:  2.2157622E-27
+ upper bnd.:  1584.48468  var.:  8.09815092E-27
+ objm  879.086271
+ evaluating w/ importance sampling
+ solve master, iteration:  19
+ master objective:   1571.098
+ lower bnd.:  1571.098  var.:  2.22656974E-27
+ upper bnd.:  1584.48468  var.:  8.09815092E-27
+ objm  881.275069
+ evaluating w/ importance sampling
+ solve master, iteration:  20
+ master objective:   1572.50873
+ lower bnd.:  1572.50873  var.:  2.28991836E-27
+ upper bnd.:  1582.69595  var.:  4.35224095E-27
+ objm  882.506891
+ evaluating w/ importance sampling
+ solve master, iteration:  21
+ master objective:   1572.54614
+ lower bnd.:  1572.54614  var.:  2.36871205E-27
+ upper bnd.:  1574.1732  var.:  9.64072869E-27
+ objm  882.602849
+ evaluating w/ importance sampling
+ solve master, iteration:  22
+ master objective:   1572.54873
+ lower bnd.:  1572.54873  var.:  2.33488608E-27
+ upper bnd.:  1572.63432  var.:  9.36650958E-27
+ objm  882.609479
+ evaluating w/ importance sampling
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 24
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+ solve master, iteration:  23
+ master objective:   1572.54873
+ lower bnd.:  1572.54873  var.:  2.33488608E-27
+ upper bnd.:  1572.52798  var.:  4.38075173E-27
+ objm  882.609479
+ nzrows, irm, imax: 100 5 23
+ number of binding cuts: 0
+ number of cuts: 23
+ sigma estimated:  4.38075173E-27
+ lbworst:  0.
+ re-evaluating best solution for upper bnd
+ evaluating w/ importance sampling
+ upper bnd.:  1572.52798 var.:  3.90318426E-27
+  solution :
+  obj :   1572.52798
+ x1p( 1):   10.
+ x1p( 7):   12.8928691
+ x1p( 8):   .994548826
+ x1p( 9):   5.1125821
+ x1p( 12):   4.18187817
+ x1p( 15):   20.8181218
+ x1p( 16):   7.42117912
+ x1p( 18):   7.57882088
+ x1p( 21):   689.939249
+ theta:   689.939249 zsub:   689.918504
+ 95% confidence interval   :  1572.54873  1572.52798
+ 95% confidence interval % :   .0013192269  0.
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU cost                .              .              .            -1.0000      
+
+  cost  objective
+
+---- EQU avail  aircraft availability constraints
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF           10.0000        10.0000      -129.3426  NOPT
+b        -INF           19.0000        19.0000       -36.7420  NOPT
+c        -INF           25.0000        25.0000       -15.8710  NOPT
+d        -INF           15.0000        15.0000       -65.8802  NOPT
+
+---- EQU demand  demand constraints
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-1       250.0000        33.5658        +INF           10.1870      
+route-2       120.0000         0.1183        +INF            9.4997      
+route-3       180.0000         5.0266        +INF            1.3691      
+route-4        90.0000        30.7333        +INF            3.9982      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 25
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 271
+
+
+     EQU demand  demand constraints
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-5       600.0000         1.7061        +INF            0.1048      
+
+---- VAR x  number of aircraft type i assigned to route j
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+a.route-1          .            10.0000        +INF             .          
+a.route-2          .              .            +INF           72.7297      
+a.route-3          .              .            +INF           41.8587      
+a.route-4          .              .            +INF           67.5383      
+a.route-5          .              .            +INF           78.2547      
+b.route-1          .              .            +INF           36.7420      
+b.route-2          .            12.8929        +INF             .          
+b.route-3          .             0.9945        +INF             .          
+b.route-4          .             5.1126        +INF             .          
+b.route-5          .              .            +INF            2.7542      
+c.route-1          .              .            +INF           15.8710      
+c.route-2          .             4.1819        +INF             .          
+c.route-3          .              .            +INF           15.8710      
+c.route-4          .              .            +INF            1.1914      
+c.route-5          .            20.8181        +INF             .          
+d.route-1          .             7.4212        +INF             .          
+d.route-2          .              .            +INF           24.9641      
+d.route-3          .             7.5788        +INF             .          
+d.route-4          .              .            +INF           23.3727      
+d.route-5          .              .            +INF           34.4008      
+
+---- VAR bumped  passengers bumped
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-1          .            33.5658        +INF            1.4880      
+route-2          .             0.1183        +INF            2.1754      
+route-3          .             5.0266        +INF            4.9175      
+route-4          .            30.7333        +INF            2.2884      
+route-5          .             1.7061        +INF            0.7932      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF         1572.5280        +INF           -1.0000      
+
+  z  objective variable
+
+
+**** REPORT SUMMARY :        4     NONOPT ( NOPT)
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 26
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Model Statistics    SOLVE fixed Using LP From line 287
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           26
+NON ZERO ELEMENTS            65
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 27
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 287
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixed               OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  DECISM              FROM LINE  287
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE             1566.0422
+
+ RESOURCE USAGE, LIMIT          0.190      1000.000
+ ITERATION COUNT, LIMIT        18    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  4
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 28
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 287
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   5
+ jsum:   20
+ itoc:   5
+ itele:  20
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000021  R0000006   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+
+ nwcore1:  9004769
+ nwcore2:  6609
+ nwcore :  9017987
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 10 cols 25 nonz 64
+ master: rows 5 cols 21 nonz 37
+ B:      rows 6 cols 20 nonz 17
+ sub:    rows 6 cols 5 nonz 10
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 6 cols: 20 nonz: 17
+ Successful input of stochastic file:
+ Independent random parameters:  5
+ Total number of outcomes     :  20
+ Universe scenarios           :   750.
+ start benders universe solution
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm  0.
+ theta : -1.E+09
+ evaluating w/ universe
+ solve master, iteration:  1
+ master objective:  -182.5
+ lower bnd.: -182.5  var.:  0.
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 29
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 287
+
+
+ upper bnd.:  7332.5  var.:  0.
+ objm  970.
+ evaluating w/ universe
+ solve master, iteration:  2
+ master objective:   512.428571
+ lower bnd.:  512.428571  var.:  0.
+ upper bnd.:  3402.5  var.:  0.
+ objm  936.519481
+ evaluating w/ universe
+ solve master, iteration:  3
+ master objective:   885.525641
+ lower bnd.:  885.525641  var.:  0.
+ upper bnd.:  3068.01948  var.:  0.
+ objm  911.605128
+ evaluating w/ universe
+ solve master, iteration:  4
+ master objective:   1187.88888
+ lower bnd.:  1187.88888  var.:  0.
+ upper bnd.:  2757.22564  var.:  0.
+ objm  871.882783
+ evaluating w/ universe
+ solve master, iteration:  5
+ master objective:   1308.71703
+ lower bnd.:  1308.71703  var.:  0.
+ upper bnd.:  1849.75041  var.:  0.
+ objm  971.422973
+ evaluating w/ universe
+ solve master, iteration:  6
+ master objective:   1321.8826
+ lower bnd.:  1321.8826  var.:  0.
+ upper bnd.:  1849.75041  var.:  0.
+ objm  903.969506
+ evaluating w/ universe
+ solve master, iteration:  7
+ master objective:   1414.30576
+ lower bnd.:  1414.30576  var.:  0.
+ upper bnd.:  1679.41552  var.:  0.
+ objm  890.154232
+ evaluating w/ universe
+ solve master, iteration:  8
+ master objective:   1490.40749
+ lower bnd.:  1490.40749  var.:  0.
+ upper bnd.:  1679.41552  var.:  0.
+ objm  874.929844
+ evaluating w/ universe
+ solve master, iteration:  9
+ master objective:   1493.55715
+ lower bnd.:  1493.55715  var.:  0.
+ upper bnd.:  1679.41552  var.:  0.
+ objm  896.376102
+ evaluating w/ universe
+ solve master, iteration:  10
+ master objective:   1554.68541
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 30
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 287
+
+
+ lower bnd.:  1554.68541  var.:  0.
+ upper bnd.:  1618.82163  var.:  0.
+ objm  875.593884
+ evaluating w/ universe
+ solve master, iteration:  11
+ master objective:   1560.28298
+ lower bnd.:  1560.28298  var.:  0.
+ upper bnd.:  1606.9845  var.:  0.
+ objm  876.270578
+ evaluating w/ universe
+ solve master, iteration:  12
+ master objective:   1563.00069
+ lower bnd.:  1563.00069  var.:  0.
+ upper bnd.:  1606.9845  var.:  0.
+ objm  883.864632
+ evaluating w/ universe
+ solve master, iteration:  13
+ master objective:   1564.01324
+ lower bnd.:  1564.01324  var.:  0.
+ upper bnd.:  1591.67853  var.:  0.
+ objm  882.125348
+ evaluating w/ universe
+ solve master, iteration:  14
+ master objective:   1564.18958
+ lower bnd.:  1564.18958  var.:  0.
+ upper bnd.:  1573.06255  var.:  0.
+ objm  882.981213
+ evaluating w/ universe
+ solve master, iteration:  15
+ master objective:   1564.80004
+ lower bnd.:  1564.80004  var.:  0.
+ upper bnd.:  1567.47529  var.:  0.
+ objm  883.184944
+ evaluating w/ universe
+ solve master, iteration:  16
+ master objective:   1565.5965
+ lower bnd.:  1565.5965  var.:  0.
+ upper bnd.:  1567.47529  var.:  0.
+ objm  882.992883
+ evaluating w/ universe
+ solve master, iteration:  17
+ master objective:   1566.04219
+ lower bnd.:  1566.04219  var.:  0.
+ upper bnd.:  1567.47529  var.:  0.
+ objm  882.729885
+ evaluating w/ universe
+ solve master, iteration:  18
+ master objective:   1566.04219
+ lower bnd.:  1566.04219  var.:  0.
+ upper bnd.:  1566.04219  var.:  0.
+ objm  882.729885
+ re-evaluating best solution for upper bnd
+ evaluating w/ universe
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 31
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 287
+
+
+ upper bnd.:  1566.04219 var.:  0.
+  solution :
+  obj :   1566.04219
+ x1p( 1):   10.
+ x1p( 7):   12.8448276
+ x1p( 8):   .82183908
+ x1p( 9):   5.33333333
+ x1p( 12):   4.31034483
+ x1p( 15):   20.6896552
+ x1p( 16):   7.34117032
+ x1p( 18):   7.65882968
+ x1p( 21):   683.312304
+ theta:   683.312304 zsub:   683.312304
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU cost                .              .              .            -1.0000      
+
+  cost  objective
+
+---- EQU avail  aircraft availability constraints
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF           10.0000        10.0000      -138.0000  NOPT
+b        -INF           19.0000        19.0000       -39.8409  NOPT
+c        -INF           25.0000        25.0000       -17.4205  NOPT
+d        -INF           15.0000        15.0000       -70.7500  NOPT
+
+---- EQU demand  demand constraints
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-1       250.0000        31.9471        +INF            9.7500      
+route-2       120.0000          .            +INF            EPS         
+route-3       180.0000         8.0000        +INF            2.1000      
+route-4        90.0000        30.0000        +INF            2.1000      
+route-5       600.0000         2.0000        +INF            0.1000      
+
+---- VAR x  number of aircraft type i assigned to route j
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+a.route-1          .            10.0000        +INF             .          
+a.route-2          .              .            +INF           76.7386      
+a.route-3          .              .            +INF           44.3182      
+a.route-4          .              .            +INF           71.4439      
+a.route-5          .              .            +INF           82.5842      
+b.route-1          .              .            +INF           39.8409      
+b.route-2          .            12.8448        +INF             .          
+b.route-3          .             0.8218        +INF             .          
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 32
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 287
+
+
+     VAR x  number of aircraft type i assigned to route j
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+b.route-4          .             5.3333        +INF             .          
+b.route-5          .              .            +INF            2.8076      
+c.route-1          .              .            +INF           17.4205      
+c.route-2          .             4.3103        +INF             .          
+c.route-3          .              .            +INF           17.4205      
+c.route-4          .              .            +INF            1.2947      
+c.route-5          .            20.6897        +INF             .          
+d.route-1          .             7.3412        +INF             .          
+d.route-2          .              .            +INF           26.4250      
+d.route-3          .             7.6588        +INF             .          
+d.route-4          .              .            +INF           24.7303      
+d.route-5          .              .            +INF           36.3319      
+
+---- VAR bumped  passengers bumped
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-1          .            31.9471        +INF            3.2500      
+route-2          .              .            +INF           13.0000      
+route-3          .             8.0000        +INF            4.9000      
+route-4          .            30.0000        +INF            4.9000      
+route-5          .             2.0000        +INF            0.9000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF         1566.0422        +INF           -1.0000      
+
+  z  objective variable
+
+
+**** REPORT SUMMARY :        4     NONOPT ( NOPT)
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 33
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Model Statistics    SOLVE fixed Using LP From line 301
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           26
+NON ZERO ELEMENTS            65
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 34
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 301
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fixed               OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  DECISM              FROM LINE  301
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE             1037.2460
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         6    2000000000
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+  T H E   D  E  C  I  S   S Y S T E M
+
+  Copyright (c) 1989 -- 2007 by Dr. Gerd Infanger
+  All rights reserved.
+
+  Licensee: Customer Sublicensee           Gams Development Corporation
+
+ parameters:
+
+ istrat    =  1
+ nsamples  =  100
+ nzrows    =  100
+ maxit     =  2000000000
+ iwrite    =  0
+ ibug      =  0
+ iscratch  =  17
+ iresamp   =  1
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 35
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 301
+
+
+ igms      =  1
+ ireg      =  0
+ rho       =   1000.
+ tolben    =   1.E-07
+ tolw      =   1.E-09
+ iappr     =  1
+ maxtime   =   1000.
+ iseed     =  12933428
+
+ stoch array sizes:
+ jele:   5
+ jsum:   20
+ itoc:   5
+ itele:  20
+
+     1  TIME          GAMS       0.00000E+00              0.00000E+00
+     2  PERIODS                  0.00000E+00              0.00000E+00
+     3      C0000001  R0000002   0.00000E+00   PERIOD01   0.00000E+00
+     4      C0000021  R0000006   0.00000E+00   PERIOD02   0.00000E+00
+     5  ENDATA                   0.00000E+00              0.00000E+00
+
+ Allocating:
+ rows:     250
+ columss:  250
+ elements: 10000
+
+ nwcore1:  9004769
+ nwcore2:  6609
+ nwcore :  9017987
+
+      SUPERBASICS LIMIT               1
+ Successful decomposition:
+ core:   rows 10 cols 25 nonz 64
+ master: rows 5 cols 21 nonz 37
+ B:      rows 6 cols 20 nonz 17
+ sub:    rows 6 cols 5 nonz 10
+      SUPERBASICS LIMIT               1
+ matrix b adjusted:
+ rows: 6 cols: 20 nonz: 17
+ Successful input of stochastic file:
+ Independent random parameters:  5
+ Total number of outcomes     :  20
+ Universe scenarios           :   750.
+ start deterministic benders (exp.values)
+ solve relaxed master
+      SUPERBASICS LIMIT               1
+ relaxed master done, obj: -1.E+09
+ objm  0.
+ theta : -1.E+09
+ evaluating w/ expected values
+ sub obj:  7332.5
+ solve master, iteration:  1
+ master objective:  -182.5
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 36
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 301
+
+
+ lower bnd.: -182.5  var.:  0.
+ upper bnd.:  7332.5  var.:  0.
+ objm  970.
+ evaluating w/ expected values
+ sub obj:  2432.5
+ solve master, iteration:  2
+ master objective:   512.428571
+ lower bnd.:  512.428571  var.:  0.
+ upper bnd.:  3402.5  var.:  0.
+ objm  936.519481
+ evaluating w/ expected values
+ sub obj:  1867.5
+ solve master, iteration:  3
+ master objective:   845.222944
+ lower bnd.:  845.222944  var.:  0.
+ upper bnd.:  2804.01948  var.:  0.
+ objm  945.619048
+ evaluating w/ expected values
+ sub obj:  3019.6039
+ solve master, iteration:  4
+ master objective:   981.928571
+ lower bnd.:  981.928571  var.:  0.
+ upper bnd.:  2804.01948  var.:  0.
+ objm  971.714286
+ evaluating w/ expected values
+ sub obj:  562.714286
+ solve master, iteration:  5
+ master objective:   1037.24603
+ lower bnd.:  1037.24603  var.:  0.
+ upper bnd.:  1534.42857  var.:  0.
+ objm  904.928571
+ evaluating w/ expected values
+ sub obj:  132.31746
+ solve master, iteration:  6
+ master objective:   1037.24603
+ lower bnd.:  1037.24603  var.:  0.
+ upper bnd.:  1037.24603  var.:  0.
+ objm  904.928571
+ re-evaluating best solution for upper bnd
+ evaluating w/ expected values
+ sub obj:  132.31746
+ upper bnd.:  1037.24603 var.:  0.
+  solution :
+  obj :   1037.24603
+ x1p( 1):   10.
+ x1p( 7):   7.56349206
+ x1p( 8):   5.43650794
+ x1p( 9):   6.
+ x1p( 12):   8.87301587
+ x1p( 15):   16.1269841
+ x1p( 16):   10.2777778
+ x1p( 18):   4.72222222
+ x1p( 21):   132.31746
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 37
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 301
+
+
+ theta:   132.31746 zsub:   132.31746
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU cost                .              .              .            -1.0000      
+
+  cost  objective
+
+---- EQU avail  aircraft availability constraints
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+a        -INF           10.0000        10.0000      -169.1746  NOPT
+b        -INF           19.0000        19.0000       -51.0000  NOPT
+c        -INF           25.0000        25.0000       -23.0000  NOPT
+d        -INF           15.0000        15.0000       -88.2857  NOPT
+
+---- EQU demand  demand constraints
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-1       250.0000          .            +INF            EPS         
+route-2       120.0000          .            +INF            EPS         
+route-3       180.0000          .            +INF            EPS         
+route-4        90.0000          .            +INF            EPS         
+route-5       600.0000       132.3175        +INF            1.0000      
+
+---- VAR x  number of aircraft type i assigned to route j
+
+                 LOWER          LEVEL          UPPER         MARGINAL
+
+a.route-1          .            10.0000        +INF             .          
+a.route-2          .              .            +INF           91.1746      
+a.route-3          .              .            +INF           53.1746      
+a.route-4          .              .            +INF           85.5079      
+a.route-5          .              .            +INF           98.1746      
+b.route-1          .              .            +INF           51.0000      
+b.route-2          .             7.5635        +INF             .          
+b.route-3          .             5.4365        +INF             .          
+b.route-4          .             6.0000        +INF             .          
+b.route-5          .              .            +INF            3.0000      
+c.route-1          .              .            +INF           23.0000      
+c.route-2          .             8.8730        +INF             .          
+c.route-3          .              .            +INF           23.0000      
+c.route-4          .              .            +INF            1.6667      
+c.route-5          .            16.1270        +INF             .          
+d.route-1          .            10.2778        +INF             .          
+d.route-2          .              .            +INF           31.6857      
+d.route-3          .             4.7222        +INF             .          
+d.route-4          .              .            +INF           29.6190      
+d.route-5          .              .            +INF           43.2857      
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 38
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+Solution Report     SOLVE fixed Using LP From line 301
+
+
+---- VAR bumped  passengers bumped
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+route-1          .              .            +INF           13.0000      
+route-2          .              .            +INF           13.0000      
+route-3          .              .            +INF            7.0000      
+route-4          .              .            +INF            7.0000      
+route-5          .           132.3175        +INF            EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF         1037.2460        +INF           -1.0000      
+
+  z  objective variable
+
+
+**** REPORT SUMMARY :        4     NONOPT ( NOPT)
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:18 Page 39
+Aircraft allocation - stochastic optimization with DECIS (AIRSP2,SEQ=196)
+E x e c u t i o n
+
+
+----    307 PARAMETER obj  
+
+DECIS default sampling       1572.53
+DECIS universe problem       1566.04
+DECIS expected value problem 1037.25
+
+
+----    310 PARAMETER results  first stage results
+
+                               a.route-1   b.route-2   b.route-3   b.route-4   c.route-2   c.route-5   d.route-1   d.route-3
+
+DECIS default sampling             10.00       12.89        0.99        5.11        4.18       20.82        7.42        7.58
+DECIS universe problem             10.00       12.84        0.82        5.33        4.31       20.69        7.34        7.66
+DECIS expected value problem       10.00        7.56        5.44        6.00        8.87       16.13       10.28        4.72
+
+
+**** REPORT FILE SUMMARY
+
+stg /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/MODEL.STG
+mopt /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/MINOS.SPC
+decopt /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/decism.opt
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/airsp2.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/airsp2/airsp2-scalar.mod.lst

@@ -1,0 +1,29 @@
+--- Job knp.gms Start 12/13/18 11:24:26 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- knp.gms(118) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- knp.gms(57) 4 Mb
+--- Generating NLP model kissing
+--- knp.gms(59) 6 Mb
+---   300 rows  97 columns  2,580 non-zeroes
+---   5,005 nl-code  2,304 nl-non-zeroes
+--- knp.gms(59) 4 Mb
+--- Executing CONVERT (Solvelink=1): elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/knp/convert.opt"
+>>  gams knp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/knp/convert.opt"
+--- Writing Gams      : knp-scalar.gms
+
+--- Reading solution for model kissing
+--- knp.gms(108) 4 Mb
+*** Status: Normal completion
+--- Job knp.gms Stop 12/13/18 11:24:26 elapsed 0:00:00.016

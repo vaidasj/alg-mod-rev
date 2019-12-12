@@ -1,0 +1,232 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+   3  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 2
+Elementary Production and Inventory Model  (ROBERT,SEQ=37)
+C o m p i l a t i o n
+
+
+   5   
+       
+      A manufacturer can produce three different products requiring the
+      storage of two raw materials. Expected profits change over time and
+      remaining raw materials are valued.
+       
+       
+      Fourer, R, Modeling Languages versus Matrix Generators For Linear
+      Programming. ACM Transaction of Mathematical Software 9, 2 (1983),
+      143-183.
+       
+  18   
+  19   
+  20   Sets  p     products       / low, medium, high /
+  21         r     raw materials  / scrap, new /
+  22         tt    long horizon   / 1*4 /
+  23         t(tt) short horizon  / 1*3 /
+  24   
+  25   
+  26   Table  a(r,p)  input coefficients
+  27   
+  28            low  medium  high
+  29   scrap      5     3      1
+  30   new        1     2      3
+  31   
+  32   
+  33   Table  c(p,t)  expected profits
+  34   
+  35              1    2    3
+  36   low       25   20   10
+  37   medium    50   50   50
+  38   high      75   80  100
+  39   
+  40   
+  41   Table  misc(*,r)  other data
+  42   
+  43              scrap  new
+  44   max-stock    400  275
+  45   storage-c     .5    2
+  46   res-value     15   25
+  47   
+  48   Scalar m maximum production / 40 /;
+  49   
+  50   Variables  x(p,tt)  production and sales
+  51              s(r,tt)  opening stocks
+  52              profit
+  53   
+  54   Positive variables x, s;
+  55   
+  56   Equations  cc(t)    capacity constraint
+  57              sb(r,tt) stock balance
+  58              pd       profit definition ;
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 3
+Elementary Production and Inventory Model  (ROBERT,SEQ=37)
+C o m p i l a t i o n
+
+
+  60   cc(t)..     sum(p, x(p,t)) =l= m;
+  61   
+  62   sb(r,tt+1).. s(r,tt+1) =e= s(r,tt) - sum(p, a(r,p)*x(p,tt));
+  63   
+  64   pd.. profit =e= sum(t, sum(p, c(p,t)*x(p,t))-sum(r, misc("storage-c",r)*s(r,t)))
+  65                 + sum(r, misc("res-value",r)*s(r,"4"));
+  66   
+  67   s.up(r,"1") = misc("max-stock",r);
+  68   
+  69   Model robert / all /
+  70   
+  71   Solve robert maximizing profit using lp;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 4
+Elementary Production and Inventory Model  (ROBERT,SEQ=37)
+Equation Listing    SOLVE robert Using LP From line 71
+
+
+---- cc  =L=  capacity constraint
+
+cc(1)..  x(low,1) + x(medium,1) + x(high,1) =L= 40 ; (LHS = 0)
+     
+cc(2)..  x(low,2) + x(medium,2) + x(high,2) =L= 40 ; (LHS = 0)
+     
+cc(3)..  x(low,3) + x(medium,3) + x(high,3) =L= 40 ; (LHS = 0)
+     
+
+---- sb  =E=  stock balance
+
+sb(scrap,2)..  5*x(low,1) + 3*x(medium,1) + x(high,1) - s(scrap,1) + s(scrap,2) =E= 0 ; (LHS = 0)
+     
+sb(scrap,3)..  5*x(low,2) + 3*x(medium,2) + x(high,2) - s(scrap,2) + s(scrap,3) =E= 0 ; (LHS = 0)
+     
+sb(scrap,4)..  5*x(low,3) + 3*x(medium,3) + x(high,3) - s(scrap,3) + s(scrap,4) =E= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- pd  =E=  profit definition
+
+pd..  - 25*x(low,1) - 20*x(low,2) - 10*x(low,3) - 50*x(medium,1) - 50*x(medium,2) - 50*x(medium,3) - 75*x(high,1) - 80*x(high,2) - 100*x(high,3) + 0.5*s(scrap,1) + 0.5*s(scrap,2) + 0.5*s(scrap,3) - 15*s(scrap,4) + 2*s(new,1) + 2*s(new,2) + 2*s(new,3)
+     
+      - 25*s(new,4) + profit =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 5
+Elementary Production and Inventory Model  (ROBERT,SEQ=37)
+Column Listing      SOLVE robert Using LP From line 71
+
+
+---- x  production and sales
+
+x(low,1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cc(1)
+        5       sb(scrap,2)
+        1       sb(new,2)
+      -25       pd
+
+x(low,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cc(2)
+        5       sb(scrap,3)
+        1       sb(new,3)
+      -20       pd
+
+x(low,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       cc(3)
+        5       sb(scrap,4)
+        1       sb(new,4)
+      -10       pd
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- s  opening stocks
+
+s(scrap,1)
+                (.LO, .L, .UP, .M = 0, 0, 400, 0)
+       -1       sb(scrap,2)
+        0.5     pd
+
+s(scrap,2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       sb(scrap,2)
+       -1       sb(scrap,3)
+        0.5     pd
+
+s(scrap,3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       sb(scrap,3)
+       -1       sb(scrap,4)
+        0.5     pd
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- profit  
+
+profit
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pd
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 6
+Elementary Production and Inventory Model  (ROBERT,SEQ=37)
+Model Statistics    SOLVE robert Using LP From line 71
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           10
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           18
+NON ZERO ELEMENTS            57
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 7
+Elementary Production and Inventory Model  (ROBERT,SEQ=37)
+Solution Report     SOLVE robert Using LP From line 71
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   robert              OBJECTIVE  profit
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  71
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/robert/convert.opt"
+>>  pyomo robert-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/robert/convert.opt"
+Pyomo     : robert-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/robert/robert.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/robert/robert-scalar.py.lst

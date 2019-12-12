@@ -1,0 +1,243 @@
+--- Job tgridmix.gms Start 12/13/18 11:43:35 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- tgridmix.gms(122) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 1
+---       FOR/WHILE = 1
+---      * = 1
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000001
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 1
+---       FOR/WHILE = 2
+---      * = 2
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000002
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 1
+---       FOR/WHILE = 3
+---      * = 3
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000003
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 1
+---       FOR/WHILE = 4
+---      * = 4
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000004
+--- tgridmix.gms(90) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000001/gmsgrid.gdx
+--- Removed handle grid145000001
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000002/gmsgrid.gdx
+--- Removed handle grid145000002
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000003/gmsgrid.gdx
+--- Removed handle grid145000003
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000004/gmsgrid.gdx
+--- Removed handle grid145000004
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 2
+---       FOR/WHILE = 1
+---      * = 5
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000005
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 2
+---       FOR/WHILE = 2
+---      * = 6
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000006
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 2
+---       FOR/WHILE = 3
+---      * = 7
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000007
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 2
+---       FOR/WHILE = 4
+---      * = 8
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000008
+--- tgridmix.gms(90) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000005/gmsgrid.gdx
+--- Removed handle grid145000005
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000006/gmsgrid.gdx
+--- Removed handle grid145000006
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000007/gmsgrid.gdx
+--- Removed handle grid145000007
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000008/gmsgrid.gdx
+--- Removed handle grid145000008
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 3
+---       FOR/WHILE = 1
+---      * = 9
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000009
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- Reset Solvelink = 3
+--- LOOPS sl = Threads
+---       FOR/WHILE = 3
+---       FOR/WHILE = 2
+---      * = 10
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000010
+--- tgridmix.gms(90) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000009/gmsgrid.gdx
+--- Removed handle grid145000009
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000010/gmsgrid.gdx
+--- Removed handle grid145000010
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 1
+---       FOR/WHILE = 1
+---      * = 1
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000011
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 1
+---       FOR/WHILE = 2
+---      * = 2
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000012
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 1
+---       FOR/WHILE = 3
+---      * = 3
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000013
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 1
+---       FOR/WHILE = 4
+---      * = 4
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000014
+--- tgridmix.gms(90) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000011/gmsgrid.gdx
+--- Removed handle grid145000011
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000012/gmsgrid.gdx
+--- Removed handle grid145000012
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000013/gmsgrid.gdx
+--- Removed handle grid145000013
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000014/gmsgrid.gdx
+--- Removed handle grid145000014
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 2
+---       FOR/WHILE = 1
+---      * = 5
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000015
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 2
+---       FOR/WHILE = 2
+---      * = 6
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000016
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 2
+---       FOR/WHILE = 3
+---      * = 7
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000017
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 2
+---       FOR/WHILE = 4
+---      * = 8
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000018
+--- tgridmix.gms(90) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000015/gmsgrid.gdx
+--- Removed handle grid145000015
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000016/gmsgrid.gdx
+--- Removed handle grid145000016
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000017/gmsgrid.gdx
+--- Removed handle grid145000017
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000018/gmsgrid.gdx
+--- Removed handle grid145000018
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 3
+---       FOR/WHILE = 1
+---      * = 9
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000019
+--- tgridmix.gms(90) 4 Mb
+--- Generating LP model transport
+--- tgridmix.gms(101) 4 Mb
+--- LOOPS sl = Grid
+---       FOR/WHILE = 3
+---       FOR/WHILE = 2
+---      * = 10
+---   6 rows  7 columns  19 non-zeroes
+--- Submitting model transport with handle grid145000020
+--- tgridmix.gms(90) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000019/gmsgrid.gdx
+--- Removed handle grid145000019
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/tgridmix/225a/grid145000020/gmsgrid.gdx
+--- Removed handle grid145000020
+--- tgridmix.gms(122) 4 Mb
+*** Status: Normal completion
+--- Job tgridmix.gms Stop 12/13/18 11:43:35 elapsed 0:00:00.174

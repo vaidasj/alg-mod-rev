@@ -1,0 +1,512 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 2
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+C o m p i l a t i o n
+
+
+   4   
+       
+         A company specializing in the manufacture of outboard motors faces
+         highly seasonal demands and wants to minimize production cost. The
+         three main cost categories are:
+           1. direct production cost (nonlinear production relations and shift
+              operations are possible)
+           2. inventory cost (rent or lease option)
+           3. workforce fluctuation cost.
+       
+       
+      CDC, APEX-III Reference Manual Version 1.2, Control Data Corporation,
+      Minneapolis, 1980. MIP Sample Problem
+       
+         This is a revised version of the model PRODSCH (SEQ=9). The GAMS
+         SOS definition required to change the index positions of the
+         variables ss and SSB. There are three possible ways to use a MIP.
+       
+  24   
+  25  *      Binary variables
+  26  *      SOS1 sets
+  27  *      SOS2 sets
+  28  *
+  29  *  Some equations are entered twice with a different name to comply
+  30  *  with the strict typing of variables in GAMS.
+  31   
+  32  Sets  q    quarters                   / summer, fall, winter, spring /
+  33        s    shifts                     / first, second /
+  34        l    production levels          / 1*4 /
+  35        i(l) production level intervals / 1*3 /
+  36   
+  37  Parameters  d(q)    demand (motors per season)        / spring = 24000 /
+  38              delt(q) discount factor
+  39              lc(q)   leasing cost (dollars per season) / summer = 15000 /
+  40              ei(q)   initial employment                / summer =    84 /
+  41   
+  42  Scalars  mc     material cost (dollars per motor)  / 100 /
+  43           sr     space rental  (dollars per motor)  /   2 /
+  44           invmax upper bound on inventory (motors)
+  45           hc     hiring cost (dollars per employee) / 900 /
+  46           fc     firing cost (dollars per employee) / 150 / ;
+  47   
+  48  delt(q) = 1/1.03**(ord(q)-1);   invmax = sum(q, d(q));
+  49   
+  50   
+  51  Table  pr(*,l) production relationship
+  52   
+  53             1      2      3      4
+  54   
+  55  labor     20     40     50     60
+  56  motor   1000   3000   4500   5800
+  57   
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 3
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+C o m p i l a t i o n
+
+
+  59  Table sc(*,s)  shift cost  ( dollars per shift )
+  60   
+  61          first    second
+  62   
+  63  fixed   10000     16000
+  64  labor    3500      4100
+  65   
+  66   
+  67  Variables  cost        total discounted cost per year           (1000 $)
+  68             dpc(q)      direct production cost        (1000 $ per season)
+  69             isc(q)      inventory storage cost        (1000 $ per season)
+  70             wfc(q)      workforce fluctuation cost    (1000 $ per season)
+  71             src(q)      space rental cost             (1000 $ per season)
+  72   
+  73             p(q)        production                    (motors per season)
+  74             ss(q,s,l)   production segments                   (sos2 type)
+  75             ssb(q,s,l)  0-1 needed for ss sos2 formulation
+  76             ss1(q,s,l)  SOS1 needed for ss sos2
+  77             ss2(q,s,l)  SOS2 formulation
+  78             inv(q)      inventory                     (motors per season)
+  79             lease       lease-rent option
+  80   
+  81             e(q)        total employment                      (employees)
+  82             se(q,s)     shift employment            (employees per shift)
+  83             shift(q,s)  shift use indicator                      (binary)
+  84             h(q)        hirings per quarter                   (employees)
+  85             f(q)        firings per quarter                   (employees)
+  86   
+  87  Positive Variables p, ss, inv, src, h, f ;
+  88  Binary variables lease, shift, ssb; SOS1 variable ss1; SOS2 variable ss2;
+  89   
+  90  Equations  acost        total cost definition                  (1000 $)
+  91             ddpc(q)      direct production cost definition      (1000 $)
+  92             disc(q)      inventory storage cost definition      (1000 $)
+  93             dwfc(q)      workforce fluctuation cost definition  (1000 $)
+  94   
+  95             sbp(q)       sos product balance                    (motors)
+  96             sbps2(q)     SOS2 product balance                    (motors)
+  97             sbse(q,s)    sos shift employment balance        (employees)
+  98             sbses2(q,s)  SOS2 shift employment balance        (employees)
+  99             scc(q,s)     sos shift link
+ 100             sccs2(q,s)   SOS2 shift link
+ 101             invb(q)      inventory balance                      (motors)
+ 102             dsrc(q)      definition: space rental
+ 103   
+ 104             ed(q)        total employment definition         (employees)
+ 105             eb1(q)       employment balance type 1           (employees)
+ 106             eb2(q)       employment balance type 2           (employees)
+ 107   
+ 108             messb(q,s)   mutual exclusivity for ssb
+ 109             mess1(q,s)   mutual exclusivity for ss1
+ 110             lssb(q,s,l)  ss - ssb linkage
+ 111             lss1(q,s,l)  ss - ss1 linkage ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 4
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+C o m p i l a t i o n
+
+
+ 112   
+ 113   
+ 114  acost..      cost   =e= sum(q, delt(q)*( dpc(q) + isc(q) + wfc(q) ));
+ 115   
+ 116  ddpc(q)..    dpc(q) =e= (mc*p(q) + sum(s, sc("fixed",s)*shift(q,s) + sc("labor",s)*se(q,s)))/1000;
+ 117   
+ 118  sbp(q)..     p(q) =e= sum((s,l), pr("motor",l)*ss (q,s,l)) ;
+ 119  sbps2(q)..   p(q) =e= sum((s,l), pr("motor",l)*ss2(q,s,l)) ;
+ 120   
+ 121  sbse(q,s)..  se(q,s) =e= sum(l, pr("labor",l)*ss (q,s,l)) ;
+ 122  sbses2(q,s)..se(q,s) =e= sum(l, pr("labor",l)*ss2(q,s,l)) ;
+ 123   
+ 124  scc(q,s)..   sum(l, ss (q,s,l)) =e= shift(q,s) ;
+ 125  sccs2(q,s).. sum(l, ss2(q,s,l)) =e= shift(q,s) ;
+ 126   
+ 127  invb(q)..    inv(q) =e= inv(q-1) + p(q) - d(q) ;
+ 128   
+ 129  disc(q)..    isc(q) =e= (lc(q)*lease + src(q))/1000 ;
+ 130   
+ 131  dsrc(q)..    src(q) =g= sr*( inv(q) - invmax*lease ) ;
+ 132   
+ 133  dwfc(q)..    wfc(q) =e= (hc*h(q) + fc*f(q))/1000 ;
+ 134   
+ 135  ed(q)..      e(q)   =e= sum(s, se(q,s));
+ 136   
+ 137  eb1(q)..     e(q)   =e= e(q-1) + h(q) - f(q) + ei(q) ;
+ 138   
+ 139  eb2(q)..     e(q)   =e= e(q--1) + h(q) - f(q) ;
+ 140   
+ 141  messb(q,s).. sum(l, ssb(q,s,l)) =e= 1;
+ 142  mess1(q,s).. sum(l, ss1(q,s,l)) =e= 1;
+ 143   
+ 144  lssb(q,s,l).. ss(q,s,l-1) + ss(q,s,l) =l= ssb(q,s,l-2) + ssb(q,s,l-1) + ssb(q,s,l);
+ 145  lss1(q,s,l).. ss(q,s,l-1) + ss(q,s,l) =l= ss1(q,s,l-2) + ss1(q,s,l-1) + ss1(q,s,l);
+ 146   
+ 147  p.up("spring") = .8*card(s)*smax(l, pr("motor",l));
+ 148   
+ 149  Model prod1B  initial employment / acost, ddpc, sbp, sbse, scc, disc, invb, dsrc, dwfc, ed, eb1, messb, lssb /
+ 150        prod2B  steady state       / acost, ddpc, sbp, sbse, scc, disc, invb, dsrc, dwfc, ed, eb2, messb, lssb /
+ 151        prod1S1 initial employment / acost, ddpc, sbp, sbse, scc, disc, invb, dsrc, dwfc, ed, eb1, mess1, lss1 /
+ 152        prod2S1 steady state       / acost, ddpc, sbp, sbse, scc, disc, invb, dsrc, dwfc, ed, eb2, mess1, lss1 /
+ 153        prod1S2 initial employment / acost, ddpc, sbps2, sbses2, sccs2, disc, invb, dsrc, dwfc, ed, eb1 /
+ 154        prod2S2 steady state       / acost, ddpc, sbps2, sbses2, sccs2, disc, invb, dsrc, dwfc, ed, eb2 /;
+ 155   
+ 156  * get global optimum (OPTCR) and force each solve to start from scratch (BRATIO)
+ 157   
+ 158  Option optcr=0,limcol=0,limrow=0,bratio=1;
+ 159   
+ 160  Parameter report summary performance report;
+ 161   
+ 162  Solve prod1b  minimizing cost using mip;
+ 163  report('prod1b','objval')  = prod1b.objval;
+ 164  report('prod1b','iterusd') = prod1b.iterusd;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 5
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+C o m p i l a t i o n
+
+
+ 165  report('prod1b','nodusd')  = prod1b.nodusd;
+ 166   
+ 167  Solve prod1s1 minimizing cost using mip;
+ 168  report('prod1s1','objval')  = prod1s1.objval;
+ 169  report('prod1s1','iterusd') = prod1s1.iterusd;
+ 170  report('prod1s1','nodusd')  = prod1s1.nodusd;
+ 171   
+ 172  Solve prod1s2 minimizing cost using mip;
+ 173  report('prod1s2','objval')  = prod1s2.objval;
+ 174  report('prod1s2','iterusd') = prod1s2.iterusd;
+ 175  report('prod1s2','nodusd')  = prod1s2.nodusd;
+ 176   
+ 177  Solve prod2b  minimizing cost using mip;
+ 178  report('prod2b','objval')  = prod2b.objval;
+ 179  report('prod2b','iterusd') = prod2b.iterusd;
+ 180  report('prod2b','nodusd')  = prod2b.nodusd;
+ 181   
+ 182  Solve prod2s1 minimizing cost using mip;
+ 183  report('prod2s1','objval')  = prod2s1.objval;
+ 184  report('prod2s1','iterusd') = prod2s1.iterusd;
+ 185  report('prod2s1','nodusd')  = prod2s1.nodusd;
+ 186   
+ 187  Solve prod2s2 minimizing cost using mip;
+ 188  report('prod2s2','objval')  = prod2s2.objval;
+ 189  report('prod2s2','iterusd') = prod2s2.iterusd;
+ 190  report('prod2s2','nodusd')  = prod2s2.nodusd;
+ 191   
+ 192  Display report;
+ 193   
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 6
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Model Statistics    SOLVE prod1B Using MIP From line 162
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           89
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES          118
+NON ZERO ELEMENTS           384     DISCRETE VARIABLES         41
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 7
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Solution Report     SOLVE prod1B Using MIP From line 162
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   prod1B              OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  162
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+Gams      : prodschx-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 8
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Model Statistics    SOLVE prod1S1 Using MIP From line 167
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           89
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES          118
+NON ZERO ELEMENTS           384     DISCRETE VARIABLES          9
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:49 Page 9
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Solution Report     SOLVE prod1S1 Using MIP From line 167
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   prod1S1             OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  167
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+Gams      : prodschx-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 10
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Model Statistics    SOLVE prod1S2 Using MIP From line 172
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          11     SINGLE EQUATIONS           49
+BLOCKS OF VARIABLES          14     SINGLE VARIABLES           86
+NON ZERO ELEMENTS           224     DISCRETE VARIABLES          9
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 11
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Solution Report     SOLVE prod1S2 Using MIP From line 172
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   prod1S2             OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  172
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+Gams      : prodschx-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 12
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Model Statistics    SOLVE prod2B Using MIP From line 177
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           89
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES          118
+NON ZERO ELEMENTS           385     DISCRETE VARIABLES         41
+
+
+GENERATION TIME      =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 13
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Solution Report     SOLVE prod2B Using MIP From line 177
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   prod2B              OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  177
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+Gams      : prodschx-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 14
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Model Statistics    SOLVE prod2S1 Using MIP From line 182
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           89
+BLOCKS OF VARIABLES          15     SINGLE VARIABLES          118
+NON ZERO ELEMENTS           385     DISCRETE VARIABLES          9
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 15
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Solution Report     SOLVE prod2S1 Using MIP From line 182
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   prod2S1             OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  182
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+Gams      : prodschx-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 16
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Model Statistics    SOLVE prod2S2 Using MIP From line 187
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          11     SINGLE EQUATIONS           49
+BLOCKS OF VARIABLES          14     SINGLE VARIABLES           86
+NON ZERO ELEMENTS           225     DISCRETE VARIABLES          9
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 17
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+Solution Report     SOLVE prod2S2 Using MIP From line 187
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   prod2S2             OBJECTIVE  cost
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  187
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+>>  gams prodschx-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodschx/convert.opt"
+Gams      : prodschx-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:49 Page 18
+Production Scheduling Model using SOS1 and SOS2 (PRODSCHX,SEQ=109)
+E x e c u t i o n
+
+
+----    192 PARAMETER report  summary performance report
+
+             nodusd
+
+prod1b           NA
+prod1s1          NA
+prod1s2          NA
+prod2b           NA
+prod2s1          NA
+prod2s2          NA
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/prodschx/prodschx.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/prodschx/prodschx-scalar.gms.lst

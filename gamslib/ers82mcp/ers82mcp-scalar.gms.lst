@@ -1,0 +1,2338 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+   2  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 2
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+       U.S. CGE MODEL WITH 1982 DATA BASE, Billions of Dollars.
+       USDA/ERS GNP Version, April 1990. Programmed by: Sherman Robinson,
+       Kenneth Hanson, and Maureen Kilkenny.
+       
+       The model is based on GNP data, and includes exports and imports of
+       factor services.
+       
+       
+      Robinson, S, Kilkenny, M, and Hanson, K, The USDA/ERS Computable
+      General Equilibrium (CGE) Model of the United States. Tech. rep.,
+      USDA/ERS, 1990.
+       
+  18   
+  19   
+  20   sets
+  21   
+  22   i     sectors                / lvstk      dairy and meat
+  23                                  expcrp     grains and oilseeds
+  24                                  othcrp     other agriculture
+  25                                  agproc     agric processing
+  26                                  aginp      agric inputs
+  27                                  intmnf     interm manuf
+  28                                  fdmnf      final demand manuf
+  29                                  trdtrn     trade and transport
+  30                                  service    services
+  31                                  resta      real estate /
+  32   
+  33   f     factors of production  / labor      labor
+  34                                  capital    capital
+  35                                  land       agricultural land /
+  36   
+  37   ins   institutions           / labr       labor
+  38                                  ent        enterprises
+  39                                  prop       property /
+  40   
+  41   hh    household type         / hhtrn      transfer recipients
+  42                                  hhlab      wage earners
+  43                                  hhcap      rentiers /
+  44   
+  45  * the institution names and the factor names "capital" and "land"
+  46  * are referred to explicitly below.  if changed, they must also be
+  47  * changed where referenced.
+  48  * the printing of the gnp accounts assume that there is a sector
+  49  * labeled "service."
+  50   
+  51  *## subsets defined below: "define indexes"
+  52   
+  53   iag(i)          ag sectors      / lvstk, expcrp, othcrp /
+  54   iagn(i)         non ag sectors
+  55   
+  56   ie(i)           export sectors
+  57   ied(i)          sectors with export demand eqn
+  58   iedn(i)         sectors with no export demand eqn
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 3
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+  59   ien(i)          non export sectors
+  60   
+  61   im(i)           import sectors
+  62   imn(i)          non import sectors
+  63   
+  64   alias(i,j) ;
+  65   
+  66  *## for sam
+  67   set isam  categories
+  68                        /commdty,activity,valuad,insttns,households,
+  69                         govt,kaccount,world,total/
+  70       isam1(isam)      /total/
+  71       isam2(isam) ;
+  72   alias(isam2,isam3);
+  73   parameter sam(isam,isam) social accounting matrix ;
+  74   isam2(isam) = not isam1(isam) ;
+  75   
+  76   
+  77  *######################## parameter declaration ######################
+  78   
+  79   parameters
+  80   
+  81  *### read in parameters
+  82   
+  83  *## read in for initialization of variables
+  84   enttax0     enterprise tax revenue
+  85   entsav0     enterprise savings
+  86   exr0        exchange rate
+  87   e0(i)       exports
+  88   fbor0       net foreign borrowing
+  89   fsav0       net foreign savings
+  90   gdtot0      total volume of government consumption
+  91   gent0       payments from government to enterprises
+  92   govsav0     government savings
+  93   hhsav0      household savings
+  94   hht0        household transfers
+  95   invest0     total investment
+  96   m0(i)       imports
+  97   mps0(hh)    household marginal propensity to save
+  98   pd0(i)      domestic goods price
+  99   pe0(i)      domestic price of exports
+ 100   pindex0     gnp deflator
+ 101   pm0(i)      domestic price of imports
+ 102   remit0      net remittances from abroad
+ 103   sstax0      social security tax revenue
+ 104   tothhtax0   household tax revenue
+ 105   xd0(i)      domestic output, volumne
+ 106   
+ 107  *# read in table for initialization of variables (need not be declared)
+ 108  * table fctres1(i,f) factor demand by sector
+ 109  * table fctry(i,f)   factor income by sector
+ 110   
+ 111  *## read in parameters as rates, shares, elasticities
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 4
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 112   depr(i)     depreciation rates
+ 113   dstr(i)     ratio of inventory investment to gross output
+ 114   esr         enterprise savings rate
+ 115   etr         enterprise tax rate
+ 116   gles(i)     government consumption shares
+ 117   htax(hh)    household tax rate
+ 118   itax(i)     indirect tax rates
+ 119   kish(i)     shares of investment by sector of destination
+ 120   rhsh(hh)    household remittance share
+ 121   rhoc(i)     armington function exponent
+ 122   rhoe(i)     export demand price elasticity
+ 123   rhot(i)     cet function exponent
+ 124   sstr        social security tax rate
+ 125   te(i)       export subsidy rates
+ 126   tm(i)       tariff rates on imports
+ 127   thsh(hh)    household shares of government transfers
+ 128   
+ 129  *# read in table of parameters (need not be declared)
+ 130  * table cles(i,hh)      household consumption shares
+ 131  * table imat(i,j)       capital composition matrix
+ 132  * table io(i,j)         input-output coefficients
+ 133  * table sintyh(hh,ins)  household distribution of institutional income
+ 134   
+ 135  *### computed parameters from read in data (calibration)
+ 136   
+ 137  *## computed parameters for initialization of variables
+ 138   deprecia0     total depreciation expenditure
+ 139   fd0(f)        factor demand, aggregate
+ 140   fs0(f)        factor supply, aggregate
+ 141   int0(i)       intermediate input demand
+ 142   netsub0       export duty revenue
+ 143   p0(i)         price of composite good
+ 144   pk0(i)        capital goods price by sector of destination
+ 145   pva0(i)       value added price by sector
+ 146   pwm(i)        world market price of imports (in dollars)
+ 147   pwe0(i)       world price of exports
+ 148   pwse(i)       world price of export substitutes
+ 149   px0(i)        average output price
+ 150   var0(i)       value added rate by sector
+ 151   wfdist(i,f)   factor price sectoral proportionality constants
+ 152   wf0(f)        factor price, aggregate average
+ 153   xxd0(i)       domestic sales, volumne
+ 154   x0(i)         composite good supply, volumne
+ 155   yfctr0(f)     factor income summed over sector
+ 156   yfland0(i)    factor income for land as fraction of capital income
+ 157   yfsect0(i)    factor income by sector
+ 158   yh0(hh)       household income
+ 159   yinst0(ins)   institutional income
+ 160   
+ 161  *## computed parameters as rates, shares
+ 162   ac(i)         armington function shift parameter
+ 163   ad(i)         production function shift parameter
+ 164   alpha(i,f)    factor share parameter-production function
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 5
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 165   at(i)         cet function shift parameter
+ 166   delta(i)      armington function share parameter
+ 167   econst(i)     export demand constant
+ 168   gamma(i)      cet function share parameter
+ 169   pwts(i)       price index weights
+ 170   qd(i)         dummy variable for computing ad(i)
+ 171   rmd(i)        ratio of imports to domestic sales
+ 172   sumsh         sum of share correction parameter
+ 173   sumhhsh(hh)   sum of share for hh cles
+ 174   sumimsh(i)    sum of share for imat
+ 175   tereal(i)     real export subsidy rate in 1982 dollars
+ 176   tmreal(i)     real tariff rate in 1982 dollars
+ 177           ;
+ 178   
+ 179  *## tables used for loading variable results
+ 180  * table scalres(*)     aggregate results
+ 181  * table sectres(*,i)   sectoral price and quantity results
+ 182  * table fctres1(i,f)   factor demand results
+ 183  * table fctres2(*,f)   factor wage, supply and income results
+ 184  * table insres(*,ins)  institutional income results
+ 185  * table hhres(*,hh)    household savings and income results
+ 186   
+ 187   
+ 188  *######################### parameter assignment ######################
+ 189   
+ 190   
+ 191   table io(i,j) input-output coefficients
+ 192   
+ 193                   lvstk       expcrp      othcrp      agproc      aginp
+ 194   
+ 195    lvstk        0.168150    0.028372    0.008224    0.136023    0.000958
+ 196    expcrp       0.271862    0.063924    0.003564    0.042413    0.010264
+ 197    othcrp       0.001403    0.001924    0.034676    0.029118    0.000696
+ 198    agproc       0.027162    0.001427    0.003346    0.219018    0.016157
+ 199    aginp        0.215859    0.194453    0.141894    0.008308    0.127179
+ 200    intmnf       0.007833    0.023602    0.042830    0.096847    0.488054
+ 201    fdmnf        0.013962    0.014380    0.015201    0.037832    0.026911
+ 202    trdtrn       0.064683    0.066275    0.057563    0.078776    0.086941
+ 203    service      0.061396    0.076441    0.063132    0.068066    0.086447
+ 204    resta        0.022761    0.101945    0.042404    0.003908    0.004418
+ 205   
+ 206         +         intmnf      fdmnf       trdtrn      service     resta
+ 207   
+ 208    lvstk        0.000265    0.000059    0.000069    0.000575    0.000000
+ 209    expcrp       0.000124    0.000037    0.000086    0.000355    0.000005
+ 210    othcrp       0.001697    0.000165    0.000072    0.000630    0.000078
+ 211    agproc       0.005055    0.011437    0.001673    0.020583    0.000037
+ 212    aginp        0.032723    0.012603    0.045185    0.020652    0.005944
+ 213    intmnf       0.283883    0.167023    0.011284    0.069580    0.001440
+ 214    fdmnf        0.048351    0.233953    0.031024    0.043826    0.008954
+ 215    trdtrn       0.069999    0.070436    0.074135    0.040961    0.004047
+ 216    service      0.106268    0.100089    0.156346    0.156056    0.091112
+ 217    resta        0.023195    0.009930    0.026575    0.022218    0.070271
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 6
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 218        ;
+ 219   
+ 220   table imat(i,j) capital composition matrix
+ 221   
+ 222                   lvstk       expcrp      othcrp      agproc      aginp
+ 223   
+ 224    lvstk        0.000000    0.000000    0.000000    0.000000    0.000000
+ 225    expcrp       0.000000    0.000000    0.000000    0.000000    0.000000
+ 226    othcrp       0.000000    0.000000    0.000000    0.000000    0.000000
+ 227    agproc       0.000024    0.000000    0.000000    0.000128    0.000048
+ 228    aginp        0.107920    0.572183    0.572183    0.000449    0.045514
+ 229    intmnf       0.021095    0.012547    0.012547    0.038457    0.054939
+ 230    fdmnf        0.358399    0.109671    0.109671    0.852829    0.746376
+ 231    trdtrn       0.000000    0.000000    0.000000    0.000000    0.000000
+ 232    service      0.512562    0.305599    0.305599    0.108137    0.153123
+ 233    resta        0.000000    0.000000    0.000000    0.000000    0.000000
+ 234   
+ 235         +         intmnf      fdmnf       trdtrn      service     resta
+ 236   
+ 237    lvstk        0.000000    0.000000    0.000000    0.000000    0.000000
+ 238    expcrp       0.000000    0.000000    0.000000    0.000000    0.000000
+ 239    othcrp       0.000000    0.000000    0.000000    0.000000    0.000000
+ 240    agproc       0.000039    0.000088    0.000326    0.003320    0.003957
+ 241    aginp        0.001101    0.000340    0.000371    0.008710    0.011875
+ 242    intmnf       0.043006    0.011048    0.007640    0.018766    0.000125
+ 243    fdmnf        0.626612    0.886306    0.867568    0.235520    0.055912
+ 244    trdtrn       0.000000    0.000000    0.000000    0.000000    0.000000
+ 245    service      0.329243    0.102218    0.124095    0.708126    0.891418
+ 246    resta        0.000000    0.000000    0.000000    0.025558    0.036713
+ 247        ;
+ 248   
+ 249   
+ 250  * factors of production
+ 251   
+ 252  *  labor in millions of employees
+ 253  *  capital in billions of 1982 $
+ 254  *  land in millions of acres
+ 255   table fctres1(i,f) factor demand by sector
+ 256   
+ 257                   labor       capital     land
+ 258   
+ 259    lvstk         0.415354   79.844060    0.000000
+ 260    expcrp        0.389786   72.290527  342.600000
+ 261    othcrp        0.495860   27.070413   85.650000
+ 262    agproc        3.584813   90.828916    0.000000
+ 263    aginp         0.887448   80.391908    0.000000
+ 264    intmnf        5.635211  574.659325    0.000000
+ 265    fdmnf         9.907532  291.267850    0.000000
+ 266    trdtrn       18.648095  516.104860    0.000000
+ 267    service      55.605901 3871.778753    0.000000
+ 268    resta         1.070999  639.835386    0.000000
+ 269        ;
+ 270   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 7
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 271  * note, cropland income is read as a fraction of capital income
+ 272   table fctry(i,f) factor income by sector
+ 273   
+ 274                   labor       capital     land
+ 275   
+ 276    lvstk         4.792637    5.014664    0.000000
+ 277    expcrp        3.323859   26.065318    0.630000
+ 278    othcrp        4.906739   10.292489    0.630000
+ 279    agproc       65.741305   32.884451    0.000000
+ 280    aginp        20.248245   13.974888    0.000000
+ 281    intmnf      153.872100  115.536383    0.000000
+ 282    fdmnf       263.093487   49.561461    0.000000
+ 283    trdtrn      330.332692  107.022255    0.000000
+ 284    service    1048.780635  493.262171    0.000000
+ 285    resta        11.908460  146.610508    0.000000
+ 286        ;
+ 287   
+ 288  *## household parameters
+ 289   
+ 290   table cles(i,hh) household consumption shares
+ 291   
+ 292                   hhtrn       hhlab       hhcap
+ 293   
+ 294    lvstk         0.003931    0.003217    0.002309
+ 295    expcrp        0.000326    0.000470    0.000494
+ 296    othcrp        0.006344    0.005539    0.004931
+ 297    agproc        0.119976    0.114408    0.097157
+ 298    aginp         0.024630    0.028957    0.022995
+ 299    intmnf        0.010660    0.011127    0.010686
+ 300    fdmnf         0.089590    0.108451    0.113151
+ 301    trdtrn        0.190825    0.188008    0.188198
+ 302    service       0.516858    0.502351    0.518905
+ 303    resta         0.036861    0.037470    0.041175
+ 304        ;
+ 305   
+ 306  * note, mps(hhcap) and htax(hhlab) are recomputed below from value data
+ 307   table hhpar(*,hh) miscellaneous household parameters
+ 308   
+ 309                   hhtrn       hhlab       hhcap
+ 310   
+ 311    thsh          1.000000    0.000000    0.000000
+ 312    rhsh          0.000000    0.000000    1.000000
+ 313    htax          0.000000    0.125960    0.350000
+ 314    mps           0.000000    0.061607    0.174295
+ 315        ;
+ 316   
+ 317   
+ 318  *## institutional parameters
+ 319   
+ 320   table sintyh(hh,ins) household distribution of income
+ 321   
+ 322                   labr        ent         prop
+ 323   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 8
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 324    hhtrn         0.000000    0.000000    0.000000
+ 325    hhlab         1.000000    0.000000    0.000000
+ 326    hhcap         0.000000    1.000000    1.000000
+ 327        ;
+ 328   
+ 329   
+ 330  *## production sector parameters
+ 331   
+ 332   table sectres(*,i)  sectoral quantities and prices
+ 333   
+ 334                   lvstk       expcrp      othcrp      agproc      aginp
+ 335   
+ 336    xd          77.115329   71.772915   26.543600  391.145476  265.279751
+ 337    e            0.211590   17.906935    1.517508   18.226606   19.340732
+ 338    m            0.653649    0.116664    2.782416   26.562680   23.669242
+ 339    px           1.000000    1.000000    1.000000    1.000000    1.000000
+ 340    pe           1.000000    1.000000    1.000000    1.000000    1.000000
+ 341    pm           1.000000    1.000000    1.000000    1.000000    1.000000
+ 342    p            1.000000    1.000000    1.000000    1.000000    1.000000
+ 343    pd           1.000000    1.000000    1.000000    1.000000    1.000000
+ 344    pk           1.000000    1.000000    1.000000    1.000000    1.000000
+ 345   
+ 346         +         intmnf      fdmnf       trdtrn      service     resta
+ 347   
+ 348    xd         691.752575  817.593692  785.067268 2609.047268  230.939170
+ 349    e           46.868929  108.003057   37.123239  107.252244    5.449350
+ 350    m           89.196218  151.445719    1.845284   47.928267    0.000000
+ 351    px           1.000000    1.000000    1.000000    1.000000    1.000000
+ 352    pe           1.000000    1.000000    1.000000    1.000000    1.000000
+ 353    pm           1.000000    1.000000    1.000000    1.000000    1.000000
+ 354    p            1.000000    1.000000    1.000000    1.000000    1.000000
+ 355    pd           1.000000    1.000000    1.000000    1.000000    1.000000
+ 356    pk           1.000000    1.000000    1.000000    1.000000    1.000000
+ 357        ;
+ 358   
+ 359  * note, taxes are magnitudes and rates are computed
+ 360   table taxr(*,i)  sectoral taxes
+ 361   
+ 362                   lvstk       expcrp      othcrp      agproc      aginp
+ 363   
+ 364    itax         1.368870    1.276232    0.386298   10.774114    6.092757
+ 365    te           0.000000    0.000000    0.000000    0.000000    0.000000
+ 366    tm           0.008711    0.003304    0.099223    2.746818    0.062378
+ 367   
+ 368         +         intmnf      fdmnf       trdtrn      service     resta
+ 369   
+ 370    itax        26.965991    9.696082   75.726551   87.474192   30.415138
+ 371    te           0.000000    0.000000    0.000000    0.000000    0.000000
+ 372    tm           1.601493    4.028613    0.049061    0.000400    0.000000
+ 373        ;
+ 374   
+ 375   table parm(*,i)  miscellaneous parameters
+ 376   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:51 Page 9
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 377                   lvstk       expcrp      othcrp      agproc      aginp
+ 378   
+ 379    depr         0.108183    0.108183    0.108183    0.095055    0.084635
+ 380    dstr         0.000811   -0.006647   -0.004847   -0.006132   -0.008088
+ 381    gles         0.000671    0.011649    0.001061    0.014240    0.019479
+ 382    kish         0.012787    0.011577    0.004335    0.014547    0.012875
+ 383   
+ 384         +         intmnf      fdmnf       trdtrn      service     resta
+ 385   
+ 386    depr         0.111027    0.094561    0.093504    0.046913    0.042354
+ 387    dstr        -0.006272   -0.010781   -0.003641   -0.001304    0.000000
+ 388    gles         0.019867    0.152708    0.044819    0.725589    0.009918
+ 389    kish         0.092033    0.046648    0.082656    0.620072    0.102470
+ 390         ;
+ 391   
+ 392   
+ 393   parameter scalres(*) /
+ 394  *#### macro totals
+ 395   exr      =    1.000000
+ 396   pindex   =    1.000000
+ 397   gdtot    =  641.700000
+ 398   invest   =  447.300122
+ 399  *#### tax
+ 400   sstax     =  269.535402
+ 401   enttax    =   63.079602
+ 402   tothhtax  =  409.335747
+ 403  *#### transfer
+ 404   remit     =   -1.250000
+ 405   gent      =   47.530000
+ 406   hht       =  396.249995
+ 407   fbor      =  -26.080000
+ 408  *#### save
+ 409   entsav    =   20.030311
+ 410   hhsav     =  153.907922
+ 411   govsav    = -110.833017
+ 412   fsav      =    1.029951
+ 413         /  ;
+ 414   
+ 415   table elasticity(*,i)  sectoral elasticities
+ 416   
+ 417          lvstk     expcrp   othcrp   agproc    aginp
+ 418   
+ 419    rhoc   4.0        4.0      4.0      2.0      0.75
+ 420    rhot   0.5        4.0      2.0      2.0      2.0
+ 421    rhoe   3.0        3.0      3.0
+ 422   
+ 423     +    intmnf     fdmnf   trdtrn    service   resta
+ 424   
+ 425    rhoc   0.75       0.9      1.1      0.2      0.5
+ 426    rhot   2.0        1.5      2.0      0.6      0.6
+ 427    rhoe
+ 428           ;
+ 429   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 10
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 430  *################## end parameter assignment #########################
+ 431   
+ 432  *############ specify parameters from table values ###################
+ 433   
+ 434  *## parameters from scalres(*)
+ 435   entsav0    = scalres("entsav");
+ 436   enttax0    = scalres("enttax");
+ 437   exr0       = scalres("exr") ;
+ 438   fbor0      = scalres("fbor") ;
+ 439   fsav0      = scalres("fsav") ;
+ 440   gdtot0     = scalres("gdtot") ;
+ 441   gent0      = scalres("gent");
+ 442   govsav0    = scalres("govsav") ;
+ 443   hhsav0     = scalres("hhsav") ;
+ 444   hht0       = scalres("hht") ;
+ 445   invest0    = scalres("invest") ;
+ 446   pindex0    = scalres("pindex") ;
+ 447   remit0     = scalres("remit") ;
+ 448   sstax0     = scalres("sstax");
+ 449   tothhtax0  = scalres("tothhtax") ;
+ 450   
+ 451  *## other table values of parameters
+ 452   e0(i)      = sectres("e",i) ;
+ 453   econst(i)  = sectres("e",i) ;
+ 454   m0(i)      = sectres("m",i) ;
+ 455   px0(i)     = sectres("px",i) ;
+ 456   pe0(i)     = sectres("pe",i) ;
+ 457   pm0(i)     = sectres("pm",i) ;
+ 458   p0(i)      = sectres("p",i) ;
+ 459   pd0(i)     = sectres("pd",i) ;
+ 460   pk0(i)     = sectres("pk",i) ;
+ 461   xd0(i)     = sectres("xd",i);
+ 462   
+ 463   htax(hh)   = hhpar("htax",hh) ;
+ 464   mps0(hh)   = hhpar("mps",hh) ;
+ 465   rhsh(hh)   = hhpar("rhsh",hh);
+ 466   thsh(hh)   = hhpar("thsh",hh);
+ 467   
+ 468   itax(i)    = taxr("itax",i)/(px0(i)*xd0(i)) ;
+ 469   
+ 470   rhoc(i)    = (1/elasticity("rhoc",i)) - 1 ;
+ 471   rhoe(i)    = elasticity("rhoe",i);
+ 472   rhot(i)    = (1/elasticity("rhot",i)) + 1;
+ 473   
+ 474   depr(i)    = parm("depr",i) ;
+ 475   dstr(i)    = parm("dstr",i) ;
+ 476   gles(i)    = parm("gles",i);
+ 477   kish(i)    = parm("kish",i) ;
+ 478   
+ 479  *## normalize share parameters to correct for roundoff error
+ 480  * these parameters (cles, imat, kish, and gles) can be read in as values
+ 481  * and coverted to shares here.
+ 482   sumhhsh(hh) = sum(i, cles(i,hh)) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 11
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 483   cles(i,hh)  = cles(i,hh)/sumhhsh(hh) ;
+ 484   sumimsh(j)  = sum(i, imat(i,j)) ;
+ 485   imat(i,j)   = imat(i,j)/sumimsh(j) ;
+ 486   sumsh       = sum(i, kish(i)) ;
+ 487   kish(i)     = kish(i)/sumsh ;
+ 488   sumsh       = sum(i, gles(i)) ;
+ 489   gles(i)     = gles(i)/sumsh ;
+ 490   
+ 491  *#### define indexes based on read in data
+ 492   iagn(i)     = not iag(i);
+ 493   ie(i)       = yes$e0(i);
+ 494   ied(i)      = yes$rhoe(i);
+ 495   iedn(i)     = not ied(i);
+ 496   ien(i)      = not ie(i);
+ 497   im(i)       = yes$m0(i);
+ 498   imn(i)      = not im(i);
+ 499   
+ 500  *## specify parameters which depend on defined index im and ie
+ 501   tm(imn)     = 0.0 ;
+ 502   tm(im)      = taxr("tm",im)/(pm0(im)*m0(im) - taxr("tm",im)) ;
+ 503   te(ien)     = 0.0 ;
+ 504   te(ie)      = taxr("te",ie)/(pe0(ie)*e0(ie) - taxr("te",ie)) ;
+ 505   
+ 506  *## compute from initial data
+ 507   int0(i)     = sum(j, io(i,j)*xd0(j));
+ 508   pva0(i)     = px0(i) - sum(j, io(j,i)*p0(j)) - itax(i) ;
+ 509   pwe0(i)     = pe0(i)/((1+te(i))*exr0);
+ 510   pwm(i)      = pm0(i)/((1+tm(i))*exr0);
+ 511   var0(i)     = pva0(i) + itax(i) ;
+ 512   xxd0(i)     = xd0(i) - e0(i) ;
+ 513   
+ 514  *## for 1982 tmreal and tereal are derive from tm and te
+ 515  *## for other years read in tmreal and tereal
+ 516   tmreal(i)   = tm(i)*pwm(i)*exr0 ;
+ 517   tereal(i)   = te(i)*pwe0(i)*exr0 ;
+ 518   netsub0     = sum(i, te(i)*e0(i)*pwe0(i))*exr0 ;
+ 519   
+ 520   
+ 521  *################ calibration of parameters from data #############
+ 522   
+ 523  *## adjust factor income (capital) for farm land
+ 524   yfland0(i)         = fctry(i,"land") ;
+ 525   fctry(i,"land")    = fctry(i,"capital")*yfland0(i) ;
+ 526   fctry(i,"capital") = fctry(i,"capital")*(1.0 - yfland0(i)) ;
+ 527   
+ 528  *## factor market parameters
+ 529   fs0(f)       = sum(i,fctres1(i,f)) ;
+ 530   yfctr0(f)    = sum(i, fctry(i,f)) ;
+ 531   yfsect0(i)   = sum(f, fctry(i,f)) ;
+ 532   wf0(f)       = yfctr0(f)/fs0(f) ;
+ 533   wfdist(i,f)$fctres1(i,f) = (fctry(i,f)/fctres1(i,f))/wf0(f) ;
+ 534   wfdist(i,f)$(fctres1(i,f) eq 0) = 0.0 ;
+ 535   display wfdist;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 12
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 536   
+ 537  *## institutional and household income, tax rate, and saving rate
+ 538   deprecia0 = sum(i, depr(i)*pk0(i)*fctres1(i,"capital") ) ;
+ 539   sstr = sstax0/yfctr0("labor") ;
+ 540   etr = enttax0/(yfctr0("capital") + gent0 - deprecia0) ;
+ 541   esr = entsav0/(yfctr0("capital") - enttax0 + gent0 - deprecia0) ;
+ 542   yinst0("labr") = (1.0 - sstr)*yfctr0("labor") ;
+ 543   yinst0("ent")  = yfctr0("capital") - entsav0 - enttax0 + gent0
+ 544                    - deprecia0 ;
+ 545   yinst0("prop") = yfctr0("land") ;
+ 546   
+ 547  *## note, household income is from factors (yhva0) and transfers
+ 548  *## where, yhva0(hh) = sum(ins, sintyh(hh,ins)*yinst0(ins))
+ 549   yh0(hh) = sum(ins, sintyh(hh,ins)*yinst0(ins))
+ 550                  + remit0*rhsh(hh)*exr0 + hht0*thsh(hh) ;
+ 551   
+ 552  *## compute htax(hhlab) given other hh tax rates and tothhtax0
+ 553  *## where, tothhtax0 = sum(hh, htax(hh)*yh0(hh))
+ 554   htax("hhlab") = (tothhtax0 - htax("hhtrn")*yh0("hhtrn")
+ 555                    - htax("hhcap")*yh0("hhcap"))/yh0("hhlab");
+ 556   
+ 557  *## compute mps0(hhcap) given other hh savings rates and hhsav0
+ 558  *## where, hhsav0 = sum(hh, mps0(hh)*yh0(hh)*(1.0 - htax(hh)))
+ 559   mps0("hhcap")=(hhsav0 - mps0("hhtrn")*yh0("hhtrn")*(1.0-htax("hhtrn"))
+ 560                         - mps0("hhlab")*yh0("hhlab")*(1.0-htax("hhlab")))
+ 561                 /(yh0("hhcap")*(1.0 - htax("hhcap"))) ;
+ 562   
+ 563   
+ 564   display wfdist, wf0, fs0, yfsect0, yfctr0 ;
+ 565   display yinst0,yh0,mps0,htax,etr,esr,sstr ;
+ 566   
+ 567  *#### calibration of shift and share parameters ####
+ 568   
+ 569  *## for imports-domestic composite
+ 570  *##  get delta from costmin, xo from absorption, ac from armington
+ 571   
+ 572   delta(i)     = (pm0(i)/pd0(i))*(m0(i)/xxd0(i))**(1+rhoc(i)) ;
+ 573   delta(i)     = delta(i)/(1.0+delta(i)) ;
+ 574   x0(i)        = (pd0(i)*xxd0(i) + (pm0(i)*m0(i))$im(i))/p0(i) ;
+ 575   rmd(i)       = m0(i)/xxd0(i) ;
+ 576   ac(i)$im(i)  = x0(i)/(delta(i)*m0(i)**(-rhoc(i))
+ 577                       +(1-delta(i))*xxd0(i)**(-rhoc(i)))**(-1/rhoc(i)) ;
+ 578   ac(i)$imn(i) = 1.0 ;
+ 579   display delta,ac,rmd ;
+ 580   
+ 581  *## for exports
+ 582  *## get gamma from esupply
+ 583   gamma(ie)    = 1/(1 + pd0(ie)/pe0(ie)*(e0(ie)/xxd0(ie))**(rhot(ie)-1));
+ 584  *## get at from cet
+ 585   at(ie)       = xd0(ie)/(gamma(ie)*e0(ie)**rhot(ie) + (1-gamma(ie))*
+ 586                  xxd0(ie)**rhot(ie))**(1/rhot(ie)) ;
+ 587   display gamma,at ;
+ 588   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 13
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 589  *## for factor demand
+ 590  *## get alpha from profit max (alpha for each i should sum to 1)
+ 591   alpha(i,f)   = (wfdist(i,f)*wf0(f)*fctres1(i,f))/yfsect0(i) ;
+ 592   display alpha ;
+ 593   
+ 594  *## get ad from output and fd0 from profitmax
+ 595   qd(i)      = prod(f, fctres1(i,f)**alpha(i,f)) ;
+ 596   ad(i)      = xd0(i)/qd(i);
+ 597   fd0(f)     = sum(i,(xd0(i)*pva0(i)*alpha(i,f)/(wfdist(i,f)*
+ 598                  wf0(f)))$wfdist(i,f)) ;
+ 599   display ad,qd,fd0 ;
+ 600   
+ 601  *## specify weights for producer price index
+ 602   pwts(i)    = xd0(i)/sum(j, xd0(j)) ;
+ 603   
+ 604  *#### end of calibration ####
+ 605   display xd0, x0, xxd0 ;
+ 606   display pva0,pd0, pe0, pwe0, pm0, pwm, tm, pwts ;
+ 607   
+ 608  *#####################################################################
+ 609   
+ 610   variables
+ 611   
+ 612  *#################### variable declaration ##########################
+ 613   
+ 614  *## price block
+ 615     exr       exchange rate                               ($ per world $)
+ 616     p(i)      price of composite goods
+ 617     pd(i)     domestic prices
+ 618     pe(i)     domestic price of exports
+ 619     pindex    gnp deflator
+ 620     pk(i)     price of capital goods by sector of destination
+ 621     pm(i)     domestic price of imports
+ 622     pva(i)    value added price
+ 623     pwe(i)    world price of exports
+ 624     px(i)     average output price
+ 625  *## production block
+ 626     e(i)      exports                                      (82 bill $)
+ 627     m(i)      imports                                      (82 bill $)
+ 628     x(i)      composite goods supply                       (82 bill $)
+ 629     xd(i)     domestic output                              (82 bill $)
+ 630     xxd(i)    domestic sales                               (82 bill $)
+ 631  *## factor block
+ 632     fs(f)     factor supply
+ 633     fdsc(i,f) factor demand by sector
+ 634     wf(f)     average factor price
+ 635     yfctr(f)  factor income                                (bill $)
+ 636  *## income and expenditure block
+ 637     cd(i)     final demand for private consumption         (82 bill $)
+ 638     deprecia  total depreciation expenditure               (bill $)
+ 639     dk(i)     volume of investment by sector of destination (82 bill $)
+ 640     dst(i)    inventory investment by sector               (82 bill $)
+ 641     entsav    enterprise savings                           (bill $)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 14
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 642     enttax    enterprise tax revenue                       (bill $)
+ 643     fbor      net foreign borrowing                        (bill world $)
+ 644     fsav      net foreign savings                          (bill world $)
+ 645     fxdinv    fixed capital investment                     (bill $)
+ 646     gd(i)     final demand for government consumption      (82 bill $)
+ 647     gdtot     total volume of government consumption       (82 bill $)
+ 648     gent      payments from govt to ent                    (bill $)
+ 649     govsav    government savings                           (bill $)
+ 650     gr        government revenue                           (bill $)
+ 651     hhsav     total household savings                      (bill $)
+ 652     hht       household transfers                          (bill $)
+ 653     id(i)     final demand for productive investment       (82 bill $)
+ 654     indtax    indirect tax revenue                         (bill $)
+ 655     int(i)    intermediates uses                           (82 bill $)
+ 656     invest    total investment                             (bill $)
+ 657     mps(hh)   marginal propensity to save by household type
+ 658     netsub    export duty revenue                          (bill $)
+ 659     remit     net remittances from abroad                  (bill world $)
+ 660     savings   total savings                                (bill $)
+ 661     sstax     social security tax revenue                  (bill $)
+ 662     tariff    tariff revenue                               (bill $)
+ 663     tothhtax  household tax revenue                        (bill $)
+ 664     yh(hh)    household income                             (bill $)
+ 665     yinst(ins) institutional income                        (bill $)
+ 666  *## gnp calculations
+ 667     rgnp      real gnp                                     (82 bill $)
+ 668     gnpva     value added in market prices gnp             (bill $)
+ 669          ;
+ 670   
+ 671   
+ 672  *################## variable initialization #########################
+ 673   
+ 674  *## use initial values of variables (from parameter specification)
+ 675   exr.l     = exr0 ;
+ 676   fbor.l    = fbor0 ;
+ 677   fsav.l    = fsav0 ;
+ 678   gdtot.l   = gdtot0 ;
+ 679   gent.l    = gent0 ;
+ 680   govsav.l  = govsav0 ;
+ 681   hht.l     = hht0 ;
+ 682   invest.l  = invest0 ;
+ 683   pindex.l  = pindex0 ;
+ 684   remit.l   = remit0 ;
+ 685   
+ 686   mps.l(hh) = mps0(hh) ;
+ 687   
+ 688   pd.l(i)   = pd0(i) ;
+ 689   p.l(i)    = p0(i) ;
+ 690   px.l(i)   = px0(i) ;
+ 691   pm.l(i)   = pm0(i) ;
+ 692   pe.l(i)   = pe0(i) ;
+ 693   xd.l(i)   = xd0(i) ;
+ 694   e.l(i)    = e0(i) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 15
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 695   m.l(i)    = m0(i) ;
+ 696   
+ 697   fdsc.l(i,f)  = fctres1(i,f) ;
+ 698   yfctr.l(f)   = sum(i, fctry(i,f)) ;
+ 699   
+ 700  *## compute initial values for other variables
+ 701  *## output and price
+ 702   xxd.l(i) = xd.l(i) - e.l(i) ;
+ 703   x.l(i)   = (pd.l(i)*xxd.l(i) + (pm.l(i)*m.l(i))$im(i))/p.l(i) ;
+ 704   pk.l(i)  = sum(j, p.l(j)*imat(j,i)) ;
+ 705   pwe.l(i) = pe.l(i)/((1.0 + te(i))*exr.l) ;
+ 706   pwse(i)  = pwe.l(i) ;
+ 707   pva.l(i) = px.l(i) - sum(j, io(j,i)*p.l(j)) - itax(i) ;
+ 708   
+ 709  *## value added and the flow of factor income
+ 710   fs.l(f)         = sum(i, fdsc.l(i,f)) ;
+ 711   wf.l(f)         = yfctr.l(f)/fs.l(f) ;
+ 712   netsub.l        = sum(ie, te(ie)*e.l(ie)*pwe.l(ie))*exr.l ;
+ 713   tariff.l        = sum(im, pwm(im)*m.l(im)*tm(im))*exr.l ;
+ 714   sstax.l         = sstr*yfctr.l("labor") ;
+ 715   indtax.l        = sum(i, itax(i)*px.l(i)*xd.l(i)) ;
+ 716   deprecia.l      = sum(i, depr(i)*pk.l(i)*fdsc.l(i,"capital")) ;
+ 717   enttax.l        = etr*(yfctr.l("capital") + gent.l - deprecia.l) ;
+ 718   entsav.l        = esr*(yfctr.l("capital") + gent.l
+ 719                     - (enttax.l + deprecia.l)) ;
+ 720   yinst.l("labr") = yfctr.l("labor") - sstax.l ;
+ 721   yinst.l("ent")  = yfctr.l("capital") + gent.l
+ 722                     - (entsav.l + enttax.l + deprecia.l) ;
+ 723   yinst.l("prop") = yfctr.l("land") ;
+ 724   yh.l(hh)        = sum(ins, sintyh(hh,ins)*yinst.l(ins))
+ 725                     + remit.l*rhsh(hh)*exr.l + hht.l*thsh(hh) ;
+ 726   tothhtax.l      = sum(hh, htax(hh)*yh.l(hh)) ;
+ 727   hhsav.l         = sum(hh, mps.l(hh)*yh.l(hh)*(1.0 - htax(hh))) ;
+ 728   
+ 729  *## final demand
+ 730   int.l(i)  = sum(j,io(i,j)*xd.l(j)) ;
+ 731   cd.l(i)   = sum(hh, cles(i,hh)*(1.0 - mps.l(hh))*yh.l(hh)
+ 732                  *(1.0 - htax(hh)))/p.l(i) ;
+ 733   gd.l(i)   = gles(i)*gdtot.l ;
+ 734   dst.l(i)  = dstr(i)*xd.l(i) ;
+ 735   fxdinv.l  = invest.l - sum(i, dst.l(i)*p.l(i)) ;
+ 736   dk.l(i)   = (kish(i)*fxdinv.l)/pk.l(i) ;
+ 737   id.l(i)   = sum(j, imat(i,j)*dk.l(j)) ;
+ 738   gr.l      = tariff.l - netsub.l + indtax.l + tothhtax.l + sstax.l
+ 739               + enttax.l + fbor.l*exr.l ;
+ 740   savings.l = hhsav.l + govsav.l + deprecia.l + fsav.l*exr.l + entsav.l ;
+ 741   
+ 742  *## gnp
+ 743   gnpva.l   = sum(i, pva.l(i)*xd.l(i)) + indtax.l + tariff.l - netsub.l ;
+ 744   rgnp.l    = sum(i, cd.l(i) + dst.l(i) + id.l(i) + gd.l(i))
+ 745               + sum(ie, (1.0 - tereal(ie)) * e.l(ie) )
+ 746               - sum(im, (1.0 - tmreal(im)) * m.l(im) ) ;
+ 747   pindex.l  = gnpva.l/rgnp.l ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 16
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 748   
+ 749  *## alternatively, set pindex to the producer price index
+ 750  * pindex.l = sum(i, pwts(i)*px(i)) ;
+ 751   
+ 752   display yfctr.l,yinst.l,yh.l,gnpva.l,rgnp.l,pindex.l ;
+ 753   display int.l,cd.l,gd.l,id.l,dst.l,dk.l ;
+ 754   
+ 755  *###################### end variable specification ###################
+ 756   
+ 757  *#### to check for data consistency, display initial sam
+ 758   
+ 759  *###################### social accounting matrix #######################
+ 760   
+ 761   sam("commdty","activity")    = sum(i,(p.l(i)*int.l(i))) ;
+ 762   sam("commdty","households")  = sum(i,(p.l(i)*cd.l(i))) ;
+ 763   sam("commdty","kaccount")    = sum(i,(p.l(i)*(dst.l(i)+id.l(i)))) ;
+ 764   sam("commdty","govt")        = sum(i,(p.l(i)*gd.l(i))) ;
+ 765   sam("activity","world")      = sum(i,((exr.l*pwe.l(i))*e.l(i))) ;
+ 766   sam("activity","commdty")    = sum(i,  (px.l(i)*xd.l(i))
+ 767                                        - (pe.l(i)*e.l(i)) ) ;
+ 768   sam("activity","govt")       = netsub.l ;
+ 769   sam("valuad","activity")     = sum(f, yfctr.l(f)) ;
+ 770   sam("insttns","valuad")      = sum(f,yfctr.l(f)) - sstax.l ;
+ 771   sam("insttns","govt")        = gent.l ;
+ 772   sam("households","insttns")= sum((ins,hh),sintyh(hh,ins)*yinst.l(ins));
+ 773   sam("households","govt")     = hht.l ;
+ 774   sam("kaccount","insttns")    = entsav.l + deprecia.l ;
+ 775   sam("kaccount","households") = hhsav.l ;
+ 776   sam("kaccount","govt")       = govsav.l ;
+ 777   sam("govt","commdty")        = tariff.l ;
+ 778   sam("govt","activity")       = indtax.l ;
+ 779   sam("govt","valuad")         = sstax.l ;
+ 780   sam("govt","insttns")        = enttax.l ;
+ 781   sam("govt","households")     = tothhtax.l ;
+ 782   sam("world","commdty")       = sum(i,((pwm(i)*exr.l)*m.l(i))) ;
+ 783   sam("world","households")    = - remit.l*exr.l ;
+ 784   sam("world","govt")          = - fbor.l*exr.l ;
+ 785   sam("world","kaccount")      = - fsav.l*exr.l ;
+ 786   sam("total","commdty")       = sum(isam2,sam(isam2,"commdty")) ;
+ 787   sam("total","activity")      = sum(isam2,sam(isam2,"activity")) ;
+ 788   sam("total","valuad")        = sum(isam2,sam(isam2,"valuad")) ;
+ 789   sam("total","insttns")       = sum(isam2,sam(isam2,"insttns")) ;
+ 790   sam("total","households")    = sum(isam2,sam(isam2,"households")) ;
+ 791   sam("total","kaccount")      = sum(isam2,sam(isam2,"kaccount")) ;
+ 792   sam("total","govt")          = sum(isam2,sam(isam2,"govt")) ;
+ 793   sam("total","world")         = sum(isam2,sam(isam2,"world")) ;
+ 794   sam(isam3,"total")           = sum(isam2,sam(isam3,isam2)) ;
+ 795   
+ 796   option decimals=2 ;
+ 797   display sam ;
+ 798   option decimals=3 ;
+ 799  *#####################################################################
+ 800   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 17
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 801   equations
+ 802   
+ 803  *#################### equation declaration ###########################
+ 804   
+ 805  *## price block
+ 806     pmdef(i)         definition of domestic import prices
+ 807     pedef(i)         definition of domestic export prices
+ 808     absorption(i)    value of domestic sales
+ 809     sales(i)         value of domestic output
+ 810     actp(i)          definition of activity prices
+ 811     pkdef(i)         definition of capital goods price
+ 812     pindexdef        definition of general price level
+ 813  *## production block
+ 814     activity(i)      production function
+ 815     profitmax(i,f)   first order conditions for profit maximum
+ 816     inteq(i)         total intermediate uses
+ 817     cet(i)           cet function
+ 818     cet2(i)          domestic sales for nontraded sectors
+ 819     esupply(i)       export supply
+ 820     edemand(i)       export demand functions
+ 821     armington(i)     composite good aggregation function
+ 822     armington2(i)    composite good agg. for nontraded sectors
+ 823     costmin(i)       f.o.c. for cost minimization of composite good
+ 824  *## income block
+ 825     yfctreq(f)       factor income
+ 826     labory           labor income
+ 827     propy            property income
+ 828     enty             enterprise income
+ 829     hhy(hh)          household income
+ 830     tariffdef        tariff revenue
+ 831     indtaxdef        indirect taxes on domestic production
+ 832     netsubdef        export subsidies
+ 833     taxss            social security tax
+ 834     etax             enterprise tax
+ 835     hhtaxdef         total household taxes collected by govt.
+ 836     depreq           depreciation expenditure
+ 837     esave            enterprise savings
+ 838     hhsaveq          household savings
+ 839     greq             government revenue
+ 840     totsav           total savings
+ 841  *## expenditure block
+ 842     cdeq(i)          private consumption behavior
+ 843     gdeqi(i)         govt consumption of commodities
+ 844     gruse            government savings
+ 845     dsteq(i)         inventory investment
+ 846     fixedinv         fixed investment net of inventory
+ 847     prodinv(i)       investment by sector of destination
+ 848     ieq(i)           investment by sector of origin
+ 849  *## market clearing
+ 850     equil(i)         goods market equilibrium
+ 851     fmequil(f)       factor market equilibrium
+ 852     caeq             current account balance (bill dollars)
+ 853  *  walras           savings investment equilibrium
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 18
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 854   
+ 855  *## the walras equation is redundant,
+ 856  *## given that the model satisfies walras' law.
+ 857  *## in this case, we drop the savings-investment balance equation.
+ 858   
+ 859  *## gross national product
+ 860     gnpy             total value added including indtax
+ 861     gnpr             real gnp
+ 862           ;
+ 863   
+ 864   
+ 865  *######################## equation assignment  #######################
+ 866   
+ 867  *## price block
+ 868   
+ 869   pmdef(im)..     pm(im)  =e= pwm(im)*exr*(1 + tm(im)) ;
+ 870   
+ 871   pedef(ie)..     pe(ie)  =e= pwe(ie)*(1 + te(ie))*exr ;
+ 872   
+ 873   absorption(i).. p(i)*x(i)   =e= pd(i)*xxd(i) + (pm(i)*m(i))$im(i) ;
+ 874   
+ 875   sales(i)..      px(i)*xd(i) =e= pd(i)*xxd(i) + (pe(i)*e(i))$ie(i) ;
+ 876   
+ 877   actp(i)..       pva(i) =e= px(i)*(1.0-itax(i)) - sum(j,io(j,i)*p(j)) ;
+ 878   
+ 879   pkdef(i)..      pk(i)   =e= sum(j, p(j)*imat(j,i)) ;
+ 880   
+ 881   pindexdef..     pindex  =e= gnpva/rgnp ;
+ 882   
+ 883  *## production block
+ 884   
+ 885   activity(i)..   xd(i)   =e= ad(i)*prod(f$alpha(i,f),
+ 886                               fdsc(i,f)**alpha(i,f)) ;
+ 887   
+ 888   profitmax(i,f)$wfdist(i,f)..  wf(f)*wfdist(i,f)*fdsc(i,f) =e=
+ 889                                            xd(i)*pva(i)*alpha(i,f) ;
+ 890   
+ 891   inteq(i)..      int(i)  =e= sum(j, io(i,j)*xd(j));
+ 892   
+ 893   cet(ie)..       xd(ie)  =e= at(ie)*(gamma(ie)*e(ie)**rhot(ie) +
+ 894                     (1-gamma(ie))*xxd(ie)**rhot(ie))**(1/rhot(ie)) ;
+ 895   
+ 896   cet2(ien)..     xd(ien) =e= xxd(ien) ;
+ 897   
+ 898   esupply(ie)..   e(ie)   =e= xxd(ie)*(pe(ie)/pd(ie)*(1 - gamma(ie))
+ 899                               /gamma(ie))**(1/(rhot(ie)-1)) ;
+ 900   
+ 901   edemand(ied)..  e(ied)  =e= econst(ied)*((pwe(ied)/pwse(ied))
+ 902                                                       **(-rhoe(ied))) ;
+ 903   
+ 904   armington(im)..  x(im)  =e= ac(im)*(delta(im)*m(im)**(-rhoc(im)) +
+ 905                    (1 - delta(im))*xxd(im)**(-rhoc(im)))**(-1/rhoc(im)) ;
+ 906   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 19
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 907   armington2(imn)..  x(imn) =e= xxd(imn) ;
+ 908   
+ 909   costmin(im)..   m(im)/xxd(im) =e= (pd(im)/pm(im)*delta(im)/
+ 910                                    (1 - delta(im)))**(1/(1 + rhoc(im))) ;
+ 911   
+ 912  *## income block
+ 913   
+ 914   yfctreq(f)..    yfctr(f) =e= sum(i, wf(f)*wfdist(i,f)*fdsc(i,f));
+ 915   
+ 916   labory..        yinst("labr") =e= yfctr("labor") - sstax ;
+ 917   
+ 918   propy..         yinst("prop") =e= yfctr("land") ;
+ 919   
+ 920   enty..          yinst("ent")  =e= yfctr("capital") + gent
+ 921                                     - (entsav + enttax + deprecia) ;
+ 922   
+ 923   hhy(hh)..       yh(hh) =e= sum(ins, sintyh(hh,ins)*yinst(ins))
+ 924                              + remit*rhsh(hh)*exr + hht*thsh(hh) ;
+ 925   
+ 926   tariffdef..     tariff =e= sum(im, tm(im)*m(im)*pwm(im))*exr ;
+ 927   
+ 928   indtaxdef..     indtax =e= sum(i, itax(i)*px(i)*xd(i)) ;
+ 929   
+ 930   netsubdef..     netsub =e= sum(ie, te(ie)*e(ie)*pwe(ie))*exr ;
+ 931   
+ 932   taxss..         sstax  =e= sstr*yfctr("labor") ;
+ 933   
+ 934   etax..          enttax =e= etr*(yfctr("capital") - deprecia + gent) ;
+ 935   
+ 936   hhtaxdef..      tothhtax =e= sum(hh, htax(hh)*yh(hh)) ;
+ 937   
+ 938   depreq..        deprecia =e= sum(i, depr(i)*pk(i)*fdsc(i,"capital")) ;
+ 939   
+ 940   esave..         entsav =e= esr*(yfctr("capital")+gent-enttax-deprecia);
+ 941   
+ 942   hhsaveq..       hhsav  =e= sum(hh, mps(hh)*yh(hh)*(1 - htax(hh))) ;
+ 943   
+ 944   greq..          gr     =e= tariff - netsub + indtax +tothhtax +
+ 945                                        sstax + enttax + fbor*exr ;
+ 946   
+ 947   totsav..    savings =e= hhsav + govsav + deprecia + fsav*exr + entsav ;
+ 948   
+ 949  *## expenditure block
+ 950   
+ 951   cdeq(i)..       p(i)*cd(i) =e= sum(hh, cles(i,hh)*(1-mps(hh))*yh(hh)
+ 952                                            *(1-htax(hh))) ;
+ 953   
+ 954   gdeqi(i)..      gd(i)  =e= gles(i)*gdtot ;
+ 955   
+ 956   gruse..         gr     =e= sum(i, p(i)*gd(i)) + govsav + gent + hht ;
+ 957   
+ 958   dsteq(i)..      dst(i) =e= dstr(i)*xd(i) ;
+ 959   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 20
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+ 960   fixedinv..      fxdinv =e= invest - sum(i, dst(i)*p(i)) ;
+ 961   
+ 962   prodinv(i)..    pk(i)*dk(i) =e= kish(i)*fxdinv ;
+ 963   
+ 964   ieq(i)..        id(i)  =e= sum(j, imat(i,j)*dk(j));
+ 965   
+ 966  *## market clearing
+ 967   
+ 968   equil(i)..      x(i)   =e= int(i) + cd(i) + gd(i) + id(i) + dst(i) ;
+ 969   
+ 970   fmequil(f)..    sum(i, fdsc(i,f)) =e= fs(f) ;
+ 971   
+ 972   caeq..          sum(im, pwm(im)*m(im)) =e= sum(ie, pwe(ie)*e(ie))
+ 973                                    +  fsav + remit + fbor ;
+ 974   
+ 975  *walras..        savings =e= invest ;
+ 976   
+ 977  *## gross national product
+ 978   
+ 979   gnpy..      gnpva =e= sum(i,pva(i)*xd(i)) + indtax + tariff - netsub ;
+ 980   
+ 981   gnpr..      rgnp =e= sum(i,cd(i) + dst(i) + id(i) + gd(i))
+ 982                      + sum(ie,(1.0 - tereal(ie)) * e(ie) )
+ 983                      - sum(im,(1.0 - tmreal(im)) * m(im) ) ;
+ 984   
+ 985  *#### additional restrictions corresponding to equations
+ 986  *# pmdef, pedef, edemand, esupply, costmin, and profitmax
+ 987  *# for non-traded sectors and sectors with fixed world export prices
+ 988   
+ 989   pm.fx(imn)   = pm0(imn) ;
+ 990   pe.fx(ien)   = pe0(ien) ;
+ 991   pwe.fx(iedn) = pwe.l(iedn) ;
+ 992   e.fx(ien)    = 0;
+ 993   m.fx(imn)    = 0;
+ 994   fdsc.fx(i,f)$(wfdist(i,f) eq 0) = 0 ;
+ 995   
+ 996  *#### variable bounds
+ 997  *these are included to improve algorithm performance.  they are not
+ 998  *necessary for model specification.
+ 999  *. p.lo(i)    = 0.0 ;  pd.lo(i)  = 0.0 ;  pm.lo(im) = 0.0 ;
+1000  *. pk.lo(i)   = 0.0 ;  px.lo(i)  = 0.0 ;  x.lo(i)   = 0.0 ;
+1001  *. xd.lo(i)   = 0.0 ;  m.lo(im)  = 0.0 ;  xxd.lo(i) = 0.0 ;
+1002  *. wf.lo(f)   = 0.0 ;  int.lo(i) = 0.0 ;  e.lo(ie)  = 0.0 ;
+1003  *. fdsc.lo(i,f)$(fdsc.l(i,f) ne 0) = 0.0 ;
+1004  *. pva.lo(i) = 0.0 ;
+1005   
+1006  *########################### model closure #############################
+1007   
+1008  *## foreign exchange market closure
+1009  * in this version, the balance of trade (current account balance) is
+1010  * fixed exogenously and the exchange rate is the equilibrating variable.
+1011   
+1012  *  exr.fx     = exr.l ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 21
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1013     fsav.fx    = fsav.l ;
+1014     remit.fx   = remit.l ;
+1015     fbor.fx    = fbor.l ;
+1016   
+1017  *## investment-savings closure
+1018  * this version specifies neoclassical closure.  aggregate investment is
+1019  * determined by aggregate savings; the model is savings driven.
+1020   
+1021     mps.fx(hh) = mps.l(hh) ;
+1022  *  invest.fx  = invest.l ;
+1023   
+1024  *## exogenous govt expenditure
+1025  *## and govt closure rule
+1026  * real government spending (gdtot) is fixed exogenously.  the government
+1027  * deficit (govsav) is determined residually.
+1028   
+1029     gdtot.fx   = gdtot.l ;
+1030     gent.fx    = gent.l ;
+1031     hht.fx     = hht.l ;
+1032  *  govsav.fx  = govsav.l ;
+1033   
+1034  *## factor market closure
+1035  * in this version, all factors, including capital, are mobile.
+1036  * commented equations allow a version with fixed wage for labor.
+1037  * the model then solves for aggregate employment.
+1038   
+1039     fs.fx(f)       = fs.l(f) ;
+1040  *  wf.fx("labor") = wf.l("labor") ;
+1041  *  fs.lo("labor") = -inf ;
+1042  *  fs.up("labor") = +inf ;
+1043   
+1044  *## numeraire price index
+1045  *in this case, the gnp deflator.
+1046   
+1047     pindex.fx = pindex.l ;
+1048   
+1049   
+1050  *########################### end of model ############################
+1051   
+1052   options iterlim=1000,limrow=0,limcol=0,solprint=off;
+1053   
+1054  *       randomize the import prices to make the
+1055  *       solution more challenging:
+1056   
+1057   option seed=1203;
+1058   loop(i,   pwm(i) = uniform(0.2,2.0) * pwm(i); );
+1059   
+1060   model us82 /all/ ;
+1061   solve us82 using mcp;
+1062   
+1063   
+1064  *#################### solution reports and output ####################
+1065  *#### three report and output blocks
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 22
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1066  *## 1) tables of results for variables in model
+1067  *## 2) tables of results for display
+1068  *## 3) tables of results for restart solution ratio tables
+1069  *## use $ontext and $offtext to turn off reports not wanted.
+1070  *#####################################################################
+1071   
+1072  *#### 1) tables of results for variables in the model
+1073   
+1074  *## macro aggregate results
+1075   scalres("exr")      = exr.l ;
+1076   scalres("pindex")   = pindex.l ;
+1077   scalres("rgnp")     = rgnp.l ;
+1078   scalres("gnpva")    = gnpva.l ;
+1079   
+1080   scalres("invest")   = invest.l ;
+1081   scalres("fxdinv")   = fxdinv.l ;
+1082   scalres("gdtot")    = gdtot.l ;
+1083   scalres("gr")       = gr.l ;
+1084   
+1085   scalres("sstax")    = sstax.l ;
+1086   scalres("tariff")   = tariff.l ;
+1087   scalres("indtax")   = indtax.l ;
+1088   scalres("enttax")   = enttax.l ;
+1089   scalres("tothhtax") = tothhtax.l ;
+1090   scalres("netsub")   = netsub.l ;
+1091   
+1092   scalres("remit")    = remit.l ;
+1093   scalres("gent")     = gent.l ;
+1094   scalres("hht")      = hht.l ;
+1095   scalres("fbor")     = fbor.l ;
+1096   
+1097   scalres("savings")  = savings.l ;
+1098   scalres("entsav")   = entsav.l ;
+1099   scalres("deprecia") = deprecia.l ;
+1100   scalres("hhsav")    = hhsav.l ;
+1101   scalres("govsav")   = govsav.l ;
+1102   scalres("fsav")     = fsav.l ;
+1103   
+1104   
+1105  *## factor of production results
+1106   fctres1(i,f)        = fdsc.l(i,f) ;
+1107   
+1108  *## table fctres2(*,f) miscellaneous factor variable results ;
+1109   set ifvar /wf, fs, yfctr/ ;
+1110   parameter fctres2(ifvar,f) miscellaneous factor variable results ;
+1111   fctres2("wf",f)     = wf.l(f) ;
+1112   fctres2("fs",f)     = fs.l(f) ;
+1113   fctres2("yfctr",f)  = yfctr.l(f) ;
+1114   
+1115  *## sectoral price and quantity results
+1116   sectres("p",i)   = p.l(i) ;
+1117   sectres("pd",i)  = pd.l(i) ;
+1118   sectres("pe",i)  = pe.l(i) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 23
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1119   sectres("pk",i)  = pk.l(i) ;
+1120   sectres("pm",i)  = pm.l(i) ;
+1121   sectres("pva",i) = pva.l(i) ;
+1122   sectres("pwe",i) = pwe.l(i) ;
+1123   sectres("px",i)  = px.l(i) ;
+1124   
+1125   sectres("x",i)   = x.l(i) ;
+1126   sectres("xd",i)  = xd.l(i) ;
+1127   sectres("xxd",i) = xxd.l(i) ;
+1128   sectres("e",i)   = e.l(i) ;
+1129   sectres("m",i)   = m.l(i) ;
+1130   sectres("int",i) = int.l(i) ;
+1131   sectres("cd",i)  = cd.l(i) ;
+1132   sectres("gd",i)  = gd.l(i) ;
+1133   sectres("id",i)  = id.l(i) ;
+1134   sectres("dst",i) = dst.l(i) ;
+1135   sectres("dk",i)  = dk.l(i) ;
+1136   
+1137  *## institutional results
+1138  *## table insres(*,ins) institutional income results
+1139   set insvar /yinst/ ;
+1140   parameter insres(insvar,ins) institutional income results ;
+1141   insres("yinst",ins) = yinst.l(ins) ;
+1142   
+1143  *## household results
+1144  *## table hhres(*,hh) miscellaneous household results
+1145   set hhvar /mps, yh/ ;
+1146   parameter hhres(hhvar,hh) miscellaneous household results ;
+1147   hhres("mps",hh)     = mps.l(hh) ;
+1148   hhres("yh",hh)      = yh.l(hh) ;
+1149   
+1150   option decimals = 6 ;
+1151   display scalres, fctres1, fctres2, sectres, insres, hhres ;
+1152   option decimals = 3 ;
+1153   
+1154  *#####################################################################
+1155   
+1156  *#### 2) tables of results for display
+1157   
+1158  *## define sets for solution report tables ####
+1159  * for gnp tabulations
+1160   
+1161   set ignp  rows       /consmpt,investment,inventory,government,
+1162                         exports,imports,gnp /
+1163       ignp1(ignp)      /gnp/
+1164       ignp2(ignp)
+1165       jgnp  columns    /nominal
+1166                         real
+1167                         nomshare
+1168                         realshare
+1169                         deflator / ;
+1170   ignp2(ignp) = not ignp1(ignp) ;
+1171   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 24
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1172   parameter gnptab(ignp,jgnp)  gnp accounts ;
+1173   parameter gnptab2(i,jgnp)    sectoral value added ;
+1174   parameter sumgnp(jgnp)       aggregate gnp;
+1175   parameter gnpratio           gnp value added correction factor ;
+1176   
+1177  * for absorb
+1178   set rar  rows     / ag,non-ag,total /
+1179       rac  columns  / gnp,c,i,g,e,m,nete-m,t-g,absorb /
+1180   parameter absorb(rar,rac)    absorption table (real) ;
+1181   
+1182  * for factors
+1183   set rf / yf,yfcap,profit,rental,rdist,wdcap,
+1184            yflabor,wdlabor,yfland,wdland,pint,intinp /
+1185   parameter factors(i,rf)      factor returns distributive parameters ;
+1186   
+1187  * for coeffs (shift and share coefficients)
+1188   set rc / alphal,alphac,alphap,rmd,delta,ad /
+1189   parameter coeffs(i,rc)       shift,share and distributive parameters ;
+1190   
+1191  *## define extra parameters for solution report tables ####
+1192   
+1193   parameters
+1194              agtotfd     agricultural terms of trade
+1195              agtotva     ag terms of trade value added
+1196              agtote      ag terms of trade world export price
+1197              agtotm      ag terms of trade world import price
+1198              avgprofit   average profit rate
+1199              avgwf       average factor price current weights
+1200              bot         nominal balance of trade
+1201              botr        real balance of trade
+1202              colind      cost of living index
+1203              esum        real exports
+1204              exrind      real exchange rate index
+1205              hold1       holds value for end calculation
+1206              indhold     holds value for end calculation
+1207              intinp(i)   intermediate input demand by sector i
+1208              intinpn(i)  nominal intermediate input demand by sector i
+1209              msum        real imports
+1210              ncdtot      nominal cdtot
+1211              nex         nominal exports
+1212              nim         nominal imports
+1213              ngdtot      nominal govt demand
+1214              ngnp        nominal gnp
+1215              pnagind     nonag price index
+1216              pagind      ag price index
+1217              pmind       domestic import price index
+1218              peind       domestic export price index
+1219              pweind      world export price index
+1220              pwmind      world import price index
+1221              psav        private savings
+1222              pxind       producer price index
+1223              pdind       domestic supply price index
+1224              pind        composite good price index
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 25
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1225              pint(i)     cost per unit of intermediate inputs
+1226              profit(i)   profit rate
+1227              rdist(i)    capital rental proportionality factor
+1228              rental(i)   rental rate of capital
+1229              shconsump   consumption share of nominal gnp
+1230              shinvest    investment share of nominal gnp
+1231              shex        export share of nominal gnp
+1232              shim        import share of nominal gnp
+1233              shgdtot     govt consumption share of nominal gnp
+1234              shbot       balance of trade share of nominal gnp
+1235              shfsav      foreign saving share of investment
+1236              shgsav      government saving share of investment
+1237              shpsav      private saving share of investment
+1238              valadd(i)   value added at market price
+1239              sectory(i)  value added at factor cost
+1240              wtd(i)      base year wt domestic in total domestic sales
+1241              wtm(i)      base year wt of imports in total trade
+1242              wtx(i)      base year wt of exports in total trade
+1243              yf(i,f)     factor income
+1244                     ;
+1245   
+1246  *#### specify extra parameters for solution report tables ####
+1247   
+1248  *## ag terms of trade ##
+1249   pagind     = sum(iag,px.l(iag)*xd.l(iag))/sum(iag,xd.l(iag));
+1250   pnagind    = sum(iagn,px.l(iagn)*xd.l(iagn))/sum(iagn,xd.l(iagn));
+1251   agtotfd    = 100*pagind/pnagind;
+1252   
+1253   pagind     = sum(iag,pva.l(iag)*xd.l(iag))/sum(iag,xd.l(iag));
+1254   pnagind    = sum(iagn,pva.l(iagn)*xd.l(iagn))/sum(iagn,xd.l(iagn));
+1255   agtotva    = 100*pagind/pnagind;
+1256   
+1257   pagind     = sum(iag,pwe.l(iag)*e.l(iag))/sum(iag,e.l(iag));
+1258   pnagind    = sum(iagn,pwe.l(iagn)*e.l(iagn))/sum(iagn,e.l(iagn));
+1259   agtote     = 100*pagind/pnagind;
+1260   pagind     = sum(iag,pwm(iag)*m.l(iag))/sum(iag,m.l(iag));
+1261   pnagind    = sum(iagn,pwm(iagn)*m.l(iagn))/sum(iagn,m.l(iagn));
+1262   agtotm     = 100*pagind/pnagind;
+1263   
+1264   display agtotfd, agtotva, agtotm, agtote ;
+1265   
+1266  *## macro balances ##
+1267   ncdtot     = sum(i,cd.l(i)*p.l(i));
+1268   ngdtot     = sum(i,gd.l(i)*p.l(i));
+1269   ngnp       = sum(i,p.l(i)*(cd.l(i) + dst.l(i) + id.l(i) + gd.l(i))
+1270                  + pe.l(i)*e.l(i) - pwm(i)*exr.l*m.l(i));
+1271   nex        = sum(ie,e.l(ie)*exr.l*pwe.l(ie));
+1272   nim        = sum(im,m.l(im)*exr.l*pwm(im));
+1273   bot        = nex-nim;
+1274   botr       = sum(i,e.l(i)) - sum(i,m.l(i));
+1275   esum       = sum(i,e.l(i));
+1276   msum       = sum(i,m.l(i));
+1277   psav       = invest.l - fsav.l - govsav.l;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 26
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1278   shbot      = 100*bot/gnpva.l;
+1279   shconsump  = 100*ncdtot/gnpva.l;
+1280   shex       = 100*nex/gnpva.l;
+1281   shfsav     = 100*fsav.l/invest.l;
+1282   shim       = 100*nim/gnpva.l;
+1283   shinvest   = 100*invest.l/gnpva.l;
+1284   shgdtot    = 100*ngdtot/gnpva.l;
+1285   shgsav     = 100*govsav.l/invest.l;
+1286   shpsav     = 100*psav/invest.l;
+1287   
+1288   display bot,botr,nex,esum,nim,msum,shconsump,shinvest,
+1289             shgdtot,shex,shim,shbot,shfsav,shgsav,shpsav;
+1290   
+1291  *## indexes ##
+1292  * note that cost of living index (colind) is the simple average over
+1293  * households.  card(hh) is the "cardinal" function which counts number
+1294  * of entries in the set.
+1295   
+1296   colind     = sum(i,p.l(i)*(sum(hh,cles(i,hh))))*100/card(hh);
+1297   wtd(i)     = xxd0(i)/sum(j,xxd0(j)) ;
+1298   wtm(i)     = m0(i)/sum(j,(m0(j)+e0(j))) ;
+1299   wtx(i)     = e0(i)/sum(j,(m0(j)+e0(j))) ;
+1300   exrind     = sum(i,wtd(i)*pd.l(i))
+1301                       /sum(i,(wtm(i)*pm.l(i))+(wtx(i)*pe.l(i)))*100 ;
+1302   pdind      = sum(i,xxd0(i)*pd.l(i))/sum(j,xxd0(j))*100;
+1303   peind      = sum(i,e0(i)*pe.l(i))/sum(j,e0(j))*100;
+1304   pind       = sum(i,x0(i)*p.l(i))/sum(j,x0(j))*100;
+1305   pmind      = sum(i,m0(i)*pm.l(i))/sum(j,m0(j))*100;
+1306   pweind     = sum(i,e0(i)*pwe.l(i))/sum(i,e0(i))*100;
+1307   pwmind     = sum(i,m0(i)*pwm(i))/sum(i,m0(i))*100;
+1308   pxind      = sum(i,pwts(i)*px.l(i))*100 ;
+1309   
+1310   display colind,exrind,ngnp,pdind,pind,peind,pmind,pweind,pwmind,pxind;
+1311   
+1312  *#### specify solution report tables ####
+1313   
+1314  *## gnp tables ##
+1315   
+1316  * note treatment of tariffs.
+1317  * in u.s. nipa, tariffs are included in the service sector.
+1318  * in the u.n. sna, tariffs are treated separately.
+1319  * treatment below follows u.s. nipa practice.
+1320  * note that real gnp from expenditure side provides the control total,
+1321  * and sectoral real value addeds are adjusted
+1322  * to match total using gnpratio.
+1323   
+1324   gnptab("consmpt","nominal")     = sum(i,p.l(i)*cd.l(i)) ;
+1325   gnptab("consmpt","real")        = sum(i,cd.l(i));
+1326   gnptab("investment","nominal")  = sum(i,p.l(i)*id.l(i));
+1327   gnptab("investment","real")     = sum(i,id.l(i)) ;
+1328   gnptab("inventory","nominal")   = sum(i,p.l(i)*dst.l(i)) ;
+1329   gnptab("inventory","real")      = sum(i,dst.l(i)) ;
+1330   gnptab("government","nominal")  = sum(i,p.l(i)*gd.l(i)) ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 27
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1331   gnptab("government","real")     = sum(i,gd.l(i)) ;
+1332   gnptab("exports","nominal")     = sum(i,pwe.l(i)*e.l(i))*exr.l ;
+1333   gnptab("exports","real")        = sum(i,(1.0 - tereal(i))*e.l(i)) ;
+1334   gnptab("imports","nominal")     = -sum(i,pwm(i)*m.l(i))*exr.l ;
+1335   gnptab("imports","real")        = -sum(i,(1.0 - tmreal(i))*m.l(i)) ;
+1336   gnptab("gnp","nominal")    = sum(ignp2,gnptab(ignp2,"nominal")) ;
+1337   gnptab("gnp","real")       = sum(ignp2,gnptab(ignp2,"real")) ;
+1338   gnptab(ignp,"nomshare")    = 100.*gnptab(ignp,"nominal")
+1339                                    /gnptab("gnp","nominal") ;
+1340   gnptab(ignp,"realshare")   = 100.*gnptab(ignp,"real")
+1341                                                 /gnptab("gnp","real") ;
+1342   gnptab(ignp,"deflator")    = 100.*gnptab(ignp,"nominal")
+1343                                                 /gnptab(ignp,"real") ;
+1344   
+1345   gnptab2(i,"nominal")      = pva.l(i)*xd.l(i) + itax(i)*px.l(i)*xd.l(i)
+1346                               - te(i)*pwe.l(i)*e.l(i)*exr.l ;
+1347   gnptab2("service","nominal") = gnptab2("service","nominal") + tariff.l;
+1348   gnptab2(i,"real")         = var0(i)*xd.l(i) ;
+1349   gnptab2("service","real") = gnptab2("service","real")
+1350                               + sum(i,tmreal(i)*m.l(i));
+1351   sumgnp("nominal")        = sum(i,gnptab2(i,"nominal")) ;
+1352   sumgnp("real")           = sum(i,gnptab2(i,"real")) ;
+1353   gnpratio                 = gnptab("gnp","real")/sumgnp("real") ;
+1354   gnptab2(i,"real")        = gnpratio*gnptab2(i,"real") ;
+1355   sumgnp("real")           = sum(i,gnptab2(i,"real")) ;
+1356   gnptab2(i,"nomshare")    = 100*gnptab2(i,"nominal")/sumgnp("nominal") ;
+1357   gnptab2(i,"realshare")   = 100*gnptab2(i,"real")/sumgnp("real") ;
+1358   sumgnp("nomshare")       = sum(i,gnptab2(i,"nomshare")) ;
+1359   sumgnp("realshare")      = sum(i,gnptab2(i,"realshare")) ;
+1360   gnptab2(i,"deflator")    = 100.*gnptab2(i,"nominal")/gnptab2(i,"real");
+1361   
+1362   display  gnptab, gnptab2, sumgnp, gnpratio ;
+1363   
+1364  *## report absorption ##
+1365   absorb("ag","c")          = sum(iag,cd.l(iag)) ;
+1366   absorb("non-ag","c")      = sum(iagn,cd.l(iagn)) ;
+1367   absorb("total","c")       = sum(i,cd.l(i)) ;
+1368   absorb("ag","i")          = sum(iag,id.l(iag)) ;
+1369   absorb("non-ag","i")      = sum(iagn,id.l(iagn)) ;
+1370   absorb("total","i")       = sum(i,id.l(i)) ;
+1371   absorb("ag","g")          = sum(iag,gd.l(iag)) ;
+1372   absorb("non-ag","g")      = sum(iagn,gd.l(iagn)) ;
+1373   absorb("total","g")       = sum(i,gd.l(i)) ;
+1374   absorb("ag","e")          = sum(iag,e.l(iag)) ;
+1375   absorb("non-ag","e")      = sum(iagn,e.l(iagn)) ;
+1376   absorb("total","e")       = sum(i,e.l(i)) ;
+1377   absorb("ag","m")          = sum(iag,m.l(iag)) ;
+1378   absorb("non-ag","m")      = sum(iagn,m.l(iagn)) ;
+1379   absorb("total","m")       = sum(i,m.l(i)) ;
+1380   absorb("ag","nete-m")     = sum(iag,e.l(iag))-sum(iag,m.l(iag)) ;
+1381   absorb("non-ag","nete-m") = sum(iagn,e.l(iagn))-sum(iagn,m.l(iagn)) ;
+1382   absorb("total","nete-m")  = esum - msum ;
+1383   absorb("total","t-g")     = govsav.l ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 28
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1384   absorb("ag","gnp")        = sum(iag,cd.l(iag)+dst.l(iag)+id.l(iag)
+1385                                  +gd.l(iag)+e.l(iag)-m.l(iag)) ;
+1386   absorb("non-ag","gnp")    = rgnp.l - absorb("ag","gnp") ;
+1387   absorb("total","gnp")     = rgnp.l ;
+1388   absorb("ag","absorb")     = sum(iag,cd.l(iag)+id.l(iag)+gd.l(iag)) ;
+1389   absorb("non-ag","absorb") = sum(iagn,cd.l(iagn)+id.l(iagn)+gd.l(iagn));
+1390   absorb("total","absorb")  = sum(i,cd.l(i)+id.l(i)+gd.l(i)) ;
+1391   
+1392   display absorb ;
+1393   
+1394  *### calculate and report selected parameters and coefficients #########
+1395   intinp(j)  = sum(i, io(i,j)*xd.l(j)) ;
+1396   intinpn(j) = sum(i, p.l(i)*io(i,j)*xd.l(j)) ;
+1397   pint(i)    = sum(j, io(j,i)*p.l(j)) ;
+1398   yf(i,f)    = wfdist(i,f)*wf.l(f)*fdsc.l(i,f) ;
+1399   profit(i)  = (wfdist(i,"capital")*wf.l("capital")*fdsc.l(i,"capital"))
+1400                 /(fdsc.l(i,"capital")*pk.l(i)) ;
+1401   avgprofit  = sum(i, wfdist(i,"capital")*wf.l("capital")
+1402                *fdsc.l(i,"capital"))/sum(i, fdsc.l(i,"capital")*pk.l(i));
+1403   avgwf(f)   = yfctr.l(f)/fs.l(f) ;
+1404   rental(i)  = (wfdist(i,"capital")*wf.l("capital")*fdsc.l(i,"capital"))
+1405                 /fdsc.l(i,"capital") ;
+1406   rdist(i)   = rental(i)/avgwf("capital") ;
+1407   valadd(i)  = (pva.l(i)+(itax(i)*px.l(i)))*xd.l(i);
+1408   sectory(i) = (pva.l(i))*xd.l(i);
+1409   rmd(i)     = m.l(i)/xxd.l(i) ;
+1410   
+1411   display avgwf,avgprofit,valadd,sectory ;
+1412   
+1413   factors(i,"yf")      = sum(f,yf(i,f)) ;
+1414   factors(i,"yfcap")   = yf(i,"capital") ;
+1415   factors(i,"profit")  = profit(i) ;
+1416   factors(i,"rental")  = rental(i) ;
+1417   factors(i,"rdist")   = rdist(i) ;
+1418   factors(i,"wdcap")   = wfdist(i,"capital") ;
+1419   factors(i,"yflabor") = yf(i,"labor") ;
+1420   factors(i,"wdlabor") = wfdist(i,"labor") ;
+1421   factors(i,"yfland")  = yf(i,"land") ;
+1422   factors(i,"wdland")  = wfdist(i,"land") ;
+1423   factors(i,"pint")    = pint(i) ;
+1424   factors(i,"intinp")  = intinp(i) ;
+1425   
+1426   
+1427   coeffs(i,"alphal")   = alpha(i,"labor") ;
+1428   coeffs(i,"alphap")   = alpha(i,"land") ;
+1429   coeffs(i,"alphac")   = alpha(i,"capital") ;
+1430   coeffs(i,"rmd")      = rmd(i) ;
+1431   coeffs(i,"delta")    = delta(i) ;
+1432   coeffs(i,"ad")       = ad(i) ;
+1433   
+1434   display factors, coeffs ;
+1435   
+1436   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 29
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1437  *#####################################################################
+1438   
+1439   
+1440  *#### 3) tables of results for restart solution ratio tables
+1441   
+1442  *#### define sets for restart solution ratio tables ####
+1443   
+1444  * for scalres1,scalres2,rscale
+1445   set sc / exr,   pindex, rgnp,   gnpva,  invest,   fxdinv,   gdtot,
+1446            gr,    sstax,  tariff, indtax, enttax,   tothhtax, netsub,
+1447            remit, gent,   hht,    fbor,   savings,  entsav,   deprecia,
+1448            hhsav, govsav, fsav / ;
+1449   parameter scalres1(sc)      aggregate variables ;
+1450   parameter scalres2(sc)      restart scalar results ;
+1451   parameter rscale(sc)        percent change from base scalars ;
+1452   
+1453  * for pricres
+1454    set rp / px, pva, pe, pwe, pm, pwm, pd, p, profit, rental, pint / ;
+1455    parameter pricres1(i,rp)   price results by sector ;
+1456    parameter pricres2(i,rp)   restart price results ;
+1457    parameter rprice(i,rp)     percent change from base price results ;
+1458   
+1459  * for quantres
+1460    set rq / xd, valadd, sectory, e, m, labor, capital, land, x, xxd / ;
+1461    parameter quantres1(i,rq)  quantity results by sector ;
+1462    parameter quantres2(i,rq)  restart quantity results ;
+1463    parameter rquant(i,rq)     percent change from base quantity results ;
+1464   
+1465  *#### specify tables for restart ratio solution reports ####
+1466   
+1467    pricres1(i,"px")       = px.l(i) ;
+1468    pricres1(i,"pva")      = pva.l(i) ;
+1469    pricres1(i,"pe")       = pe.l(i) ;
+1470    pricres1(i,"pwe")      = pwe.l(i) ;
+1471    pricres1(i,"pm")       = pm.l(i) ;
+1472    pricres1(i,"pwm")      = pwm(i) ;
+1473    pricres1(i,"pd")       = pd.l(i) ;
+1474    pricres1(i,"p")        = p.l(i) ;
+1475    pricres1(i,"profit")   = profit(i) ;
+1476    pricres1(i,"rental")   = rental(i) ;
+1477    pricres1(i,"pint")     = pint(i) ;
+1478   
+1479    quantres1(i,"xd")      = xd.l(i) ;
+1480    quantres1(i,"valadd")  = valadd(i) ;
+1481    quantres1(i,"sectory") = sectory(i) ;
+1482    quantres1(i,"e")       = e.l(i) ;
+1483    quantres1(i,"m")       = m.l(i) ;
+1484    quantres1(i,"labor")   = fdsc.l(i,"labor") ;
+1485    quantres1(i,"capital") = fdsc.l(i,"capital") ;
+1486    quantres1(i,"land")    = fdsc.l(i,"land") ;
+1487    quantres1(i,"x")       = x.l(i) ;
+1488    quantres1(i,"xxd")     = xxd.l(i) ;
+1489   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 30
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1490  *## macro aggregate results
+1491   scalres1("exr")      = exr.l ;
+1492   scalres1("pindex")   = pindex.l ;
+1493   scalres1("rgnp")     = rgnp.l ;
+1494   scalres1("gnpva")    = gnpva.l ;
+1495   
+1496   scalres1("invest")   = invest.l ;
+1497   scalres1("fxdinv")   = fxdinv.l ;
+1498   scalres1("gdtot")    = gdtot.l ;
+1499   scalres1("gr")       = gr.l ;
+1500   
+1501   scalres1("sstax")    = sstax.l ;
+1502   scalres1("tariff")   = tariff.l ;
+1503   scalres1("indtax")   = indtax.l ;
+1504   scalres1("enttax")   = enttax.l ;
+1505   scalres1("tothhtax") = tothhtax.l ;
+1506   scalres1("netsub")   = netsub.l ;
+1507   
+1508   scalres1("remit")    = remit.l ;
+1509   scalres1("gent")     = gent.l ;
+1510   scalres1("hht")      = hht.l ;
+1511   scalres1("fbor")     = fbor.l ;
+1512   
+1513   scalres1("savings")  = savings.l ;
+1514   scalres1("entsav")   = entsav.l ;
+1515   scalres1("deprecia") = deprecia.l ;
+1516   scalres1("hhsav")    = hhsav.l ;
+1517   scalres1("govsav")   = govsav.l ;
+1518   scalres1("fsav")     = fsav.l ;
+1519   
+1520   display pricres1, quantres1, scalres1 ;
+1521   
+1522  *####################### social accounting matrix ######################
+1523   
+1524   sam("commdty","activity")    = sum(i,(p.l(i)*int.l(i))) ;
+1525   sam("commdty","households")  = sum(i,(p.l(i)*cd.l(i))) ;
+1526   sam("commdty","kaccount")    = sum(i,(p.l(i)*(dst.l(i)+id.l(i)))) ;
+1527   sam("commdty","govt")        = sum(i,(p.l(i)*gd.l(i))) ;
+1528   sam("activity","world")      = sum(i,((exr.l*pwe.l(i))*e.l(i))) ;
+1529   sam("activity","commdty")    = sum(i,  (px.l(i)*xd.l(i))
+1530                                        - (pe.l(i)*e.l(i)) ) ;
+1531   sam("activity","govt")       = netsub.l ;
+1532   sam("valuad","activity")     = sum(f, yfctr.l(f)) ;
+1533   sam("insttns","valuad")      = sum(f,yfctr.l(f)) - sstax.l ;
+1534   sam("insttns","govt")        = gent.l ;
+1535   sam("households","insttns")= sum((ins,hh),sintyh(hh,ins)*yinst.l(ins));
+1536   sam("households","govt")     = hht.l ;
+1537   sam("kaccount","insttns")    = entsav.l + deprecia.l ;
+1538   sam("kaccount","households") = hhsav.l ;
+1539   sam("kaccount","govt")       = govsav.l ;
+1540   sam("govt","commdty")        = tariff.l ;
+1541   sam("govt","activity")       = indtax.l ;
+1542   sam("govt","valuad")         = sstax.l ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 31
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+C o m p i l a t i o n
+
+
+1543   sam("govt","insttns")        = enttax.l ;
+1544   sam("govt","households")     = tothhtax.l ;
+1545   sam("world","commdty")       = sum(i,((pwm(i)*exr.l)*m.l(i))) ;
+1546   sam("world","households")    = - remit.l*exr.l ;
+1547   sam("world","govt")          = - fbor.l*exr.l ;
+1548   sam("world","kaccount")      = - fsav.l*exr.l ;
+1549   sam("total","commdty")       = sum(isam2,sam(isam2,"commdty")) ;
+1550   sam("total","activity")      = sum(isam2,sam(isam2,"activity")) ;
+1551   sam("total","valuad")        = sum(isam2,sam(isam2,"valuad")) ;
+1552   sam("total","insttns")       = sum(isam2,sam(isam2,"insttns")) ;
+1553   sam("total","households")    = sum(isam2,sam(isam2,"households")) ;
+1554   sam("total","kaccount")      = sum(isam2,sam(isam2,"kaccount")) ;
+1555   sam("total","govt")          = sum(isam2,sam(isam2,"govt")) ;
+1556   sam("total","world")         = sum(isam2,sam(isam2,"world")) ;
+1557   sam(isam3,"total")           = sum(isam2,sam(isam3,isam2)) ;
+1558   
+1559   option decimals=3 ;
+1560   display sam;
+1561   
+1562  *############################ the end ################################
+1563   
+
+**** LIST OF STRAY NAMES - CHECK DECLARATIONS FOR SPURIOUS COMMAS
+**** STRAY NAME share OF TYPE PARAM
+
+
+COMPILATION TIME     =        0.008 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 32
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----    535 PARAMETER wfdist  factor price sectoral proportionality constants
+
+              labor     capital        land
+
+lvstk         0.585       0.401
+expcrp        0.432       0.852       0.896
+othcrp        0.501       0.899       1.415
+agproc        0.929       2.313
+aginp         1.156       1.111
+intmnf        1.384       1.285
+fdmnf         1.346       1.087
+trdtrn        0.898       1.325
+service       0.956       0.814
+resta         0.563       1.464
+
+
+----    564 PARAMETER wfdist  factor price sectoral proportionality constants
+
+              labor     capital        land
+
+lvstk         0.585       0.401
+expcrp        0.432       0.852       0.896
+othcrp        0.501       0.899       1.415
+agproc        0.929       2.313
+aginp         1.156       1.111
+intmnf        1.384       1.285
+fdmnf         1.346       1.087
+trdtrn        0.898       1.325
+service       0.956       0.814
+resta         0.563       1.464
+
+
+----    564 PARAMETER wf0  factor price
+
+labor   19.733,    capital  0.157,    land     0.053
+
+
+----    564 PARAMETER fs0  factor supply
+
+labor     96.641,    capital 6244.072,    land     428.250
+
+
+----    564 PARAMETER yfsect0  factor income by sector
+
+lvstk      9.807,    expcrp    29.389,    othcrp    15.199,    agproc    98.626,    aginp     34.223,    intmnf   269.408,    fdmnf    312.655,    trdtrn   437.355,    service 1542.043,    resta    158.519
+
+
+----    564 PARAMETER yfctr0  factor income summed over sector
+
+labor   1907.000,    capital  977.319,    land      22.905
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 33
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----    565 PARAMETER yinst0  institutional income
+
+labr 1637.465,    ent   558.575,    prop   22.905
+
+
+----    565 PARAMETER yh0  household income
+
+hhtrn  396.250,    hhlab 1637.465,    hhcap  580.231
+
+
+----    565 PARAMETER mps0  household marginal propensity to save
+
+hhlab 0.062,    hhcap 0.174
+
+
+----    565 PARAMETER htax  household tax rate
+
+hhlab 0.126,    hhcap 0.350
+
+
+----    565 PARAMETER etr                  =        0.098  enterprise tax rate
+            PARAMETER esr                  =        0.035  enterprise savings rate
+            PARAMETER sstr                 =        0.141  social security tax rate
+
+----    579 PARAMETER delta  armington function share parameter
+
+lvstk         0.233,    expcrp        0.177,    othcrp        0.366,    agproc        0.211,    aginp         0.042,    intmnf        0.067,    fdmnf         0.152,    trdtrn        0.004,    service 2.580477E-9
+
+
+----    579 PARAMETER ac  armington function shift parameter
+
+lvstk   1.420,    expcrp  1.297,    othcrp  1.773,    agproc  1.498,    aginp   1.269,    intmnf  1.365,    fdmnf   1.563,    trdtrn  1.022,    service 1.024,    resta   1.000
+
+
+----    579 PARAMETER rmd  ratio of imports to domestic sales
+
+lvstk   0.008,    expcrp  0.002,    othcrp  0.111,    agproc  0.071,    aginp   0.096,    intmnf  0.138,    fdmnf   0.213,    trdtrn  0.002,    service 0.019
+
+
+----    587 PARAMETER gamma  cet function share parameter
+
+lvstk   1.000,    expcrp  0.568,    othcrp  0.802,    agproc  0.819,    aginp   0.781,    intmnf  0.788,    fdmnf   0.778,    trdtrn  0.818,    service 0.995,    resta   0.998
+
+
+----    587 PARAMETER at  cet function shift parameter
+
+lvstk   51.023,    expcrp   2.074,    othcrp   3.006,    agproc   3.175,    aginp    2.823,    intmnf   2.876,    fdmnf    2.612,    trdtrn   3.162,    service  7.365,    resta   10.406
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 34
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----    592 PARAMETER alpha  factor share parameter-production function
+
+              labor     capital        land
+
+lvstk         0.489       0.511
+expcrp        0.113       0.328       0.559
+othcrp        0.323       0.251       0.427
+agproc        0.667       0.333
+aginp         0.592       0.408
+intmnf        0.571       0.429
+fdmnf         0.841       0.159
+trdtrn        0.755       0.245
+service       0.680       0.320
+resta         0.075       0.925
+
+
+----    599 PARAMETER ad  production function shift parameter
+
+lvstk   12.617,    expcrp   0.751,    othcrp   2.182,    agproc  37.138,    aginp   47.468,    intmnf  16.892,    fdmnf   48.285,    trdtrn  18.680,    service 12.075,    resta    0.583
+
+
+----    599 PARAMETER qd  dummy variable for computing ad(i)
+
+lvstk     6.112,    expcrp   95.520,    othcrp   12.165,    agproc   10.532,    aginp     5.589,    intmnf   40.951,    fdmnf    16.933,    trdtrn   42.026,    service 216.065,    resta   395.827
+
+
+----    599 PARAMETER fd0  factor demand
+
+labor     96.641,    capital 6244.073,    land     428.251
+
+
+----    605 PARAMETER xd0  domestic output
+
+lvstk     77.115,    expcrp    71.773,    othcrp    26.544,    agproc   391.145,    aginp    265.280,    intmnf   691.753,    fdmnf    817.594,    trdtrn   785.067,    service 2609.047,    resta    230.939
+
+
+----    605 PARAMETER x0  composite good supply
+
+lvstk     77.557,    expcrp    53.983,    othcrp    27.809,    agproc   399.482,    aginp    269.608,    intmnf   734.080,    fdmnf    861.036,    trdtrn   749.789,    service 2549.723,    resta    225.490
+
+
+----    605 PARAMETER xxd0  domestic sales
+
+lvstk     76.904,    expcrp    53.866,    othcrp    25.026,    agproc   372.919,    aginp    245.939,    intmnf   644.884,    fdmnf    709.591,    trdtrn   747.944,    service 2501.795,    resta    225.490
+
+
+----    606 PARAMETER pva0  value added price by sector
+
+lvstk   0.127,    expcrp  0.409,    othcrp  0.573,    agproc  0.252,    aginp   0.129,    intmnf  0.389,    fdmnf   0.382,    trdtrn  0.557,    service 0.591,    resta   0.686
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 35
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----    606 PARAMETER pd0  domestic goods price
+
+lvstk   1.000,    expcrp  1.000,    othcrp  1.000,    agproc  1.000,    aginp   1.000,    intmnf  1.000,    fdmnf   1.000,    trdtrn  1.000,    service 1.000,    resta   1.000
+
+
+----    606 PARAMETER pe0  domestic price of exports
+
+lvstk   1.000,    expcrp  1.000,    othcrp  1.000,    agproc  1.000,    aginp   1.000,    intmnf  1.000,    fdmnf   1.000,    trdtrn  1.000,    service 1.000,    resta   1.000
+
+
+----    606 PARAMETER pwe0  world price of exports
+
+lvstk   1.000,    expcrp  1.000,    othcrp  1.000,    agproc  1.000,    aginp   1.000,    intmnf  1.000,    fdmnf   1.000,    trdtrn  1.000,    service 1.000,    resta   1.000
+
+
+----    606 PARAMETER pm0  domestic price of imports
+
+lvstk   1.000,    expcrp  1.000,    othcrp  1.000,    agproc  1.000,    aginp   1.000,    intmnf  1.000,    fdmnf   1.000,    trdtrn  1.000,    service 1.000,    resta   1.000
+
+
+----    606 PARAMETER pwm  world market price of imports (in dollars)
+
+lvstk   0.987,    expcrp  0.972,    othcrp  0.964,    agproc  0.897,    aginp   0.997,    intmnf  0.982,    fdmnf   0.973,    trdtrn  0.973,    service 1.000,    resta   1.000
+
+
+----    606 PARAMETER tm  tariff rates on imports
+
+lvstk         0.014,    expcrp        0.029,    othcrp        0.037,    agproc        0.115,    aginp         0.003,    intmnf        0.018,    fdmnf         0.027,    trdtrn        0.027,    service 8.345875E-6
+
+
+----    606 PARAMETER pwts  price index weights
+
+lvstk   0.013,    expcrp  0.012,    othcrp  0.004,    agproc  0.066,    aginp   0.044,    intmnf  0.116,    fdmnf   0.137,    trdtrn  0.132,    service 0.437,    resta   0.039
+
+
+----    752 VARIABLE yfctr.L  factor income                                (bill $)
+
+labor   1907.000,    capital  977.319,    land      22.905
+
+
+----    752 VARIABLE yinst.L  institutional income                        (bill $)
+
+labr 1637.465,    ent   558.575,    prop   22.905
+
+
+----    752 VARIABLE yh.L  household income                             (bill $)
+
+hhtrn  396.250,    hhlab 1637.465,    hhcap  580.231
+
+
+----    752 VARIABLE gnpva.L               =     3166.001  value added in market prices gnp             (bill $)
+            VARIABLE rgnp.L                =     3166.002  real gnp                                     (82 bill $)
+            VARIABLE pindex.L              =        1.000  gnp deflator
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 36
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----    753 VARIABLE int.L  intermediates uses                           (82 bill $)
+
+lvstk    70.466,    expcrp   46.071,    othcrp   15.768,    agproc  160.111,    aginp   195.025,    intmnf  694.450,    fdmnf   389.942,    trdtrn  337.164,    service 767.737,    resta   132.121
+
+
+----    753 VARIABLE cd.L  final demand for private consumption         (82 bill $)
+
+lvstk      6.597,    expcrp     0.914,    othcrp    11.488,    agproc   231.451,    aginp     55.811,    intmnf    22.496,    fdmnf    216.391,    trdtrn   386.724,    service 1041.077,    resta     77.752
+
+
+----    753 VARIABLE gd.L  final demand for government consumption      (82 bill $)
+
+lvstk     0.431,    expcrp    7.475,    othcrp    0.681,    agproc    9.138,    aginp    12.500,    intmnf   12.749,    fdmnf    97.993,    trdtrn   28.760,    service 465.610,    resta     6.364
+
+
+----    753 VARIABLE id.L  final demand for productive investment       (82 bill $)
+
+agproc    1.180,    aginp     8.418,    intmnf    8.724,    fdmnf   165.525,    service 278.703,    resta     9.252
+
+
+----    753 VARIABLE dst.L  inventory investment by sector               (82 bill $)
+
+lvstk    0.063,    expcrp  -0.477,    othcrp  -0.129,    agproc  -2.399,    aginp   -2.146,    intmnf  -4.339,    fdmnf   -8.814,    trdtrn  -2.858,    service -3.402
+
+
+----    753 VARIABLE dk.L  volume of investment by sector of destination (82 bill $)
+
+lvstk     6.033,    expcrp    5.462,    othcrp    2.045,    agproc    6.863,    aginp     6.074,    intmnf   43.421,    fdmnf    22.009,    trdtrn   38.997,    service 292.551,    resta    48.345
+
+
+----    797 PARAMETER sam  social accounting matrix
+
+               commdty    activity      valuad     insttns  households        govt    kaccount       world       total
+
+commdty                    2808.86                             2050.70      641.70      447.30                 5948.56
+activity       5604.36                                                                              361.90     5966.26
+valuad                     2907.22                                                                             2907.22
+insttns                                2637.69                               47.53                             2685.22
+households                                         2218.95                  396.25                             2615.20
+govt              8.60      250.18      269.54       63.08      409.34                                         1000.73
+kaccount                                            403.19      153.91     -110.83                              446.27
+world           335.60                                            1.25       26.08       -1.03                  361.90
+total          5948.56     5966.26     2907.22     2685.22     2615.20     1000.73      446.27      361.90
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 37
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+Model Statistics    SOLVE us82 Using MCP From line 1061
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          45     SINGLE EQUATIONS          232
+BLOCKS OF VARIABLES          50     SINGLE VARIABLES          260
+NON ZERO ELEMENTS         1,321     NON LINEAR N-Z            624
+DERIVATIVE POOL              20     CONSTANT POOL             244
+CODE LENGTH               1,666
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 38
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+Solution Report     SOLVE us82 Using MCP From line 1061
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   us82                
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  1061
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0          1000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ers82mcp/convert.opt"
+>>  gams ers82mcp-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ers82mcp/convert.opt"
+Gams      : ers82mcp-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 39
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----   1151 PARAMETER scalres  
+
+exr         1.000000,    pindex      1.000000,    gdtot     641.700000,    invest    447.300122,    sstax     269.535402,    enttax     63.079602,    tothhtax  409.335747,    remit      -1.250000,    gent       47.530000,    hht       396.249995
+fbor      -26.080000,    entsav     20.030311,    hhsav     153.907922,    govsav   -110.833017,    fsav        1.029951,    rgnp     3166.001792,    gnpva    3166.001093,    fxdinv    471.801177,    gr        974.646977,    tariff      8.600001
+indtax    250.176225,    savings   447.299307,    deprecia  383.164140
+
+
+----   1151 PARAMETER fctres1  factor demand by sector
+
+              labor     capital        land
+
+lvstk      0.415354   79.844060
+expcrp     0.389786   72.290527  342.600000
+othcrp     0.495860   27.070413   85.650000
+agproc     3.584813   90.828916
+aginp      0.887448   80.391908
+intmnf     5.635211  574.659325
+fdmnf      9.907532  291.267850
+trdtrn    18.648095  516.104860
+service   55.605901 3871.778753
+resta      1.070999  639.835386
+
+
+----   1151 PARAMETER fctres2  miscellaneous factor variable results
+
+            labor     capital        land
+
+wf      19.732827    0.156520    0.053486
+fs      96.640999 6244.071998  428.250000
+yfctr 1907.000159  977.319170   22.905418
+
+
+----   1151 PARAMETER sectres  sectoral quantities and prices
+
+          lvstk      expcrp      othcrp      agproc       aginp      intmnf       fdmnf      trdtrn     service       resta
+
+xd    77.115329   71.772915   26.543600  391.145476  265.279751  691.752575  817.593692  785.067268 2609.047268  230.939170
+e      0.211590   17.906935    1.517508   18.226606   19.340732   46.868929  108.003057   37.123239  107.252244    5.449350
+m      0.653649    0.116664    2.782416   26.562680   23.669242   89.196218  151.445719    1.845284   47.928267
+px     1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+pe     1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+pm     1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+p      1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+pd     1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+pk     1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+pva    0.127178    0.409475    0.572613    0.252146    0.129008    0.389458    0.382409    0.557092    0.591037    0.686410
+pwe    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000    1.000000
+x     77.557388   53.982644   27.808508  399.481550  269.608261  734.079864  861.036354  749.789313 2549.723291  225.489820
+xxd   76.903739   53.865980   25.026092  372.918870  245.939019  644.883646  709.590635  747.944029 2501.795024  225.489820
+int   70.466422   46.070736   15.767763  160.111477  195.024888  694.449508  389.942315  337.164069  767.737298  132.121477
+cd     6.597272    0.914245   11.488488  231.451009   55.811001   22.495797  216.390839  386.724086 1041.076545   77.752337
+gd     0.430580    7.475156    0.680843    9.137799   12.499662   12.748641   97.992626   28.760324  465.609996    6.364374
+id                                         1.180229    8.418153    8.723636  165.524514              278.702726    9.251918
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 40
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+       1151 PARAMETER sectres  sectoral quantities and prices
+
+          lvstk      expcrp      othcrp      agproc       aginp      intmnf       fdmnf      trdtrn     service       resta
+
+dst    0.062541   -0.477075   -0.128657   -2.398504   -2.145583   -4.338672   -8.814478   -2.858430   -3.402198
+dk     6.032922    5.462042    2.045258    6.863292    6.074440   43.421278   22.008581   38.997198  292.550699   48.345467
+
+
+----   1151 PARAMETER insres  institutional income results
+
+             labr         ent        prop
+
+yinst 1637.464757  558.575117   22.905418
+
+
+----   1151 PARAMETER hhres  miscellaneous household results
+
+          hhtrn       hhlab       hhcap
+
+mps                0.061607    0.174295
+yh   396.249995 1637.464757  580.230535
+
+
+----   1264 PARAMETER agtotfd              =      100.000  agricultural terms of trade
+            PARAMETER agtotva              =       62.939  ag terms of trade value added
+            PARAMETER agtotm               =       88.518  ag terms of trade world import price
+            PARAMETER agtote               =      100.000  ag terms of trade world export price
+
+----   1288 PARAMETER bot                  =      -30.576  nominal balance of trade
+            PARAMETER botr                 =       17.700  real balance of trade
+            PARAMETER nex                  =      361.900  nominal exports
+            PARAMETER esum                 =      361.900  real exports
+            PARAMETER nim                  =      392.476  nominal imports
+            PARAMETER msum                 =      344.200  real imports
+            PARAMETER shconsump            =       64.773  consumption share of nominal gnp
+            PARAMETER shinvest             =       14.128  investment share of nominal gnp
+            PARAMETER shgdtot              =       20.268  govt consumption share of nominal gnp
+            PARAMETER shex                 =       11.431  export share of nominal gnp
+            PARAMETER shim                 =       12.397  import share of nominal gnp
+            PARAMETER shbot                =       -0.966  balance of trade share of nominal gnp
+            PARAMETER shfsav               =        0.230  foreign saving share of investment
+            PARAMETER shgsav               =      -24.778  government saving share of investment
+            PARAMETER shpsav               =      124.548  private saving share of investment
+
+----   1310 PARAMETER colind               =      100.000  cost of living index
+            PARAMETER exrind               =      100.000  real exchange rate index
+            PARAMETER ngnp                 =     3109.126  nominal gnp
+            PARAMETER pdind                =      100.000  domestic supply price index
+            PARAMETER pind                 =      100.000  composite good price index
+            PARAMETER peind                =      100.000  domestic export price index
+            PARAMETER pmind                =      100.000  domestic import price index
+            PARAMETER pweind               =      100.000  world export price index
+            PARAMETER pwmind               =      114.025  world import price index
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 41
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+            PARAMETER pxind                =      100.000  producer price index
+
+----   1362 PARAMETER gnptab  gnp accounts
+
+               nominal        real    nomshare   realshare    deflator
+
+consmpt       2050.702    2050.702      65.957      64.773     100.000
+investment     471.801     471.801      15.175      14.902     100.000
+inventory      -24.501     -24.501      -0.788      -0.774     100.000
+government     641.700     641.700      20.639      20.268     100.000
+exports        361.900     361.900      11.640      11.431     100.000
+imports       -392.476    -335.600     -12.623     -10.600     116.947
+gnp           3109.126    3166.002     100.000     100.000      98.204
+
+
+----   1362 PARAMETER gnptab2  sectoral value added
+
+            nominal        real    nomshare   realshare    deflator
+
+lvstk        11.176      11.176       0.353       0.353     100.000
+expcrp       30.665      30.665       0.969       0.969     100.000
+othcrp       15.585      15.586       0.492       0.492     100.000
+agproc      109.400     109.400       3.455       3.455     100.000
+aginp        40.316      40.316       1.273       1.273     100.000
+intmnf      296.374     296.375       9.361       9.361     100.000
+fdmnf       322.351     322.351      10.182      10.182     100.000
+trdtrn      513.081     513.082      16.206      16.206     100.000
+service    1638.117    1638.117      51.741      51.741     100.000
+resta       188.934     188.934       5.968       5.968     100.000
+
+
+----   1362 PARAMETER sumgnp  aggregate gnp
+
+nominal   3166.001,    real      3166.002,    nomshare   100.000,    realshare  100.000
+
+
+----   1362 PARAMETER gnpratio             =        1.000  gnp value added correction factor
+
+----   1392 PARAMETER absorb  absorption table (real)
+
+                 e           m         gnp           c           i           g      nete-m         t-g      absorb
+
+total      361.900     344.200    3166.002    2050.702     471.801     641.700      17.700    -110.833    3164.203
+ag          19.636       3.553      43.127      19.000                   8.587      16.083                  27.587
+non-ag     342.264     340.647    3122.875    2031.702     471.801     633.113       1.617                3136.616
+
+
+----   1411 PARAMETER avgwf  average factor price current weights
+
+labor   19.733,    capital  0.157,    land     0.053
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 42
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+----   1411 PARAMETER avgprofit            =        0.157  average profit rate
+
+----   1411 PARAMETER valadd  value added at market price
+
+lvstk     11.176,    expcrp    30.665,    othcrp    15.585,    agproc   109.400,    aginp     40.316,    intmnf   296.374,    fdmnf    322.351,    trdtrn   513.081,    service 1629.517,    resta    188.934
+
+
+----   1411 PARAMETER sectory  value added at factor cost
+
+lvstk      9.807,    expcrp    29.389,    othcrp    15.199,    agproc    98.626,    aginp     34.223,    intmnf   269.408,    fdmnf    312.655,    trdtrn   437.355,    service 1542.043,    resta    158.519
+
+
+----   1434 PARAMETER factors  factor returns distributive parameters
+
+                 yf       yfcap      profit      rental       rdist       wdcap     yflabor     wdlabor      yfland      wdland        pint      intinp
+
+lvstk         9.807       5.015       0.063       0.063       0.401       0.401       4.793       0.585                               0.855      65.939
+expcrp       29.389       9.644       0.133       0.133       0.852       0.852       3.324       0.432      16.421       0.896       0.573      41.107
+othcrp       15.199       3.808       0.141       0.141       0.899       0.899       4.907       0.501       6.484       1.415       0.413      10.958
+agproc       98.626      32.884       0.362       0.362       2.313       2.313      65.741       0.929                               0.720     281.746
+aginp        34.223      13.975       0.174       0.174       1.111       1.111      20.248       1.156                               0.848     224.964
+intmnf      269.408     115.536       0.201       0.201       1.285       1.285     153.872       1.384                               0.572     395.378
+fdmnf       312.655      49.561       0.170       0.170       1.087       1.087     263.093       1.346                               0.606     495.243
+trdtrn      437.355     107.022       0.207       0.207       1.325       1.325     330.333       0.898                               0.346     271.986
+service    1542.043     493.262       0.127       0.127       0.814       0.814    1048.781       0.956                               0.375     979.530
+resta       158.519     146.611       0.229       0.229       1.464       1.464      11.908       0.563                               0.182      42.005
+
+
+----   1434 PARAMETER coeffs  shift
+
+             alphal      alphac      alphap         rmd       delta          ad
+
+lvstk         0.489       0.511                   0.008       0.233      12.617
+expcrp        0.113       0.328       0.559       0.002       0.177       0.751
+othcrp        0.323       0.251       0.427       0.111       0.366       2.182
+agproc        0.667       0.333                   0.071       0.211      37.138
+aginp         0.592       0.408                   0.096       0.042      47.468
+intmnf        0.571       0.429                   0.138       0.067      16.892
+fdmnf         0.841       0.159                   0.213       0.152      48.285
+trdtrn        0.755       0.245                   0.002       0.004      18.680
+service       0.680       0.320                   0.019 2.580477E-9      12.075
+resta         0.075       0.925                                           0.583
+
+
+----   1520 PARAMETER pricres1  price results by sector
+
+                 px          pe          pm           p          pd         pva         pwe      profit      rental        pint         pwm
+
+lvstk         1.000       1.000       1.000       1.000       1.000       0.127       1.000       0.063       0.063       0.855       0.836
+expcrp        1.000       1.000       1.000       1.000       1.000       0.409       1.000       0.133       0.133       0.573       0.664
+othcrp        1.000       1.000       1.000       1.000       1.000       0.573       1.000       0.141       0.141       0.413       1.066
+agproc        1.000       1.000       1.000       1.000       1.000       0.252       1.000       0.362       0.362       0.720       0.391
+aginp         1.000       1.000       1.000       1.000       1.000       0.129       1.000       0.174       0.174       0.848       1.542
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 43
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+       1520 PARAMETER pricres1  price results by sector
+
+                 px          pe          pm           p          pd         pva         pwe      profit      rental        pint         pwm
+
+intmnf        1.000       1.000       1.000       1.000       1.000       0.389       1.000       0.201       0.201       0.572       0.946
+fdmnf         1.000       1.000       1.000       1.000       1.000       0.382       1.000       0.170       0.170       0.606       1.201
+trdtrn        1.000       1.000       1.000       1.000       1.000       0.557       1.000       0.207       0.207       0.346       1.174
+service       1.000       1.000       1.000       1.000       1.000       0.591       1.000       0.127       0.127       0.375       1.536
+resta         1.000       1.000       1.000       1.000       1.000       0.686       1.000       0.229       0.229       0.182       1.703
+
+
+----   1520 PARAMETER quantres1  quantity results by sector
+
+              labor     capital        land          xd           e           m           x         xxd      valadd     sectory
+
+lvstk         0.415      79.844                  77.115       0.212       0.654      77.557      76.904      11.176       9.807
+expcrp        0.390      72.291     342.600      71.773      17.907       0.117      53.983      53.866      30.665      29.389
+othcrp        0.496      27.070      85.650      26.544       1.518       2.782      27.809      25.026      15.585      15.199
+agproc        3.585      90.829                 391.145      18.227      26.563     399.482     372.919     109.400      98.626
+aginp         0.887      80.392                 265.280      19.341      23.669     269.608     245.939      40.316      34.223
+intmnf        5.635     574.659                 691.753      46.869      89.196     734.080     644.884     296.374     269.408
+fdmnf         9.908     291.268                 817.594     108.003     151.446     861.036     709.591     322.351     312.655
+trdtrn       18.648     516.105                 785.067      37.123       1.845     749.789     747.944     513.081     437.355
+service      55.606    3871.779                2609.047     107.252      47.928    2549.723    2501.795    1629.517    1542.043
+resta         1.071     639.835                 230.939       5.449                 225.490     225.490     188.934     158.519
+
+
+----   1520 PARAMETER scalres1  aggregate variables
+
+exr         1.000,    pindex      1.000,    gdtot     641.700,    invest    447.300,    sstax     269.535,    enttax     63.080,    tothhtax  409.336,    remit      -1.250,    gent       47.530,    hht       396.250,    fbor      -26.080
+entsav     20.030,    hhsav     153.908,    govsav   -110.833,    fsav        1.030,    rgnp     3166.002,    gnpva    3166.001,    fxdinv    471.801,    gr        974.647,    tariff      8.600,    indtax    250.176,    savings   447.299
+deprecia  383.164
+
+
+----   1560 PARAMETER sam  social accounting matrix
+
+               commdty    activity      valuad     insttns  households        govt    kaccount       world       total
+
+commdty                   2808.856                            2050.702     641.700     447.300                5948.558
+activity      5604.357                                                                             361.900    5966.257
+valuad                    2907.225                                                                            2907.225
+insttns                               2637.689                              47.530                            2685.219
+households                                        2218.945                 396.250                            2615.195
+govt             8.600     250.176     269.535      63.080     409.336                                        1000.727
+kaccount                                           403.194     153.908    -110.833                             446.269
+world          392.476                                           1.250      26.080      -1.030                 418.776
+total         6005.433    5966.257    2907.225    2685.219    2615.195    1000.727     446.270     361.900
+
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:30:51 Page 44
+USDA/ERS CGE Model of the US (ERS82MCP,SEQ=138)
+E x e c u t i o n
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ers82mcp/ers82mcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ers82mcp/ers82mcp-scalar.gms.lst

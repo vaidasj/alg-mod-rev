@@ -1,0 +1,259 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 2
+Standard QP Model (QP1,SEQ=171)
+C o m p i l a t i o n
+
+
+       The first in a series of variations on the standard
+       QP formulation. The subsequent models exploit data
+       and problem structures to arrive at formulations that
+       have sensational computational advantages. Additional
+       information can be found at:
+       
+       http://www.gams.com/modlib/adddocs/qp1doc.htm
+       
+       
+      Kalvelagen, E, Model Building with GAMS. forthcoming
+       
+      de Wetering, A V, private communication.
+       
+  19   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/qp1/qpdata.inc
+  21  * From StockMaster at MIT
+  22   
+  23  sets       days    100 days from 95-11-27 to 96-04-29
+  24             stocks  170 selected stocks
+  25             upper(stocks,stocks)
+  26             lower(stocks,stocks);
+  27  alias (stocks,sstocks);
+  28   
+  29  parameters val(stocks,days)    closing value
+  30             return(stocks,days) daily returns - derived;
+  31   
+  32  set days days /
+  33    951127
+  34    951128
+ 136   
+ 137  set stocks /
+ 138    GAB
+ 139    GAP
+ 140    GDW
+ 301   
+ 302  parameter val(stocks,days) closing value /
+ 303    GAB  .951127                9.25
+ 304    GAB  .951128                9.25
+ 305    GAB  .951129                9.25
+ 306   
+16307  return(stocks,days-1) = val(stocks,days)-val(stocks,days-1);
+16308   
+16309  upper(stocks,sstocks) = ord(stocks) <= ord(sstocks);
+16310  lower(stocks,sstocks) = not upper(stocks,sstocks);
+16311   
+16312  set d(days)   selected days
+16313      s(stocks) selected stocks
+16314  alias(s,t);
+16315   
+16316  * select subset of stocks and periods
+16317  d(days)   = ord(days) >1 and ord(days) < 31;
+16318  s(stocks) = ord(stocks) < 51;
+16319   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 3
+Standard QP Model (QP1,SEQ=171)
+C o m p i l a t i o n
+
+
+16320  parameter mean(stocks)          mean of daily return
+16321            dev(stocks,days)      deviations
+16322            covar(stocks,sstocks) covariance matrix of returns (upper)
+16323            totmean               total mean return;
+16324   
+16325  mean(s)  = sum(d, return(s,d))/card(d);
+16326  dev(s,d) = return(s,d)-mean(s);
+16327   
+16328  * calculate covariance
+16329  * to save memory and time we only compute the uppertriangular
+16330  * part as the covariance matrix is symmetric
+16331  covar(upper(s,t)) = sum(d, dev(s,d)*dev(t,d))/(card(d)-1);
+16332   
+16333  totmean = sum(s, mean(s))/(card(s));
+16334   
+16335  variables z          objective variable
+16336            x(stocks)  investments;
+16337   
+16338  positive variables x;
+16339   
+16340  equations obj    objective
+16341            budget
+16342            retcon return constraint
+16343            ;
+16344   
+16345   
+16346  obj.. z =e= sum(upper(s,t), x(s)*covar(s,t)*x(t)) +
+16347              sum(lower(s,t), x(s)*covar(t,s)*x(t));
+16348  budget.. sum(s, x(s)) =e= 1.0;
+16349  retcon.. sum(s, mean(s)*x(s)) =g= totmean*1.25;
+16350   
+16351  model qp1 /all/;
+16352   
+16353  * Some solvers need more memory
+16354  qp1.workfactor = 10;
+16355  solve qp1 using nlp minimizing z;
+16356   
+16357  display x.l;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 4
+Standard QP Model (QP1,SEQ=171)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/qp1/qp1.gms
+     2       20 INCLUDE        1      20  ./home/renigijus/gams/opt-mod-lib/gamslib/qp1/qpdata.inc
+
+
+COMPILATION TIME     =        0.016 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 5
+Standard QP Model (QP1,SEQ=171)
+Equation Listing    SOLVE qp1 Using NLP From line 16355
+
+
+---- obj  =E=  objective
+
+obj..  z + (0)*x(GAB) + (0)*x(GAP) + (0)*x(GDW) + (0)*x(GE) + (0)*x(GEN) + (0)*x(GENZ) + (0)*x(GGUY) + (0)*x(GIS) + (0)*x(GM) + (0)*x(GME) + (0)*x(GNE) + (0)*x(GNTX) + (0)*x(GPS) + (0)*x(GPTA) + (0)*x(GSTRF) + (0)*x(GT) + (0)*x(GTE) + (0)*x(GTR)
+     
+      + (0)*x(GWF) + (0)*x(GYMB) + (0)*x(AA) + (0)*x(AAA) + (0)*x(AALR) + (0)*x(AAPL) + (0)*x(ABF) + (0)*x(ABX) + (0)*x(ACAD) + (0)*x(ACN) + (0)*x(ACTL) + (0)*x(ADAC) + (0)*x(ADBE) + (0)*x(ADCT) + (0)*x(ADDR) + (0)*x(ADPT) + (0)*x(ADV) + (0)*x(AET)
+     
+      + (0)*x(AGN) + (0)*x(AHP) + (0)*x(AKLM) + (0)*x(ALD) + (0)*x(ALEX) + (0)*x(ALRT) + (0)*x(ALSC) + (0)*x(ALTR) + (0)*x(ALU) + (0)*x(AM) + (0)*x(AMA) + (0)*x(AMAT) + (0)*x(AMD) + (0)*x(AMER) =E= 0 ; (LHS = 0)
+     
+
+---- budget  =E=  
+
+budget..  x(GAB) + x(GAP) + x(GDW) + x(GE) + x(GEN) + x(GENZ) + x(GGUY) + x(GIS) + x(GM) + x(GME) + x(GNE) + x(GNTX) + x(GPS) + x(GPTA) + x(GSTRF) + x(GT) + x(GTE) + x(GTR) + x(GWF) + x(GYMB) + x(AA) + x(AAA) + x(AALR) + x(AAPL) + x(ABF) + x(ABX)
+     
+      + x(ACAD) + x(ACN) + x(ACTL) + x(ADAC) + x(ADBE) + x(ADCT) + x(ADDR) + x(ADPT) + x(ADV) + x(AET) + x(AGN) + x(AHP) + x(AKLM) + x(ALD) + x(ALEX) + x(ALRT) + x(ALSC) + x(ALTR) + x(ALU) + x(AM) + x(AMA) + x(AMAT) + x(AMD) + x(AMER) =E= 1 ;
+     
+      (LHS = 0, INFES = 1 ****)
+     
+
+---- retcon  =G=  return constraint
+
+retcon..  - 0.0517241379310345*x(GAP) + 0.0558620689655172*x(GDW) + 0.116551724137931*x(GE) - 0.0172413793103448*x(GENZ) - 0.0496551724137931*x(GGUY) - 0.0644827586206896*x(GIS) + 0.00862068965517241*x(GME) + 0.0689655172413793*x(GNE)
+     
+      - 0.0172413793103448*x(GNTX) - 0.0948275862068965*x(GPS) - 0.0475862068965517*x(GPTA) + 0.344827586206897*x(GSTRF) + 0.0299999999999999*x(GT) + 0.0131034482758622*x(GTE) + 0.0562068965517241*x(GTR) - 0.0644827586206897*x(GWF)
+     
+      - 0.301724137931034*x(GYMB) - 0.241379310344828*x(AA) - 0.00206896551724138*x(AAA) - 0.0258620689655172*x(AALR) - 0.198275862068966*x(AAPL) - 0.0389655172413793*x(ABF) + 0.0775862068965517*x(ABX) - 0.206896551724138*x(ACAD)
+     
+      + 0.0562068965517242*x(ACN) - 0.0775862068965517*x(ACTL) + 0.0689655172413793*x(ADAC) - 1.04310344827586*x(ADBE) - 0.327586206896552*x(ADCT) - 0.0217241379310345*x(ADDR) - 0.155172413793103*x(ADPT) - 0.0172413793103448*x(ADV)
+     
+      - 0.28448275862069*x(AET) + 0.0558620689655173*x(AGN) + 0.163793103448276*x(AHP) - 0.370689655172414*x(AKLM) + 0.0172413793103448*x(ALD) - 0.03*x(ALEX) + 0.0475862068965517*x(ALRT) - 0.517241379310345*x(ALSC) - 0.21551724137931*x(ALTR)
+     
+      + 0.00655172413793105*x(ALU) - 0.0537931034482758*x(AM) - 0.0148275862068966*x(AMA) - 0.417931034482759*x(AMAT) - 0.103448275862069*x(AMD) - 0.124827586206896*x(AMER) =G= -0.100241379310345 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 6
+Standard QP Model (QP1,SEQ=171)
+Column Listing      SOLVE qp1 Using NLP From line 16355
+
+
+---- z  objective variable
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- x  investments
+
+x(GAB)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      obj
+        1       budget
+
+x(GAP)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      obj
+        1       budget
+       -0.0517  retcon
+
+x(GDW)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      obj
+        1       budget
+        0.0559  retcon
+
+REMAINING 47 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 7
+Standard QP Model (QP1,SEQ=171)
+Model Statistics    SOLVE qp1 Using NLP From line 16355
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           51
+NON ZERO ELEMENTS           148     NON LINEAR N-Z             50
+DERIVATIVE POOL              20     CONSTANT POOL           1,291
+CODE LENGTH              10,002
+
+
+GENERATION TIME      =        0.004 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.016 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 8
+Standard QP Model (QP1,SEQ=171)
+Solution Report     SOLVE qp1 Using NLP From line 16355
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   qp1                 OBJECTIVE  z
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  16355
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp1/convert.opt"
+>>  gams qp1-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp1/convert.opt"
+Gams      : qp1-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:31:10 Page 9
+Standard QP Model (QP1,SEQ=171)
+E x e c u t i o n
+
+
+----  16357 VARIABLE x.L  investments
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qp1/qp1.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qp1/qp1-scalar.gms.lst

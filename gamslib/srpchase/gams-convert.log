@@ -1,0 +1,106 @@
+--- Job srpchase.gms Start 12/13/18 11:30:32 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- srpchase.gms(66) 3 Mb
+--- .scenred2.gms(45) 3 Mb
+--- srpchase.gms(81) 3 Mb
+--- .runscenred2.gms(42) 3 Mb
+--- srpchase.gms(109) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- srpchase.gms(145) 4 Mb
+--- srpchase.gms(146) 4 Mb
+--- srpchase.gms(148) 4 Mb
+--- srpchase.gms(149) 4 Mb
+--- srpchase.gms(151) 4 Mb
+--- GDX File /home/renigijus/gams/opt-mod-lib/gamslib/srpchase/sr2srpchase_in.gdx
+--- srpchase.gms(160) 4 Mb
+Kt gruod. 13 11:30:32 EET 2018
+
+***********************************************
+*  SCENARIO TREE CONSTRUCTION / REDUCTION     *
+*                                             *
+*  S C E N R E D - 2                          *
+*                                             *
+*  VERSION: 12/12/2008                        *
+*                                             *
+*  (C) - Humboldt-University Berlin           *
+*        Institute of Mathematics             *
+*        Written by: Holger Heitsch           *
+*                                             *
+***********************************************
+
+    -------------
+    FilePrefix : srpchase
+    -------------
+    LogFile     : sr2srpchase.log
+    GDX Input   : sr2srpchase_in.gdx
+    GDX Output  : sr2srpchase_out.gdx
+--- Start reading GDX input parameters
+--- Automatic calculation of NUM_TIME_STEPS: 3
+--- Automatic calculation of NUM_LEAVES: 500
+--- Automatic calculation of NUM_NODES: 1001
+--- Automatic calculation of NUM_RANDOM: 1
+--- Reading GDX input parameters done (0 seconds)
+--- Additional file output:
+    SR Option   : sr2srpchase.opt
+--- Start checking input parameters
+--- Checking input parameters done (0 seconds)
+--- Start scenario tree construction process
+    DETECT CONSTRUCTION METHOD
+    CONSTRUCTION METHOD BACKWARD
+    READ CONSTRUCTION OPTIONS
+    ASSIGN SCENARIO DISTANCES
+    START BACKWARD TREE CONSTRUCTION
+      REDUCTION METHOD: BACKWARD
+    *** SCENARIO TREE CONSTRUCTION SUCCESSFUL
+    CONSTRUCTION SUMMARY
+      CONSTRUCT METHOD: BACKWARD ITERATION
+      REDUCTION METHOD: BACKWARD REDUCTION
+      METRIC TYPE     : WASSERSTEIN ORDER 1
+      EPSILON GROWTH  : GIVEN BY USER
+      PERCENTAGE (<)  :     0.10
+      TOTAL TIME      :     0.11 (sec)
+        SCENARIO DIST :     0.01 (sec)
+        CONSTRUCT TIME:     0.11 (sec)
+      PROB DISTANCES  : <   9.66 (RELATIVE)
+                        INITIAL       REDUCED
+      SCENARIOS -           500           145
+      NODES     -          1001           156
+      STAGES    -             2             3
+--- Scenario tree construction done (0 seconds)
+
+*************************
+--- SCENRED WARNINGS = 0
+--- SCENRED ERRORS   = 0
+*************************
+
+*** SCENRED EXECUTION TIME = 0 (sec)
+
+--- Scenred2 GDX Input sr2srpchase_in.gdx
+--- Scenred2 GDX Output sr2srpchase_out.gdx
+--- srpchase.gms(164) 4 Mb
+--- GDXin=/home/renigijus/gams/opt-mod-lib/gamslib/srpchase/sr2srpchase_out.gdx
+--- srpchase.gms(183) 4 Mb
+--- Generating LP model purchase
+--- srpchase.gms(196) 4 Mb
+---   157 rows  168 columns  479 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.141
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/srpchase/convert.opt"
+>>  gams srpchase-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/srpchase/convert.opt"
+--- Writing Gams      : srpchase-scalar.gms
+
+--- Restarting execution
+--- srpchase.gms(196) 2 Mb
+--- Reading solution for model purchase
+--- Putfile fopts /home/renigijus/gams/opt-mod-lib/gamslib/srpchase/sr2srpchase.opt
+*** Status: Normal completion
+--- Job srpchase.gms Stop 12/13/18 11:30:32 elapsed 0:00:00.153

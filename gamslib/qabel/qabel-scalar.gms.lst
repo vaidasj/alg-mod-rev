@@ -1,0 +1,226 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option QCP=convert;
+   2  option QCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 2
+Linear Quadratic Control Problem as QCP  (QABEL,SEQ=293)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This is a QCP formulation of the original ABEL model. Note
+         that this model is convex and should be very easy to solve.
+         The Linear Quadratic Riccati Equations are solved as a QCP.
+         Nonlinear Programming Problem instead of the usual Matrix
+       
+         QMax can be easily extended to 1000, that allows to pass
+         larger QPs to the solver.
+       
+       
+      Kendrick, D, Caution and Probing in a Macroeconomic Model. Journal of
+      Economic Dynamics and Control 4, 2 (1982).
+       
+  20   
+  22   
+  23   Sets   n     states   / consumpt, invest /
+  24          m     controls / gov-expend, money /
+  25          k     quarters / q1*q75 /
+  26          ku(k) control horizon
+  27          ki(k) initial period
+  28          kt(k) terminal period ;
+  29   
+  30   Alias (n,np), (m,mp) ;
+  31   
+  32   ku(k) = ord(k) < card(k);
+  33   ki(k) = ord(k) = 1;
+  34   kt(k) = not ku(k);
+  35   
+  36   Table a(n,np)  state vector matrix
+  37   
+  38            consumpt   invest
+  39   consumpt    .914     -.016
+  40   invest      .097      .424
+  41   
+  42   Table b(n,m)   control vector matrix
+  43   
+  44              gov-expend     money
+  45   consumpt       .305        .424
+  46   invest        -.101       1.459
+  47   
+  48   Table wk(n,np) penalty matrix for states - input
+  49   
+  50            consumpt  invest
+  51   consumpt    .0625
+  52   invest                1
+  53   
+  54   Table lambda(m,mp)  penalty matrix for controls
+  55   
+  56                gov-expend   money
+  57   gov-expend      1
+  58   money                      .444
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 3
+Linear Quadratic Control Problem as QCP  (QABEL,SEQ=293)
+C o m p i l a t i o n
+
+
+  60   Parameter  c(n)     constant term    / consumpt -59.4,   invest -184.7 /
+  61              xinit(n) initial value    / consumpt 387.9,   invest   85.3 /
+  62              uinit(m) initial controls / gov-expend 110.5, money   147.1 /
+  63              xtilde(n,k)  desired path for x
+  64              utilde(m,k)  desired path for u
+  65              w(n,np,k)    penalty matrix on states ;
+  66   
+  67   w(n,np,ku) = wk(n,np);
+  68   w(n,np,kt) = 100*wk(n,np);
+  69   
+  70   xtilde(n,k) = xinit(n)*power(1.0075,ord(k)-1);
+  71   utilde(m,k) = uinit(m)*power(1.0075,ord(k)-1);
+  72   
+  73  * Display w, xtilde, utilde;
+  74   
+  75   Variables x(n,k)  state variable
+  76             u(m,k)  control variable
+  77             j       criterion
+  78   
+  79   Equations  criterion   criterion definition
+  80              stateq(n,k) state equation ;
+  81   
+  82   criterion..
+  83   
+  84    j =e= .5*sum((k,n,np), (x(n,k)-xtilde(n,k))*w(n,np,k)*(x(np,k)-xtilde(np,k)))
+  85       + .5*sum((ku,m,mp),(u(m,ku)-utilde(m,ku))*lambda(m,mp)*(u(mp,ku)-utilde(mp,ku)));
+  86   
+  87   stateq(n,k+1)..  x(n,k+1) =e= sum(np, a(n,np)*x(np,k)) + sum(m, b(n,m)*u(m,k)) + c(n);
+  88   
+  89   Model abel /all/;
+  90   
+  91   x.l(n,k)   = xinit(n); u.l(m,k) = uinit(m);
+  92   x.fx(n,ki) = xinit(n);
+  93   
+  94  option limcol=0,limrow=0, solprint=off;
+  95   
+  96  Solve abel minimizing j using qcp;
+  97   
+  98  Display x.l, u.l;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 4
+Linear Quadratic Control Problem as QCP  (QABEL,SEQ=293)
+Model Statistics    SOLVE abel Using QCP From line 96
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS          149
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          299
+NON ZERO ELEMENTS         1,039     NON LINEAR N-Z            298
+DERIVATIVE POOL              20     CONSTANT POOL             468
+CODE LENGTH               1,941
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 5
+Linear Quadratic Control Problem as QCP  (QABEL,SEQ=293)
+Solution Report     SOLVE abel Using QCP From line 96
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   abel                OBJECTIVE  j
+     TYPE    QCP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  96
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qabel/convert.opt"
+>>  gams qabel-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qabel/convert.opt"
+Gams      : qabel-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 6
+Linear Quadratic Control Problem as QCP  (QABEL,SEQ=293)
+E x e c u t i o n
+
+
+----     98 VARIABLE x.L  state variable
+
+                  q1          q2          q3          q4          q5          q6          q7          q8          q9         q10         q11         q12         q13         q14         q15         q16         q17         q18         q19         q20
+
+consumpt     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900
+invest        85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300
+
+       +         q21         q22         q23         q24         q25         q26         q27         q28         q29         q30         q31         q32         q33         q34         q35         q36         q37         q38         q39         q40
+
+consumpt     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900
+invest        85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300
+
+       +         q41         q42         q43         q44         q45         q46         q47         q48         q49         q50         q51         q52         q53         q54         q55         q56         q57         q58         q59         q60
+
+consumpt     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900
+invest        85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300
+
+       +         q61         q62         q63         q64         q65         q66         q67         q68         q69         q70         q71         q72         q73         q74         q75
+
+consumpt     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900     387.900
+invest        85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300      85.300
+
+
+----     98 VARIABLE u.L  control variable
+
+                    q1          q2          q3          q4          q5          q6          q7          q8          q9         q10         q11         q12         q13         q14         q15         q16         q17         q18         q19         q20
+
+gov-expend     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500
+money          147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100
+
+         +         q21         q22         q23         q24         q25         q26         q27         q28         q29         q30         q31         q32         q33         q34         q35         q36         q37         q38         q39         q40
+
+gov-expend     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500
+money          147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100
+
+         +         q41         q42         q43         q44         q45         q46         q47         q48         q49         q50         q51         q52         q53         q54         q55         q56         q57         q58         q59         q60
+
+gov-expend     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500
+money          147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100
+
+         +         q61         q62         q63         q64         q65         q66         q67         q68         q69         q70         q71         q72         q73         q74         q75
+
+gov-expend     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500     110.500
+money          147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100     147.100
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:23:27 Page 7
+Linear Quadratic Control Problem as QCP  (QABEL,SEQ=293)
+E x e c u t i o n
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qabel/qabel.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qabel/qabel-scalar.gms.lst

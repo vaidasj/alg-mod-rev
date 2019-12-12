@@ -1,0 +1,1473 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MINLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 2
+P-Median problem  (pmedian,SEQ=408)
+C o m p i l a t i o n
+
+
+      The pmedian problem is defined as follows: given a set I={1...n} of
+      locations and a transportation cost W between each pair of
+      locations. Select a subset S of p location minimizing the sum of the
+      distances between each location and the closest one in S.
+       
+      There are currently 40 data files from the OR-LIB
+      http://people.brunel.ac.uk/~mastjjb/jeb/orlib/pmedinfo.html
+       
+      These data files are the 40 test problems from Table 2 of
+      J.E.Beasley "A note on solving large p-median problems" European
+      Journal of Operational Research 21 (1985) 270-273.
+       
+       pmed15      1729                1734
+       
+       
+      J.E.Beasley "A note on solving large p-median problems" European
+      Journal of Operational Research 21 (1985) 270-273.
+  22   
+  25   
+  45   
+ 355   
+ 356  alias (n,i,j);
+ 357  Scalar wMax; wMax = smax((i,j), w(i,j));
+ 358   
+ 359  Variables
+ 360      x(n)          location selection
+ 361      costs(n,n)    costs between location i and j
+ 362      cost(n)       cost to serve i
+ 363      obj           objective;
+ 364  Binary variables x;
+ 365   
+ 366  Equation
+ 367      defp          select p locations
+ 368      defcosts(i,j) 'costs between location i and j is w(i,j) or inf (=2*wMax))'
+ 369      defcost(i)    cost to serve i is the smallest cost between i and other locations
+ 370      defobj        objective
+ 371  ;
+ 372   
+ 374    defcosts(i,j)..    costs(i,j) =e= ifthen (x(j)>=0.5, w(i,j), 2*wMax);
+ 375   
+ 376    defcost(i)..       cost(i) =e= smin(j, costs(i,j));
+ 378   
+ 379  defp..             sum(n, x(n)) =e= p;
+ 380   
+ 381  defobj..           obj =e= sum(n, cost(n));
+ 382   
+ 383  model pmedian /all/;
+ 384   
+ 385  costs.lo(i,j) = w(i,j);
+ 387    solve pmedian us minlp min obj;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 3
+P-Median problem  (pmedian,SEQ=408)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/pmedian/pmedian.gms
+     2       24 IF EXIST       1      24  /home/renigijus/gams/opt-mod-lib/gamslib/pmedian/pmed15.inc
+     3       43 CALL           1      43  awk -f pm.awk pmed15.inc > "/home/renigijus/gams/opt-mod-lib/gamslib/pmedian/225a/tlinst.dat"
+     4       47 INCLUDE        1      47  ./home/renigijus/gams/opt-mod-lib/gamslib/pmedian/225a/tlinst.dat
+
+
+COMPILATION TIME     =        0.015 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 4
+P-Median problem  (pmedian,SEQ=408)
+Equation Listing    SOLVE pmedian Using MINLP From line 387
+
+
+---- defp  =E=  select p locations
+
+defp..  x(0) + x(1) + x(2) + x(3) + x(4) + x(5) + x(6) + x(7) + x(8) + x(9) + x(10) + x(11) + x(12) + x(13) + x(14) + x(15) + x(16) + x(17) + x(18) + x(19) + x(20) + x(21) + x(22) + x(23) + x(24) + x(25) + x(26) + x(27) + x(28) + x(29) + x(30) + x(31)
+     
+      + x(32) + x(33) + x(34) + x(35) + x(36) + x(37) + x(38) + x(39) + x(40) + x(41) + x(42) + x(43) + x(44) + x(45) + x(46) + x(47) + x(48) + x(49) + x(50) + x(51) + x(52) + x(53) + x(54) + x(55) + x(56) + x(57) + x(58) + x(59) + x(60) + x(61) + x(62)
+     
+      + x(63) + x(64) + x(65) + x(66) + x(67) + x(68) + x(69) + x(70) + x(71) + x(72) + x(73) + x(74) + x(75) + x(76) + x(77) + x(78) + x(79) + x(80) + x(81) + x(82) + x(83) + x(84) + x(85) + x(86) + x(87) + x(88) + x(89) + x(90) + x(91) + x(92) + x(93)
+     
+      + x(94) + x(95) + x(96) + x(97) + x(98) + x(99) + x(100) + x(101) + x(102) + x(103) + x(104) + x(105) + x(106) + x(107) + x(108) + x(109) + x(110) + x(111) + x(112) + x(113) + x(114) + x(115) + x(116) + x(117) + x(118) + x(119) + x(120) + x(121)
+     
+      + x(122) + x(123) + x(124) + x(125) + x(126) + x(127) + x(128) + x(129) + x(130) + x(131) + x(132) + x(133) + x(134) + x(135) + x(136) + x(137) + x(138) + x(139) + x(140) + x(141) + x(142) + x(143) + x(144) + x(145) + x(146) + x(147) + x(148)
+     
+      + x(149) + x(150) + x(151) + x(152) + x(153) + x(154) + x(155) + x(156) + x(157) + x(158) + x(159) + x(160) + x(161) + x(162) + x(163) + x(164) + x(165) + x(166) + x(167) + x(168) + x(169) + x(170) + x(171) + x(172) + x(173) + x(174) + x(175)
+     
+      + x(176) + x(177) + x(178) + x(179) + x(180) + x(181) + x(182) + x(183) + x(184) + x(185) + x(186) + x(187) + x(188) + x(189) + x(190) + x(191) + x(192) + x(193) + x(194) + x(195) + x(196) + x(197) + x(198) + x(199) + x(200) + x(201) + x(202)
+     
+      + x(203) + x(204) + x(205) + x(206) + x(207) + x(208) + x(209) + x(210) + x(211) + x(212) + x(213) + x(214) + x(215) + x(216) + x(217) + x(218) + x(219) + x(220) + x(221) + x(222) + x(223) + x(224) + x(225) + x(226) + x(227) + x(228) + x(229)
+     
+      + x(230) + x(231) + x(232) + x(233) + x(234) + x(235) + x(236) + x(237) + x(238) + x(239) + x(240) + x(241) + x(242) + x(243) + x(244) + x(245) + x(246) + x(247) + x(248) + x(249) + x(250) + x(251) + x(252) + x(253) + x(254) + x(255) + x(256)
+     
+      + x(257) + x(258) + x(259) + x(260) + x(261) + x(262) + x(263) + x(264) + x(265) + x(266) + x(267) + x(268) + x(269) + x(270) + x(271) + x(272) + x(273) + x(274) + x(275) + x(276) + x(277) + x(278) + x(279) + x(280) + x(281) + x(282) + x(283)
+     
+      + x(284) + x(285) + x(286) + x(287) + x(288) + x(289) + x(290) + x(291) + x(292) + x(293) + x(294) + x(295) + x(296) + x(297) + x(298) + x(299) =E= 100 ; (LHS = 0, INFES = 100 ****)
+     
+
+---- defcosts  =E=  costs between location i and j is w(i,j) or inf (=2*wMax))
+
+defcosts(0,0)..  (0)*x(0) + costs(0,0) =E= 0 ; (LHS = -272, INFES = 272 ****)
+     
+defcosts(0,1)..  (0)*x(1) + costs(0,1) =E= 0 ; (LHS = -268, INFES = 268 ****)
+     
+defcosts(0,2)..  (0)*x(2) + costs(0,2) =E= 0 ; (LHS = -259, INFES = 259 ****)
+     
+REMAINING 89997 ENTRIES SKIPPED
+
+
+---- defcost  =E=  cost to serve i is the smallest cost between i and other locations
+
+defcost(0)..  (0)*costs(0,0) + (0)*costs(0,1) + (0)*costs(0,2) + (0)*costs(0,3) + (0)*costs(0,4) + (0)*costs(0,5) + (0)*costs(0,6) + (0)*costs(0,7) + (0)*costs(0,8) + (0)*costs(0,9) + (0)*costs(0,10) + (0)*costs(0,11) + (0)*costs(0,12) + (0)*costs(0,13)
+     
+      + (0)*costs(0,14) + (0)*costs(0,15) + (0)*costs(0,16) + (0)*costs(0,17) + (0)*costs(0,18) + (0)*costs(0,19) + (0)*costs(0,20) + (0)*costs(0,21) + (0)*costs(0,22) + (0)*costs(0,23) + (0)*costs(0,24) + (0)*costs(0,25) + (0)*costs(0,26)
+     
+      + (0)*costs(0,27) + (0)*costs(0,28) + (0)*costs(0,29) + (0)*costs(0,30) + (0)*costs(0,31) + (0)*costs(0,32) + (0)*costs(0,33) + (0)*costs(0,34) + (0)*costs(0,35) + (0)*costs(0,36) + (0)*costs(0,37) + (0)*costs(0,38) + (0)*costs(0,39)
+     
+      + (0)*costs(0,40) + (0)*costs(0,41) + (0)*costs(0,42) + (0)*costs(0,43) + (0)*costs(0,44) + (0)*costs(0,45) + (0)*costs(0,46) + (0)*costs(0,47) + (0)*costs(0,48) + (0)*costs(0,49) + (0)*costs(0,50) + (0)*costs(0,51) + (0)*costs(0,52)
+     
+      + (0)*costs(0,53) + (0)*costs(0,54) + (0)*costs(0,55) + (0)*costs(0,56) + (0)*costs(0,57) + (0)*costs(0,58) + (0)*costs(0,59) + (0)*costs(0,60) + (0)*costs(0,61) + (0)*costs(0,62) + (0)*costs(0,63) + (0)*costs(0,64) + (0)*costs(0,65)
+     
+      + (0)*costs(0,66) + (0)*costs(0,67) + (0)*costs(0,68) + (0)*costs(0,69) + (0)*costs(0,70) + (0)*costs(0,71) + (0)*costs(0,72) + (0)*costs(0,73) + (0)*costs(0,74) + (0)*costs(0,75) + (0)*costs(0,76) + (0)*costs(0,77) + (0)*costs(0,78)
+     
+      + (0)*costs(0,79) + (0)*costs(0,80) + (0)*costs(0,81) + (0)*costs(0,82) + (0)*costs(0,83) + (0)*costs(0,84) + (0)*costs(0,85) + (0)*costs(0,86) + (0)*costs(0,87) + (0)*costs(0,88) + (0)*costs(0,89) + (0)*costs(0,90) + (0)*costs(0,91)
+     
+      + (0)*costs(0,92) + (0)*costs(0,93) + (0)*costs(0,94) + (0)*costs(0,95) + (0)*costs(0,96) + (0)*costs(0,97) + (0)*costs(0,98) + (0)*costs(0,99) + (0)*costs(0,100) + (0)*costs(0,101) + (0)*costs(0,102) + (0)*costs(0,103) + (0)*costs(0,104)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 5
+P-Median problem  (pmedian,SEQ=408)
+Equation Listing    SOLVE pmedian Using MINLP From line 387
+
+
+     defcost  =E=  cost to serve i is the smallest cost between i and other locations     
+     
+      + (0)*costs(0,105) + (0)*costs(0,106) + (0)*costs(0,107) + (0)*costs(0,108) + (0)*costs(0,109) + (0)*costs(0,110) + (0)*costs(0,111) + (0)*costs(0,112) + (0)*costs(0,113) + (0)*costs(0,114) + (0)*costs(0,115) + (0)*costs(0,116) + (0)*costs(0,117)
+     
+      + (0)*costs(0,118) + (0)*costs(0,119) + (0)*costs(0,120) + (0)*costs(0,121) + (0)*costs(0,122) + (0)*costs(0,123) + (0)*costs(0,124) + (0)*costs(0,125) + (0)*costs(0,126) + (0)*costs(0,127) + (0)*costs(0,128) + (0)*costs(0,129) + (0)*costs(0,130)
+     
+      + (0)*costs(0,131) + (0)*costs(0,132) + (0)*costs(0,133) + (0)*costs(0,134) + (0)*costs(0,135) + (0)*costs(0,136) + (0)*costs(0,137) + (0)*costs(0,138) + (0)*costs(0,139) + (0)*costs(0,140) + (0)*costs(0,141) + (0)*costs(0,142) + (0)*costs(0,143)
+     
+      + (0)*costs(0,144) + (0)*costs(0,145) + (0)*costs(0,146) + (0)*costs(0,147) + (0)*costs(0,148) + (0)*costs(0,149) + (0)*costs(0,150) + (0)*costs(0,151) + (0)*costs(0,152) + (0)*costs(0,153) + (0)*costs(0,154) + (0)*costs(0,155) + (0)*costs(0,156)
+     
+      + (0)*costs(0,157) + (0)*costs(0,158) + (0)*costs(0,159) + (0)*costs(0,160) + (0)*costs(0,161) + (0)*costs(0,162) + (0)*costs(0,163) + (0)*costs(0,164) + (0)*costs(0,165) + (0)*costs(0,166) + (0)*costs(0,167) + (0)*costs(0,168) + (0)*costs(0,169)
+     
+      + (0)*costs(0,170) + (0)*costs(0,171) + (0)*costs(0,172) + (0)*costs(0,173) + (0)*costs(0,174) + (0)*costs(0,175) + (0)*costs(0,176) + (0)*costs(0,177) + (0)*costs(0,178) + (0)*costs(0,179) + (0)*costs(0,180) + (0)*costs(0,181) + (0)*costs(0,182)
+     
+      + (0)*costs(0,183) + (0)*costs(0,184) + (0)*costs(0,185) + (0)*costs(0,186) + (0)*costs(0,187) + (0)*costs(0,188) + (0)*costs(0,189) + (0)*costs(0,190) + (0)*costs(0,191) + (0)*costs(0,192) + (0)*costs(0,193) + (0)*costs(0,194) + (0)*costs(0,195)
+     
+      + (0)*costs(0,196) + (0)*costs(0,197) + (0)*costs(0,198) + (0)*costs(0,199) + (0)*costs(0,200) + (0)*costs(0,201) + (0)*costs(0,202) + (0)*costs(0,203) + (0)*costs(0,204) + (0)*costs(0,205) + (0)*costs(0,206) + (0)*costs(0,207) + (0)*costs(0,208)
+     
+      + (0)*costs(0,209) + (0)*costs(0,210) + (0)*costs(0,211) + (0)*costs(0,212) + (0)*costs(0,213) + (0)*costs(0,214) + (0)*costs(0,215) + (0)*costs(0,216) + (0)*costs(0,217) + (0)*costs(0,218) + (0)*costs(0,219) + (0)*costs(0,220) + (0)*costs(0,221)
+     
+      + (0)*costs(0,222) + (0)*costs(0,223) + (0)*costs(0,224) + (0)*costs(0,225) + (0)*costs(0,226) + (0)*costs(0,227) + (0)*costs(0,228) + (0)*costs(0,229) + (0)*costs(0,230) + (0)*costs(0,231) + (0)*costs(0,232) + (0)*costs(0,233) + (0)*costs(0,234)
+     
+      + (0)*costs(0,235) + (0)*costs(0,236) + (0)*costs(0,237) + (0)*costs(0,238) + (0)*costs(0,239) + (0)*costs(0,240) + (0)*costs(0,241) + (0)*costs(0,242) + (0)*costs(0,243) + (0)*costs(0,244) + (0)*costs(0,245) + (0)*costs(0,246) + (0)*costs(0,247)
+     
+      + (0)*costs(0,248) + (0)*costs(0,249) + (0)*costs(0,250) + (0)*costs(0,251) + (0)*costs(0,252) + (0)*costs(0,253) + (0)*costs(0,254) + (0)*costs(0,255) + (0)*costs(0,256) + (0)*costs(0,257) + (0)*costs(0,258) + (0)*costs(0,259) + (0)*costs(0,260)
+     
+      + (0)*costs(0,261) + (0)*costs(0,262) + (0)*costs(0,263) + (0)*costs(0,264) + (0)*costs(0,265) + (0)*costs(0,266) + (0)*costs(0,267) + (0)*costs(0,268) + (0)*costs(0,269) + (0)*costs(0,270) + (0)*costs(0,271) + (0)*costs(0,272) + (0)*costs(0,273)
+     
+      + (0)*costs(0,274) + (0)*costs(0,275) + (0)*costs(0,276) + (0)*costs(0,277) + (0)*costs(0,278) + (0)*costs(0,279) + (0)*costs(0,280) + (0)*costs(0,281) + (0)*costs(0,282) + (0)*costs(0,283) + (0)*costs(0,284) + (0)*costs(0,285) + (0)*costs(0,286)
+     
+      + (0)*costs(0,287) + (0)*costs(0,288) + (0)*costs(0,289) + (0)*costs(0,290) + (0)*costs(0,291) + (0)*costs(0,292) + (0)*costs(0,293) + (0)*costs(0,294) + (0)*costs(0,295) + (0)*costs(0,296) + (0)*costs(0,297) + (0)*costs(0,298) + (0)*costs(0,299)
+     
+      + cost(0) =E= 0 ; (LHS = 0)
+     
+defcost(1)..  (0)*costs(1,0) - (1)*costs(1,1) + (0)*costs(1,2) + (0)*costs(1,3) + (0)*costs(1,4) + (0)*costs(1,5) + (0)*costs(1,6) + (0)*costs(1,7) + (0)*costs(1,8) + (0)*costs(1,9) + (0)*costs(1,10) + (0)*costs(1,11) + (0)*costs(1,12) + (0)*costs(1,13)
+     
+      + (0)*costs(1,14) + (0)*costs(1,15) + (0)*costs(1,16) + (0)*costs(1,17) + (0)*costs(1,18) + (0)*costs(1,19) + (0)*costs(1,20) + (0)*costs(1,21) + (0)*costs(1,22) + (0)*costs(1,23) + (0)*costs(1,24) + (0)*costs(1,25) + (0)*costs(1,26)
+     
+      + (0)*costs(1,27) + (0)*costs(1,28) + (0)*costs(1,29) + (0)*costs(1,30) + (0)*costs(1,31) + (0)*costs(1,32) + (0)*costs(1,33) + (0)*costs(1,34) + (0)*costs(1,35) + (0)*costs(1,36) + (0)*costs(1,37) + (0)*costs(1,38) + (0)*costs(1,39)
+     
+      + (0)*costs(1,40) + (0)*costs(1,41) + (0)*costs(1,42) + (0)*costs(1,43) + (0)*costs(1,44) + (0)*costs(1,45) + (0)*costs(1,46) + (0)*costs(1,47) + (0)*costs(1,48) + (0)*costs(1,49) + (0)*costs(1,50) + (0)*costs(1,51) + (0)*costs(1,52)
+     
+      + (0)*costs(1,53) + (0)*costs(1,54) + (0)*costs(1,55) + (0)*costs(1,56) + (0)*costs(1,57) + (0)*costs(1,58) + (0)*costs(1,59) + (0)*costs(1,60) + (0)*costs(1,61) + (0)*costs(1,62) + (0)*costs(1,63) + (0)*costs(1,64) + (0)*costs(1,65)
+     
+      + (0)*costs(1,66) + (0)*costs(1,67) + (0)*costs(1,68) + (0)*costs(1,69) + (0)*costs(1,70) + (0)*costs(1,71) + (0)*costs(1,72) + (0)*costs(1,73) + (0)*costs(1,74) + (0)*costs(1,75) + (0)*costs(1,76) + (0)*costs(1,77) + (0)*costs(1,78)
+     
+      + (0)*costs(1,79) + (0)*costs(1,80) + (0)*costs(1,81) + (0)*costs(1,82) + (0)*costs(1,83) + (0)*costs(1,84) + (0)*costs(1,85) + (0)*costs(1,86) + (0)*costs(1,87) + (0)*costs(1,88) + (0)*costs(1,89) + (0)*costs(1,90) + (0)*costs(1,91)
+     
+      + (0)*costs(1,92) + (0)*costs(1,93) + (0)*costs(1,94) + (0)*costs(1,95) + (0)*costs(1,96) + (0)*costs(1,97) + (0)*costs(1,98) + (0)*costs(1,99) + (0)*costs(1,100) + (0)*costs(1,101) + (0)*costs(1,102) + (0)*costs(1,103) + (0)*costs(1,104)
+     
+      + (0)*costs(1,105) + (0)*costs(1,106) + (0)*costs(1,107) + (0)*costs(1,108) + (0)*costs(1,109) + (0)*costs(1,110) + (0)*costs(1,111) + (0)*costs(1,112) + (0)*costs(1,113) + (0)*costs(1,114) + (0)*costs(1,115) + (0)*costs(1,116) + (0)*costs(1,117)
+     
+      + (0)*costs(1,118) + (0)*costs(1,119) + (0)*costs(1,120) + (0)*costs(1,121) + (0)*costs(1,122) + (0)*costs(1,123) + (0)*costs(1,124) + (0)*costs(1,125) + (0)*costs(1,126) + (0)*costs(1,127) + (0)*costs(1,128) + (0)*costs(1,129) + (0)*costs(1,130)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 6
+P-Median problem  (pmedian,SEQ=408)
+Equation Listing    SOLVE pmedian Using MINLP From line 387
+
+
+     defcost  =E=  cost to serve i is the smallest cost between i and other locations     
+     
+      + (0)*costs(1,131) + (0)*costs(1,132) + (0)*costs(1,133) + (0)*costs(1,134) + (0)*costs(1,135) + (0)*costs(1,136) + (0)*costs(1,137) + (0)*costs(1,138) + (0)*costs(1,139) + (0)*costs(1,140) + (0)*costs(1,141) + (0)*costs(1,142) + (0)*costs(1,143)
+     
+      + (0)*costs(1,144) + (0)*costs(1,145) + (0)*costs(1,146) + (0)*costs(1,147) + (0)*costs(1,148) + (0)*costs(1,149) + (0)*costs(1,150) + (0)*costs(1,151) + (0)*costs(1,152) + (0)*costs(1,153) + (0)*costs(1,154) + (0)*costs(1,155) + (0)*costs(1,156)
+     
+      + (0)*costs(1,157) + (0)*costs(1,158) + (0)*costs(1,159) + (0)*costs(1,160) + (0)*costs(1,161) + (0)*costs(1,162) + (0)*costs(1,163) + (0)*costs(1,164) + (0)*costs(1,165) + (0)*costs(1,166) + (0)*costs(1,167) + (0)*costs(1,168) + (0)*costs(1,169)
+     
+      + (0)*costs(1,170) + (0)*costs(1,171) + (0)*costs(1,172) + (0)*costs(1,173) + (0)*costs(1,174) + (0)*costs(1,175) + (0)*costs(1,176) + (0)*costs(1,177) + (0)*costs(1,178) + (0)*costs(1,179) + (0)*costs(1,180) + (0)*costs(1,181) + (0)*costs(1,182)
+     
+      + (0)*costs(1,183) + (0)*costs(1,184) + (0)*costs(1,185) + (0)*costs(1,186) + (0)*costs(1,187) + (0)*costs(1,188) + (0)*costs(1,189) + (0)*costs(1,190) + (0)*costs(1,191) + (0)*costs(1,192) + (0)*costs(1,193) + (0)*costs(1,194) + (0)*costs(1,195)
+     
+      + (0)*costs(1,196) + (0)*costs(1,197) + (0)*costs(1,198) + (0)*costs(1,199) + (0)*costs(1,200) + (0)*costs(1,201) + (0)*costs(1,202) + (0)*costs(1,203) + (0)*costs(1,204) + (0)*costs(1,205) + (0)*costs(1,206) + (0)*costs(1,207) + (0)*costs(1,208)
+     
+      + (0)*costs(1,209) + (0)*costs(1,210) + (0)*costs(1,211) + (0)*costs(1,212) + (0)*costs(1,213) + (0)*costs(1,214) + (0)*costs(1,215) + (0)*costs(1,216) + (0)*costs(1,217) + (0)*costs(1,218) + (0)*costs(1,219) + (0)*costs(1,220) + (0)*costs(1,221)
+     
+      + (0)*costs(1,222) + (0)*costs(1,223) + (0)*costs(1,224) + (0)*costs(1,225) + (0)*costs(1,226) + (0)*costs(1,227) + (0)*costs(1,228) + (0)*costs(1,229) + (0)*costs(1,230) + (0)*costs(1,231) + (0)*costs(1,232) + (0)*costs(1,233) + (0)*costs(1,234)
+     
+      + (0)*costs(1,235) + (0)*costs(1,236) + (0)*costs(1,237) + (0)*costs(1,238) + (0)*costs(1,239) + (0)*costs(1,240) + (0)*costs(1,241) + (0)*costs(1,242) + (0)*costs(1,243) + (0)*costs(1,244) + (0)*costs(1,245) + (0)*costs(1,246) + (0)*costs(1,247)
+     
+      + (0)*costs(1,248) + (0)*costs(1,249) + (0)*costs(1,250) + (0)*costs(1,251) + (0)*costs(1,252) + (0)*costs(1,253) + (0)*costs(1,254) + (0)*costs(1,255) + (0)*costs(1,256) + (0)*costs(1,257) + (0)*costs(1,258) + (0)*costs(1,259) + (0)*costs(1,260)
+     
+      + (0)*costs(1,261) + (0)*costs(1,262) + (0)*costs(1,263) + (0)*costs(1,264) + (0)*costs(1,265) + (0)*costs(1,266) + (0)*costs(1,267) + (0)*costs(1,268) + (0)*costs(1,269) + (0)*costs(1,270) + (0)*costs(1,271) + (0)*costs(1,272) + (0)*costs(1,273)
+     
+      + (0)*costs(1,274) + (0)*costs(1,275) + (0)*costs(1,276) + (0)*costs(1,277) + (0)*costs(1,278) + (0)*costs(1,279) + (0)*costs(1,280) + (0)*costs(1,281) + (0)*costs(1,282) + (0)*costs(1,283) + (0)*costs(1,284) + (0)*costs(1,285) + (0)*costs(1,286)
+     
+      + (0)*costs(1,287) + (0)*costs(1,288) + (0)*costs(1,289) + (0)*costs(1,290) + (0)*costs(1,291) + (0)*costs(1,292) + (0)*costs(1,293) + (0)*costs(1,294) + (0)*costs(1,295) + (0)*costs(1,296) + (0)*costs(1,297) + (0)*costs(1,298) + (0)*costs(1,299)
+     
+      + cost(1) =E= 0 ; (LHS = 0)
+     
+defcost(2)..  (0)*costs(2,0) + (0)*costs(2,1) - (1)*costs(2,2) + (0)*costs(2,3) + (0)*costs(2,4) + (0)*costs(2,5) + (0)*costs(2,6) + (0)*costs(2,7) + (0)*costs(2,8) + (0)*costs(2,9) + (0)*costs(2,10) + (0)*costs(2,11) + (0)*costs(2,12) + (0)*costs(2,13)
+     
+      + (0)*costs(2,14) + (0)*costs(2,15) + (0)*costs(2,16) + (0)*costs(2,17) + (0)*costs(2,18) + (0)*costs(2,19) + (0)*costs(2,20) + (0)*costs(2,21) + (0)*costs(2,22) + (0)*costs(2,23) + (0)*costs(2,24) + (0)*costs(2,25) + (0)*costs(2,26)
+     
+      + (0)*costs(2,27) + (0)*costs(2,28) + (0)*costs(2,29) + (0)*costs(2,30) + (0)*costs(2,31) + (0)*costs(2,32) + (0)*costs(2,33) + (0)*costs(2,34) + (0)*costs(2,35) + (0)*costs(2,36) + (0)*costs(2,37) + (0)*costs(2,38) + (0)*costs(2,39)
+     
+      + (0)*costs(2,40) + (0)*costs(2,41) + (0)*costs(2,42) + (0)*costs(2,43) + (0)*costs(2,44) + (0)*costs(2,45) + (0)*costs(2,46) + (0)*costs(2,47) + (0)*costs(2,48) + (0)*costs(2,49) + (0)*costs(2,50) + (0)*costs(2,51) + (0)*costs(2,52)
+     
+      + (0)*costs(2,53) + (0)*costs(2,54) + (0)*costs(2,55) + (0)*costs(2,56) + (0)*costs(2,57) + (0)*costs(2,58) + (0)*costs(2,59) + (0)*costs(2,60) + (0)*costs(2,61) + (0)*costs(2,62) + (0)*costs(2,63) + (0)*costs(2,64) + (0)*costs(2,65)
+     
+      + (0)*costs(2,66) + (0)*costs(2,67) + (0)*costs(2,68) + (0)*costs(2,69) + (0)*costs(2,70) + (0)*costs(2,71) + (0)*costs(2,72) + (0)*costs(2,73) + (0)*costs(2,74) + (0)*costs(2,75) + (0)*costs(2,76) + (0)*costs(2,77) + (0)*costs(2,78)
+     
+      + (0)*costs(2,79) + (0)*costs(2,80) + (0)*costs(2,81) + (0)*costs(2,82) + (0)*costs(2,83) + (0)*costs(2,84) + (0)*costs(2,85) + (0)*costs(2,86) + (0)*costs(2,87) + (0)*costs(2,88) + (0)*costs(2,89) + (0)*costs(2,90) + (0)*costs(2,91)
+     
+      + (0)*costs(2,92) + (0)*costs(2,93) + (0)*costs(2,94) + (0)*costs(2,95) + (0)*costs(2,96) + (0)*costs(2,97) + (0)*costs(2,98) + (0)*costs(2,99) + (0)*costs(2,100) + (0)*costs(2,101) + (0)*costs(2,102) + (0)*costs(2,103) + (0)*costs(2,104)
+     
+      + (0)*costs(2,105) + (0)*costs(2,106) + (0)*costs(2,107) + (0)*costs(2,108) + (0)*costs(2,109) + (0)*costs(2,110) + (0)*costs(2,111) + (0)*costs(2,112) + (0)*costs(2,113) + (0)*costs(2,114) + (0)*costs(2,115) + (0)*costs(2,116) + (0)*costs(2,117)
+     
+      + (0)*costs(2,118) + (0)*costs(2,119) + (0)*costs(2,120) + (0)*costs(2,121) + (0)*costs(2,122) + (0)*costs(2,123) + (0)*costs(2,124) + (0)*costs(2,125) + (0)*costs(2,126) + (0)*costs(2,127) + (0)*costs(2,128) + (0)*costs(2,129) + (0)*costs(2,130)
+     
+      + (0)*costs(2,131) + (0)*costs(2,132) + (0)*costs(2,133) + (0)*costs(2,134) + (0)*costs(2,135) + (0)*costs(2,136) + (0)*costs(2,137) + (0)*costs(2,138) + (0)*costs(2,139) + (0)*costs(2,140) + (0)*costs(2,141) + (0)*costs(2,142) + (0)*costs(2,143)
+     
+      + (0)*costs(2,144) + (0)*costs(2,145) + (0)*costs(2,146) + (0)*costs(2,147) + (0)*costs(2,148) + (0)*costs(2,149) + (0)*costs(2,150) + (0)*costs(2,151) + (0)*costs(2,152) + (0)*costs(2,153) + (0)*costs(2,154) + (0)*costs(2,155) + (0)*costs(2,156)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 7
+P-Median problem  (pmedian,SEQ=408)
+Equation Listing    SOLVE pmedian Using MINLP From line 387
+
+
+     defcost  =E=  cost to serve i is the smallest cost between i and other locations     
+     
+      + (0)*costs(2,157) + (0)*costs(2,158) + (0)*costs(2,159) + (0)*costs(2,160) + (0)*costs(2,161) + (0)*costs(2,162) + (0)*costs(2,163) + (0)*costs(2,164) + (0)*costs(2,165) + (0)*costs(2,166) + (0)*costs(2,167) + (0)*costs(2,168) + (0)*costs(2,169)
+     
+      + (0)*costs(2,170) + (0)*costs(2,171) + (0)*costs(2,172) + (0)*costs(2,173) + (0)*costs(2,174) + (0)*costs(2,175) + (0)*costs(2,176) + (0)*costs(2,177) + (0)*costs(2,178) + (0)*costs(2,179) + (0)*costs(2,180) + (0)*costs(2,181) + (0)*costs(2,182)
+     
+      + (0)*costs(2,183) + (0)*costs(2,184) + (0)*costs(2,185) + (0)*costs(2,186) + (0)*costs(2,187) + (0)*costs(2,188) + (0)*costs(2,189) + (0)*costs(2,190) + (0)*costs(2,191) + (0)*costs(2,192) + (0)*costs(2,193) + (0)*costs(2,194) + (0)*costs(2,195)
+     
+      + (0)*costs(2,196) + (0)*costs(2,197) + (0)*costs(2,198) + (0)*costs(2,199) + (0)*costs(2,200) + (0)*costs(2,201) + (0)*costs(2,202) + (0)*costs(2,203) + (0)*costs(2,204) + (0)*costs(2,205) + (0)*costs(2,206) + (0)*costs(2,207) + (0)*costs(2,208)
+     
+      + (0)*costs(2,209) + (0)*costs(2,210) + (0)*costs(2,211) + (0)*costs(2,212) + (0)*costs(2,213) + (0)*costs(2,214) + (0)*costs(2,215) + (0)*costs(2,216) + (0)*costs(2,217) + (0)*costs(2,218) + (0)*costs(2,219) + (0)*costs(2,220) + (0)*costs(2,221)
+     
+      + (0)*costs(2,222) + (0)*costs(2,223) + (0)*costs(2,224) + (0)*costs(2,225) + (0)*costs(2,226) + (0)*costs(2,227) + (0)*costs(2,228) + (0)*costs(2,229) + (0)*costs(2,230) + (0)*costs(2,231) + (0)*costs(2,232) + (0)*costs(2,233) + (0)*costs(2,234)
+     
+      + (0)*costs(2,235) + (0)*costs(2,236) + (0)*costs(2,237) + (0)*costs(2,238) + (0)*costs(2,239) + (0)*costs(2,240) + (0)*costs(2,241) + (0)*costs(2,242) + (0)*costs(2,243) + (0)*costs(2,244) + (0)*costs(2,245) + (0)*costs(2,246) + (0)*costs(2,247)
+     
+      + (0)*costs(2,248) + (0)*costs(2,249) + (0)*costs(2,250) + (0)*costs(2,251) + (0)*costs(2,252) + (0)*costs(2,253) + (0)*costs(2,254) + (0)*costs(2,255) + (0)*costs(2,256) + (0)*costs(2,257) + (0)*costs(2,258) + (0)*costs(2,259) + (0)*costs(2,260)
+     
+      + (0)*costs(2,261) + (0)*costs(2,262) + (0)*costs(2,263) + (0)*costs(2,264) + (0)*costs(2,265) + (0)*costs(2,266) + (0)*costs(2,267) + (0)*costs(2,268) + (0)*costs(2,269) + (0)*costs(2,270) + (0)*costs(2,271) + (0)*costs(2,272) + (0)*costs(2,273)
+     
+      + (0)*costs(2,274) + (0)*costs(2,275) + (0)*costs(2,276) + (0)*costs(2,277) + (0)*costs(2,278) + (0)*costs(2,279) + (0)*costs(2,280) + (0)*costs(2,281) + (0)*costs(2,282) + (0)*costs(2,283) + (0)*costs(2,284) + (0)*costs(2,285) + (0)*costs(2,286)
+     
+      + (0)*costs(2,287) + (0)*costs(2,288) + (0)*costs(2,289) + (0)*costs(2,290) + (0)*costs(2,291) + (0)*costs(2,292) + (0)*costs(2,293) + (0)*costs(2,294) + (0)*costs(2,295) + (0)*costs(2,296) + (0)*costs(2,297) + (0)*costs(2,298) + (0)*costs(2,299)
+     
+      + cost(2) =E= 0 ; (LHS = 0)
+     
+REMAINING 297 ENTRIES SKIPPED
+
+
+---- defobj  =E=  objective
+
+defobj..  - cost(0) - cost(1) - cost(2) - cost(3) - cost(4) - cost(5) - cost(6) - cost(7) - cost(8) - cost(9) - cost(10) - cost(11) - cost(12) - cost(13) - cost(14) - cost(15) - cost(16) - cost(17) - cost(18) - cost(19) - cost(20) - cost(21) - cost(22)
+     
+      - cost(23) - cost(24) - cost(25) - cost(26) - cost(27) - cost(28) - cost(29) - cost(30) - cost(31) - cost(32) - cost(33) - cost(34) - cost(35) - cost(36) - cost(37) - cost(38) - cost(39) - cost(40) - cost(41) - cost(42) - cost(43) - cost(44)
+     
+      - cost(45) - cost(46) - cost(47) - cost(48) - cost(49) - cost(50) - cost(51) - cost(52) - cost(53) - cost(54) - cost(55) - cost(56) - cost(57) - cost(58) - cost(59) - cost(60) - cost(61) - cost(62) - cost(63) - cost(64) - cost(65) - cost(66)
+     
+      - cost(67) - cost(68) - cost(69) - cost(70) - cost(71) - cost(72) - cost(73) - cost(74) - cost(75) - cost(76) - cost(77) - cost(78) - cost(79) - cost(80) - cost(81) - cost(82) - cost(83) - cost(84) - cost(85) - cost(86) - cost(87) - cost(88)
+     
+      - cost(89) - cost(90) - cost(91) - cost(92) - cost(93) - cost(94) - cost(95) - cost(96) - cost(97) - cost(98) - cost(99) - cost(100) - cost(101) - cost(102) - cost(103) - cost(104) - cost(105) - cost(106) - cost(107) - cost(108) - cost(109)
+     
+      - cost(110) - cost(111) - cost(112) - cost(113) - cost(114) - cost(115) - cost(116) - cost(117) - cost(118) - cost(119) - cost(120) - cost(121) - cost(122) - cost(123) - cost(124) - cost(125) - cost(126) - cost(127) - cost(128) - cost(129)
+     
+      - cost(130) - cost(131) - cost(132) - cost(133) - cost(134) - cost(135) - cost(136) - cost(137) - cost(138) - cost(139) - cost(140) - cost(141) - cost(142) - cost(143) - cost(144) - cost(145) - cost(146) - cost(147) - cost(148) - cost(149)
+     
+      - cost(150) - cost(151) - cost(152) - cost(153) - cost(154) - cost(155) - cost(156) - cost(157) - cost(158) - cost(159) - cost(160) - cost(161) - cost(162) - cost(163) - cost(164) - cost(165) - cost(166) - cost(167) - cost(168) - cost(169)
+     
+      - cost(170) - cost(171) - cost(172) - cost(173) - cost(174) - cost(175) - cost(176) - cost(177) - cost(178) - cost(179) - cost(180) - cost(181) - cost(182) - cost(183) - cost(184) - cost(185) - cost(186) - cost(187) - cost(188) - cost(189)
+     
+      - cost(190) - cost(191) - cost(192) - cost(193) - cost(194) - cost(195) - cost(196) - cost(197) - cost(198) - cost(199) - cost(200) - cost(201) - cost(202) - cost(203) - cost(204) - cost(205) - cost(206) - cost(207) - cost(208) - cost(209)
+     
+      - cost(210) - cost(211) - cost(212) - cost(213) - cost(214) - cost(215) - cost(216) - cost(217) - cost(218) - cost(219) - cost(220) - cost(221) - cost(222) - cost(223) - cost(224) - cost(225) - cost(226) - cost(227) - cost(228) - cost(229)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 8
+P-Median problem  (pmedian,SEQ=408)
+Equation Listing    SOLVE pmedian Using MINLP From line 387
+
+
+     defobj  =E=  objective     
+     
+      - cost(230) - cost(231) - cost(232) - cost(233) - cost(234) - cost(235) - cost(236) - cost(237) - cost(238) - cost(239) - cost(240) - cost(241) - cost(242) - cost(243) - cost(244) - cost(245) - cost(246) - cost(247) - cost(248) - cost(249)
+     
+      - cost(250) - cost(251) - cost(252) - cost(253) - cost(254) - cost(255) - cost(256) - cost(257) - cost(258) - cost(259) - cost(260) - cost(261) - cost(262) - cost(263) - cost(264) - cost(265) - cost(266) - cost(267) - cost(268) - cost(269)
+     
+      - cost(270) - cost(271) - cost(272) - cost(273) - cost(274) - cost(275) - cost(276) - cost(277) - cost(278) - cost(279) - cost(280) - cost(281) - cost(282) - cost(283) - cost(284) - cost(285) - cost(286) - cost(287) - cost(288) - cost(289)
+     
+      - cost(290) - cost(291) - cost(292) - cost(293) - cost(294) - cost(295) - cost(296) - cost(297) - cost(298) - cost(299) + obj =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:43:40 Page 9
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+---- x  location selection
+
+x(0)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       defp
+       (0)      defcosts(0,0)
+       (0)      defcosts(1,0)
+       (0)      defcosts(2,0)
+       (0)      defcosts(3,0)
+       (0)      defcosts(4,0)
+       (0)      defcosts(5,0)
+       (0)      defcosts(6,0)
+       (0)      defcosts(7,0)
+       (0)      defcosts(8,0)
+       (0)      defcosts(9,0)
+       (0)      defcosts(10,0)
+       (0)      defcosts(11,0)
+       (0)      defcosts(12,0)
+       (0)      defcosts(13,0)
+       (0)      defcosts(14,0)
+       (0)      defcosts(15,0)
+       (0)      defcosts(16,0)
+       (0)      defcosts(17,0)
+       (0)      defcosts(18,0)
+       (0)      defcosts(19,0)
+       (0)      defcosts(20,0)
+       (0)      defcosts(21,0)
+       (0)      defcosts(22,0)
+       (0)      defcosts(23,0)
+       (0)      defcosts(24,0)
+       (0)      defcosts(25,0)
+       (0)      defcosts(26,0)
+       (0)      defcosts(27,0)
+       (0)      defcosts(28,0)
+       (0)      defcosts(29,0)
+       (0)      defcosts(30,0)
+       (0)      defcosts(31,0)
+       (0)      defcosts(32,0)
+       (0)      defcosts(33,0)
+       (0)      defcosts(34,0)
+       (0)      defcosts(35,0)
+       (0)      defcosts(36,0)
+       (0)      defcosts(37,0)
+       (0)      defcosts(38,0)
+       (0)      defcosts(39,0)
+       (0)      defcosts(40,0)
+       (0)      defcosts(41,0)
+       (0)      defcosts(42,0)
+       (0)      defcosts(43,0)
+       (0)      defcosts(44,0)
+       (0)      defcosts(45,0)
+       (0)      defcosts(46,0)
+       (0)      defcosts(47,0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 10
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(48,0)
+       (0)      defcosts(49,0)
+       (0)      defcosts(50,0)
+       (0)      defcosts(51,0)
+       (0)      defcosts(52,0)
+       (0)      defcosts(53,0)
+       (0)      defcosts(54,0)
+       (0)      defcosts(55,0)
+       (0)      defcosts(56,0)
+       (0)      defcosts(57,0)
+       (0)      defcosts(58,0)
+       (0)      defcosts(59,0)
+       (0)      defcosts(60,0)
+       (0)      defcosts(61,0)
+       (0)      defcosts(62,0)
+       (0)      defcosts(63,0)
+       (0)      defcosts(64,0)
+       (0)      defcosts(65,0)
+       (0)      defcosts(66,0)
+       (0)      defcosts(67,0)
+       (0)      defcosts(68,0)
+       (0)      defcosts(69,0)
+       (0)      defcosts(70,0)
+       (0)      defcosts(71,0)
+       (0)      defcosts(72,0)
+       (0)      defcosts(73,0)
+       (0)      defcosts(74,0)
+       (0)      defcosts(75,0)
+       (0)      defcosts(76,0)
+       (0)      defcosts(77,0)
+       (0)      defcosts(78,0)
+       (0)      defcosts(79,0)
+       (0)      defcosts(80,0)
+       (0)      defcosts(81,0)
+       (0)      defcosts(82,0)
+       (0)      defcosts(83,0)
+       (0)      defcosts(84,0)
+       (0)      defcosts(85,0)
+       (0)      defcosts(86,0)
+       (0)      defcosts(87,0)
+       (0)      defcosts(88,0)
+       (0)      defcosts(89,0)
+       (0)      defcosts(90,0)
+       (0)      defcosts(91,0)
+       (0)      defcosts(92,0)
+       (0)      defcosts(93,0)
+       (0)      defcosts(94,0)
+       (0)      defcosts(95,0)
+       (0)      defcosts(96,0)
+       (0)      defcosts(97,0)
+       (0)      defcosts(98,0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 11
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(99,0)
+       (0)      defcosts(100,0)
+       (0)      defcosts(101,0)
+       (0)      defcosts(102,0)
+       (0)      defcosts(103,0)
+       (0)      defcosts(104,0)
+       (0)      defcosts(105,0)
+       (0)      defcosts(106,0)
+       (0)      defcosts(107,0)
+       (0)      defcosts(108,0)
+       (0)      defcosts(109,0)
+       (0)      defcosts(110,0)
+       (0)      defcosts(111,0)
+       (0)      defcosts(112,0)
+       (0)      defcosts(113,0)
+       (0)      defcosts(114,0)
+       (0)      defcosts(115,0)
+       (0)      defcosts(116,0)
+       (0)      defcosts(117,0)
+       (0)      defcosts(118,0)
+       (0)      defcosts(119,0)
+       (0)      defcosts(120,0)
+       (0)      defcosts(121,0)
+       (0)      defcosts(122,0)
+       (0)      defcosts(123,0)
+       (0)      defcosts(124,0)
+       (0)      defcosts(125,0)
+       (0)      defcosts(126,0)
+       (0)      defcosts(127,0)
+       (0)      defcosts(128,0)
+       (0)      defcosts(129,0)
+       (0)      defcosts(130,0)
+       (0)      defcosts(131,0)
+       (0)      defcosts(132,0)
+       (0)      defcosts(133,0)
+       (0)      defcosts(134,0)
+       (0)      defcosts(135,0)
+       (0)      defcosts(136,0)
+       (0)      defcosts(137,0)
+       (0)      defcosts(138,0)
+       (0)      defcosts(139,0)
+       (0)      defcosts(140,0)
+       (0)      defcosts(141,0)
+       (0)      defcosts(142,0)
+       (0)      defcosts(143,0)
+       (0)      defcosts(144,0)
+       (0)      defcosts(145,0)
+       (0)      defcosts(146,0)
+       (0)      defcosts(147,0)
+       (0)      defcosts(148,0)
+       (0)      defcosts(149,0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 12
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(150,0)
+       (0)      defcosts(151,0)
+       (0)      defcosts(152,0)
+       (0)      defcosts(153,0)
+       (0)      defcosts(154,0)
+       (0)      defcosts(155,0)
+       (0)      defcosts(156,0)
+       (0)      defcosts(157,0)
+       (0)      defcosts(158,0)
+       (0)      defcosts(159,0)
+       (0)      defcosts(160,0)
+       (0)      defcosts(161,0)
+       (0)      defcosts(162,0)
+       (0)      defcosts(163,0)
+       (0)      defcosts(164,0)
+       (0)      defcosts(165,0)
+       (0)      defcosts(166,0)
+       (0)      defcosts(167,0)
+       (0)      defcosts(168,0)
+       (0)      defcosts(169,0)
+       (0)      defcosts(170,0)
+       (0)      defcosts(171,0)
+       (0)      defcosts(172,0)
+       (0)      defcosts(173,0)
+       (0)      defcosts(174,0)
+       (0)      defcosts(175,0)
+       (0)      defcosts(176,0)
+       (0)      defcosts(177,0)
+       (0)      defcosts(178,0)
+       (0)      defcosts(179,0)
+       (0)      defcosts(180,0)
+       (0)      defcosts(181,0)
+       (0)      defcosts(182,0)
+       (0)      defcosts(183,0)
+       (0)      defcosts(184,0)
+       (0)      defcosts(185,0)
+       (0)      defcosts(186,0)
+       (0)      defcosts(187,0)
+       (0)      defcosts(188,0)
+       (0)      defcosts(189,0)
+       (0)      defcosts(190,0)
+       (0)      defcosts(191,0)
+       (0)      defcosts(192,0)
+       (0)      defcosts(193,0)
+       (0)      defcosts(194,0)
+       (0)      defcosts(195,0)
+       (0)      defcosts(196,0)
+       (0)      defcosts(197,0)
+       (0)      defcosts(198,0)
+       (0)      defcosts(199,0)
+       (0)      defcosts(200,0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 13
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(201,0)
+       (0)      defcosts(202,0)
+       (0)      defcosts(203,0)
+       (0)      defcosts(204,0)
+       (0)      defcosts(205,0)
+       (0)      defcosts(206,0)
+       (0)      defcosts(207,0)
+       (0)      defcosts(208,0)
+       (0)      defcosts(209,0)
+       (0)      defcosts(210,0)
+       (0)      defcosts(211,0)
+       (0)      defcosts(212,0)
+       (0)      defcosts(213,0)
+       (0)      defcosts(214,0)
+       (0)      defcosts(215,0)
+       (0)      defcosts(216,0)
+       (0)      defcosts(217,0)
+       (0)      defcosts(218,0)
+       (0)      defcosts(219,0)
+       (0)      defcosts(220,0)
+       (0)      defcosts(221,0)
+       (0)      defcosts(222,0)
+       (0)      defcosts(223,0)
+       (0)      defcosts(224,0)
+       (0)      defcosts(225,0)
+       (0)      defcosts(226,0)
+       (0)      defcosts(227,0)
+       (0)      defcosts(228,0)
+       (0)      defcosts(229,0)
+       (0)      defcosts(230,0)
+       (0)      defcosts(231,0)
+       (0)      defcosts(232,0)
+       (0)      defcosts(233,0)
+       (0)      defcosts(234,0)
+       (0)      defcosts(235,0)
+       (0)      defcosts(236,0)
+       (0)      defcosts(237,0)
+       (0)      defcosts(238,0)
+       (0)      defcosts(239,0)
+       (0)      defcosts(240,0)
+       (0)      defcosts(241,0)
+       (0)      defcosts(242,0)
+       (0)      defcosts(243,0)
+       (0)      defcosts(244,0)
+       (0)      defcosts(245,0)
+       (0)      defcosts(246,0)
+       (0)      defcosts(247,0)
+       (0)      defcosts(248,0)
+       (0)      defcosts(249,0)
+       (0)      defcosts(250,0)
+       (0)      defcosts(251,0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 14
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(252,0)
+       (0)      defcosts(253,0)
+       (0)      defcosts(254,0)
+       (0)      defcosts(255,0)
+       (0)      defcosts(256,0)
+       (0)      defcosts(257,0)
+       (0)      defcosts(258,0)
+       (0)      defcosts(259,0)
+       (0)      defcosts(260,0)
+       (0)      defcosts(261,0)
+       (0)      defcosts(262,0)
+       (0)      defcosts(263,0)
+       (0)      defcosts(264,0)
+       (0)      defcosts(265,0)
+       (0)      defcosts(266,0)
+       (0)      defcosts(267,0)
+       (0)      defcosts(268,0)
+       (0)      defcosts(269,0)
+       (0)      defcosts(270,0)
+       (0)      defcosts(271,0)
+       (0)      defcosts(272,0)
+       (0)      defcosts(273,0)
+       (0)      defcosts(274,0)
+       (0)      defcosts(275,0)
+       (0)      defcosts(276,0)
+       (0)      defcosts(277,0)
+       (0)      defcosts(278,0)
+       (0)      defcosts(279,0)
+       (0)      defcosts(280,0)
+       (0)      defcosts(281,0)
+       (0)      defcosts(282,0)
+       (0)      defcosts(283,0)
+       (0)      defcosts(284,0)
+       (0)      defcosts(285,0)
+       (0)      defcosts(286,0)
+       (0)      defcosts(287,0)
+       (0)      defcosts(288,0)
+       (0)      defcosts(289,0)
+       (0)      defcosts(290,0)
+       (0)      defcosts(291,0)
+       (0)      defcosts(292,0)
+       (0)      defcosts(293,0)
+       (0)      defcosts(294,0)
+       (0)      defcosts(295,0)
+       (0)      defcosts(296,0)
+       (0)      defcosts(297,0)
+       (0)      defcosts(298,0)
+       (0)      defcosts(299,0)
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 15
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+        1       defp
+       (0)      defcosts(0,1)
+       (0)      defcosts(1,1)
+       (0)      defcosts(2,1)
+       (0)      defcosts(3,1)
+       (0)      defcosts(4,1)
+       (0)      defcosts(5,1)
+       (0)      defcosts(6,1)
+       (0)      defcosts(7,1)
+       (0)      defcosts(8,1)
+       (0)      defcosts(9,1)
+       (0)      defcosts(10,1)
+       (0)      defcosts(11,1)
+       (0)      defcosts(12,1)
+       (0)      defcosts(13,1)
+       (0)      defcosts(14,1)
+       (0)      defcosts(15,1)
+       (0)      defcosts(16,1)
+       (0)      defcosts(17,1)
+       (0)      defcosts(18,1)
+       (0)      defcosts(19,1)
+       (0)      defcosts(20,1)
+       (0)      defcosts(21,1)
+       (0)      defcosts(22,1)
+       (0)      defcosts(23,1)
+       (0)      defcosts(24,1)
+       (0)      defcosts(25,1)
+       (0)      defcosts(26,1)
+       (0)      defcosts(27,1)
+       (0)      defcosts(28,1)
+       (0)      defcosts(29,1)
+       (0)      defcosts(30,1)
+       (0)      defcosts(31,1)
+       (0)      defcosts(32,1)
+       (0)      defcosts(33,1)
+       (0)      defcosts(34,1)
+       (0)      defcosts(35,1)
+       (0)      defcosts(36,1)
+       (0)      defcosts(37,1)
+       (0)      defcosts(38,1)
+       (0)      defcosts(39,1)
+       (0)      defcosts(40,1)
+       (0)      defcosts(41,1)
+       (0)      defcosts(42,1)
+       (0)      defcosts(43,1)
+       (0)      defcosts(44,1)
+       (0)      defcosts(45,1)
+       (0)      defcosts(46,1)
+       (0)      defcosts(47,1)
+       (0)      defcosts(48,1)
+       (0)      defcosts(49,1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 16
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(50,1)
+       (0)      defcosts(51,1)
+       (0)      defcosts(52,1)
+       (0)      defcosts(53,1)
+       (0)      defcosts(54,1)
+       (0)      defcosts(55,1)
+       (0)      defcosts(56,1)
+       (0)      defcosts(57,1)
+       (0)      defcosts(58,1)
+       (0)      defcosts(59,1)
+       (0)      defcosts(60,1)
+       (0)      defcosts(61,1)
+       (0)      defcosts(62,1)
+       (0)      defcosts(63,1)
+       (0)      defcosts(64,1)
+       (0)      defcosts(65,1)
+       (0)      defcosts(66,1)
+       (0)      defcosts(67,1)
+       (0)      defcosts(68,1)
+       (0)      defcosts(69,1)
+       (0)      defcosts(70,1)
+       (0)      defcosts(71,1)
+       (0)      defcosts(72,1)
+       (0)      defcosts(73,1)
+       (0)      defcosts(74,1)
+       (0)      defcosts(75,1)
+       (0)      defcosts(76,1)
+       (0)      defcosts(77,1)
+       (0)      defcosts(78,1)
+       (0)      defcosts(79,1)
+       (0)      defcosts(80,1)
+       (0)      defcosts(81,1)
+       (0)      defcosts(82,1)
+       (0)      defcosts(83,1)
+       (0)      defcosts(84,1)
+       (0)      defcosts(85,1)
+       (0)      defcosts(86,1)
+       (0)      defcosts(87,1)
+       (0)      defcosts(88,1)
+       (0)      defcosts(89,1)
+       (0)      defcosts(90,1)
+       (0)      defcosts(91,1)
+       (0)      defcosts(92,1)
+       (0)      defcosts(93,1)
+       (0)      defcosts(94,1)
+       (0)      defcosts(95,1)
+       (0)      defcosts(96,1)
+       (0)      defcosts(97,1)
+       (0)      defcosts(98,1)
+       (0)      defcosts(99,1)
+       (0)      defcosts(100,1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 17
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(101,1)
+       (0)      defcosts(102,1)
+       (0)      defcosts(103,1)
+       (0)      defcosts(104,1)
+       (0)      defcosts(105,1)
+       (0)      defcosts(106,1)
+       (0)      defcosts(107,1)
+       (0)      defcosts(108,1)
+       (0)      defcosts(109,1)
+       (0)      defcosts(110,1)
+       (0)      defcosts(111,1)
+       (0)      defcosts(112,1)
+       (0)      defcosts(113,1)
+       (0)      defcosts(114,1)
+       (0)      defcosts(115,1)
+       (0)      defcosts(116,1)
+       (0)      defcosts(117,1)
+       (0)      defcosts(118,1)
+       (0)      defcosts(119,1)
+       (0)      defcosts(120,1)
+       (0)      defcosts(121,1)
+       (0)      defcosts(122,1)
+       (0)      defcosts(123,1)
+       (0)      defcosts(124,1)
+       (0)      defcosts(125,1)
+       (0)      defcosts(126,1)
+       (0)      defcosts(127,1)
+       (0)      defcosts(128,1)
+       (0)      defcosts(129,1)
+       (0)      defcosts(130,1)
+       (0)      defcosts(131,1)
+       (0)      defcosts(132,1)
+       (0)      defcosts(133,1)
+       (0)      defcosts(134,1)
+       (0)      defcosts(135,1)
+       (0)      defcosts(136,1)
+       (0)      defcosts(137,1)
+       (0)      defcosts(138,1)
+       (0)      defcosts(139,1)
+       (0)      defcosts(140,1)
+       (0)      defcosts(141,1)
+       (0)      defcosts(142,1)
+       (0)      defcosts(143,1)
+       (0)      defcosts(144,1)
+       (0)      defcosts(145,1)
+       (0)      defcosts(146,1)
+       (0)      defcosts(147,1)
+       (0)      defcosts(148,1)
+       (0)      defcosts(149,1)
+       (0)      defcosts(150,1)
+       (0)      defcosts(151,1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 18
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(152,1)
+       (0)      defcosts(153,1)
+       (0)      defcosts(154,1)
+       (0)      defcosts(155,1)
+       (0)      defcosts(156,1)
+       (0)      defcosts(157,1)
+       (0)      defcosts(158,1)
+       (0)      defcosts(159,1)
+       (0)      defcosts(160,1)
+       (0)      defcosts(161,1)
+       (0)      defcosts(162,1)
+       (0)      defcosts(163,1)
+       (0)      defcosts(164,1)
+       (0)      defcosts(165,1)
+       (0)      defcosts(166,1)
+       (0)      defcosts(167,1)
+       (0)      defcosts(168,1)
+       (0)      defcosts(169,1)
+       (0)      defcosts(170,1)
+       (0)      defcosts(171,1)
+       (0)      defcosts(172,1)
+       (0)      defcosts(173,1)
+       (0)      defcosts(174,1)
+       (0)      defcosts(175,1)
+       (0)      defcosts(176,1)
+       (0)      defcosts(177,1)
+       (0)      defcosts(178,1)
+       (0)      defcosts(179,1)
+       (0)      defcosts(180,1)
+       (0)      defcosts(181,1)
+       (0)      defcosts(182,1)
+       (0)      defcosts(183,1)
+       (0)      defcosts(184,1)
+       (0)      defcosts(185,1)
+       (0)      defcosts(186,1)
+       (0)      defcosts(187,1)
+       (0)      defcosts(188,1)
+       (0)      defcosts(189,1)
+       (0)      defcosts(190,1)
+       (0)      defcosts(191,1)
+       (0)      defcosts(192,1)
+       (0)      defcosts(193,1)
+       (0)      defcosts(194,1)
+       (0)      defcosts(195,1)
+       (0)      defcosts(196,1)
+       (0)      defcosts(197,1)
+       (0)      defcosts(198,1)
+       (0)      defcosts(199,1)
+       (0)      defcosts(200,1)
+       (0)      defcosts(201,1)
+       (0)      defcosts(202,1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 19
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(203,1)
+       (0)      defcosts(204,1)
+       (0)      defcosts(205,1)
+       (0)      defcosts(206,1)
+       (0)      defcosts(207,1)
+       (0)      defcosts(208,1)
+       (0)      defcosts(209,1)
+       (0)      defcosts(210,1)
+       (0)      defcosts(211,1)
+       (0)      defcosts(212,1)
+       (0)      defcosts(213,1)
+       (0)      defcosts(214,1)
+       (0)      defcosts(215,1)
+       (0)      defcosts(216,1)
+       (0)      defcosts(217,1)
+       (0)      defcosts(218,1)
+       (0)      defcosts(219,1)
+       (0)      defcosts(220,1)
+       (0)      defcosts(221,1)
+       (0)      defcosts(222,1)
+       (0)      defcosts(223,1)
+       (0)      defcosts(224,1)
+       (0)      defcosts(225,1)
+       (0)      defcosts(226,1)
+       (0)      defcosts(227,1)
+       (0)      defcosts(228,1)
+       (0)      defcosts(229,1)
+       (0)      defcosts(230,1)
+       (0)      defcosts(231,1)
+       (0)      defcosts(232,1)
+       (0)      defcosts(233,1)
+       (0)      defcosts(234,1)
+       (0)      defcosts(235,1)
+       (0)      defcosts(236,1)
+       (0)      defcosts(237,1)
+       (0)      defcosts(238,1)
+       (0)      defcosts(239,1)
+       (0)      defcosts(240,1)
+       (0)      defcosts(241,1)
+       (0)      defcosts(242,1)
+       (0)      defcosts(243,1)
+       (0)      defcosts(244,1)
+       (0)      defcosts(245,1)
+       (0)      defcosts(246,1)
+       (0)      defcosts(247,1)
+       (0)      defcosts(248,1)
+       (0)      defcosts(249,1)
+       (0)      defcosts(250,1)
+       (0)      defcosts(251,1)
+       (0)      defcosts(252,1)
+       (0)      defcosts(253,1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 20
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(254,1)
+       (0)      defcosts(255,1)
+       (0)      defcosts(256,1)
+       (0)      defcosts(257,1)
+       (0)      defcosts(258,1)
+       (0)      defcosts(259,1)
+       (0)      defcosts(260,1)
+       (0)      defcosts(261,1)
+       (0)      defcosts(262,1)
+       (0)      defcosts(263,1)
+       (0)      defcosts(264,1)
+       (0)      defcosts(265,1)
+       (0)      defcosts(266,1)
+       (0)      defcosts(267,1)
+       (0)      defcosts(268,1)
+       (0)      defcosts(269,1)
+       (0)      defcosts(270,1)
+       (0)      defcosts(271,1)
+       (0)      defcosts(272,1)
+       (0)      defcosts(273,1)
+       (0)      defcosts(274,1)
+       (0)      defcosts(275,1)
+       (0)      defcosts(276,1)
+       (0)      defcosts(277,1)
+       (0)      defcosts(278,1)
+       (0)      defcosts(279,1)
+       (0)      defcosts(280,1)
+       (0)      defcosts(281,1)
+       (0)      defcosts(282,1)
+       (0)      defcosts(283,1)
+       (0)      defcosts(284,1)
+       (0)      defcosts(285,1)
+       (0)      defcosts(286,1)
+       (0)      defcosts(287,1)
+       (0)      defcosts(288,1)
+       (0)      defcosts(289,1)
+       (0)      defcosts(290,1)
+       (0)      defcosts(291,1)
+       (0)      defcosts(292,1)
+       (0)      defcosts(293,1)
+       (0)      defcosts(294,1)
+       (0)      defcosts(295,1)
+       (0)      defcosts(296,1)
+       (0)      defcosts(297,1)
+       (0)      defcosts(298,1)
+       (0)      defcosts(299,1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       defp
+       (0)      defcosts(0,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 21
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(1,2)
+       (0)      defcosts(2,2)
+       (0)      defcosts(3,2)
+       (0)      defcosts(4,2)
+       (0)      defcosts(5,2)
+       (0)      defcosts(6,2)
+       (0)      defcosts(7,2)
+       (0)      defcosts(8,2)
+       (0)      defcosts(9,2)
+       (0)      defcosts(10,2)
+       (0)      defcosts(11,2)
+       (0)      defcosts(12,2)
+       (0)      defcosts(13,2)
+       (0)      defcosts(14,2)
+       (0)      defcosts(15,2)
+       (0)      defcosts(16,2)
+       (0)      defcosts(17,2)
+       (0)      defcosts(18,2)
+       (0)      defcosts(19,2)
+       (0)      defcosts(20,2)
+       (0)      defcosts(21,2)
+       (0)      defcosts(22,2)
+       (0)      defcosts(23,2)
+       (0)      defcosts(24,2)
+       (0)      defcosts(25,2)
+       (0)      defcosts(26,2)
+       (0)      defcosts(27,2)
+       (0)      defcosts(28,2)
+       (0)      defcosts(29,2)
+       (0)      defcosts(30,2)
+       (0)      defcosts(31,2)
+       (0)      defcosts(32,2)
+       (0)      defcosts(33,2)
+       (0)      defcosts(34,2)
+       (0)      defcosts(35,2)
+       (0)      defcosts(36,2)
+       (0)      defcosts(37,2)
+       (0)      defcosts(38,2)
+       (0)      defcosts(39,2)
+       (0)      defcosts(40,2)
+       (0)      defcosts(41,2)
+       (0)      defcosts(42,2)
+       (0)      defcosts(43,2)
+       (0)      defcosts(44,2)
+       (0)      defcosts(45,2)
+       (0)      defcosts(46,2)
+       (0)      defcosts(47,2)
+       (0)      defcosts(48,2)
+       (0)      defcosts(49,2)
+       (0)      defcosts(50,2)
+       (0)      defcosts(51,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 22
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(52,2)
+       (0)      defcosts(53,2)
+       (0)      defcosts(54,2)
+       (0)      defcosts(55,2)
+       (0)      defcosts(56,2)
+       (0)      defcosts(57,2)
+       (0)      defcosts(58,2)
+       (0)      defcosts(59,2)
+       (0)      defcosts(60,2)
+       (0)      defcosts(61,2)
+       (0)      defcosts(62,2)
+       (0)      defcosts(63,2)
+       (0)      defcosts(64,2)
+       (0)      defcosts(65,2)
+       (0)      defcosts(66,2)
+       (0)      defcosts(67,2)
+       (0)      defcosts(68,2)
+       (0)      defcosts(69,2)
+       (0)      defcosts(70,2)
+       (0)      defcosts(71,2)
+       (0)      defcosts(72,2)
+       (0)      defcosts(73,2)
+       (0)      defcosts(74,2)
+       (0)      defcosts(75,2)
+       (0)      defcosts(76,2)
+       (0)      defcosts(77,2)
+       (0)      defcosts(78,2)
+       (0)      defcosts(79,2)
+       (0)      defcosts(80,2)
+       (0)      defcosts(81,2)
+       (0)      defcosts(82,2)
+       (0)      defcosts(83,2)
+       (0)      defcosts(84,2)
+       (0)      defcosts(85,2)
+       (0)      defcosts(86,2)
+       (0)      defcosts(87,2)
+       (0)      defcosts(88,2)
+       (0)      defcosts(89,2)
+       (0)      defcosts(90,2)
+       (0)      defcosts(91,2)
+       (0)      defcosts(92,2)
+       (0)      defcosts(93,2)
+       (0)      defcosts(94,2)
+       (0)      defcosts(95,2)
+       (0)      defcosts(96,2)
+       (0)      defcosts(97,2)
+       (0)      defcosts(98,2)
+       (0)      defcosts(99,2)
+       (0)      defcosts(100,2)
+       (0)      defcosts(101,2)
+       (0)      defcosts(102,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 23
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(103,2)
+       (0)      defcosts(104,2)
+       (0)      defcosts(105,2)
+       (0)      defcosts(106,2)
+       (0)      defcosts(107,2)
+       (0)      defcosts(108,2)
+       (0)      defcosts(109,2)
+       (0)      defcosts(110,2)
+       (0)      defcosts(111,2)
+       (0)      defcosts(112,2)
+       (0)      defcosts(113,2)
+       (0)      defcosts(114,2)
+       (0)      defcosts(115,2)
+       (0)      defcosts(116,2)
+       (0)      defcosts(117,2)
+       (0)      defcosts(118,2)
+       (0)      defcosts(119,2)
+       (0)      defcosts(120,2)
+       (0)      defcosts(121,2)
+       (0)      defcosts(122,2)
+       (0)      defcosts(123,2)
+       (0)      defcosts(124,2)
+       (0)      defcosts(125,2)
+       (0)      defcosts(126,2)
+       (0)      defcosts(127,2)
+       (0)      defcosts(128,2)
+       (0)      defcosts(129,2)
+       (0)      defcosts(130,2)
+       (0)      defcosts(131,2)
+       (0)      defcosts(132,2)
+       (0)      defcosts(133,2)
+       (0)      defcosts(134,2)
+       (0)      defcosts(135,2)
+       (0)      defcosts(136,2)
+       (0)      defcosts(137,2)
+       (0)      defcosts(138,2)
+       (0)      defcosts(139,2)
+       (0)      defcosts(140,2)
+       (0)      defcosts(141,2)
+       (0)      defcosts(142,2)
+       (0)      defcosts(143,2)
+       (0)      defcosts(144,2)
+       (0)      defcosts(145,2)
+       (0)      defcosts(146,2)
+       (0)      defcosts(147,2)
+       (0)      defcosts(148,2)
+       (0)      defcosts(149,2)
+       (0)      defcosts(150,2)
+       (0)      defcosts(151,2)
+       (0)      defcosts(152,2)
+       (0)      defcosts(153,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 24
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(154,2)
+       (0)      defcosts(155,2)
+       (0)      defcosts(156,2)
+       (0)      defcosts(157,2)
+       (0)      defcosts(158,2)
+       (0)      defcosts(159,2)
+       (0)      defcosts(160,2)
+       (0)      defcosts(161,2)
+       (0)      defcosts(162,2)
+       (0)      defcosts(163,2)
+       (0)      defcosts(164,2)
+       (0)      defcosts(165,2)
+       (0)      defcosts(166,2)
+       (0)      defcosts(167,2)
+       (0)      defcosts(168,2)
+       (0)      defcosts(169,2)
+       (0)      defcosts(170,2)
+       (0)      defcosts(171,2)
+       (0)      defcosts(172,2)
+       (0)      defcosts(173,2)
+       (0)      defcosts(174,2)
+       (0)      defcosts(175,2)
+       (0)      defcosts(176,2)
+       (0)      defcosts(177,2)
+       (0)      defcosts(178,2)
+       (0)      defcosts(179,2)
+       (0)      defcosts(180,2)
+       (0)      defcosts(181,2)
+       (0)      defcosts(182,2)
+       (0)      defcosts(183,2)
+       (0)      defcosts(184,2)
+       (0)      defcosts(185,2)
+       (0)      defcosts(186,2)
+       (0)      defcosts(187,2)
+       (0)      defcosts(188,2)
+       (0)      defcosts(189,2)
+       (0)      defcosts(190,2)
+       (0)      defcosts(191,2)
+       (0)      defcosts(192,2)
+       (0)      defcosts(193,2)
+       (0)      defcosts(194,2)
+       (0)      defcosts(195,2)
+       (0)      defcosts(196,2)
+       (0)      defcosts(197,2)
+       (0)      defcosts(198,2)
+       (0)      defcosts(199,2)
+       (0)      defcosts(200,2)
+       (0)      defcosts(201,2)
+       (0)      defcosts(202,2)
+       (0)      defcosts(203,2)
+       (0)      defcosts(204,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 25
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(205,2)
+       (0)      defcosts(206,2)
+       (0)      defcosts(207,2)
+       (0)      defcosts(208,2)
+       (0)      defcosts(209,2)
+       (0)      defcosts(210,2)
+       (0)      defcosts(211,2)
+       (0)      defcosts(212,2)
+       (0)      defcosts(213,2)
+       (0)      defcosts(214,2)
+       (0)      defcosts(215,2)
+       (0)      defcosts(216,2)
+       (0)      defcosts(217,2)
+       (0)      defcosts(218,2)
+       (0)      defcosts(219,2)
+       (0)      defcosts(220,2)
+       (0)      defcosts(221,2)
+       (0)      defcosts(222,2)
+       (0)      defcosts(223,2)
+       (0)      defcosts(224,2)
+       (0)      defcosts(225,2)
+       (0)      defcosts(226,2)
+       (0)      defcosts(227,2)
+       (0)      defcosts(228,2)
+       (0)      defcosts(229,2)
+       (0)      defcosts(230,2)
+       (0)      defcosts(231,2)
+       (0)      defcosts(232,2)
+       (0)      defcosts(233,2)
+       (0)      defcosts(234,2)
+       (0)      defcosts(235,2)
+       (0)      defcosts(236,2)
+       (0)      defcosts(237,2)
+       (0)      defcosts(238,2)
+       (0)      defcosts(239,2)
+       (0)      defcosts(240,2)
+       (0)      defcosts(241,2)
+       (0)      defcosts(242,2)
+       (0)      defcosts(243,2)
+       (0)      defcosts(244,2)
+       (0)      defcosts(245,2)
+       (0)      defcosts(246,2)
+       (0)      defcosts(247,2)
+       (0)      defcosts(248,2)
+       (0)      defcosts(249,2)
+       (0)      defcosts(250,2)
+       (0)      defcosts(251,2)
+       (0)      defcosts(252,2)
+       (0)      defcosts(253,2)
+       (0)      defcosts(254,2)
+       (0)      defcosts(255,2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 26
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+     x  location selection
+
+       (0)      defcosts(256,2)
+       (0)      defcosts(257,2)
+       (0)      defcosts(258,2)
+       (0)      defcosts(259,2)
+       (0)      defcosts(260,2)
+       (0)      defcosts(261,2)
+       (0)      defcosts(262,2)
+       (0)      defcosts(263,2)
+       (0)      defcosts(264,2)
+       (0)      defcosts(265,2)
+       (0)      defcosts(266,2)
+       (0)      defcosts(267,2)
+       (0)      defcosts(268,2)
+       (0)      defcosts(269,2)
+       (0)      defcosts(270,2)
+       (0)      defcosts(271,2)
+       (0)      defcosts(272,2)
+       (0)      defcosts(273,2)
+       (0)      defcosts(274,2)
+       (0)      defcosts(275,2)
+       (0)      defcosts(276,2)
+       (0)      defcosts(277,2)
+       (0)      defcosts(278,2)
+       (0)      defcosts(279,2)
+       (0)      defcosts(280,2)
+       (0)      defcosts(281,2)
+       (0)      defcosts(282,2)
+       (0)      defcosts(283,2)
+       (0)      defcosts(284,2)
+       (0)      defcosts(285,2)
+       (0)      defcosts(286,2)
+       (0)      defcosts(287,2)
+       (0)      defcosts(288,2)
+       (0)      defcosts(289,2)
+       (0)      defcosts(290,2)
+       (0)      defcosts(291,2)
+       (0)      defcosts(292,2)
+       (0)      defcosts(293,2)
+       (0)      defcosts(294,2)
+       (0)      defcosts(295,2)
+       (0)      defcosts(296,2)
+       (0)      defcosts(297,2)
+       (0)      defcosts(298,2)
+       (0)      defcosts(299,2)
+
+REMAINING 297 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 27
+P-Median problem  (pmedian,SEQ=408)
+Column Listing      SOLVE pmedian Using MINLP From line 387
+
+
+---- costs  costs between location i and j
+
+costs(0,0)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       defcosts(0,0)
+       (0)      defcost(0)
+
+costs(0,1)
+                (.LO, .L, .UP, .M = 4, 4, +INF, 0)
+        1       defcosts(0,1)
+       (0)      defcost(0)
+        0       (OLD LEVEL ****)
+
+costs(0,2)
+                (.LO, .L, .UP, .M = 13, 13, +INF, 0)
+        1       defcosts(0,2)
+       (0)      defcost(0)
+        0       (OLD LEVEL ****)
+
+REMAINING 89997 ENTRIES SKIPPED
+
+---- cost  cost to serve i
+
+cost(0)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defcost(0)
+       -1       defobj
+
+cost(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defcost(1)
+       -1       defobj
+
+cost(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defcost(2)
+       -1       defobj
+
+REMAINING 297 ENTRIES SKIPPED
+
+---- obj  objective
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 28
+P-Median problem  (pmedian,SEQ=408)
+Model Statistics    SOLVE pmedian Using MINLP From line 387
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS       90,302
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES       90,601  89,700 projected
+NON ZERO ELEMENTS       270,901     NON LINEAR N-Z        180,000
+DERIVATIVE POOL              20     CONSTANT POOL             141
+CODE LENGTH           1,081,200     DISCRETE VARIABLES        300
+
+
+GENERATION TIME      =        0.371 SECONDS     42 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.386 SECONDS     42 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:43:40 Page 29
+P-Median problem  (pmedian,SEQ=408)
+Solution Report     SOLVE pmedian Using MINLP From line 387
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   pmedian             OBJECTIVE  obj
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  387
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmedian/convert.opt"
+>>  ampl pmedian-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmedian/convert.opt"
+Ampl      : pmedian-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.002 SECONDS     16 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/pmedian/pmedian.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/pmedian/pmedian-scalar.mod.lst

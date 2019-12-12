@@ -1,0 +1,228 @@
+--- Job jit.gms Start 12/13/18 11:22:40 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- jit.gms(127) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- jit.gms(102) 4 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 6 Mb
+--- LOOPS c = case1
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case2
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.023
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case3
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.043
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case4
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.057
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case5
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.070
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case6
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.082
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case7
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.093
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case8
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.109
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(102) 3 Mb
+--- Generating MINLP model jit
+--- jit.gms(111) 5 Mb
+--- LOOPS c = case9
+---   33 rows  26 columns  112 non-zeroes
+---   50 nl-code  12 nl-non-zeroes
+---   4 discrete-columns
+***
+***   4 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- jit.gms(111) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.125
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+>>  gams jit-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/jit/convert.opt"
+--- Writing Gams      : jit-scalar.gms
+
+--- Restarting execution
+--- jit.gms(111) 2 Mb
+--- Reading solution for model jit
+--- jit.gms(126) 3 Mb
+*** Status: Normal completion
+--- Job jit.gms Stop 12/13/18 11:22:40 elapsed 0:00:00.134

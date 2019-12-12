@@ -1,0 +1,84 @@
+--- Job tforss.gms Start 12/13/18 10:24:40 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- tforss.gms(163) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- tforss.gms(155) 4 Mb
+--- Generating LP model forest
+--- tforss.gms(157) 4 Mb
+--- LOOPS rhoset = rho-03
+---   21 rows  64 columns  215 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+>>  ampl tforss-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+--- Writing Ampl      : tforss-scalar.mod
+
+--- Restarting execution
+--- tforss.gms(157) 2 Mb
+--- Reading solution for model forest
+--- tforss.gms(155) 3 Mb
+--- Generating LP model forest
+--- tforss.gms(157) 3 Mb
+--- LOOPS rhoset = rho-05
+---   21 rows  64 columns  215 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.014
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+>>  ampl tforss-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+--- Writing Ampl      : tforss-scalar.mod
+
+--- Restarting execution
+--- tforss.gms(157) 2 Mb
+--- Reading solution for model forest
+--- tforss.gms(155) 3 Mb
+--- Generating LP model forest
+--- tforss.gms(157) 3 Mb
+--- LOOPS rhoset = rho-07
+---   21 rows  64 columns  215 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.025
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+>>  ampl tforss-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+--- Writing Ampl      : tforss-scalar.mod
+
+--- Restarting execution
+--- tforss.gms(157) 2 Mb
+--- Reading solution for model forest
+--- tforss.gms(155) 3 Mb
+--- Generating LP model forest
+--- tforss.gms(157) 3 Mb
+--- LOOPS rhoset = rho-10
+---   21 rows  64 columns  215 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.041
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+>>  ampl tforss-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/tforss/convert.opt"
+--- Writing Ampl      : tforss-scalar.mod
+
+--- Restarting execution
+--- tforss.gms(157) 2 Mb
+--- Reading solution for model forest
+--- tforss.gms(163) 3 Mb
+*** Status: Normal completion
+--- Job tforss.gms Stop 12/13/18 10:24:40 elapsed 0:00:00.052

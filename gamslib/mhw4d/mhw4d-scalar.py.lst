@@ -1,0 +1,182 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 2
+Nonlinear Test Problem (MHW4D,SEQ=84)
+C o m p i l a t i o n
+
+
+   5   
+       
+        Another popular test problem for NLP codes.
+       
+       
+      Wright, M H, Numerical Methods for Nonlinearly Constraint Optimization.
+      PhD thesis, Stanford University, 1976.
+       
+  15   
+  16   
+  17  Variables m, x1, x2, x3, x4, x5;
+  18  Equations funct, eq1, eq2, eq3;
+  19   
+  20  funct.. m =e= sqr(x1-1)      + sqr(x1-x2)     + power(x2-x3,3)
+  21              + power(x3-x4,4) + power(x4-x5,4) ;
+  22   
+  23  eq1.. x1 + sqr(x2) + power(x3,3) =e= 3*sqrt(2) + 2 ;
+  24   
+  25  eq2.. x2 - sqr(x3) + x4          =e= 2*sqrt(2) - 2 ;
+  26   
+  27  eq3.. x1*x5 =e= 2 ;
+  28   
+  29  Model wright / all / ;
+  30   
+  31  x1.l = -1; x2.l = 2; x3.l = 1; x4.l = -2; x5.l = -2;
+  32   
+  33  Solve wright using nlp minimizing m;
+
+
+COMPILATION TIME     =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 3
+Nonlinear Test Problem (MHW4D,SEQ=84)
+Equation Listing    SOLVE wright Using NLP From line 33
+
+
+---- funct  =E=  
+
+funct..  m + (10)*x1 - (9)*x2 - (105)*x3 + (108)*x4 + (0)*x5 =E= 0 ; (LHS = -95, INFES = 95 ****)
+     
+
+---- eq1  =E=  
+
+eq1..  x1 + (4)*x2 + (3)*x3 =E= 6.24264068711929 ; (LHS = 4, INFES = 2.24264068711929 ****)
+     
+
+---- eq2  =E=  
+
+eq2..  x2 - (2)*x3 + x4 =E= 0.82842712474619 ; (LHS = -1, INFES = 1.82842712474619 ****)
+     
+
+---- eq3  =E=  
+
+eq3..  - (2)*x1 - (1)*x5 =E= 2 ; (LHS = 2)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 4
+Nonlinear Test Problem (MHW4D,SEQ=84)
+Column Listing      SOLVE wright Using NLP From line 33
+
+
+---- m  
+
+m
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       funct
+
+
+---- x1  
+
+x1
+                (.LO, .L, .UP, .M = -INF, -1, +INF, 0)
+      (10)      funct
+        1       eq1
+      (-2)      eq3
+
+
+---- x2  
+
+x2
+                (.LO, .L, .UP, .M = -INF, 2, +INF, 0)
+      (-9)      funct
+       (4)      eq1
+        1       eq2
+
+
+---- x3  
+
+x3
+                (.LO, .L, .UP, .M = -INF, 1, +INF, 0)
+    (-105)      funct
+       (3)      eq1
+      (-2)      eq2
+
+
+---- x4  
+
+x4
+                (.LO, .L, .UP, .M = -INF, -2, +INF, 0)
+     (108)      funct
+        1       eq2
+
+
+---- x5  
+
+x5
+                (.LO, .L, .UP, .M = -INF, -2, +INF, 0)
+       (0)      funct
+      (-1)      eq3
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 5
+Nonlinear Test Problem (MHW4D,SEQ=84)
+Model Statistics    SOLVE wright Using NLP From line 33
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS            4
+BLOCKS OF VARIABLES           6     SINGLE VARIABLES            6
+NON ZERO ELEMENTS            14     NON LINEAR N-Z             10
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  43
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:44 Page 6
+Nonlinear Test Problem (MHW4D,SEQ=84)
+Solution Report     SOLVE wright Using NLP From line 33
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   wright              OBJECTIVE  m
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  33
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mhw4d/convert.opt"
+>>  pyomo mhw4d-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mhw4d/convert.opt"
+Pyomo     : mhw4d-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.001 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mhw4d/mhw4d.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mhw4d/mhw4d-scalar.py.lst

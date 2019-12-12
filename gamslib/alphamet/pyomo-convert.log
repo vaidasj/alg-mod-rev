@@ -1,0 +1,32 @@
+--- Job alphamet.gms Start 12/13/18 10:31:09 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- alphamet.gms(78) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- alphamet.gms(77) 4 Mb
+--- Generating MIP model m
+--- alphamet.gms(78) 4 Mb
+---   42 rows  118 columns  346 non-zeroes
+---   107 discrete-columns
+***
+***   7 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/alphamet/convert.opt"
+>>  pyomo alphamet-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/alphamet/convert.opt"
+--- Writing Pyomo     : alphamet-scalar.py
+
+--- Restarting execution
+--- alphamet.gms(78) 2 Mb
+--- Reading solution for model m
+*** Status: Normal completion
+--- Job alphamet.gms Stop 12/13/18 10:31:09 elapsed 0:00:00.011

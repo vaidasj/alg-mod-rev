@@ -1,0 +1,48 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  * From StockMaster at MIT
+   2   
+   3  sets       days    100 days from 95-11-27 to 96-04-29
+   4             stocks  170 selected stocks
+   5             upper(stocks,stocks)
+   6             lower(stocks,stocks);
+   7  alias (stocks,sstocks);
+   8   
+   9  parameters val(stocks,days)    closing value
+  10             return(stocks,days) daily returns - derived;
+  11   
+  12  set days days /
+  13    951127
+  14    951128
+ 116   
+ 117  set stocks /
+ 118    GAB
+ 119    GAP
+ 120    GDW
+ 281   
+ 282  parameter val(stocks,days) closing value /
+ 283    GAB  .951127                9.25
+ 284    GAB  .951128                9.25
+ 285    GAB  .951129                9.25
+ 286   
+16287  return(stocks,days-1) = val(stocks,days)-val(stocks,days-1);
+16288   
+16289  upper(stocks,sstocks) = ord(stocks) <= ord(sstocks);
+16290  lower(stocks,sstocks) = not upper(stocks,sstocks);
+
+
+COMPILATION TIME     =        0.019 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qpdata.inc
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qp1x/qpdata.lst

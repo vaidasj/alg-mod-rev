@@ -1,0 +1,2012 @@
+--- Job mathopt6.gms Start 12/13/18 11:23:03 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- mathopt6.gms(82) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- mathopt6.gms(59) 4 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 6 Mb
+--- LOOPS i = rand1
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand2
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.018
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand3
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.035
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand4
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.052
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand5
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.068
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand6
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.083
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand7
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.100
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand8
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.117
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand9
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.131
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand10
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.227
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand11
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.245
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand12
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.260
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand13
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.276
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand14
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.294
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand15
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.312
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand16
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.325
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand17
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.338
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand18
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.351
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand19
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.368
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand20
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.381
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand21
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.394
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand22
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.411
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand23
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.425
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand24
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.441
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand25
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.455
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand26
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.471
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand27
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.485
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand28
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.496
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand29
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.513
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand30
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.529
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand31
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.545
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand32
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.557
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand33
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.574
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand34
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.590
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand35
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.600
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand36
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.614
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand37
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.627
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand38
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.638
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand39
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.649
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand40
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.665
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand41
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.678
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand42
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.693
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand43
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.709
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand44
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.723
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand45
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.738
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand46
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.756
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand47
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.770
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand48
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.785
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand49
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.797
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand50
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.811
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand51
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.828
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand52
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.838
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand53
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.852
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand54
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.865
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand55
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.878
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand56
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.888
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand57
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.901
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand58
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.914
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand59
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.930
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand60
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.940
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand61
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.950
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand62
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.966
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand63
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.981
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand64
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.992
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand65
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.009
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand66
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.025
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand67
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.037
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand68
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.051
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand69
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.063
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand70
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.074
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand71
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.089
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand72
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.102
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand73
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.117
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand74
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.128
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand75
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.143
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand76
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.154
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand77
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.166
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand78
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.177
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand79
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.191
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand80
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.206
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand81
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.217
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand82
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.233
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand83
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.243
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand84
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.260
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand85
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.271
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand86
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.282
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand87
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.292
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand88
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.306
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand89
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.322
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand90
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.336
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand91
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.352
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand92
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.366
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand93
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.376
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand94
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.389
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand95
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.402
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand96
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.430
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand97
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.444
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand98
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.461
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand99
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.500
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(59) 3 Mb
+--- Generating DNLP model m
+--- mathopt6.gms(64) 5 Mb
+--- LOOPS i = rand100
+---   1 rows  3 columns  3 non-zeroes
+---   35 nl-code  2 nl-non-zeroes
+--- mathopt6.gms(64) 3 Mb
+--- Executing CONVERT: elapsed 0:00:01.514
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+>>  pyomo mathopt6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt6/convert.opt"
+--- Writing Pyomo     : mathopt6-scalar.py
+
+--- Restarting execution
+--- mathopt6.gms(64) 2 Mb
+--- Reading solution for model m
+--- mathopt6.gms(82) 3 Mb
+*** Status: Normal completion
+--- Job mathopt6.gms Stop 12/13/18 11:23:05 elapsed 0:00:01.545

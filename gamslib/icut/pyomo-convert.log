@@ -1,0 +1,31 @@
+--- Job icut.gms Start 12/13/18 10:30:51 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- icut.gms(120) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- icut.gms(99) 4 Mb
+--- Generating MIP model enum
+--- icut.gms(114) 4 Mb
+--- LOOPS kk = 1
+---   2 rows  5 columns  8 non-zeroes
+---   3 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.004
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/icut/convert.opt"
+>>  pyomo icut-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/icut/convert.opt"
+--- Writing Pyomo     : icut-scalar.py
+
+--- Restarting execution
+--- icut.gms(114) 2 Mb
+--- Reading solution for model enum
+--- icut.gms(120) 3 Mb
+*** Status: Normal completion
+--- Job icut.gms Stop 12/13/18 10:30:51 elapsed 0:00:00.014

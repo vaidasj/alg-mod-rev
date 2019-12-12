@@ -1,0 +1,215 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 2
+A Transportation Problem (TRNSPORT,SEQ=1)
+C o m p i l a t i o n
+
+
+       
+      This problem finds a least cost shipping schedule that meets
+      requirements at markets and supplies at factories.
+       
+       
+      Dantzig, G B, Chapter 3.3. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+      This formulation is described in detail in:
+      Rosenthal, R E, Chapter 2: A GAMS Tutorial. In GAMS: A User's Guide.
+      The Scientific Press, Redwood City, California, 1988.
+       
+      The line numbers will not match those in the book because of these
+      comments.
+       
+  20   
+  21   
+  22    Sets
+  23         i   canning plants   / seattle, san-diego /
+  24         j   markets          / new-york, chicago, topeka / ;
+  25   
+  26    Parameters
+  27   
+  28         a(i)  capacity of plant i in cases
+  29           /    seattle     350
+  30                san-diego   600  /
+  31   
+  32         b(j)  demand at market j in cases
+  33           /    new-york    325
+  34                chicago     300
+  35                topeka      275  / ;
+  36   
+  37    Table d(i,j)  distance in thousands of miles
+  38                      new-york       chicago      topeka
+  39        seattle          2.5           1.7          1.8
+  40        san-diego        2.5           1.8          1.4  ;
+  41   
+  42    Scalar f  freight in dollars per case per thousand miles  /90/ ;
+  43   
+  44    Parameter c(i,j)  transport cost in thousands of dollars per case ;
+  45   
+  46              c(i,j) = f * d(i,j) / 1000 ;
+  47   
+  48    Variables
+  49         x(i,j)  shipment quantities in cases
+  50         z       total transportation costs in thousands of dollars ;
+  51   
+  52    Positive Variable x ;
+  53   
+  54    Equations
+  55         cost        define objective function
+  56         supply(i)   observe supply limit at plant i
+  57         demand(j)   satisfy demand at market j ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 3
+A Transportation Problem (TRNSPORT,SEQ=1)
+C o m p i l a t i o n
+
+
+  58   
+  59    cost ..        z  =e=  sum((i,j), c(i,j)*x(i,j)) ;
+  60   
+  61    supply(i) ..   sum(j, x(i,j))  =l=  a(i) ;
+  62   
+  63    demand(j) ..   sum(i, x(i,j))  =g=  b(j) ;
+  64   
+  65    Model transport /all/ ;
+  66   
+  67    Solve transport using lp minimizing z ;
+  68   
+  69    Display x.l, x.m ;
+  70   
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 4
+A Transportation Problem (TRNSPORT,SEQ=1)
+Equation Listing    SOLVE transport Using LP From line 67
+
+
+---- cost  =E=  define objective function
+
+cost..  - 0.225*x(seattle,new-york) - 0.153*x(seattle,chicago) - 0.162*x(seattle,topeka) - 0.225*x(san-diego,new-york) - 0.162*x(san-diego,chicago) - 0.126*x(san-diego,topeka) + z =E= 0 ; (LHS = 0)
+     
+
+---- supply  =L=  observe supply limit at plant i
+
+supply(seattle)..  x(seattle,new-york) + x(seattle,chicago) + x(seattle,topeka) =L= 350 ; (LHS = 0)
+     
+supply(san-diego)..  x(san-diego,new-york) + x(san-diego,chicago) + x(san-diego,topeka) =L= 600 ; (LHS = 0)
+     
+
+---- demand  =G=  satisfy demand at market j
+
+demand(new-york)..  x(seattle,new-york) + x(san-diego,new-york) =G= 325 ; (LHS = 0, INFES = 325 ****)
+     
+demand(chicago)..  x(seattle,chicago) + x(san-diego,chicago) =G= 300 ; (LHS = 0, INFES = 300 ****)
+     
+demand(topeka)..  x(seattle,topeka) + x(san-diego,topeka) =G= 275 ; (LHS = 0, INFES = 275 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 5
+A Transportation Problem (TRNSPORT,SEQ=1)
+Column Listing      SOLVE transport Using LP From line 67
+
+
+---- x  shipment quantities in cases
+
+x(seattle,new-york)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.225   cost
+        1       supply(seattle)
+        1       demand(new-york)
+
+x(seattle,chicago)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.153   cost
+        1       supply(seattle)
+        1       demand(chicago)
+
+x(seattle,topeka)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.162   cost
+        1       supply(seattle)
+        1       demand(topeka)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  total transportation costs in thousands of dollars
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       cost
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 6
+A Transportation Problem (TRNSPORT,SEQ=1)
+Model Statistics    SOLVE transport Using LP From line 67
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.084 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.093 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 7
+A Transportation Problem (TRNSPORT,SEQ=1)
+Solution Report     SOLVE transport Using LP From line 67
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  67
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/trnsport/convert.opt"
+>>  ampl trnsport-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/trnsport/convert.opt"
+Ampl      : trnsport-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:27 Page 8
+A Transportation Problem (TRNSPORT,SEQ=1)
+E x e c u t i o n
+
+
+----     69 VARIABLE x.L  shipment quantities in cases
+
+                      ( ALL       0.000 )
+
+
+----     69 VARIABLE x.M  shipment quantities in cases
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/trnsport/trnsport.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/trnsport/trnsport-scalar.mod.lst

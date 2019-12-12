@@ -1,0 +1,870 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 2
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This is an Energy Macro Economic Interaction model for the United
+         States developed by Prof A Manne, Stanford University.
+       
+       
+      Manne, A S, ETA-MACRO: A Model of Energy-Economy Interactions. In Hitch,
+      C J, Ed, Modeling Energy-Economy Interactions, Resources for the Future.
+      ?, Washington, DC, 1977.
+       
+      *------------------------------------------------------------------------
+        These are notes on changing the time horizon and number of years per period.
+       
+        You must first enter the set t which is the time periods that will be
+        used.  The number of years between entries in t must be the value nyper.
+        you must choose the number of years per period, nyper, and this must
+        correspond to the set t. You must change the number of years per period,
+        nyper, in two places. nyper must be greater than or equal to 2.
+       
+        You must also enter the set inityrs which contains the years from the base
+        year to the year before the first year.
+       
+         Units Used:
+       
+         Electric Energy                10**12 kwh
+         Non-Electric Energy            10**15 btu
+         Price of Electric Energy     $/(10**3 kwh)
+         Price of Non-Electric Energy $/(10**6 btu)
+         GNP                              10**12 $
+      *------------------------------------------------------------------------
+       
+  37   
+  38   
+  39   Scalars  nyper  number of years per period / 5 /;
+  40   
+  41   Sets     inityrs   years before first year / 1985*1989 /
+  42            bsyr      base year
+  43            t         actual time periods  / 1990, 1995, 2000, 2005, 2010,
+  44                                             2015, 2020, 2025, 2030 /
+  45            tfirst(t) first period
+  46            tlast(t)  last period
+  47            nypset    set from 1 to nyper / 1*5 /;
+  48   
+  49   bsyr(inityrs) = yes$(ord(inityrs) eq 1);
+  50   tfirst(t) = yes$(ord(t) eq 1);
+  51   tlast(t) = yes$(ord(t) eq card(t));
+  52   
+  53   
+  54  *------------------------------------------------------------------------
+  55   Scalars  spda   speed of adjustment              /  0.96 /
+  56            kpvs   capital share parameter          /  0.28 /
+  57            elvs   electric share parameter         /  0.35 /
+  58            esub   elasticity between k-l and e-n   /  0.45 /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 3
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+C o m p i l a t i o n
+
+
+  59            k0     initial capital                  / 10.90 /
+  60            e0     initial electric energy          /  2.50 /
+  61            n0     initial non-electric energy      / 50    /
+  62            i0     initial investment               /  0.7  /
+  63            c0     initial consumption              /  3.2  /
+  64            pe0    initial price of electric energy       / 50   /
+  65            pn0    initial price of non-electric energy   /  4.5 /
+  66            pnref  reference price of non-electric energy /  3.0 /
+  67            y0     initial output
+  68            htrt0  initial heat rate
+  69            thsnd  one thousand                         / 1000.0 /
+  70            rho    esub minus one divided by esub
+  71            aconst constant for capital-labor index
+  72            bconst constant for electric-non-electric energy index
+  73            ninit  number of years before the first year
+  74            tol    tolerance factor for lower bounds      / 0.3 /;
+  75  *------------------------------------------------------------------------
+  76   
+  77   
+  78   Parameters      dfactcurr(t)    current annual utility discount factor
+  79                   dfact(t)        utility discount factor
+  80                   grow(t)         potential annual gnp growth rate
+  81                   pegrow(t)       current growth of electricity price
+  82                   pelec(t)        growth of electricity price
+  83                   pngrow(t)       current growth of non-electricity price
+  84                   pnelec(t)       growth of non-electricity price
+  85                   l(t)            current labor force (efficiency units)
+  86                   ln(t)           new labor force
+  87                   ipm(t)          investment period multiplier
+  88                   htrt(t)         heat rate
+  89                   knew(t)         new capital stock;
+  90   
+  91   
+  92  *------------------------------------------------------------------------
+  93  * the following input factors refer, respectively, to utility discounting
+  94  * (dfactcurr), growth of electric and nonelectric energy costs (pelec and
+  95  * pnelec), and of potential gnp (grow).
+  96   
+  97   dfactcurr(t)  = 0.96;
+  98   pegrow(t)     = 0.01;
+  99   pngrow(t)     = 0.02;
+ 100   grow(t)       = 0.03;
+ 101   htrt0         = 10.809;
+ 102   htrt(t)       = 10.809;
+ 103  *------------------------------------------------------------------------
+ 104   
+ 105   ninit = card(inityrs);
+ 106   rho   = (esub - 1)/esub;
+ 107   y0    = i0 + c0 + (e0*pe0 + n0*pn0)/thsnd;
+ 108   
+ 109   bconst = (pnref/thsnd)*y0**(rho - 1) /
+ 110            ((1 - elvs)*(e0**(rho*elvs))*(n0**(rho*(1 - elvs) - 1)));
+ 111   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 4
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+C o m p i l a t i o n
+
+
+ 112   aconst = (y0**rho - bconst*(e0**(rho*elvs))*(n0**(rho*(1 - elvs)))) /
+ 113            (k0**(rho*kpvs));
+ 114   
+ 115  *the following calculations allow for the growth of investment within each
+ 116  *period, and also for its geometric decay.
+ 117   
+ 118   knew(tfirst) = i0*(sum(inityrs, spda**(ord(inityrs) - 1)*
+ 119                          (1 + grow(tfirst))**(ninit - ord(inityrs))));
+ 120   
+ 121   ipm(t) = sum(nypset, spda**(ord(nypset) - 1)*
+ 122                        (1 + grow(t))**(nyper - ord(nypset)));
+ 123   
+ 124   
+ 125   dfact(tfirst)  = dfactcurr(tfirst)**ninit;
+ 126   l(tfirst)      = (1 + grow(tfirst))**ninit;
+ 127   ln(tfirst)     = l(tfirst) - (spda**ninit);
+ 128   pelec(tfirst)  = pe0*((1 + pegrow(tfirst))**ninit);
+ 129   pnelec(tfirst) = pn0*((1 + pngrow(tfirst))**ninit);
+ 130   
+ 131   Loop(t, dfact(t+1)  = dfact(t)*dfactcurr(t+1)**nyper ;
+ 132           l(t+1)      = l(t)*(1 + grow(t+1))**nyper ;
+ 133           ln(t+1)     = l(t+1) - l(t)*(spda**nyper) ;
+ 134           pelec(t+1)  = pelec(t)*(1 + pegrow(t))**nyper ;
+ 135           pnelec(t+1) = pnelec(t)*(1 + pngrow(t))**nyper );
+ 136   
+ 137   dfact(tlast)  = dfact(tlast)/(1-dfactcurr(tlast));
+ 138   
+ 139   Display ipm, kpvs, elvs, l, ln, rho, aconst, bconst, pelec, pnelec, knew;
+ 140   
+ 141   
+ 142   Variables k(t)    capital stock
+ 143             kn(t)   new capital stock
+ 144             y(t)    production
+ 145             yn(t)   new production
+ 146             e(t)    electric energy
+ 147             en(t)   new electric energy
+ 148             n(t)    non-electric energy
+ 149             nn(t)   new non-electric energy
+ 150             c(t)    consumption
+ 151             i(t)    investment
+ 152             ec(t)   energy cost in trillions
+ 153             utility;
+ 154   
+ 155   
+ 156   k.l(t) = k0*l(t);
+ 157   y.l(t) = y0*l(t);
+ 158   e.l(t) = e0*l(t);
+ 159   n.l(t) = n0*l(t);
+ 160   c.l(t) = c0*l(t);
+ 161   i.l(t) = i0*l(t);
+ 162   
+ 163   Display k.l, y.l, e.l, n.l, c.l, i.l;
+ 164   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 5
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+C o m p i l a t i o n
+
+
+ 165   
+ 166   Equations newcap(t)           new capital
+ 167             newprod(t)          new production
+ 168             fnewelec(t)         new electric energy in first period
+ 169             newelec(t)          new electric energy
+ 170             fnewnon(t)          new non-electric energy in first period
+ 171             newnon(t)           new non-electric energy
+ 172             totalcap(t)         total capital stock
+ 173             ftotalprod(t)       total production in first period
+ 174             totalprod(t)        total production
+ 175             costnrg(t)          cost of energy
+ 176             cc(t)               capacity constraint
+ 177             tc(t)               terminal condition
+ 178             util                discounted log of consumption;
+ 179   
+ 180   
+ 181   newcap(t+1)..       kn(t+1) =e= i(t)*ipm(t);
+ 182   
+ 183   newprod(t+1)..      yn(t+1) =e= (aconst*(kn(t+1)**(rho*kpvs)) *
+ 184                                   (ln(t+1)**(rho*(1 - kpvs))) +
+ 185                                   bconst*(en(t+1)**(rho*elvs)) *
+ 186                                   (nn(t+1)**(rho*(1 - elvs)))) ** (1/rho);
+ 187   
+ 188   
+ 189   fnewelec(tfirst)..  en(tfirst) =e= e(tfirst) - e0*(spda**nyper);
+ 190   
+ 191   newelec(t+1)..      en(t+1) =e= e(t+1) - e(t)*(spda**nyper);
+ 192   
+ 193   
+ 194   fnewnon(tfirst)..   nn(tfirst) =e= n(tfirst) - n0*(spda**nyper);
+ 195   
+ 196   newnon(t+1)..       nn(t+1) =e= n(t+1) - n(t)*(spda**nyper);
+ 197   
+ 198   
+ 199   totalcap(t+1)..     k(t+1) =e= k(t)*(spda**nyper) + kn(t+1);
+ 200   
+ 201   
+ 202   ftotalprod(tfirst)..y(tfirst) =e= y0*(spda**ninit) +
+ 203                                     (aconst*(knew(tfirst)**(rho*kpvs)) *
+ 204                                     (ln(tfirst)**(rho*(1-kpvs))) +
+ 205                                     bconst*(en(tfirst)**(rho*elvs)) *
+ 206                                     (nn(tfirst)**(rho*(1 - elvs)))) ** (1/rho);
+ 207   
+ 208   totalprod(t+1)..    y(t+1) =e= y(t)*(spda**nyper) + yn(t+1);
+ 209   
+ 210   
+ 211   costnrg(t)..        thsnd*ec(t) =e= pelec(t)*e(t) + pnelec(t)*n(t);
+ 212   
+ 213   cc(t)..             y(t) =e= c(t) + i(t) + ec(t);
+ 214   
+ 215   tc(tlast)..         k(tlast)*(grow(tlast) + (1 - spda)) =l= i(tlast);
+ 216   
+ 217   util..              utility =e= sum(t, dfact(t)*log(c(t)));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 6
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+C o m p i l a t i o n
+
+
+ 218   
+ 219   Model etamac /all/;
+ 220   
+ 221   k.lo(t)  = k0;
+ 222   kn.lo(t) = tol*i0*ipm(t);
+ 223   y.lo(t)  = y0;
+ 224   yn.lo(t) = tol*y0*ln(t);
+ 225   e.lo(t)  = e0;
+ 226   en.lo(t) = tol*e0*ln(t);
+ 227   n.lo(t)  = n0;
+ 228   nn.lo(t) = tol*n0*ln(t);
+ 229   c.lo(t)  = c0;
+ 230   i.lo(t)  = i0;
+ 231   
+ 232   k.fx(tfirst) = k0*(spda**ninit) + knew(tfirst);
+ 233   
+ 234   Solve etamac maximizing utility using nlp;
+ 235   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 7
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+report definitions
+
+
+ 237   
+ 238   Parameter  valuerep    report for c-i-gdp-e-en-tpe
+ 239              growthrep   report of growth rates;
+ 240   
+ 241   
+ 242   valuerep("con",   bsyr) = c0;
+ 243   valuerep("inv",   bsyr) = i0;
+ 244   valuerep("gdp",   bsyr) = c0 + i0;
+ 245   valuerep("elec",  bsyr) = e0;
+ 246   valuerep("nelec", bsyr) = n0;
+ 247   valuerep("tpe",   bsyr) = htrt0*e0 + n0;
+ 248   
+ 249   valuerep("con",   t) = c.l(t);
+ 250   valuerep("inv",   t) = i.l(t);
+ 251   valuerep("gdp",   t) = c.l(t) + i.l(t);
+ 252   valuerep("elec",  t) = e.l(t);
+ 253   valuerep("nelec", t) = n.l(t);
+ 254   valuerep("tpe",   t) = htrt(t)*e.l(t) + n.l(t);
+ 255   
+ 256   
+ 257   growthrep("con", "'85-00")  = 100*((c.l("2000")/c0)**(1/15) - 1);
+ 258   growthrep("inv", "'85-00")  = 100*((i.l("2000")/i0)**(1/15) - 1);
+ 259   growthrep("gdp", "'85-00")  = 100*(((c.l("2000") + i.l("2000"))/
+ 260                                 (c0 + i0))**(1/15) - 1);
+ 261   growthrep("elec", "'85-00") = 100*((e.l("2000")/e0)**(1/15) - 1);
+ 262   growthrep("nelec","'85-00") = 100*((n.l("2000")/n0)**(1/15) - 1);
+ 263   growthrep("tpe",  "'85-00") = 100*(((htrt("2000")*e.l("2000") + n.l("2000"))/
+ 264                                  (htrt0*e0 + n0))**(1/15) - 1);
+ 265   
+ 266   growthrep("con",  "'00-20") = 100*((c.l("2020")/c.l("2000"))**(1/20) - 1);
+ 267   growthrep("inv",  "'00-20") = 100*((i.l("2020")/i.l("2000"))**(1/20) - 1);
+ 268   growthrep("gdp",  "'00-20") = 100*(((c.l("2020") + i.l("2020"))/
+ 269                                 (c.l("2000") + i.l("2000")))**(1/20) - 1);
+ 270   growthrep("elec", "'00-20") = 100*((e.l("2020")/e.l("2000"))**(1/20) - 1);
+ 271   growthrep("nelec","'00-20") = 100*((n.l("2020")/n.l("2000"))**(1/20) - 1);
+ 272   growthrep("tpe",  "'00-20") = 100*(((htrt("2020")*e.l("2020") + n.l("2020"))/
+ 273                                 (htrt("2000")*e.l("2000") + n.l("2000")))
+ 274                                 **(1/20) - 1);
+ 275   
+ 276   
+ 277   Display valuerep, growthrep;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 8
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+E x e c u t i o n
+
+
+----    139 PARAMETER ipm  investment period multiplier
+
+1990 4.913,    1995 4.913,    2000 4.913,    2005 4.913,    2010 4.913,    2015 4.913,    2020 4.913,    2025 4.913,    2030 4.913
+
+
+----    139 PARAMETER kpvs                 =        0.280  capital share parameter
+            PARAMETER elvs                 =        0.350  electric share parameter
+
+----    139 PARAMETER l  current labor force (efficiency units)
+
+1990 1.159,    1995 1.344,    2000 1.558,    2005 1.806,    2010 2.094,    2015 2.427,    2020 2.814,    2025 3.262,    2030 3.782
+
+
+----    139 PARAMETER ln  new labor force
+
+1990 0.344,    1995 0.399,    2000 0.462,    2005 0.536,    2010 0.621,    2015 0.720,    2020 0.835,    2025 0.968,    2030 1.122
+
+
+----    139 PARAMETER rho                  =       -1.222  esub minus one divided by esub
+            PARAMETER aconst               =        0.365  constant for capital-labor index
+            PARAMETER bconst               =        0.307  constant for electric-non-electric energy index
+
+----    139 PARAMETER pelec  growth of electricity price
+
+1990 52.551,    1995 55.231,    2000 58.048,    2005 61.010,    2010 64.122,    2015 67.392,    2020 70.830,    2025 74.443,    2030 78.241
+
+
+----    139 PARAMETER pnelec  growth of non-electricity price
+
+1990  4.968,    1995  5.485,    2000  6.056,    2005  6.687,    2010  7.383,    2015  8.151,    2020  9.000,    2025  9.936,    2030 10.970
+
+
+----    139 PARAMETER knew  new capital stock
+
+1990 3.439
+
+
+----    163 VARIABLE k.L  capital stock
+
+1990 12.636,    1995 14.649,    2000 16.982,    2005 19.687,    2010 22.822,    2015 26.457,    2020 30.671,    2025 35.556,    2030 41.219
+
+
+----    163 VARIABLE y.L  production
+
+1990  4.927,    1995  5.712,    2000  6.621,    2005  7.676,    2010  8.899,    2015 10.316,    2020 11.959,    2025 13.864,    2030 16.072
+
+
+----    163 VARIABLE e.L  electric energy
+
+1990 2.898,    1995 3.360,    2000 3.895,    2005 4.515,    2010 5.234,    2015 6.068,    2020 7.035,    2025 8.155,    2030 9.454
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:43 Page 9
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+E x e c u t i o n
+
+
+----    163 VARIABLE n.L  non-electric energy
+
+1990  57.964,    1995  67.196,    2000  77.898,    2005  90.306,    2010 104.689,    2015 121.363,    2020 140.693,    2025 163.102,    2030 189.080
+
+
+----    163 VARIABLE c.L  consumption
+
+1990  3.710,    1995  4.301,    2000  4.985,    2005  5.780,    2010  6.700,    2015  7.767,    2020  9.004,    2025 10.439,    2030 12.101
+
+
+----    163 VARIABLE i.L  investment
+
+1990 0.811,    1995 0.941,    2000 1.091,    2005 1.264,    2010 1.466,    2015 1.699,    2020 1.970,    2025 2.283,    2030 2.647
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 10
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Equation Listing    SOLVE etamac Using NLP From line 234
+
+
+---- newcap  =E=  new capital
+
+newcap(1995)..  kn(1995) - 4.91287681*i(1990) =E= 0 ; (LHS = -2.95505537114388, INFES = 2.95505537114388 ****)
+     
+newcap(2000)..  kn(2000) - 4.91287681*i(1995) =E= 0 ; (LHS = -3.59004280016123, INFES = 3.59004280016123 ****)
+     
+newcap(2005)..  kn(2005) - 4.91287681*i(2000) =E= 0 ; (LHS = -4.32616726412745, INFES = 4.32616726412745 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- newprod  =E=  new production
+
+newprod(1995)..  - (0.248454377114054)*kn(1995) + yn(1995) - (0.163841792898479)*en(1995) - (0.0152138807691445)*nn(1995) =E= 0 ; (LHS = -0.547128436742559, INFES = 0.547128436742559 ****)
+     
+newprod(2000)..  - (0.279667780329989)*kn(2000) + yn(2000) - (0.151240614628484)*en(2000) - (0.0140437713583592)*nn(2000) =E= 0 ; (LHS = -0.590992104983659, INFES = 0.590992104983659 ****)
+     
+newprod(2005)..  - (0.314640325080967)*kn(2005) + yn(2005) - (0.139536664989647)*en(2005) - (0.012956976034753)*nn(2005) =E= 0 ; (LHS = -0.636417444484844, INFES = 0.636417444484844 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- fnewelec  =E=  new electric energy in first period
+
+fnewelec(1990)..  - e(1990) + en(1990) =E= -2.038431744 ; (LHS = -2.640259153225, INFES = 0.601827409225 ****)
+     
+
+---- newelec  =E=  new electric energy
+
+newelec(1995)..  0.8153726976*e(1990) - e(1995) + en(1995) =E= 0 ; (LHS = -0.69768291271768, INFES = 0.69768291271768 ****)
+     
+newelec(2000)..  0.8153726976*e(1995) - e(2000) + en(2000) =E= 0 ; (LHS = -0.808805712795716, INFES = 0.808805712795716 ****)
+     
+newelec(2005)..  0.8153726976*e(2000) - e(2005) + en(2005) =E= 0 ; (LHS = -0.937627493989806, INFES = 0.937627493989806 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- fnewnon  =E=  new non-electric energy in first period
+
+fnewnon(1990)..  - n(1990) + nn(1990) =E= -40.76863488 ; (LHS = -52.8051830645, INFES = 12.0365481845 ****)
+     
+
+---- newnon  =E=  new non-electric energy
+
+newnon(1995)..  0.8153726976*n(1990) - n(1995) + nn(1995) =E= 0 ; (LHS = -13.9536582543536, INFES = 13.9536582543536 ****)
+     
+newnon(2000)..  0.8153726976*n(1995) - n(2000) + nn(2000) =E= 0 ; (LHS = -16.1761142559143, INFES = 16.1761142559143 ****)
+     
+newnon(2005)..  0.8153726976*n(2000) - n(2005) + nn(2005) =E= 0 ; (LHS = -18.7525498797961, INFES = 18.7525498797961 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 11
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Equation Listing    SOLVE etamac Using NLP From line 234
+
+
+---- totalcap  =E=  total capital stock
+
+totalcap(1995)..  - 0.8153726976*k(1990) + k(1995) - kn(1995) =E= 0 ; (LHS = 3.56623074016124, INFES = 3.56623074016124 ****)
+     
+totalcap(2000)..  - 0.8153726976*k(1995) + k(2000) - kn(2000) =E= 0 ; (LHS = 4.00600002388475, INFES = 4.00600002388475 ****)
+     
+totalcap(2005)..  - 0.8153726976*k(2000) + k(2005) - kn(2005) =E= 0 ; (LHS = 4.80837568960793, INFES = 4.80837568960793 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- ftotalprod  =E=  total production in first period
+
+ftotalprod(1990)..  y(1990) - (0.331434397716746)*en(1990) - (0.030776051216555)*nn(1990) =E= 3.4653339648 ; (LHS = 3.67684192318545, INFES = 0.211507958385448 ****)
+     
+
+---- totalprod  =E=  total production
+
+totalprod(1995)..  - 0.8153726976*y(1990) + y(1995) - yn(1995) =E= 0 ; (LHS = 1.18606095162006, INFES = 1.18606095162006 ****)
+     
+totalprod(2000)..  - 0.8153726976*y(1995) + y(2000) - yn(2000) =E= 0 ; (LHS = 1.37496971175272, INFES = 1.37496971175272 ****)
+     
+totalprod(2005)..  - 0.8153726976*y(2000) + y(2005) - yn(2005) =E= 0 ; (LHS = 1.59396673978267, INFES = 1.59396673978267 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- costnrg  =E=  cost of energy
+
+costnrg(1990)..  - 52.550502505*e(1990) - 4.9683636144*n(1990) + 1000*ec(1990) =E= 0 ; (LHS = -440.285844357177, INFES = 440.285844357177 ****)
+     
+costnrg(1995)..  - 55.2311062705602*e(1995) - 5.48547488997641*n(1995) + 1000*ec(1995) =E= 0 ; (LHS = -554.165948571764, INFES = 554.165948571764 ****)
+     
+costnrg(2000)..  - 58.0484477684999*e(2000) - 6.05640752245858*n(2000) + 1000*ec(2000) =E= 0 ; (LHS = -697.878254601248, INFES = 697.878254601248 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+
+---- cc  =E=  capacity constraint
+
+cc(1990)..  y(1990) - c(1990) - i(1990) - ec(1990) =E= 0 ; (LHS = 0.405745926005, INFES = 0.405745926005 ****)
+     
+cc(1995)..  y(1995) - c(1995) - i(1995) - ec(1995) =E= 0 ; (LHS = 0.470370732770443, INFES = 0.470370732770443 ****)
+     
+cc(2000)..  y(2000) - c(2000) - i(2000) - ec(2000) =E= 0 ; (LHS = 0.545288595810267, INFES = 0.545288595810267 ****)
+     
+REMAINING 6 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 12
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Equation Listing    SOLVE etamac Using NLP From line 234
+
+
+---- tc  =L=  terminal condition
+
+tc(2030)..  0.07*k(2030) - i(2030) =L= 0 ; (LHS = 0.238240538024036, INFES = 0.238240538024036 ****)
+     
+
+---- util  =E=  discounted log of consumption
+
+util..  - (0.219796141092741)*c(1990) - (0.154593099645633)*c(1995) - (0.108732693573362)*c(2000) - (0.0764768846657426)*c(2005) - (0.0537898372234396)*c(2010) - (0.0378329556854999)*c(2015) - (0.0266097205305778)*c(2020) - (0.0187158844421674)*c(2025)
+     
+      - (0.329094334202085)*c(2030) + utility =E= 0 ; (LHS = -15.8870537006388, INFES = 15.8870537006388 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 13
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Column Listing      SOLVE etamac Using NLP From line 234
+
+
+---- k  capital stock
+
+k(1990)
+                (.LO, .L, .UP, .M = 12.32657617084, 12.32657617084, 12.32657617084, 0)
+       -0.8154  totalcap(1995)
+
+k(1995)
+                (.LO, .L, .UP, .M = 10.9, 14.6486885348509, +INF, 0)
+        1       totalcap(1995)
+       -0.8154  totalcap(2000)
+
+k(2000)
+                (.LO, .L, .UP, .M = 10.9, 16.9818448409483, +INF, 0)
+        1       totalcap(2000)
+       -0.8154  totalcap(2005)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- kn  new capital stock
+
+kn(1995)
+                (.LO, .L, .UP, .M = 1.0317041301, 1.0317041301, +INF, 0)
+        1       newcap(1995)
+      (-0.2485) newprod(1995)
+       -1       totalcap(1995)
+        0       (OLD LEVEL ****)
+
+kn(2000)
+                (.LO, .L, .UP, .M = 1.0317041301, 1.0317041301, +INF, 0)
+        1       newcap(2000)
+      (-0.2797) newprod(2000)
+       -1       totalcap(2000)
+        0       (OLD LEVEL ****)
+
+kn(2005)
+                (.LO, .L, .UP, .M = 1.0317041301, 1.0317041301, +INF, 0)
+        1       newcap(2005)
+      (-0.3146) newprod(2005)
+       -1       totalcap(2005)
+        0       (OLD LEVEL ****)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- y  production
+
+y(1990)
+                (.LO, .L, .UP, .M = 4.25, 4.926914815775, +INF, 0)
+        1       ftotalprod(1990)
+       -0.8154  totalprod(1995)
+        1       cc(1990)
+
+y(1995)
+                (.LO, .L, .UP, .M = 4.25, 5.71164461221252, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 14
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Column Listing      SOLVE etamac Using NLP From line 234
+
+
+     y  production
+
+        1       totalprod(1995)
+       -0.8154  totalprod(2000)
+        1       cc(1995)
+
+y(2000)
+                (.LO, .L, .UP, .M = 4.25, 6.62136152055325, +INF, 0)
+        1       totalprod(2000)
+       -0.8154  totalprod(2005)
+        1       cc(2000)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- yn  new production
+
+yn(1995)
+                (.LO, .L, .UP, .M = 0.508311836408595, 0.508311836408595, +INF, 0)
+        1       newprod(1995)
+       -1       totalprod(1995)
+        0       (OLD LEVEL ****)
+
+yn(2000)
+                (.LO, .L, .UP, .M = 0.589272733608307, 0.589272733608307, +INF, 0)
+        1       newprod(2000)
+       -1       totalprod(2000)
+        0       (OLD LEVEL ****)
+
+yn(2005)
+                (.LO, .L, .UP, .M = 0.683128602764001, 0.683128602764001, +INF, 0)
+        1       newprod(2005)
+       -1       totalprod(2005)
+        0       (OLD LEVEL ****)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- e  electric energy
+
+e(1990)
+                (.LO, .L, .UP, .M = 2.5, 2.89818518575, +INF, 0)
+       -1       fnewelec(1990)
+        0.8154  newelec(1995)
+      -52.5505  costnrg(1990)
+
+e(1995)
+                (.LO, .L, .UP, .M = 2.5, 3.35979094836031, +INF, 0)
+       -1       newelec(1995)
+        0.8154  newelec(2000)
+      -55.2311  costnrg(1995)
+
+e(2000)
+                (.LO, .L, .UP, .M = 2.5, 3.89491854150191, +INF, 0)
+       -1       newelec(2000)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 15
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Column Listing      SOLVE etamac Using NLP From line 234
+
+
+     e  electric energy
+
+        0.8154  newelec(2005)
+      -58.0484  costnrg(2000)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- en  new electric energy
+
+en(1990)
+                (.LO, .L, .UP, .M = 0.257926032525, 0.257926032525, +INF, 0)
+        1       fnewelec(1990)
+      (-0.3314) ftotalprod(1990)
+        0       (OLD LEVEL ****)
+
+en(1995)
+                (.LO, .L, .UP, .M = 0.299006962593291, 0.299006962593291, +INF, 0)
+      (-0.1638) newprod(1995)
+        1       newelec(1995)
+        0       (OLD LEVEL ****)
+
+en(2000)
+                (.LO, .L, .UP, .M = 0.346631019769593, 0.346631019769593, +INF, 0)
+      (-0.1512) newprod(2000)
+        1       newelec(2000)
+        0       (OLD LEVEL ****)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- n  non-electric energy
+
+n(1990)
+                (.LO, .L, .UP, .M = 50, 57.963703715, +INF, 0)
+       -1       fnewnon(1990)
+        0.8154  newnon(1995)
+       -4.9684  costnrg(1990)
+
+n(1995)
+                (.LO, .L, .UP, .M = 50, 67.1958189672061, +INF, 0)
+       -1       newnon(1995)
+        0.8154  newnon(2000)
+       -5.4855  costnrg(1995)
+
+n(2000)
+                (.LO, .L, .UP, .M = 50, 77.8983708300382, +INF, 0)
+       -1       newnon(2000)
+        0.8154  newnon(2005)
+       -6.0564  costnrg(2000)
+
+REMAINING 6 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 16
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Column Listing      SOLVE etamac Using NLP From line 234
+
+
+---- nn  new non-electric energy
+
+nn(1990)
+                (.LO, .L, .UP, .M = 5.1585206505, 5.1585206505, +INF, 0)
+        1       fnewnon(1990)
+      (-0.0308) ftotalprod(1990)
+        0       (OLD LEVEL ****)
+
+nn(1995)
+                (.LO, .L, .UP, .M = 5.98013925186582, 5.98013925186582, +INF, 0)
+      (-0.0152) newprod(1995)
+        1       newnon(1995)
+        0       (OLD LEVEL ****)
+
+nn(2000)
+                (.LO, .L, .UP, .M = 6.93262039539185, 6.93262039539185, +INF, 0)
+      (-0.014)  newprod(2000)
+        1       newnon(2000)
+        0       (OLD LEVEL ****)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- c  consumption
+
+c(1990)
+                (.LO, .L, .UP, .M = 3.2, 3.70967703776, +INF, 0)
+       -1       cc(1990)
+      (-0.2198) util
+
+c(1995)
+                (.LO, .L, .UP, .M = 3.2, 4.30053241390119, +INF, 0)
+       -1       cc(1995)
+      (-0.1546) util
+
+c(2000)
+                (.LO, .L, .UP, .M = 3.2, 4.98549573312245, +INF, 0)
+       -1       cc(2000)
+      (-0.1087) util
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- i  investment
+
+i(1990)
+                (.LO, .L, .UP, .M = 0.7, 0.81149185201, +INF, 0)
+       -4.9129  newcap(1995)
+       -1       cc(1990)
+
+i(1995)
+                (.LO, .L, .UP, .M = 0.7, 0.940741465540885, +INF, 0)
+       -4.9129  newcap(2000)
+       -1       cc(1995)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 17
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Column Listing      SOLVE etamac Using NLP From line 234
+
+
+     i  investment
+
+i(2000)
+                (.LO, .L, .UP, .M = 0.7, 1.09057719162054, +INF, 0)
+       -4.9129  newcap(2005)
+       -1       cc(2000)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- ec  energy cost in trillions
+
+ec(1990)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     1000       costnrg(1990)
+       -1       cc(1990)
+
+ec(1995)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     1000       costnrg(1995)
+       -1       cc(1995)
+
+ec(2000)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+     1000       costnrg(2000)
+       -1       cc(2000)
+
+REMAINING 6 ENTRIES SKIPPED
+
+---- utility  
+
+utility
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       util
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 18
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Model Statistics    SOLVE etamac Using NLP From line 234
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          13     SINGLE EQUATIONS           71
+BLOCKS OF VARIABLES          12     SINGLE VARIABLES           98  34 projected
+NON ZERO ELEMENTS           226     NON LINEAR N-Z             35
+DERIVATIVE POOL              20     CONSTANT POOL              40
+CODE LENGTH                 197
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 19
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+Solution Report     SOLVE etamac Using NLP From line 234
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   etamac              OBJECTIVE  utility
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  234
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/etamac/convert.opt"
+>>  gams etamac-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/etamac/convert.opt"
+Gams      : etamac-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:43 Page 20
+Eta-Macro Energy Model for the USA (ETAMAC,SEQ=80)
+E x e c u t i o n
+
+
+----    277 PARAMETER valuerep  report for c-i-gdp-e-en-tpe
+
+             1985        1990        1995        2000        2005        2010        2015        2020        2025        2030
+
+con         3.200       3.710       4.301       4.985       5.780       6.700       7.767       9.004      10.439      12.101
+inv         0.700       0.811       0.941       1.091       1.264       1.466       1.699       1.970       2.283       2.647
+gdp         3.900       4.521       5.241       6.076       7.044       8.166       9.466      10.974      12.722      14.748
+elec        2.500       2.898       3.360       3.895       4.515       5.234       6.068       7.035       8.155       9.454
+nelec      50.000      57.964      67.196      77.898      90.306     104.689     121.363     140.693     163.102     189.080
+tpe        77.022      89.290     103.512     119.999     139.111     161.268     186.954     216.731     251.250     291.268
+
+
+----    277 PARAMETER growthrep  report of growth rates
+
+           '85-00      '00-20
+
+con         3.000       3.000
+inv         3.000       3.000
+gdp         3.000       3.000
+elec        3.000       3.000
+nelec       3.000       3.000
+tpe         3.000       3.000
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/etamac/etamac.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/etamac/etamac-scalar.gms.lst

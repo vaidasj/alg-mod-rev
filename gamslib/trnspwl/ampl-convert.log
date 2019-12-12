@@ -1,0 +1,137 @@
+--- Job trnspwl.gms Start 12/13/18 11:30:34 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- trnspwl.gms(212) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- trnspwl.gms(117) 4 Mb
+--- Generating NLP model transport
+--- trnspwl.gms(118) 6 Mb
+---   6 rows  7 columns  19 non-zeroes
+---   21 nl-code  6 nl-non-zeroes
+--- trnspwl.gms(118) 4 Mb
+--- Executing CONOPT: elapsed 0:00:00.002
+CONOPT 3         24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/conopt.opt"
+*** Error Error code = 2; No such file or directory
+ 
+ 
+    C O N O P T 3   version 3.17A
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+ 
+   Iter Phase Ninf   Infeasibility   RGmax    NSB   Step InItr MX OK
+      0   0        1.0194177345E+01 (Input point)
+ 
+                   Pre-triangular equations:   0
+                   Post-triangular equations:  1
+ 
+      1   0        0.0000000000E+00 (After pre-processing)
+      2   0        0.0000000000E+00 (After scaling)
+ 
+ ** Feasible solution. Value of objective =    10.1941773453
+ 
+   Iter Phase Ninf     Objective     RGmax    NSB   Step InItr MX OK
+      4   3        1.0194177345E+01 0.0E+00     0
+ 
+ ** Optimal solution. There are no superbasic variables.
+ 
+--- Restarting execution
+--- trnspwl.gms(118) 2 Mb
+--- Reading solution for model transport
+--- trnspwl.gms(157) 3 Mb
+--- Generating MIP model trnsdiscA
+--- trnspwl.gms(158) 3 Mb
+---   24 rows  61 columns  163 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.027
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/convert.opt"
+>>  ampl trnspwl-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/convert.opt"
+--- Writing Ampl      : trnspwl-scalar.mod
+
+--- Restarting execution
+--- trnspwl.gms(158) 2 Mb
+--- Reading solution for model trnsdiscA
+--- trnspwl.gms(172) 3 Mb
+--- Generating MIP model trnsdiscA
+--- trnspwl.gms(173) 3 Mb
+---   24 rows  61 columns  163 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.045
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/convert.opt"
+>>  ampl trnspwl-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/convert.opt"
+--- Writing Ampl      : trnspwl-scalar.mod
+
+--- Restarting execution
+--- trnspwl.gms(173) 2 Mb
+--- Reading solution for model trnsdiscA
+--- trnspwl.gms(186) 3 Mb
+--- Generating MIP model trnsdiscB
+--- trnspwl.gms(206) 3 Mb
+---   66 rows  97 columns  313 non-zeroes
+---   42 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.057
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/convert.opt"
+>>  ampl trnspwl-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/convert.opt"
+--- Writing Ampl      : trnspwl-scalar.mod
+
+--- Restarting execution
+--- trnspwl.gms(206) 2 Mb
+--- Reading solution for model trnsdiscB
+--- Generating NLP model transport
+--- trnspwl.gms(209) 5 Mb
+---   6 rows  7 columns  19 non-zeroes
+---   21 nl-code  6 nl-non-zeroes
+--- trnspwl.gms(209) 3 Mb
+--- Executing CONOPT: elapsed 0:00:00.068
+CONOPT 3         24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/trnspwl/conopt.opt"
+*** Error Error code = 2; No such file or directory
+ 
+ 
+    C O N O P T 3   version 3.17A
+    Copyright (C)   ARKI Consulting and Development A/S
+                    Bagsvaerdvej 246 A
+                    DK-2880 Bagsvaerd, Denmark
+ 
+ 
+   Iter Phase Ninf   Infeasibility   RGmax    NSB   Step InItr MX OK
+      0   0        0.0000000000E+00 (Input point)
+ 
+                   Pre-triangular equations:   0
+                   Post-triangular equations:  1
+ 
+      1   0        0.0000000000E+00 (After pre-processing)
+      2   0        0.0000000000E+00 (After scaling)
+ 
+ ** Feasible solution. Value of objective =    10.1941773453
+ 
+   Iter Phase Ninf     Objective     RGmax    NSB   Step InItr MX OK
+      4   3        1.0194177345E+01 0.0E+00     0
+ 
+ ** Optimal solution. There are no superbasic variables.
+ 
+--- Restarting execution
+--- trnspwl.gms(209) 2 Mb
+--- Reading solution for model transport
+--- trnspwl.gms(212) 3 Mb
+*** Status: Normal completion
+--- Job trnspwl.gms Stop 12/13/18 11:30:34 elapsed 0:00:00.089

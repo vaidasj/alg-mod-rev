@@ -1,0 +1,133 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 2
+Parts Supply Problem w/ 3 Types w/ Global Incentive Comp. Const. (PS3_S_GIC,SEQ=365)
+C o m p i l a t i o n
+
+
+   5   
+   6  * Hideo Hashimoto, Kojun Hamada, and Nobuhiro Hosoe, "A Numerical Approach
+   7  *   to the Contract Theory: the Case of Adverse Selection", GRIPS Discussion
+   8  *   Paper 11-27, National Graduate Institute for Policy Studies, Tokyo, Japan,
+   9  *   March 2012.
+  10  *
+  11  *  http://r-center.grips.ac.jp/DiscussionPapersDetails/247/#
+  12   
+  13  Option limcol=0,limrow=0;
+  14   
+  15  * Definition of Set
+  16  Set     i       type of supplier        /0,1,2/;
+  17  Alias (i,j);
+  18  * Definition of Parameters
+  19  Parameter
+  20          theta(i)        efficiency      /0      0.1
+  21                                          1       0.2
+  22                                          2       0.3/
+  23          p(i)            probability of type
+  24                                          /0      0.2
+  25                                          1       0.5
+  26                                          2       0.3/;
+  27  Scalar  ru              reservation utility     /0/;
+  28   
+  29  * Definition of Primal/Dual Variables
+  30  Positive Variable
+  31          x(i)            quality
+  32          b(i)            maker's revenue
+  33          w(i)            price;
+  34  Variable
+  35          Util            maker's utility;
+  36  Equation
+  37          obj             maker's utility function
+  38          rev(i)          maker's revenue function
+  39          pc(i)           participation constraint
+  40          ic(i,j)         incentive compatibility constraint;
+  41   
+  42  * Specification of Equations
+  43  obj..   Util =e= sum(i, p(i)*(b(i)-w(i)));
+  44  rev(i)..b(i) =e= x(i)**(0.5);
+  45  pc(i).. w(i)-theta(i)*x(i) =g= ru;
+  46  ic(i,j)..w(i)-theta(i)*x(i) =g= w(j)-theta(i)*x(j);
+  47   
+  48  * Setting Lower Bounds on Variables to Avoid Division by Zero
+  49  x.lo(i)=0.0001;
+  50   
+  51  * Defining and Solving the Model
+  52  Model SB_gic /all/;
+  53  Solve SB_gic maximizing Util using NLP;
+  54   
+  55  * End of Model
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 3
+Parts Supply Problem w/ 3 Types w/ Global Incentive Comp. Const. (PS3_S_GIC,SEQ=365)
+C o m p i l a t i o n
+
+
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 4
+Parts Supply Problem w/ 3 Types w/ Global Incentive Comp. Const. (PS3_S_GIC,SEQ=365)
+Model Statistics    SOLVE SB_gic Using NLP From line 53
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           10  3 projected
+NON ZERO ELEMENTS            43     NON LINEAR N-Z              3
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  18
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:39 Page 5
+Parts Supply Problem w/ 3 Types w/ Global Incentive Comp. Const. (PS3_S_GIC,SEQ=365)
+Solution Report     SOLVE SB_gic Using NLP From line 53
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   SB_gic              OBJECTIVE  Util
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  53
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_gic/convert.opt"
+>>  pyomo ps3_s_gic-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_gic/convert.opt"
+Pyomo     : ps3_s_gic-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_gic/ps3_s_gic.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/ps3_s_gic/ps3_s_gic-scalar.py.lst

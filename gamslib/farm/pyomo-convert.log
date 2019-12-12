@@ -1,0 +1,117 @@
+--- Job farm.gms Start 12/13/18 10:32:21 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- farm.gms(224) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- farm.gms(95) 4 Mb
+--- Generating LP model simple
+--- farm.gms(98) 4 Mb
+---   8 rows  13 columns  28 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+>>  pyomo farm-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+--- Writing Pyomo     : farm-scalar.py
+
+--- Restarting execution
+--- farm.gms(98) 2 Mb
+--- Reading solution for model simple
+--- farm.gms(137) 3 Mb
+--- Generating LP model extform
+--- farm.gms(140) 3 Mb
+---   11 rows  22 columns  52 non-zeroes
+--- Executing CONVERT: elapsed 0:00:00.025
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+>>  pyomo farm-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/farm/convert.opt"
+--- Writing Pyomo     : farm-scalar.py
+
+--- Restarting execution
+--- farm.gms(140) 2 Mb
+--- Reading solution for model extform
+--- farm.gms(202) 3 Mb
+--- Generating LP model simple
+--- farm.gms(203) 3 Mb
+---   8 rows  13 columns  28 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.043
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- farm.gms(203) 2 Mb
+--- Reading solution for model simple
+--- farm.gms(218) 3 Mb
+--- Generating LP model simple
+--- farm.gms(219) 3 Mb
+---   8 rows  13 columns  28 non-zeroes
+--- Executing DECISM: elapsed 0:00:00.102
+
+DECIS/REORDER    24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading rows
+ Reading columns
+ Reordering matrix
+ Sorting columns
+ Sorting rows
+ Writing MPS file MODEL.COR
+ Writing rows
+ Writing columns
+ Writing RHS
+ Writing bounds
+ Writing time file MODEL.TIM
+ Writing map file MODEL.MAP
+ Writing parameter file MODEL.INP
+ Writing objective file MODEL.OBJ
+ Writing sparsity pattern MODEL.SPA
+
+DECIS/TRANS      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading sparsity pattern MODEL.SPA
+ Converting MODEL.STG to MODEL.STO
+
+DECIS/SOL        24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux
+ Reading map file MODEL.MAP
+ Reading solution file MODEL.SOG
+--- Restarting execution
+--- farm.gms(219) 2 Mb
+--- Reading solution for model simple
+--- farm.gms(224) 3 Mb
+--- Putfile stg /home/renigijus/gams/opt-mod-lib/gamslib/farm/MODEL.STG
+--- Putfile mopt /home/renigijus/gams/opt-mod-lib/gamslib/farm/MINOS.SPC
+--- Putfile decopt /home/renigijus/gams/opt-mod-lib/gamslib/farm/decism.opt
+*** Status: Normal completion
+--- Job farm.gms Stop 12/13/18 10:32:21 elapsed 0:00:00.150

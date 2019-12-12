@@ -1,0 +1,190 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+   2  option MCP=convert;
+   3  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 2
+Oligopolistic Competition - Examples from MP (OLIGOMCP,SEQ=133)
+C o m p i l a t i o n
+
+
+      Oligopolistic Competition - Examples from MP
+       
+       
+      Murphy, F H, Sherali, H D, and Soyster, A L, A mathematical programming
+      approach for determining oligopolistic market equilibrium. Mathematical
+      Programming 24 (1982), 92-106.
+       
+      Harker, P T, Oligopolistic equilibrium. Mathematical Programming 30
+      (1984), 105-111.
+       
+  17   
+  18   
+  19  sets    f               firms   /f1*f5/;
+  20   
+  21  *       f(q) = c q + beta/(beta+1) l^(-1/beta) q^(beta+1)/beta
+  22   
+  23  *       f'(q) = c + (q/l)^(1/beta)
+  24   
+  25  table data(f,*)  cost function data
+  26   
+  27                          c       l       beta
+  28                  f1      10      5       1.2
+  29                  f2      8       5       1.1
+  30                  f3      6       5       1.0
+  31                  f4      4       5       0.9
+  32                  f5      2       5       0.8
+  33   
+  34  parameter       c(f), l(f), beta(f);
+  35   
+  36  c(f) = data(f,"c"); l(f) = data(f,"l"); beta(f) = data(f,"beta");
+  37   
+  38  positive variables
+  39   
+  40                  p               price,
+  41                  q(f)            supply;
+  42   
+  43  equations
+  44                  demand          supply - demand balance,
+  45                  profit(f)       nash first order condition;
+  46   
+  47  demand..        sum(f, q(f)) =g= 5000 * p**(-1.1);
+  48   
+  49  profit(f)..     c(f) + (q(f)/l(f))**(1/beta(f))
+  50                          =g= p - q(f) * p**2.1 / 5500;
+  51   
+  52  model oligop /demand.p, profit.q/;
+  53   
+  54  *       initial guess:
+  55   
+  56   q.l(f) = 10;
+  57   p.l    = (5000/sum(f, q.l(f)))**(1/1.1);
+  58   
+  59   solve oligop using mcp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 3
+Oligopolistic Competition - Examples from MP (OLIGOMCP,SEQ=133)
+C o m p i l a t i o n
+
+
+  60   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 4
+Oligopolistic Competition - Examples from MP (OLIGOMCP,SEQ=133)
+Equation Listing    SOLVE oligop Using MCP From line 59
+
+
+---- demand  =G=  supply - demand balance
+
+demand..  (0.835951095624112)*p + q(f1) + q(f2) + q(f3) + q(f4) + q(f5) =G= 0 ; (LHS = 0)
+     
+
+---- profit  =G=  nash first order condition
+
+profit(f1)..  - (0.618181818181818)*p + (1.34472534634018)*q(f1) =G= -10 ; (LHS = -52.0491027629749, INFES = 42.0491027629749 ****)
+     
+profit(f2)..  - (0.618181818181818)*p + (1.36695693767953)*q(f2) =G= -8 ; (LHS = -51.9530383779322, INFES = 43.9530383779322 ****)
+     
+profit(f3)..  - (0.618181818181818)*p + (1.39624222665013)*q(f3) =G= -6 ; (LHS = -51.8309001992556, INFES = 45.8309001992556 ****)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 5
+Oligopolistic Competition - Examples from MP (OLIGOMCP,SEQ=133)
+Column Listing      SOLVE oligop Using MCP From line 59
+
+
+---- p  price
+
+p
+                (.LO, .L, .UP, .M = 0, 65.7933224657568, +INF, 0)
+       (0.836)  demand
+      (-0.6182) profit(f1)
+      (-0.6182) profit(f2)
+      (-0.6182) profit(f3)
+      (-0.6182) profit(f4)
+      (-0.6182) profit(f5)
+
+
+---- q  supply
+
+q(f1)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       demand
+       (1.3447) profit(f1)
+
+q(f2)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       demand
+       (1.367)  profit(f2)
+
+q(f3)
+                (.LO, .L, .UP, .M = 0, 10, +INF, 0)
+        1       demand
+       (1.3962) profit(f3)
+
+REMAINING 2 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 6
+Oligopolistic Competition - Examples from MP (OLIGOMCP,SEQ=133)
+Model Statistics    SOLVE oligop Using MCP From line 59
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            6
+NON ZERO ELEMENTS            16     NON LINEAR N-Z             11
+DERIVATIVE POOL              20     CONSTANT POOL              25
+CODE LENGTH                  78
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:30:49 Page 7
+Oligopolistic Competition - Examples from MP (OLIGOMCP,SEQ=133)
+Solution Report     SOLVE oligop Using MCP From line 59
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   oligop              
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  59
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/oligomcp/convert.opt"
+>>  pyomo oligomcp-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/oligomcp/convert.opt"
+Pyomo     : oligomcp-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/oligomcp/oligomcp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/oligomcp/oligomcp-scalar.py.lst

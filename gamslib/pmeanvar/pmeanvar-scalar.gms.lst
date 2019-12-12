@@ -1,0 +1,802 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIQCP=convert;
+   2  option MIQCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 2
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+C o m p i l a t i o n
+
+
+   4   
+      A simple portfolio type problem with variable upper/lower
+      to show off strength of perspective relaxation, and also
+      how to make it SOCP
+       
+      Contributed by Jeff Linderoth, University of Wisconsin, Madison
+       
+       
+      O. Gunluk and J. T. Linderoth, Perspective Relaxation of Mixed
+      Integer Nonlinear Programs with Indicator Variables,
+      Mathematical Programming, Series B, 104:183-206, 2010.
+  17   
+  18  sets i        Assets;
+  19  alias(i,j);
+  20   
+  21  parameters
+  22      Q(i,j)    Covariance matrix
+  23      alpha(i)  Expected returns
+  24      ell(i)    Min Buy-In
+  25      u(i)      Max Buy-In;
+  26  scalar
+  27      rho       Minimum return;
+  28   
+  31   
+  32  set i / 1*10 /;
+GDXIN   /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mvdata.gdx
+--- LOAD  Q = 2:Q
+--- LOAD  alpha = 3:alpha
+--- LOAD  ell = 4:ell
+--- LOAD  u = 5:u
+--- LOAD  rho = 6:rho
+  35   
+  36  * Produce eigenvalues and Cholesky factors of Q and Q-D
+  37  parameters
+  38      L(i,j)   Cholesky of Q
+  39      LT(j,i)  Transpose of cholesky of Q
+  40      D(i)     Diagonal extraction of Q
+  41      R(i,j)   Q - D
+  42      M(i,j)   Cholesky of R
+  43      MT(j,i)  Transpose of cholesky of R
+  44   
+  45  execute_unload 'mv', i, Q;
+  46  execute 'eigenvalue mv.gdx i Q mvout.gdx D > /dev/null';
+  47  abort$errorlevel 'problems running eigenvalue';
+  48  execute_load 'mvout', D; D(i) = D('1') - 0.001;
+  49  R(i,j) = Q(i,j) - D('1')$sameas(i,j);
+  50   
+  51  execute 'cholesky mv.gdx i Q mvout.gdx L > /dev/null';
+  52  abort$errorlevel 'problems running cholesky for Q';
+  53  execute_load 'mvout', L; option LT<L;
+  54   
+  55  execute_unload 'mv', i, R;
+  56  execute 'cholesky mv.gdx i R mvout.gdx M > /dev/null';
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 3
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+C o m p i l a t i o n
+
+
+  57  abort$errorlevel 'problems running cholesky for R';
+  58  execute_load 'mvout', M; option MT<M;
+  59   
+  60  variables
+  61      variance Objective variable
+  62      x(i)     Purchase amounts
+  63      y(i)     Surrogate for x^2
+  64      z(i)     Indicators for purchase;
+  65   
+  66  positive variables x, y;
+  67  binary variables z;
+  68   
+  69  equations
+  70      variance_con
+  71      budget_con
+  72      return_con
+  73      vlb_con(i)
+  74      vub_con(i);
+  75   
+  76  variance_con..     variance =e= sum((i,j), Q(i,j)*x(i)*x(j));
+  77   
+  78  budget_con..       sum(i,x(i)) =e= 1;
+  79   
+  80  return_con..       sum(i, alpha(i)*x(i)) =g= rho;
+  81   
+  82  vlb_con(i)..       x(i) =g= ell(i) * z(i);
+  83   
+  84  vub_con(i)..       x(i) =l= u(i) * z(i);
+  85   
+  86  option optcr = 0; variance.l=0;
+  87   
+  88  model basic_mv / variance_con, budget_con, return_con, vlb_con, vub_con /;
+  89  solve basic_mv minimizing variance using miqcp;
+  90   
+  91  parameter rep;
+  92  rep('basic','obj') = variance.l;
+  93  rep('basic','secs') = basic_mv.resusd;
+  94   
+  95  variables
+  96      w(i)           w=L^Tx
+  97      v              Objective:  second rotated cone var
+  98      fx             For soc;
+  99   
+ 100  equations
+ 101      wdef_con(i)    w=L^Tx
+ 102      conedef_con    2rv >= ||w||^2;
+ 103   
+ 104  v.lo = 0;
+ 105  fx.fx = 0.5;
+ 106   
+ 107  * Explicit cone syntax for MOSEK
+ 108  *conedef_con..        fx+v =c= sum(i, w(i));
+ 109   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 4
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+C o m p i l a t i o n
+
+
+ 110  conedef_con..      2*fx*v =g= sum(i, sqr(w(i)));
+ 111   
+ 112  wdef_con(i)..      w(i) =e= sum(j, LT(i,j)*x(i));
+ 113   
+ 114  model basic_socp_mv / budget_con, return_con, vlb_con,
+ 115                        vub_con, conedef_con, wdef_con /;
+ 116   
+ 117  solve basic_socp_mv minimizing v using miqcp;
+ 118   
+ 119  rep('socp','obj')  = variance.l;
+ 120  rep('socp','secs') = basic_socp_mv.resusd;
+ 121   
+ 122  positive variables
+ 123      t(i)           (2t_j) z_j >= x_j^2  :  2t = y: min 2Dt;
+ 124   
+ 125  equations
+ 126      pobj_def       Perspective objective
+ 127      w2def_con(i)   For w=M^Tx
+ 128      pcone_def(i)   For 2t_i z_i >= x_j^2;
+ 129   
+ 130  pobj_def..         variance =e=  v + sum(i, 2*D(i)*t(i));
+ 131   
+ 132  w2def_con(i)..     w(i) =e= sum(j, MT(i,j)*x(j));
+ 133   
+ 134  * Explicit cone syntax for MOSEK
+ 135  *variable zz(i); equation defzz(i); defzz(i).. zz(i) =e= z(i);
+ 136  *pcone_def(i)..       t(i)+zz(i) =c= x(i);
+ 137  *model p_socp_mv / pobj_def, w2def_con, pcone_def, conedef_con,
+ 138  *                  budget_con, return_con, vlb_con, vub_con, defzz /;
+ 139   
+ 140  pcone_def(i)..     2*t(i)*z(i) =g= sqr(x(i));
+ 141   
+ 142  model p_socp_mv / pobj_def, w2def_con, pcone_def, conedef_con,
+ 143                    budget_con, return_con, vlb_con, vub_con /;
+ 144   
+ 145  solve p_socp_mv minimizing variance using miqcp;
+ 146   
+ 147  rep('p_socp','obj')  = variance.l;
+ 148  rep('p_socp','secs') = p_socp_mv.resusd;
+ 149   
+ 150  display rep;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 5
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/pmeanvar.gms
+     2       33 GDXIN          1      33  /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/mvdata.gdx
+
+
+COMPILATION TIME     =        0.006 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 6
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Equation Listing    SOLVE basic_mv Using MIQCP From line 89
+
+
+---- variance_con  =E=  
+
+variance_con..  variance + (0)*x(1) + (0)*x(2) + (0)*x(3) + (0)*x(4) + (0)*x(5) + (0)*x(6) + (0)*x(7) + (0)*x(8) + (0)*x(9) + (0)*x(10) =E= 0 ; (LHS = 0)
+     
+
+---- budget_con  =E=  
+
+budget_con..  x(1) + x(2) + x(3) + x(4) + x(5) + x(6) + x(7) + x(8) + x(9) + x(10) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- return_con  =G=  
+
+return_con..  0.00510823*x(1) + 0.00428357*x(2) + 0.00233976*x(3) + 0.00459156*x(4) + 0.0077475*x(5) + 0.00851154*x(6) + 0.00961483*x(7) + 0.0026363*x(8) + 0.0062024*x(9) + 0.00557745*x(10) =G= 0.0044635 ; (LHS = 0, INFES = 0.0044635 ****)
+     
+
+---- vlb_con  =G=  
+
+vlb_con(1)..  x(1) - 0.11665305*z(1) =G= 0 ; (LHS = 0)
+     
+vlb_con(2)..  x(2) - 0.08608984*z(2) =G= 0 ; (LHS = 0)
+     
+vlb_con(3)..  x(3) - 0.09019614*z(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- vub_con  =L=  
+
+vub_con(1)..  x(1) - 0.39835244*z(1) =L= 0 ; (LHS = 0)
+     
+vub_con(2)..  x(2) - 0.39486243*z(2) =L= 0 ; (LHS = 0)
+     
+vub_con(3)..  x(3) - 0.38205737*z(3) =L= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 7
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Column Listing      SOLVE basic_mv Using MIQCP From line 89
+
+
+---- variance  Objective variable
+
+variance
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       variance_con
+
+
+---- x  Purchase amounts
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      variance_con
+        1       budget_con
+        0.0051  return_con
+        1       vlb_con(1)
+        1       vub_con(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      variance_con
+        1       budget_con
+        0.0043  return_con
+        1       vlb_con(2)
+        1       vub_con(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (0)      variance_con
+        1       budget_con
+        0.0023  return_con
+        1       vlb_con(3)
+        1       vub_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- z  Indicators for purchase
+
+z(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.1167  vlb_con(1)
+       -0.3984  vub_con(1)
+
+z(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.0861  vlb_con(2)
+       -0.3949  vub_con(2)
+
+z(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.0902  vlb_con(3)
+       -0.3821  vub_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 8
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Model Statistics    SOLVE basic_mv Using MIQCP From line 89
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           23
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           21
+NON ZERO ELEMENTS            71     NON LINEAR N-Z             10
+DERIVATIVE POOL              20     CONSTANT POOL              30
+CODE LENGTH                 388     DISCRETE VARIABLES         10
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.023 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:34:55 Page 9
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Solution Report     SOLVE basic_mv Using MIQCP From line 89
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   basic_mv            OBJECTIVE  variance
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  89
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+>>  gams pmeanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+Gams      : pmeanvar-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 10
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Equation Listing    SOLVE basic_socp_mv Using MIQCP From line 117
+
+
+---- budget_con  =E=  
+
+budget_con..  x(1) + x(2) + x(3) + x(4) + x(5) + x(6) + x(7) + x(8) + x(9) + x(10) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- return_con  =G=  
+
+return_con..  0.00510823*x(1) + 0.00428357*x(2) + 0.00233976*x(3) + 0.00459156*x(4) + 0.0077475*x(5) + 0.00851154*x(6) + 0.00961483*x(7) + 0.0026363*x(8) + 0.0062024*x(9) + 0.00557745*x(10) =G= 0.0044635 ; (LHS = 0, INFES = 0.0044635 ****)
+     
+
+---- vlb_con  =G=  
+
+vlb_con(1)..  x(1) - 0.11665305*z(1) =G= 0 ; (LHS = 0)
+     
+vlb_con(2)..  x(2) - 0.08608984*z(2) =G= 0 ; (LHS = 0)
+     
+vlb_con(3)..  x(3) - 0.09019614*z(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- vub_con  =L=  
+
+vub_con(1)..  x(1) - 0.39835244*z(1) =L= 0 ; (LHS = 0)
+     
+vub_con(2)..  x(2) - 0.39486243*z(2) =L= 0 ; (LHS = 0)
+     
+vub_con(3)..  x(3) - 0.38205737*z(3) =L= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- conedef_con  =G=  2rv >= ||w||^2
+
+conedef_con..  (0)*w(1) + (0)*w(2) + (0)*w(3) + (0)*w(4) + (0)*w(5) + (0)*w(6) + (0)*w(7) + (0)*w(8) + (0)*w(9) + (0)*w(10) + (1)*v + (0)*fx =G= 0 ; (LHS = 0)
+     
+
+---- wdef_con  =E=  w=L^Tx
+
+wdef_con(1)..  - 30.7259259302603*x(1) + w(1) =E= 0 ; (LHS = 0)
+     
+wdef_con(2)..  - 28.6715563031253*x(2) + w(2) =E= 0 ; (LHS = 0)
+     
+wdef_con(3)..  - 29.6940552925666*x(3) + w(3) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 11
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Column Listing      SOLVE basic_socp_mv Using MIQCP From line 117
+
+
+---- x  Purchase amounts
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget_con
+        0.0051  return_con
+        1       vlb_con(1)
+        1       vub_con(1)
+      -30.7259  wdef_con(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget_con
+        0.0043  return_con
+        1       vlb_con(2)
+        1       vub_con(2)
+      -28.6716  wdef_con(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget_con
+        0.0023  return_con
+        1       vlb_con(3)
+        1       vub_con(3)
+      -29.6941  wdef_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- z  Indicators for purchase
+
+z(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.1167  vlb_con(1)
+       -0.3984  vub_con(1)
+
+z(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.0861  vlb_con(2)
+       -0.3949  vub_con(2)
+
+z(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -0.0902  vlb_con(3)
+       -0.3821  vub_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- w  w=L^Tx
+
+w(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      conedef_con
+        1       wdef_con(1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 12
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Column Listing      SOLVE basic_socp_mv Using MIQCP From line 117
+
+
+     w  w=L^Tx
+
+
+w(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      conedef_con
+        1       wdef_con(2)
+
+w(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0)      conedef_con
+        1       wdef_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- v  Objective:  second rotated cone var
+
+v
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       (1)      conedef_con
+
+
+---- fx  For soc
+
+fx
+                (.LO, .L, .UP, .M = 0.5, 0.5, 0.5, 0)
+       (0)      conedef_con
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 13
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Model Statistics    SOLVE basic_socp_mv Using MIQCP From line 117
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           33
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           32
+NON ZERO ELEMENTS            92     NON LINEAR N-Z             12
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                  35     DISCRETE VARIABLES         10
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 14
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Solution Report     SOLVE basic_socp_mv Using MIQCP From line 117
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   basic_socp_mv       OBJECTIVE  v
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  117
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+>>  gams pmeanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+Gams      : pmeanvar-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 15
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Equation Listing    SOLVE p_socp_mv Using MIQCP From line 145
+
+
+---- pobj_def  =E=  Perspective objective
+
+pobj_def..  variance - v - 1452.87264558178*t(1) - 1452.87264558178*t(2) - 1452.87264558178*t(3) - 1452.87264558178*t(4) - 1452.87264558178*t(5) - 1452.87264558178*t(6) - 1452.87264558178*t(7) - 1452.87264558178*t(8) - 1452.87264558178*t(9)
+     
+      - 1452.87264558178*t(10) =E= 0 ; (LHS = 0)
+     
+
+---- w2def_con  =E=  For w=M^Tx
+
+w2def_con(1)..  - 9.87743272359322*x(1) - 0.60744529149446*x(2) - 0.30372264574723*x(3) - 0.809927055325946*x(4) - 0.60744529149446*x(5) - 0.506204409578716*x(6) - 0.506204409578716*x(7) - 0.809927055325946*x(8) - 0.91116793724169*x(9)
+     
+      - 0.809927055325946*x(10) + w(1) =E= 0 ; (LHS = 0)
+     
+w2def_con(2)..  - 1.09301757851895*x(2) - 6.23549450884011*x(3) - 4.12437431234793*x(4) - 4.23690369565354*x(5) - 7.03786349464858*x(6) - 0.633574910850047*x(7) - 6.86906941969016*x(8) - 3.15321125158105*x(9) - 6.86906941969016*x(10) + w(2) =E= 0 ;
+     
+      (LHS = 0)
+     
+w2def_con(3)..  - 7.78396030268624*x(3) + 2.82163650777779*x(4) + 3.28928766645632*x(5) + 5.01522405040292*x(6) - 0.115057290256277*x(7) + 5.27726712856556*x(8) + 1.27680170435039*x(9) + 5.40573643738962*x(10) + w(3) =E= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- pcone_def  =G=  For 2t_i z_i >= x_j^2
+
+pcone_def(1)..  (0)*x(1) + (0)*z(1) + (0)*t(1) =G= 0 ; (LHS = 0)
+     
+pcone_def(2)..  (0)*x(2) + (0)*z(2) + (0)*t(2) =G= 0 ; (LHS = 0)
+     
+pcone_def(3)..  (0)*x(3) + (0)*z(3) + (0)*t(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- conedef_con  =G=  2rv >= ||w||^2
+
+conedef_con..  (0)*w(1) + (0)*w(2) + (0)*w(3) + (0)*w(4) + (0)*w(5) + (0)*w(6) + (0)*w(7) + (0)*w(8) + (0)*w(9) + (0)*w(10) + (1)*v + (0)*fx =G= 0 ; (LHS = 0)
+     
+
+---- budget_con  =E=  
+
+budget_con..  x(1) + x(2) + x(3) + x(4) + x(5) + x(6) + x(7) + x(8) + x(9) + x(10) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- return_con  =G=  
+
+return_con..  0.00510823*x(1) + 0.00428357*x(2) + 0.00233976*x(3) + 0.00459156*x(4) + 0.0077475*x(5) + 0.00851154*x(6) + 0.00961483*x(7) + 0.0026363*x(8) + 0.0062024*x(9) + 0.00557745*x(10) =G= 0.0044635 ; (LHS = 0, INFES = 0.0044635 ****)
+     
+
+---- vlb_con  =G=  
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 16
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Equation Listing    SOLVE p_socp_mv Using MIQCP From line 145
+
+
+     vlb_con  =G=  
+
+vlb_con(1)..  x(1) - 0.11665305*z(1) =G= 0 ; (LHS = 0)
+     
+vlb_con(2)..  x(2) - 0.08608984*z(2) =G= 0 ; (LHS = 0)
+     
+vlb_con(3)..  x(3) - 0.09019614*z(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+
+---- vub_con  =L=  
+
+vub_con(1)..  x(1) - 0.39835244*z(1) =L= 0 ; (LHS = 0)
+     
+vub_con(2)..  x(2) - 0.39486243*z(2) =L= 0 ; (LHS = 0)
+     
+vub_con(3)..  x(3) - 0.38205737*z(3) =L= 0 ; (LHS = 0)
+     
+REMAINING 7 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 17
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Column Listing      SOLVE p_socp_mv Using MIQCP From line 145
+
+
+---- variance  Objective variable
+
+variance
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       pobj_def
+
+
+---- x  Purchase amounts
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -9.8774  w2def_con(1)
+       (0)      pcone_def(1)
+        1       budget_con
+        0.0051  return_con
+        1       vlb_con(1)
+        1       vub_con(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.6074  w2def_con(1)
+       -1.093   w2def_con(2)
+       (0)      pcone_def(2)
+        1       budget_con
+        0.0043  return_con
+        1       vlb_con(2)
+        1       vub_con(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.3037  w2def_con(1)
+       -6.2355  w2def_con(2)
+       -7.784   w2def_con(3)
+       (0)      pcone_def(3)
+        1       budget_con
+        0.0023  return_con
+        1       vlb_con(3)
+        1       vub_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- z  Indicators for purchase
+
+z(1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       (0)      pcone_def(1)
+       -0.1167  vlb_con(1)
+       -0.3984  vub_con(1)
+
+z(2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       (0)      pcone_def(2)
+       -0.0861  vlb_con(2)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 18
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Column Listing      SOLVE p_socp_mv Using MIQCP From line 145
+
+
+     z  Indicators for purchase
+
+       -0.3949  vub_con(2)
+
+z(3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       (0)      pcone_def(3)
+       -0.0902  vlb_con(3)
+       -0.3821  vub_con(3)
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- w  w=L^Tx
+
+w(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       w2def_con(1)
+       (0)      conedef_con
+
+w(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       w2def_con(2)
+       (0)      conedef_con
+
+w(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       w2def_con(3)
+       (0)      conedef_con
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- v  Objective:  second rotated cone var
+
+v
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       pobj_def
+       (1)      conedef_con
+
+
+---- fx  For soc
+
+fx
+                (.LO, .L, .UP, .M = 0.5, 0.5, 0.5, 0)
+       (0)      conedef_con
+
+
+---- t  (2t_j) z_j >= x_j^2  :  2t = y: min 2Dt
+
+t(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -1452.8726  pobj_def
+       (0)      pcone_def(1)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 19
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Column Listing      SOLVE p_socp_mv Using MIQCP From line 145
+
+
+     t  (2t_j) z_j >= x_j^2  :  2t = y: min 2Dt
+
+t(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -1452.8726  pobj_def
+       (0)      pcone_def(2)
+
+t(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+    -1452.8726  pobj_def
+       (0)      pcone_def(3)
+
+REMAINING 7 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 20
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Model Statistics    SOLVE p_socp_mv Using MIQCP From line 145
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS           44
+BLOCKS OF VARIABLES           7     SINGLE VARIABLES           43
+NON ZERO ELEMENTS           179     NON LINEAR N-Z             42
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                 115     DISCRETE VARIABLES         10
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 21
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+Solution Report     SOLVE p_socp_mv Using MIQCP From line 145
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   p_socp_mv           OBJECTIVE  variance
+     TYPE    MIQCP               DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  145
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+>>  gams pmeanvar-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/convert.opt"
+Gams      : pmeanvar-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:34:55 Page 22
+Mean-Variance models with variable upper and lower bounds (PMEANVAR,SEQ=380)
+E x e c u t i o n
+
+
+----    150 PARAMETER rep  
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/pmeanvar.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/pmeanvar/pmeanvar-scalar.gms.lst

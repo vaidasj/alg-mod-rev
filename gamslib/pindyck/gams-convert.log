@@ -1,0 +1,30 @@
+--- Job pindyck.gms Start 12/13/18 10:24:34 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- pindyck.gms(66) 3 Mb
+--- Starting execution: elapsed 0:00:00.001
+--- pindyck.gms(64) 4 Mb
+--- Generating NLP model robert
+--- pindyck.gms(66) 6 Mb
+---   97 rows  117 columns  337 non-zeroes
+---   320 nl-code  80 nl-non-zeroes
+--- pindyck.gms(66) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.003
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/pindyck/convert.opt"
+>>  gams pindyck-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/pindyck/convert.opt"
+--- Writing Gams      : pindyck-scalar.gms
+
+--- Restarting execution
+--- pindyck.gms(66) 2 Mb
+--- Reading solution for model robert
+*** Status: Normal completion
+--- Job pindyck.gms Stop 12/13/18 10:24:34 elapsed 0:00:00.015

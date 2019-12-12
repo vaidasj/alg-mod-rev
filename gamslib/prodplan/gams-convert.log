@@ -1,0 +1,346 @@
+--- Job prodplan.gms Start 12/13/18 11:30:37 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- prodplan.gms(161) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- prodplan.gms(68) 4 Mb
+--- Generating MIP model tiny
+--- prodplan.gms(70) 4 Mb
+---   17 rows  25 columns  64 non-zeroes
+---   8 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/convert.opt"
+>>  gams prodplan-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/convert.opt"
+--- Writing Gams      : prodplan-scalar.gms
+
+--- Restarting execution
+--- prodplan.gms(70) 2 Mb
+--- Reading solution for model tiny
+--- Generating RMIP model tinymc
+--- prodplan.gms(95) 3 Mb
+---   73 rows  81 columns  253 non-zeroes
+---   8 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.017
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 9 rows and 3 columns.
+Aggregator did 30 substitutions.
+Reduced LP has 34 rows, 48 columns, and 96 nonzeros.
+Presolve time = 0.00 sec. (0.05 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        145000.000000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.11 ticks)
+
+Optimal solution found.
+Objective :      736000.000000
+
+--- Restarting execution
+--- prodplan.gms(95) 2 Mb
+--- Reading solution for model tinymc
+--- prodplan.gms(102) 3 Mb
+--- Generating RMIP model tinymcws
+--- prodplan.gms(116) 3 Mb
+---   45 rows  45 columns  153 non-zeroes
+---   8 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.045
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 11 rows and 4 columns.
+Aggregator did 2 substitutions.
+Reduced LP has 32 rows, 39 columns, and 85 nonzeros.
+Presolve time = 0.00 sec. (0.03 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        187000.000000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.08 ticks)
+
+Optimal solution found.
+Objective :      736000.000000
+
+--- Restarting execution
+--- prodplan.gms(116) 2 Mb
+--- Reading solution for model tinymcws
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j1
+---   17 rows  25 columns  64 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.071
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 9 substitutions.
+Reduced LP has 6 rows, 14 columns, and 19 nonzeros.
+Presolve time = 0.00 sec. (0.01 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1           43000.000000                  s(t6)      Balance(t8) artif
+     2           61000.000000                  s(t5)      Balance(t6) artif
+     3           85000.000000                  s(t4)      Balance(t5) artif
+     4          113000.000000                  s(t3)      Balance(t4) artif
+     5          145000.000000                  s(t2)      Balance(t3) artif
+     6          679444.444444                  x(t6)      Balance(t2) artif
+     7          694333.333333                  x(t5)                  s(t5)
+     8          699500.000000                  x(t7)                  s(t6)
+     9          709202.380952                  x(t4)                  s(t4)
+    10          715068.452381                  x(t3)                  s(t3)
+    11          717050.070028                  x(t2)                  s(t2)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.03 ticks)
+
+Optimal solution found.
+Objective :      717050.070028
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j2
+---   23 rows  25 columns  112 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.099
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 3 substitutions.
+Reduced LP has 18 rows, 20 columns, and 78 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1          721339.285714   Production(t2) slack      cuts(j1.t3) slack
+     2          721380.952381                  s(t1)      cuts(j1.t2) slack
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.06 ticks)
+
+Optimal solution found.
+Objective :      721380.952381
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j3
+---   28 rows  25 columns  147 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.124
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 2 substitutions.
+Reduced LP has 24 rows, 21 columns, and 116 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        721380.952381
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.09 ticks)
+
+Optimal solution found.
+Objective :      723130.952381
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j4
+---   32 rows  25 columns  171 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.146
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 2 substitutions.
+Reduced LP has 28 rows, 21 columns, and 140 nonzeros.
+Presolve time = 0.00 sec. (0.02 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        726666.666667
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.11 ticks)
+
+Optimal solution found.
+Objective :      727166.666667
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j5
+---   35 rows  25 columns  186 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.166
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 2 substitutions.
+Reduced LP has 31 rows, 21 columns, and 155 nonzeros.
+Presolve time = 0.00 sec. (0.03 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        727166.666667
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.12 ticks)
+
+Optimal solution found.
+Objective :      730166.666667
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j6
+---   37 rows  25 columns  194 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.193
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 2 substitutions.
+Reduced LP has 33 rows, 21 columns, and 163 nonzeros.
+Presolve time = 0.00 sec. (0.03 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        730166.666667
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.13 ticks)
+
+Optimal solution found.
+Objective :      733500.000000
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(146) 3 Mb
+--- Generating RMIP model tinycuts
+--- prodplan.gms(147) 3 Mb
+--- LOOPS j = j7
+---   38 rows  25 columns  197 non-zeroes
+---   7 discrete-columns
+--- Executing CPLEX: elapsed 0:00:00.219
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/prodplan/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.00 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 2 rows and 2 columns.
+Aggregator did 2 substitutions.
+Reduced LP has 34 rows, 21 columns, and 166 nonzeros.
+Presolve time = 0.00 sec. (0.03 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =        733500.000000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.13 ticks)
+
+Optimal solution found.
+Objective :      736000.000000
+
+--- Restarting execution
+--- prodplan.gms(147) 2 Mb
+--- Reading solution for model tinycuts
+--- prodplan.gms(160) 3 Mb
+    >>>>Integer solution found. A total of 21 cuts were added.
+--- Putfile fx /home/renigijus/gams/opt-mod-lib/gamslib/prodplan/fx.put
+*** Status: Normal completion
+--- Job prodplan.gms Stop 12/13/18 11:30:37 elapsed 0:00:00.242

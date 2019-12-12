@@ -1,0 +1,32 @@
+--- Job synheat.gms Start 12/13/18 10:24:52 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- synheat.gms(268) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- synheat.gms(220) 4 Mb
+--- Generating MINLP model super
+--- synheat.gms(223) 6 Mb
+---   65 rows  57 columns  225 non-zeroes
+---   233 nl-code  32 nl-non-zeroes
+---   12 discrete-columns
+--- synheat.gms(223) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.005
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/synheat/convert.opt"
+>>  pyomo synheat-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/synheat/convert.opt"
+--- Writing Pyomo     : synheat-scalar.py
+
+--- Restarting execution
+--- synheat.gms(223) 2 Mb
+--- Reading solution for model super
+--- synheat.gms(267) 3 Mb
+*** Status: Normal completion
+--- Job synheat.gms Stop 12/13/18 10:24:52 elapsed 0:00:00.016

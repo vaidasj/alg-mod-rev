@@ -1,0 +1,306 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option RMIQCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 2
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+C o m p i l a t i o n
+
+
+   3   
+      This model solves the Cardinality Constraint Quadratic Knapsack Problem
+      (kQKP) using a SDP confexification methods.
+       
+      The convexification method requires the solution of a semidefinite
+      program.  The communication with the SDP solver is done through ASCII
+      files.
+       
+       
+      Plateau M.C., Reformulations quadratiques convexes pour la
+      programmation quadratique en variables 0-1. PhD thesis, 
+      Conservatoire National des Arts et Metiers, CEDRIC, 2006.
+       
+      Guignard, M., Extension to Plateau Convexification Method for
+      Nonconvex Quadratic 0-1 Programs. Tech. rep., The Wharton School, 2008.
+  20   
+  57   
+  58  set dummy /z/;
+  59  Set i           knapsack items;
+  60  alias (i,j)
+  61  Parameters
+  62      p(i,j)  profits of item pairs
+  63      w(i)    weigths of items
+  64      cap     capacity of knapsack
+  65      ncard   cardinality of knapsack;
+  66   
+  67   
+ 182   
+      Setup of SDP problem to get u and v
+       
+      max sum((i,j), p(i,j)*X(i,j)
+      s.t. -ncard*x(i) + sum(j, X(i,j)) =e= 0   for all i  (SDP1)
+           X(i,i) = x(i)                                   (SDP2)
+           sum(i, x(i))      =e= ncard;                    (SDP3)
+           sum(i, w(i)*x(i)) =l= cap                       (SDP4)
+           z                 =e= 1                         (SDP5)
+       
+           (z x^t)
+           (x  X ) is PSD
+       
+      CSDP gets the problem in SDPA format:
+       
+      (D)    max tr(F0*Y)
+             st  tr(Fi*Y)=ci           i=1,2,...,m
+                       Y >= 0
+ 202   
+ 203  Set n              /z,#i/
+ 204      m              /k1*k50,i1*i50, ncard, cap, zdef/
+ 205      mk(m)          /k1*k50/
+ 206      mi(m)          /i1*i50/
+ 207      mkmap(m,i)     /#mk:#i/
+ 208      mimap(m,i)     /#mi:#i/;
+ 209   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 3
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+C o m p i l a t i o n
+
+
+ 210  Parameter
+ 211      c(m)      rhs
+ 212      F(m,*,*)  constraint matrix
+ 213      F0(*,*)   objective term
+ 214      mLE(m)    SDP constraints with =l=
+ 215      xvec(m)   dual solution;
+ 216   
+ 217  F0(i,j)$(ord(i)>ord(j))  = p(i,j);
+ 218  F0('z',i)                = p(i,i)/2;
+ 219   
+ 220  * SDP1
+ 221  F(mk,'z',i)$mkmap(mk,i) = -ncard;
+ 222  F(mk,i,j)$mkmap(mk,i)   = 1 + 1$sameas(i,j);
+ 223  c(mk)                   = 0;
+ 224   
+ 225  * SDP2
+ 226  F(mi,'z',i)$mimap(mi,i) = -1.0;
+ 227  F(mi,i,i)$mimap(mi,i)   = 2;
+ 228  c(mi)                   = 0;
+ 229   
+ 230  * SDP3
+ 231  F('ncard','z',i) = 1.0;
+ 232  c('ncard')       = 2*ncard;
+ 233   
+ 234  * SDP4
+ 235  F('cap','z',i) = w(i);
+ 236  c('cap')       = 2*cap;
+ 237  mLE('cap')     = yes;
+ 238   
+ 239  * SDP5
+ 240  F('zdef','z','z') = 1;
+ 241  c('zdef')         = 1;
+ 242   
+ 243  execute_unload 'csdpin.gdx' n, m, mLE, c, F, F0;
+ 244  execute 'gams runcsdp.inc lo=2 --strict=1';
+ 245  abort$errorlevel 'Problems running RunCSDP. Check listing file for details.'
+ 246  execute_load 'csdpout.gdx', xvec;
+ 247   
+ 248  Parameter a(i), u(i);
+ 249  a(i) = sum(mkmap(mk,i),xvec(mk));
+ 250  u(i) = sum(mimap(mi,i),xvec(mi));
+ 251   
+ 252  display a, u;
+ 253   
+ 254  * Simple MIQP model
+ 255  Binary variable
+ 256     x(i)     select item in knapsack;
+ 257  Variable
+ 258     obj      objective;
+ 259   
+ 260  Equation
+ 261     defobj   profit of knapsack
+ 262     defcobj  profit of knapsack
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 4
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+C o m p i l a t i o n
+
+
+ 263     defcap   capacity limitation of knapsack
+ 264     defcard  cardinality requirement of knapsack;
+ 265   
+ 266  defcobj..  obj =e= sum(i, p(i,i)*x(i)) + sum((i,j)$(ord(i)>ord(j)), 2*x(i)*p(i,j)*x(j))
+ 267                     - sum(i, 2*a(i)*x(i)*(sum(j, x(j))-ncard))
+ 268                     - sum(i, 2*(u(i)+0.001)*x(i)*(x(i)-1));
+ 269   
+ 270  defobj..  obj =e= sum(i, p(i,i)*x(i)) + sum((i,j)$(ord(i)>ord(j)), 2*x(i)*p(i,j)*x(j));
+ 271   
+ 272  defcap..  sum(i, w(i)*x(i)) =l= cap;
+ 273   
+ 274  defcard.. sum(i, x(i)) =e= ncard;
+ 275   
+ 276  model kQKP  /  defobj, defcap, defcard /;
+ 277  model ckQKP / defcobj, defcap, defcard /;
+ 278   
+ 279  solve ckQKP max obj using rmiqcp;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 5
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/kqkpsdp/kqkpsdp.gms
+     2       55 CALL           1      55  awk -f kQKP.awk 50_25.inc > kQKP50_25.gms
+     3       69 INCLUDE        1      69  ./home/renigijus/gams/opt-mod-lib/gamslib/kqkpsdp/kQKP50_25.gms
+
+
+COMPILATION TIME     =        0.004 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 6
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+E x e c u t i o n
+
+
+----    252 PARAMETER a  
+
+n1  41859.436,    n2  41858.798,    n3  41864.330,    n4  41863.975,    n5  41860.529,    n6  41862.978,    n7  41862.806,    n8  41866.583,    n9  41857.721,    n10 41858.381,    n11 41862.901,    n12 41860.049,    n13 41862.080,    n14 41855.442
+n15 41858.483,    n16 41863.941,    n17 41862.200,    n18 41863.970,    n19 41857.777,    n20 41863.836,    n21 41859.555,    n22 41858.302,    n23 41859.742,    n24 41863.173,    n25 41858.807,    n26 41857.935,    n27 41859.571,    n28 41857.037
+n29 41857.955,    n30 41865.149,    n31 41860.310,    n32 41857.215,    n33 41857.901,    n34 41861.652,    n35 41860.480,    n36 41858.402,    n37 41860.073,    n38 41856.774,    n39 41861.607,    n40 41862.361,    n41 41859.682,    n42 41860.748
+n43 41862.688,    n44 41861.640,    n45 41855.635,    n46 41863.520,    n47 41862.148,    n48 41858.056,    n49 41861.349,    n50 41856.492
+
+
+----    252 PARAMETER u  
+
+n1  170.428,    n2  168.489,    n3   92.261,    n4  116.300,    n5  149.173,    n6  140.049,    n7  126.148,    n8   84.231,    n9  152.423,    n10 163.709,    n11 136.705,    n12 152.085,    n13 124.833,    n14 247.369,    n15 172.966,    n16 105.979
+n17 122.740,    n18 108.587,    n19 184.923,    n20 104.857,    n21 160.892,    n22 157.930,    n23 162.353,    n24 121.261,    n25 176.607,    n26 183.779,    n27 158.367,    n28 194.651,    n29 180.738,    n30  96.223,    n31 163.317,    n32 166.629
+n33 170.937,    n34 135.817,    n35 139.129,    n36 138.758,    n37 154.704,    n38 195.561,    n39 135.264,    n40 140.175,    n41 154.645,    n42 121.377,    n43 139.737,    n44 148.926,    n45 179.153,    n46 106.786,    n47 141.755,    n48 177.589
+n49 149.629,    n50 196.081
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 7
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+Equation Listing    SOLVE ckQKP Using RMIQCP From line 279
+
+
+---- defcobj  =E=  profit of knapsack
+
+defcobj..  - (1004967.31459966)*x(n1) - (1004975.12211157)*x(n2) - (1004966.44052919)*x(n3) - (1004968.01062611)*x(n4) - (1004952.03763336)*x(n5) - (1004991.58150462)*x(n6) - (1004959.64117984)*x(n7) - (1004966.46139912)*x(n8) - (1004972.16250033)*x(n9)
+     
+      - (1004967.57359936)*x(n10) - (1004983.04021346)*x(n11) - (1004951.35301451)*x(n12) - (1004939.59668351)*x(n13) - (1005032.34054397)*x(n14) - (1004949.52469805)*x(n15) - (1004963.54522869)*x(n16) - (1004938.28332155)*x(n17)
+     
+      - (1004952.46029504)*x(n18) - (1004956.49949287)*x(n19) - (1004941.77162716)*x(n20) - (1004951.11232691)*x(n21) - (1004970.10969165)*x(n22) - (1004958.51453337)*x(n23) - (1004996.66892527)*x(n24) - (1004964.58165429)*x(n25)
+     
+      - (1004957.99519873)*x(n26) - (1004946.4394044)*x(n27) - (1004958.19176464)*x(n28) - (1005004.4106791)*x(n29) - (1004956.01278798)*x(n30) - (1004974.08592345)*x(n31) - (1005003.41293792)*x(n32) - (1004931.49682234)*x(n33) - (1004951.27748381)*x(n34)
+     
+      - (1004973.77225066)*x(n35) - (1004959.16353975)*x(n36) - (1004951.1566875)*x(n37) - (1004953.69055232)*x(n38) - (1004949.0896633)*x(n39) - (1004977.02005678)*x(n40) - (1004941.66517065)*x(n41) - (1004987.70383885)*x(n42) - (1004983.98358913)*x(n43)
+     
+      - (1004977.20826181)*x(n44) - (1004960.54293049)*x(n45) - (1004938.06165808)*x(n46) - (1004975.05333259)*x(n47) - (1004948.52512804)*x(n48) - (1004971.6388869)*x(n49) - (1004947.97365592)*x(n50) + obj =E= 0 ; (LHS = 0)
+     
+
+---- defcap  =L=  capacity limitation of knapsack
+
+defcap..  41*x(n1) + 13*x(n2) + 36*x(n3) + 5*x(n4) + 18*x(n5) + 49*x(n6) + 49*x(n7) + 32*x(n8) + 24*x(n9) + 36*x(n10) + x(n11) + 33*x(n12) + 5*x(n13) + 42*x(n14) + 3*x(n15) + 3*x(n16) + 5*x(n17) + 47*x(n18) + 42*x(n19) + 45*x(n20) + 34*x(n21) + 5*x(n22)
+     
+      + 3*x(n23) + 30*x(n24) + 11*x(n25) + 41*x(n26) + 10*x(n27) + 15*x(n28) + 32*x(n29) + 17*x(n30) + 15*x(n31) + 7*x(n32) + 34*x(n33) + 2*x(n34) + x(n35) + 22*x(n36) + 15*x(n37) + 45*x(n38) + 47*x(n39) + 23*x(n40) + 9*x(n41) + 39*x(n42) + 12*x(n43)
+     
+      + 10*x(n44) + 7*x(n45) + 30*x(n46) + 38*x(n47) + 35*x(n48) + 18*x(n49) + 40*x(n50) =L= 346 ; (LHS = 0)
+     
+
+---- defcard  =E=  cardinality requirement of knapsack
+
+defcard..  x(n1) + x(n2) + x(n3) + x(n4) + x(n5) + x(n6) + x(n7) + x(n8) + x(n9) + x(n10) + x(n11) + x(n12) + x(n13) + x(n14) + x(n15) + x(n16) + x(n17) + x(n18) + x(n19) + x(n20) + x(n21) + x(n22) + x(n23) + x(n24) + x(n25) + x(n26) + x(n27) + x(n28)
+     
+      + x(n29) + x(n30) + x(n31) + x(n32) + x(n33) + x(n34) + x(n35) + x(n36) + x(n37) + x(n38) + x(n39) + x(n40) + x(n41) + x(n42) + x(n43) + x(n44) + x(n45) + x(n46) + x(n47) + x(n48) + x(n49) + x(n50) =E= 12 ; (LHS = 0, INFES = 12 ****)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 8
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+Column Listing      SOLVE ckQKP Using RMIQCP From line 279
+
+
+---- x  select item in knapsack
+
+x(n1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+ (-1.004967E+6) defcobj
+       41       defcap
+        1       defcard
+
+x(n2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+ (-1.004975E+6) defcobj
+       13       defcap
+        1       defcard
+
+x(n3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+ (-1.004966E+6) defcobj
+       36       defcap
+        1       defcard
+
+REMAINING 47 ENTRIES SKIPPED
+
+---- obj  objective
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defcobj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:36 Page 9
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+Model Statistics    SOLVE ckQKP Using RMIQCP From line 279
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           51
+NON ZERO ELEMENTS           151     NON LINEAR N-Z             50
+DERIVATIVE POOL              20     CONSTANT POOL             222
+CODE LENGTH               4,415     DISCRETE VARIABLES         50
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.189 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:36 Page 10
+SDP Convexifications of the Cardinality Constraint Quadratic Knapsack Problem (KQKPSDP,SEQ=355)
+Solution Report     SOLVE ckQKP Using RMIQCP From line 279
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   ckQKP               OBJECTIVE  obj
+     TYPE    RMIQCP              DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  279
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/kqkpsdp/convert.opt"
+>>  ampl kqkpsdp-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/kqkpsdp/convert.opt"
+Ampl      : kqkpsdp-scalar.mod
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/kqkpsdp/kqkpsdp.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/kqkpsdp/kqkpsdp-scalar.mod.lst

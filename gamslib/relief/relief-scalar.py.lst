@@ -1,0 +1,358 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 2
+Relief Mission (RELIEF,SEQ=353)
+C o m p i l a t i o n
+
+
+       
+      Huts or villages are located at 20 location on a 10 x 10 grid. The problem
+      is to find the two best drop locations for relief packages such that the total
+      distance traveled by villagers is minimized.
+       
+      We look at this problem as a plant location problem and trace the efficiency
+      frontier of multiple drops. The optimal solution for two drops is D.8 and E.2.
+       
+      Another interesting question may be: how many other drop locations are there that
+      have a total distance traveled with, say, 3 percent of the best location.
+       
+       
+      Toczek J, Relief Mission, ORMS Today 37, 4 (2010), page 14
+       
+  22   
+  23  sets r rows     / A*J  /
+  24       c columns  / 1*10 /
+  25       d drops    / d1*d20 /
+  26   
+  27  table dem(r,c) relief demands
+  28   
+  29     1 2 3 4 5 6 7 8 9 10
+  30  A          1
+  31  B          1       1  1
+  32  C  1         1   1 1  1
+  33  D    1         1      1
+  34  E    1             1
+  35  F                1
+  36  G    1
+  37  H    1       1
+  38  I
+  39  J                1    1
+  40   
+  41  alias(r,rr),(c,cc)
+  42   
+  43   
+  44  set       huts(r,c)    hut locations
+  45  parameter dis(r,c,r,c) Eucledian distances
+  46            numdrops     number of drops
+  47            maxdem       maximum drop demand;
+  48   
+  49  huts(r,c) = dem(r,c);
+  50  maxdem    = sum(huts, dem(huts));
+  51  dis(huts(r,c),rr,cc) = edist(r.pos-rr.pos,c.pos-cc.pos);
+  52   
+  53   
+  54  variables drop(r,c)     drop locations
+  55            walk(r,c,r,c) distances walked from huts to nearest drop zone
+  56            total         total distance walked
+  57  Binary variable drop; positive variable walk;
+  58   
+  59  equations demand, supply, deftotal, defnumdrop;
+  60   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 3
+Relief Mission (RELIEF,SEQ=353)
+C o m p i l a t i o n
+
+
+  61  demand(huts)..  sum((r,c), walk(huts,r,c)) =e= 1;
+  62   
+  63  supply(r,c)..  sum(huts, walk(huts,r,c)) =l= drop(r,c)*maxdem;
+  64   
+  65  deftotal..     total =e= sum((huts,r,c), dis(huts,r,c)*walk(huts,r,c));
+  66   
+  67  defnumdrop..   sum((r,c), drop(r,c)) =e= numdrops;
+  68   
+  69  model m / all /;
+  70   
+  71   
+  72  * --------------------------
+  73  * get best two drop solution
+  74  * --------------------------
+  75   
+  76  numdrops = 2;
+  77  option limrow=0,limcol=0, optcr=0, solvelink=2, reslim=10;
+  78  m.solprint=0;
+  79  solve m min total using mip;
+  80  display drop.l;
+  81   
+  82   
+  83  * ------------------------
+  84  * trace efficient frontier
+  85  * ------------------------
+  86   
+  87  parameter QDrep Quick and Dirty Report;
+  88   
+  89  loop(d,
+  90     numdrops = d.pos;
+  91     solve m min total using mip;
+  92     m.solprint=2;
+  93     ! we use round() because a MIP code (CPLEX) may return fractional values
+  94     QDrep(r,c,d)$round(drop.l(r,c)) = sum ( huts, dis(huts,r,c)*walk.l(huts,r,c)) + EPS*huts(r,c)*drop.l(r,c);
+  95     QDrep('max','dist',d)           = smax((huts,r,c), dis(huts,r,c)*walk.l(huts,r,c));
+  96     QDrep('tot','dist',d)           = sum ((huts,r,c), dis(huts,r,c)*walk.l(huts,r,c));
+  97     QDrep('CPU','used',d)           = m.resusd  );
+  98   
+  99  display QDrep;
+ 100   
+ 101   
+ 102  * ----------------------------------------------------------------
+ 103  * find all drop points within x percent of best for two drop points
+ 104  *
+ 105  * To exclude the n'th integer solution we can write:
+ 106  *     cut(n)..  sum(i, abs(x(i)-xsol(i,n)) =g= 1;
+ 107  * simulating abs() will give
+ 108  *     cut(n).. sum((r,c), cutval(n,r,c)*drop(r,c)) =l= 1 ;
+ 109  * where cutval() contains solutions to be excluded
+ 110  * ----------------------------------------------------------------
+ 111   
+ 112  set nn max number of close solutions / n1*n50 /
+ 113      n(nn) dynamic set ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 4
+Relief Mission (RELIEF,SEQ=353)
+C o m p i l a t i o n
+
+
+ 114   
+ 115  parameters limit          total distance for drop points
+ 116             objval(nn)     total miles traveled
+ 117             cutval(nn,r,c) all possible solutions for cut generation;
+ 118   
+ 119  numdrops = 2; solve m min total using MIP; limit = 1.03*total.l;
+ 120   
+ 121  Equation cut(nn)  known solutions to be eliminated;
+ 122   
+ 123  cut(n).. sum((r,c), cutval(n,r,c)*drop(r,c)) =l= 1 ;
+ 124   
+ 125  model mm / m, cut /;
+ 126   
+ 127  n(nn) = no;  ! clear set of cuts
+ 128   
+ 129  mm.solvestat = 1;
+ 130  mm.modelstat = 1;
+ 131   
+ 132  mm.solprint=0;
+ 133   
+ 134  Loop(nn$(mm.solvestat=1 and
+ 135           mm.modelstat=1 and
+ 136           total.l < limit),
+ 137     n(nn) = yes;   ! add element to set
+ 138     cutval(nn,r,c) = round(drop.l(r,c));
+ 139     solve mm min total using mip;
+ 140     mm.solprint=0;
+ 141     objval(nn) = total.l );
+ 142   
+ 143  option cutval:0:1:1; display objval,cutval;
+ 144   
+ 145  parameter hits; hits(r,c) = sum(nn, cutval(nn,r,c)); display hits;
+ 146   
+ 147   
+ 148   
+ 149   
+ 150   
+ 151   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 5
+Relief Mission (RELIEF,SEQ=353)
+Model Statistics    SOLVE m Using MIP From line 79
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          122
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES        2,101
+NON ZERO ELEMENTS         6,181     DISCRETE VARIABLES        100
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 6
+Relief Mission (RELIEF,SEQ=353)
+Solution Report     SOLVE m Using MIP From line 79
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  total
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  79
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000        10.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/relief/convert.opt"
+>>  pyomo relief-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/relief/convert.opt"
+Pyomo     : relief-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 7
+Relief Mission (RELIEF,SEQ=353)
+E x e c u t i o n
+
+
+----     80 VARIABLE drop.L  drop locations
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 8
+Relief Mission (RELIEF,SEQ=353)
+Model Statistics    SOLVE m Using MIP From line 91
+
+
+LOOPS                                    d   d1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS          122
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES        2,101
+NON ZERO ELEMENTS         6,181     DISCRETE VARIABLES        100
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                  d d1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:30:35 Page 9
+Relief Mission (RELIEF,SEQ=353)
+Solution Report     SOLVE m Using MIP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  total
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000        10.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/relief/convert.opt"
+>>  pyomo relief-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/relief/convert.opt"
+Pyomo     : relief-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:35 Page 10
+Relief Mission (RELIEF,SEQ=353)
+Model Analysis      SOLVE m Using MIP From line 91
+
+
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:35 Page 11
+Relief Mission (RELIEF,SEQ=353)
+E x e c u t i o n
+
+
+----     99 PARAMETER QDrep  Quick and Dirty Report
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:35 Page 12
+Relief Mission (RELIEF,SEQ=353)
+Model Analysis      SOLVE m Using MIP From line 119
+
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 11:30:35 Page 13
+Relief Mission (RELIEF,SEQ=353)
+E x e c u t i o n
+
+
+----    143 PARAMETER objval  total miles traveled
+
+                      ( ALL       0.000 )
+
+
+----    143 PARAMETER cutval  all possible solutions for cut generation
+
+                      ( ALL          0. )
+
+
+----    145 PARAMETER hits  
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.323 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/relief/relief.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/relief/relief-scalar.py.lst

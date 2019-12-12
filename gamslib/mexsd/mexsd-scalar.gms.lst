@@ -1,0 +1,1679 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 2
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Set Definitions
+
+
+   5   
+       
+      This model studies the production, distribution, resource extraction
+      and investment of the Mexican steel and associated mining sector.
+      Exhaustion of domestic resources and nonlinearities in mining cost
+      are considered.
+       
+       
+      Kendrick, D, Meeraus, A, and Alatorre, J, The Planning of Investment
+      Programs in the Steel Industry. The Johns Hopkins University Press,
+      Baltimore and London, 1984.
+       
+      A scanned version of this out-of-print book is accessible at
+      http://www.gams.com/docs/pdf/steel_investment.pdf
+       
+  22   
+  23   Set  i     steel plants           / ahmsa      altos hornos - monclova
+  24                                       fundidora  monterrey
+  25                                       sicartsa   lazaro cardenas
+  26                                       hylsa      monterrey
+  27                                       hylsap     puebla
+  28                                       tampico    tampico
+  29                                       coatza     coatzacoalcos /
+  30   
+  31        im    mines                  / coahuila   coal mining region
+  32                                       ore-north  northern iron-ore mines
+  33                                       ore-south  southern iron-ore mines /
+  34   
+  35        j     markets                / mexico-df  mexico city
+  36                                       monterrey  monterrey
+  37                                       guadalaja  guadalajara     /
+  38   
+  39        c     commodities            / pellets    iron ore pellets - tons
+  40                                       coke       tons
+  41                                       nat-gas    natural gas - 1000 n cubic meters
+  42                                       electric   electricity - mwh
+  43                                       scrap      tons
+  44                                       pig-iron   molten pig iron - tons
+  45                                       sponge     sponge iron - tons
+  46                                       steel      tons /
+  47   
+  48        cf(c) final products         / steel /
+  49   
+  50        ce(c) export product         / steel /
+  51   
+  52        ci(c) intermediate products  / sponge /
+  53   
+  54        cr(c) raw materials          / nat-gas, electric, scrap /
+  55   
+  56        cm(c) mining products        / coke, pellets /
+  57   
+  58        cv(c) raw materials imported / coke, pellets /
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 3
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Set Definitions
+
+
+  60        p     processes              / pig-iron   pig iron production from pellets
+  61                                       sponge     sponge iron production
+  62                                       steel-oh   steel production in open hearth
+  63                                       steel-el   steel production in electric furnace
+  64                                       steel-bof  steel production in bof
+  65                                       steel-bofs steel production in bof with high scrap /
+  66   
+  67        m     productive units       / blast-furn blast furnaces
+  68                                       openhearth open hearth furnaces
+  69                                       bof        basic oxygen furnaces
+  70                                       direct-red direct reduction units
+  71                                       elec-arc   electric arc furnaces /
+  72   
+  73        me(m) expansion units        / blast-furn, bof, direct-red, elec-arc /
+  74   
+  75        t     time periods           / 1981-83, 1984-86, 1987-89, 1990-92, 1993-95 /
+  76   
+  77        te(t) expansion periods      / 1984-86, 1987-89, 1990-92, 1993-95 /
+  78   
+  79        energy(cr)                   / nat-gas, electric /
+  80   
+  81        q     cost levels            / 1*5 /
+  82   
+  83        g     investment function segments / 1*4 /
+  84   
+  85        alias (t,tau),(i,ip),(te,taue);
+  86   
+  87   Scalar    baseyear   base year             / 1979 /
+  88             theta      years per time period /    3 /
+  89   Parameter midyear(t) period mid-years
+  90             ts(t,tau)  time summation matrix;
+  91   
+  92   midyear(t) = baseyear + theta*ord(t) ;
+  93   ts(te,taue)$(ord(taue) le ord(te)) = 1 ;
+  94   
+  95   Display  midyear,ts;
+  96   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 4
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+technology data
+
+
+  98   
+  99   Table  a(c,p)  input-output coefficients
+ 100   
+ 101              pig-iron  sponge  steel-oh  steel-el  steel-bof  steel-bofs
+ 102   
+ 103   pellets     -1.58     -1.38
+ 104   coke         -.63
+ 105   nat-gas                -.38
+ 106   electric                                 -.68
+ 107   scrap                          -.33                -.12        -.25
+ 108   pig-iron     1.0               -.77                -.95      -.82
+ 109   sponge                 1.0              -1.09
+ 110   steel                          1.0       1.0       1.0       1.0
+ 111   
+ 112   
+        two io coefficients were changed according to suggestions by hyls
+       
+          nat-gas,sponge   from  -.57 to -.38
+          electric,steel-el  from -.58 to -.68
+       
+        these figures correspond to summer 1980 hylsap performance
+ 121   
+ 122   Table  b(m,p)   capacity utilization
+ 123   
+ 124               pig-iron  sponge  steel-oh  steel-el  steel-bof  steel-bofs
+ 125   
+ 126   blast-furn     1.0
+ 127   openhearth                        1.0
+ 128   bof                                                  1.0       1.0
+ 129   direct-red               1.0
+ 130   elec-arc                                    1.0
+ 131   
+ 132   
+ 133   Table  k(m,i)  capacities of productive units (mill tons per year)
+ 134   
+ 135               ahmsa  fundidora  sicartsa  hylsa  hylsap
+ 136   
+ 137   blast-furn   3.25    1.40        1.10
+ 138   openhearth   1.50     .85
+ 139   bof          2.07    1.50        1.30
+ 140   direct-red                                .98    1.00
+ 141   elec-arc                                 1.13     .56
+ 142   
+                                                                                                                                                                                                                                            NEW MARGINS: 1 - 72
+ 144   
+ 145   Table km(cm,im,*)  mining capacity data
+ 146   
+ 147                       p-low    p-high    wmax     expo                    p-low : low price              (us$ per ton)
+ 148                                                                           p-high: high price             (us$ per ton)
+ 149   coke.coahuila        52         100     230      1.3                    wmax  : maximum mine capacity (million tons)
+ 150   pellets.ore-north    18.7        38      60      1.3
+ 151   pellets.ore-south    18.7        38     115      1.3
+ 152   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 5
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+technology data
+
+
+                                                                                                                                                                                                                                           NEW MARGINS: 1 - 120
+ 154   
+ 155   Parameter   wbar(cm,im)   stock of mine products (million tons)
+ 156                pw(cm,q,im)   purchase price of mine products (us $ per ton);
+ 157   
+ 158     wbar(cm,im) = km(cm,im,"wmax")/card(q);
+ 159     pw(cm,q,im)$km(cm,im,"wmax") = km(cm,im,"p-low") + (km(cm,im,"p-high")-km(cm,im,"p-low"))*
+ 160                                                        ((ord(q)-1)/(card(q)-1))**km(cm,im,"expo");
+ 161   
+ 162   Display wbar,pw;
+ 163   
+ 164   Scalar      dt        total demand for final goods in 1979 (million tons)   /  5.2 /
+ 165               rse       raw steel equivalence (percent)                       / 40   /
+ 166               gd        annual growth rate of demand (percent)                / 10   /
+ 167   
+ 168   Parameter   dd(j)     distribution of demand                        / mexico-df .55, monterrey .3, guadalaja .15 /
+ 169               d(cf,j,t) demand for steel (mill tpy)
+ 170               eu(t)     export bound: upper ;
+ 171   
+ 172     d("steel",j,t)      = dt * (1 + rse/100) * dd(j) * (1 + gd/100)**(midyear(t)-baseyear);
+ 173     eu(t) = .2;
+ 174   
+ 175   Display  d;
+ 176   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 6
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+transportation data
+
+
+ 178   
+ 179   Table rd(*,*)  rail distances from plants to markets (km)
+ 180   
+ 181               mexico-df  monterrey  guadalaja    export
+ 182   
+ 183   ahmsa          1204      218        1125          739
+ 184   fundidora      1017                 1030          521
+ 185   sicartsa        819     1305         704
+ 186   hylsa          1017                 1030          521
+ 187   hylsap          185     1085         760          315
+ 188   tampico         941      521         995
+ 189   coatza          900     1756        1100
+ 190   import          428      521         300
+ 191   
+ 192   
+ 193   Table ri(i,ip)  interplant rail distances (km)
+ 194   
+ 195             ahmsa  fundidora  sicartsa  hylsa  hylsap  tampico  coatza
+ 196   
+ 197   fundidora   218
+ 198   sicartsa   1416    1322
+ 199   hylsa       218      10        1327
+ 200   hylsap     1300    1159         995    1159
+ 201   tampico     739     521        1319     521   1111
+ 202   coatza     1850    1756        1638    1756    671     1702
+ 203   
+ 204   
+ 205   Table rm(im,i)  rail distances from mines to plants (km)
+ 206   
+ 207               ahmsa  fundidora  sicartsa  hylsa  hylsap  tampico  coatza
+ 208   
+ 209   coahuila      120     400        1500    400    1420      900     2100
+ 210   ore-north     219     563       1613     563    1411     1048     2195
+ 211   ore-south    1490    1396               1396    1116     1338     1500
+ 212   
+ 213  * hercules used as the center of the norhern ore district
+ 214  * pena colorado used as the center for the southern ore district
+ 215  * except sicartsa which uses las truchas distances
+ 216   
+ 217   Parameter  muf(i,j)  transport cost: final products       (us $ per ton)
+ 218              mun(i,ip) transport cost: interplant shipments (us $ per ton)
+ 219              mum(im,i) transport cost: mine to plant        (us $ per ton)
+ 220              muv(j)    transport cost: imports              (us $ per ton)
+ 221              mue(i)    transport cost: exports              (us $ per ton);
+ 222   
+ 223          ri(i,ip) = max(ri(i,ip),ri(ip,i));
+ 224          muf(i,j) = ( 2.48 + .0084*rd(i,j))       $rd(i,j);
+ 225          mun(i,ip)= ( 2.48 + .0084*ri(i,ip))      $ri(i,ip);
+ 226          mum(im,i)= ( 2.48 + .0084*rm(im,i))      $rm(im,i);
+ 227          muv(j)   = ( 2.48 + .0084*rd("import",j))$rd("import",j);
+ 228          mue(i)   = ( 2.48 + .0084*rd(i,"export"))$rd(i,"export");
+ 229   
+ 230   Display  muf,mun,mum,muv,mue;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 7
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+transportation data
+
+
+ 231   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 8
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+investment and price data
+
+
+                                                                                                                                                                                                                                            NEW MARGINS: 1 - 72
+ 234   
+ 235   Table inv(me,*)  investment cost table
+ 236   
+ 237              hhat   phihat   beta                                         hhat  : economies of scale size (mill tons/yr)
+ 238                                                                           phihat: cost of plant of size hhat  (mill us$)
+ 239   blast-furn  1.5    250     .6                                           beta  : scale factor: phihat = xx*hhat**beta
+ 240   bof         1.5    120     .6
+ 241   direct-red   .8    100     .6                                            according to r.j. kuhl, steel times intern
+ 242   elec-arc     .5     42     .6                                                                    june 1979
+ 243   
+                                                                                                                                                                                                                                           NEW MARGINS: 1 - 120
+ 245   
+ 246   Parameter site(i)       site factor / (fundidora,hylsa) 1.1, (sicartsa,hylsap,ahmsa) 1, (tampico,coatza) 1.2 /
+ 247             omega(me,g,i) plant cost at segment              (million us$)
+ 248             sb(me,g)      segment size             (million tons per year)
+ 249             zeta          life of productive unit                  (years)
+ 250             rho           discount rate
+ 251             sigma         capital recovery factor
+ 252             delta(t)      discount factor ;
+ 253   
+ 254          inv(me,"fixed")    = inv(me,"phihat")*(.5**(inv(me,"beta")-1)-1);
+ 255   
+ 256          omega(me,"1",i)    =  inv(me,"fixed")*site(i)    ; sb(me,"1") = 0              ;
+ 257          omega(me,"2",i)    =  inv(me,"phihat")*site(i)   ; sb(me,"2") = inv(me,"hhat") ;
+ 258          omega(me,"3",i)    =  omega(me,"2",i)*3          ; sb(me,"3") = sb(me,"2")*3   ;
+ 259          omega(me,"4",i)    =  omega(me,"2",i)*6*1.25     ; sb(me,"4") = sb(me,"2")*6   ;
+ 260   
+ 261          zeta = 20; rho = .1; sigma = rho/(1-(1+rho)**(-zeta));
+ 262          delta(t) = (1+rho)**(baseyear-midyear(t));
+ 263   
+ 264   
+ 265   Scalar     rlev       resource level                                   /  1 /
+ 266              iron       iron production bound (million tons per year)    / 30 /
+ 267   
+ 268   Parameter  pd(cr,i,t) domestic prices
+ 269              region(i)  locations with energy subsidy                    / (coatza,sicartsa,tampico)  .3 /
+ 270              pdb(cr)    base price of domestic materials (pesos per ton) / nat-gas 14, electric 26, scrap 105 /
+ 271              pv(c)      import prices                      (us$ per ton) / coke    60, pellets  40, steel 150 /
+ 272              pe(ce)     export prices                      (us$ per ton) / steel  140                         / ;
+ 273   
+ 274   pd(cr,i,t)        = pdb(cr);
+ 275   pd("nat-gas",i,t) = min(128, pdb("nat-gas") + (128-pdb("nat-gas"))/4*(ord(t)-1));
+ 276   pd(energy,i,t)    = pd(energy,i,t)*(1-region(i));
+ 277   
+ 278   Display  omega,sigma,delta,inv,sb,pd,iron,rlev;
+ 279   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:30 Page 9
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+model definition
+
+
+ 281   
+ 282   Variables  z(p,i,t)         process level                                    (mill tpy)
+ 283              w(cm,q,im,t)     production of mining products                    (mill tpy)
+ 284              x(c,i,j,t)       shipment of final products                       (mill tpy)
+ 285              xn(c,i,ip,t)     interplant shipments                             (mill tpy)
+ 286              xm(c,im,i,t)     shipment of mining products                      (mill tpy)
+ 287              u(c,i,t)         purchase of domestic materials        (mill units per year)
+ 288              h(m,i,t)         capacity expansion                               (mill tpy)
+ 289              s(me,g,i,t)      investment function segment
+ 290              y(me,i,te)       binary variable
+ 291              v(cf,j,t)        imports                                          (mill tpy)
+ 292              vr(c,i,t)        imports of raw materials                         (mill tpy)
+ 293              e(c,i,t)         exports                                          (mill tpy)
+ 294   
+ 295              phi              total cost (discounted)                          (mill us$)
+ 296              phikap(t)        capital cost                                     (mill us$)
+ 297              phipsi(t)        raw material cost                                (mill us$)
+ 298              philam(t)        transport cost                                   (mill us$)
+ 299              phipi(t)         import cost                                      (mill us$)
+ 300              phieps(t)        export revenue                                   (mill us$)
+ 301   
+ 302   Positive Variables z,w,x,xn,xm,u,h,s,v,vr,e; binary variable y;
+ 303   
+ 304   Equations  mb(c,i,t)        material balance: steel plants                   (mill tpy)
+ 305              mbm(cm,im,t)     material balance: mines                          (mill tpy)
+ 306              cc(m,i,t)        capacity constraint: steel plants                (mill tpy)
+ 307              ccm(cm,q,im)     capacity constraint: mines                       (mill tpy)
+ 308              ih(me,i,te)      definition of h
+ 309              ic(me,i,te)      convex combination and 0-1 constr
+ 310              mr(cf,j,t)       market requirements                              (mill tpy)
+ 311              eb(t)            export bounds                                    (mill tpy)
+ 312              zb(i,t)          limit on steel production                        (mill tpy)
+ 313   
+ 314              obj              accounting: total discounted cost                (mill us$)
+ 315              akap(t)          accounting: investment cost charges              (mill us$)
+ 316              apsi(t)          accounting: raw materials                        (mill us$)
+ 317              alam(t)          accounting: transport                            (mill us$)
+ 318              api(t)           accounting: import cost                          (mill us$)
+ 319              aeps(t)          accounting: export revenue                       (mill us$);
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 10
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+model definition
+
+
+
+ 322   
+
+ 323   mb(c,i,t)..    sum(p, a(c,p)*z(p,i,t)) + u(c,i,t)$cr(c) + sum(im, xm(c,im,i,t))$cm(c) + vr(c,i,t)$cv(c)
+
+ 324                + sum(ip, xn(c,ip,i,t))$ci(c) =g= sum(ip, xn(c,i,ip,t))$ci(c) + sum(j, x(c,i,j,t))$cf(c) + e(c,i,t)$ce(c);
+
+ 325   
+
+ 326   mbm(cm,im,t).. sum(q, w(cm,q,im,t)) =g= sum(i, xm(cm,im,i,t));
+
+ 327   
+
+ 328   cc(m,i,t)..    sum(p, b(m,p)*z(p,i,t)) =l= k(m,i) + sum(tau$ts(t,tau), h(m,i,tau)$me(m));
+
+ 329   
+
+ 330   ccm(cm,q,im).. sum(t, w(cm,q,im,t)) =l= rlev*wbar(cm,im)/theta;
+
+ 331   
+
+ 332   ih(me,i,te)..  h(me,i,te) =e= sum(g, sb(me,g)*s(me,g,i,te));
+
+ 333   
+
+ 334   ic(me,i,te)..  y(me,i,te) =e= sum(g, s(me,g,i,te));
+
+ 335   
+
+ 336   mr(cf,j,t)..   sum(i, x(cf,i,j,t)) + v(cf,j,t) =g= d(cf,j,t);
+
+ 337   
+
+ 338   eb(t)..        sum((ce,i), e(ce,i,t)) =l= eu(t);
+
+ 339   
+
+ 340   
+
+ 341   zb(i,t)..      z("pig-iron",i,t) + z("sponge",i,t) =l= iron;
+
+ 342   
+
+ 343   obj..          phi =e= sum(t, delta(t)*theta*(phikap(t) + phipsi(t) + philam(t) + phipi(t) - phieps(t)));
+
+ 344   
+
+ 345   akap(t)..      phikap(t) =e= sigma*sum(tau$ts(t,tau), sum((me,g,i), omega(me,g,i)*s(me,g,i,tau)));
+
+ 346   
+
+ 347   apsi(t)..      phipsi(t) =e= sum((cr,i), pd(cr,i,t)*u(cr,i,t)) + sum((cm,q,im), pw(cm,q,im)*w(cm,q,im,t));
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 11
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+model definition
+
+
+ 348   
+
+ 349   alam(t)..      philam(t) =e= sum(cf, sum((i,j), muf(i,j)*x(cf,i,j,t)) + sum(j, muv(j)*v(cf,j,t)))
+
+ 350                              + sum((cm,im,i), mum(im,i)*xm(cm,im,i,t)) + sum((ce,i), mue(i)*e(ce,i,t))
+
+ 351                              + sum((ci,i,ip), mun(i,ip)*xn(ci,i,ip,t)) + sum((cv,i), mue(i)*vr(cv,i,t));
+
+ 352   
+
+ 353   api(t)..       phipi(t) =e= sum((cf,j), pv(cf)*v(cf,j,t)) + sum((cv,i), pv(cv)*vr(cv,i,t));
+
+ 354   
+
+ 355   aeps(t)..      phieps(t) =e= sum((ce,i), pe(ce)*e(ce,i,t));
+
+ 356   
+
+ 357   Model mexsd small dynamic steel problem / all / ;
+
+ 358   
+
+ 359   Solve mexsd minimizing phi using mip;
+
+ 360   
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 12
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+E x e c u t i o n
+
+
+----     95 PARAMETER midyear  period mid-years
+
+1981-83 1982.000,    1984-86 1985.000,    1987-89 1988.000,    1990-92 1991.000,    1993-95 1994.000
+
+
+----     95 PARAMETER ts  time summation matrix
+
+            1984-86     1987-89     1990-92     1993-95
+
+1984-86       1.000
+1987-89       1.000       1.000
+1990-92       1.000       1.000       1.000
+1993-95       1.000       1.000       1.000       1.000
+
+
+----    162 PARAMETER wbar  stock of mine products (million tons)
+
+           coahuila   ore-north   ore-south
+
+pellets                  12.000      23.000
+coke         46.000
+
+
+----    162 PARAMETER pw  purchase price of mine products (us $ per ton)
+
+             coahuila   ore-north   ore-south
+
+pellets.1                  18.700      18.700
+pellets.2                  21.883      21.883
+pellets.3                  26.538      26.538
+pellets.4                  31.978      31.978
+pellets.5                  38.000      38.000
+coke   .1      52.000
+coke   .2      59.917
+coke   .3      71.494
+coke   .4      85.023
+coke   .5     100.000
+
+
+----    175 PARAMETER d  demand for steel (mill tpy)
+
+                    1981-83     1984-86     1987-89     1990-92     1993-95
+
+steel.mexico-df       5.329       7.093       9.441      12.566      16.726
+steel.monterrey       2.907       3.869       5.150       6.854       9.123
+steel.guadalaja       1.453       1.935       2.575       3.427       4.562
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 13
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+E x e c u t i o n
+
+
+----    230 PARAMETER muf  transport cost: final products       (us $ per ton)
+
+            mexico-df   monterrey   guadalaja
+
+ahmsa          12.594       4.311      11.930
+fundidora      11.023                  11.132
+sicartsa        9.360      13.442       8.394
+hylsa          11.023                  11.132
+hylsap          4.034      11.594       8.864
+tampico        10.384       6.856      10.838
+coatza         10.040      17.230      11.720
+
+
+----    230 PARAMETER mun  transport cost: interplant shipments (us $ per ton)
+
+                ahmsa   fundidora    sicartsa       hylsa      hylsap     tampico      coatza
+
+ahmsa                       4.311      14.374       4.311      13.400       8.688      18.020
+fundidora       4.311                  13.585       2.564      12.216       6.856      17.230
+sicartsa       14.374      13.585                  13.627      10.838      13.560      16.239
+hylsa           4.311       2.564      13.627                  12.216       6.856      17.230
+hylsap         13.400      12.216      10.838      12.216                  11.812       8.116
+tampico         8.688       6.856      13.560       6.856      11.812                  16.777
+coatza         18.020      17.230      16.239      17.230       8.116      16.777
+
+
+----    230 PARAMETER mum  transport cost: mine to plant        (us $ per ton)
+
+                ahmsa   fundidora    sicartsa       hylsa      hylsap     tampico      coatza
+
+coahuila        3.488       5.840      15.080       5.840      14.408      10.040      20.120
+ore-north       4.320       7.209      16.029       7.209      14.332      11.283      20.918
+ore-south      14.996      14.206                  14.206      11.854      13.719      15.080
+
+
+----    230 PARAMETER muv  transport cost: imports              (us $ per ton)
+
+mexico-df 6.075,    monterrey 6.856,    guadalaja 5.000
+
+
+----    230 PARAMETER mue  transport cost: exports              (us $ per ton)
+
+ahmsa     8.688,    fundidora 6.856,    hylsa     6.856,    hylsap    5.126
+
+
+----    278 PARAMETER omega  plant cost at segment              (million us$)
+
+                   ahmsa   fundidora    sicartsa       hylsa      hylsap     tampico      coatza
+
+blast-furn.1      79.877      87.865      79.877      87.865      79.877      95.852      95.852
+blast-furn.2     250.000     275.000     250.000     275.000     250.000     300.000     300.000
+blast-furn.3     750.000     825.000     750.000     825.000     750.000     900.000     900.000
+blast-furn.4    1875.000    2062.500    1875.000    2062.500    1875.000    2250.000    2250.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 14
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+E x e c u t i o n
+
+
+        278 PARAMETER omega  plant cost at segment              (million us$)
+
+                   ahmsa   fundidora    sicartsa       hylsa      hylsap     tampico      coatza
+
+bof       .1      38.341      42.175      38.341      42.175      38.341      46.009      46.009
+bof       .2     120.000     132.000     120.000     132.000     120.000     144.000     144.000
+bof       .3     360.000     396.000     360.000     396.000     360.000     432.000     432.000
+bof       .4     900.000     990.000     900.000     990.000     900.000    1080.000    1080.000
+direct-red.1      31.951      35.146      31.951      35.146      31.951      38.341      38.341
+direct-red.2     100.000     110.000     100.000     110.000     100.000     120.000     120.000
+direct-red.3     300.000     330.000     300.000     330.000     300.000     360.000     360.000
+direct-red.4     750.000     825.000     750.000     825.000     750.000     900.000     900.000
+elec-arc  .1      13.419      14.761      13.419      14.761      13.419      16.103      16.103
+elec-arc  .2      42.000      46.200      42.000      46.200      42.000      50.400      50.400
+elec-arc  .3     126.000     138.600     126.000     138.600     126.000     151.200     151.200
+elec-arc  .4     315.000     346.500     315.000     346.500     315.000     378.000     378.000
+
+
+----    278 PARAMETER sigma                =        0.117  capital recovery factor
+
+----    278 PARAMETER delta  discount factor
+
+1981-83 0.751,    1984-86 0.564,    1987-89 0.424,    1990-92 0.319,    1993-95 0.239
+
+
+----    278 PARAMETER inv  investment cost table
+
+                  hhat      phihat        beta       fixed
+
+blast-furn       1.500     250.000       0.600      79.877
+bof              1.500     120.000       0.600      38.341
+direct-red       0.800     100.000       0.600      31.951
+elec-arc         0.500      42.000       0.600      13.419
+
+
+----    278 PARAMETER sb  segment size             (million tons per year)
+
+                     2           3           4
+
+blast-furn       1.500       4.500       9.000
+bof              1.500       4.500       9.000
+direct-red       0.800       2.400       4.800
+elec-arc         0.500       1.500       3.000
+
+
+----    278 PARAMETER pd  domestic prices
+
+                       1981-83     1984-86     1987-89     1990-92     1993-95
+
+nat-gas .ahmsa          14.000      42.500      71.000      99.500     128.000
+nat-gas .fundidora      14.000      42.500      71.000      99.500     128.000
+nat-gas .sicartsa        9.800      29.750      49.700      69.650      89.600
+nat-gas .hylsa          14.000      42.500      71.000      99.500     128.000
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 15
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+E x e c u t i o n
+
+
+        278 PARAMETER pd  domestic prices
+
+                       1981-83     1984-86     1987-89     1990-92     1993-95
+
+nat-gas .hylsap         14.000      42.500      71.000      99.500     128.000
+nat-gas .tampico         9.800      29.750      49.700      69.650      89.600
+nat-gas .coatza          9.800      29.750      49.700      69.650      89.600
+electric.ahmsa          26.000      26.000      26.000      26.000      26.000
+electric.fundidora      26.000      26.000      26.000      26.000      26.000
+electric.sicartsa       18.200      18.200      18.200      18.200      18.200
+electric.hylsa          26.000      26.000      26.000      26.000      26.000
+electric.hylsap         26.000      26.000      26.000      26.000      26.000
+electric.tampico        18.200      18.200      18.200      18.200      18.200
+electric.coatza         18.200      18.200      18.200      18.200      18.200
+scrap   .ahmsa         105.000     105.000     105.000     105.000     105.000
+scrap   .fundidora     105.000     105.000     105.000     105.000     105.000
+scrap   .sicartsa      105.000     105.000     105.000     105.000     105.000
+scrap   .hylsa         105.000     105.000     105.000     105.000     105.000
+scrap   .hylsap        105.000     105.000     105.000     105.000     105.000
+scrap   .tampico       105.000     105.000     105.000     105.000     105.000
+scrap   .coatza        105.000     105.000     105.000     105.000     105.000
+
+
+----    278 PARAMETER iron                 =       30.000  iron production bound (million tons per year)
+            PARAMETER rlev                 =        1.000  resource level
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 16
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+---- mb  =G=  material balance: steel plants                   (mill tpy)
+
+mb(pellets,ahmsa,1981-83)..  - 1.58*z(pig-iron,ahmsa,1981-83) - 1.38*z(sponge,ahmsa,1981-83) + xm(pellets,coahuila,ahmsa,1981-83) + xm(pellets,ore-north,ahmsa,1981-83) + xm(pellets,ore-south,ahmsa,1981-83) + vr(pellets,ahmsa,1981-83) =G= 0 ; (LHS = 0)
+     
+mb(pellets,ahmsa,1984-86)..  - 1.58*z(pig-iron,ahmsa,1984-86) - 1.38*z(sponge,ahmsa,1984-86) + xm(pellets,coahuila,ahmsa,1984-86) + xm(pellets,ore-north,ahmsa,1984-86) + xm(pellets,ore-south,ahmsa,1984-86) + vr(pellets,ahmsa,1984-86) =G= 0 ; (LHS = 0)
+     
+mb(pellets,ahmsa,1987-89)..  - 1.58*z(pig-iron,ahmsa,1987-89) - 1.38*z(sponge,ahmsa,1987-89) + xm(pellets,coahuila,ahmsa,1987-89) + xm(pellets,ore-north,ahmsa,1987-89) + xm(pellets,ore-south,ahmsa,1987-89) + vr(pellets,ahmsa,1987-89) =G= 0 ; (LHS = 0)
+     
+REMAINING 277 ENTRIES SKIPPED
+
+
+---- mbm  =G=  material balance: mines                          (mill tpy)
+
+mbm(pellets,coahuila,1981-83)..  w(pellets,1,coahuila,1981-83) + w(pellets,2,coahuila,1981-83) + w(pellets,3,coahuila,1981-83) + w(pellets,4,coahuila,1981-83) + w(pellets,5,coahuila,1981-83) - xm(pellets,coahuila,ahmsa,1981-83)
+     
+      - xm(pellets,coahuila,fundidora,1981-83) - xm(pellets,coahuila,sicartsa,1981-83) - xm(pellets,coahuila,hylsa,1981-83) - xm(pellets,coahuila,hylsap,1981-83) - xm(pellets,coahuila,tampico,1981-83) - xm(pellets,coahuila,coatza,1981-83) =G= 0 ;
+     
+      (LHS = 0)
+     
+mbm(pellets,coahuila,1984-86)..  w(pellets,1,coahuila,1984-86) + w(pellets,2,coahuila,1984-86) + w(pellets,3,coahuila,1984-86) + w(pellets,4,coahuila,1984-86) + w(pellets,5,coahuila,1984-86) - xm(pellets,coahuila,ahmsa,1984-86)
+     
+      - xm(pellets,coahuila,fundidora,1984-86) - xm(pellets,coahuila,sicartsa,1984-86) - xm(pellets,coahuila,hylsa,1984-86) - xm(pellets,coahuila,hylsap,1984-86) - xm(pellets,coahuila,tampico,1984-86) - xm(pellets,coahuila,coatza,1984-86) =G= 0 ;
+     
+      (LHS = 0)
+     
+mbm(pellets,coahuila,1987-89)..  w(pellets,1,coahuila,1987-89) + w(pellets,2,coahuila,1987-89) + w(pellets,3,coahuila,1987-89) + w(pellets,4,coahuila,1987-89) + w(pellets,5,coahuila,1987-89) - xm(pellets,coahuila,ahmsa,1987-89)
+     
+      - xm(pellets,coahuila,fundidora,1987-89) - xm(pellets,coahuila,sicartsa,1987-89) - xm(pellets,coahuila,hylsa,1987-89) - xm(pellets,coahuila,hylsap,1987-89) - xm(pellets,coahuila,tampico,1987-89) - xm(pellets,coahuila,coatza,1987-89) =G= 0 ;
+     
+      (LHS = 0)
+     
+REMAINING 27 ENTRIES SKIPPED
+
+
+---- cc  =L=  capacity constraint: steel plants                (mill tpy)
+
+cc(blast-furn,ahmsa,1981-83)..  z(pig-iron,ahmsa,1981-83) =L= 3.25 ; (LHS = 0)
+     
+cc(blast-furn,ahmsa,1984-86)..  z(pig-iron,ahmsa,1984-86) - h(blast-furn,ahmsa,1984-86) =L= 3.25 ; (LHS = 0)
+     
+cc(blast-furn,ahmsa,1987-89)..  z(pig-iron,ahmsa,1987-89) - h(blast-furn,ahmsa,1984-86) - h(blast-furn,ahmsa,1987-89) =L= 3.25 ; (LHS = 0)
+     
+REMAINING 172 ENTRIES SKIPPED
+
+
+---- ccm  =L=  capacity constraint: mines                       (mill tpy)
+
+ccm(pellets,1,coahuila)..  w(pellets,1,coahuila,1981-83) + w(pellets,1,coahuila,1984-86) + w(pellets,1,coahuila,1987-89) + w(pellets,1,coahuila,1990-92) + w(pellets,1,coahuila,1993-95) =L= 0 ; (LHS = 0)
+     
+ccm(pellets,1,ore-north)..  w(pellets,1,ore-north,1981-83) + w(pellets,1,ore-north,1984-86) + w(pellets,1,ore-north,1987-89) + w(pellets,1,ore-north,1990-92) + w(pellets,1,ore-north,1993-95) =L= 4 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 17
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     ccm  =L=  capacity constraint: mines                       (mill tpy)
+
+ccm(pellets,1,ore-south)..  w(pellets,1,ore-south,1981-83) + w(pellets,1,ore-south,1984-86) + w(pellets,1,ore-south,1987-89) + w(pellets,1,ore-south,1990-92) + w(pellets,1,ore-south,1993-95) =L= 7.66666666666667 ; (LHS = 0)
+     
+REMAINING 27 ENTRIES SKIPPED
+
+
+---- ih  =E=  definition of h
+
+ih(blast-furn,ahmsa,1984-86)..  h(blast-furn,ahmsa,1984-86) - 1.5*s(blast-furn,2,ahmsa,1984-86) - 4.5*s(blast-furn,3,ahmsa,1984-86) - 9*s(blast-furn,4,ahmsa,1984-86) =E= 0 ; (LHS = 0)
+     
+ih(blast-furn,ahmsa,1987-89)..  h(blast-furn,ahmsa,1987-89) - 1.5*s(blast-furn,2,ahmsa,1987-89) - 4.5*s(blast-furn,3,ahmsa,1987-89) - 9*s(blast-furn,4,ahmsa,1987-89) =E= 0 ; (LHS = 0)
+     
+ih(blast-furn,ahmsa,1990-92)..  h(blast-furn,ahmsa,1990-92) - 1.5*s(blast-furn,2,ahmsa,1990-92) - 4.5*s(blast-furn,3,ahmsa,1990-92) - 9*s(blast-furn,4,ahmsa,1990-92) =E= 0 ; (LHS = 0)
+     
+REMAINING 109 ENTRIES SKIPPED
+
+
+---- ic  =E=  convex combination and 0-1 constr
+
+ic(blast-furn,ahmsa,1984-86)..  - s(blast-furn,1,ahmsa,1984-86) - s(blast-furn,2,ahmsa,1984-86) - s(blast-furn,3,ahmsa,1984-86) - s(blast-furn,4,ahmsa,1984-86) + y(blast-furn,ahmsa,1984-86) =E= 0 ; (LHS = 0)
+     
+ic(blast-furn,ahmsa,1987-89)..  - s(blast-furn,1,ahmsa,1987-89) - s(blast-furn,2,ahmsa,1987-89) - s(blast-furn,3,ahmsa,1987-89) - s(blast-furn,4,ahmsa,1987-89) + y(blast-furn,ahmsa,1987-89) =E= 0 ; (LHS = 0)
+     
+ic(blast-furn,ahmsa,1990-92)..  - s(blast-furn,1,ahmsa,1990-92) - s(blast-furn,2,ahmsa,1990-92) - s(blast-furn,3,ahmsa,1990-92) - s(blast-furn,4,ahmsa,1990-92) + y(blast-furn,ahmsa,1990-92) =E= 0 ; (LHS = 0)
+     
+REMAINING 109 ENTRIES SKIPPED
+
+
+---- mr  =G=  market requirements                              (mill tpy)
+
+mr(steel,mexico-df,1981-83)..  x(steel,ahmsa,mexico-df,1981-83) + x(steel,fundidora,mexico-df,1981-83) + x(steel,sicartsa,mexico-df,1981-83) + x(steel,hylsa,mexico-df,1981-83) + x(steel,hylsap,mexico-df,1981-83) + x(steel,tampico,mexico-df,1981-83)
+     
+      + x(steel,coatza,mexico-df,1981-83) + v(steel,mexico-df,1981-83) =G= 5.329324 ; (LHS = 0, INFES = 5.329324 ****)
+     
+mr(steel,mexico-df,1984-86)..  x(steel,ahmsa,mexico-df,1984-86) + x(steel,fundidora,mexico-df,1984-86) + x(steel,sicartsa,mexico-df,1984-86) + x(steel,hylsa,mexico-df,1984-86) + x(steel,hylsap,mexico-df,1984-86) + x(steel,tampico,mexico-df,1984-86)
+     
+      + x(steel,coatza,mexico-df,1984-86) + v(steel,mexico-df,1984-86) =G= 7.093330244 ; (LHS = 0, INFES = 7.093330244 ****)
+     
+mr(steel,mexico-df,1987-89)..  x(steel,ahmsa,mexico-df,1987-89) + x(steel,fundidora,mexico-df,1987-89) + x(steel,sicartsa,mexico-df,1987-89) + x(steel,hylsa,mexico-df,1987-89) + x(steel,hylsap,mexico-df,1987-89) + x(steel,tampico,mexico-df,1987-89)
+     
+      + x(steel,coatza,mexico-df,1987-89) + v(steel,mexico-df,1987-89) =G= 9.44122255476401 ; (LHS = 0, INFES = 9.44122255476401 ****)
+     
+REMAINING 12 ENTRIES SKIPPED
+
+
+---- eb  =L=  export bounds                                    (mill tpy)
+
+eb(1981-83)..  e(steel,ahmsa,1981-83) + e(steel,fundidora,1981-83) + e(steel,sicartsa,1981-83) + e(steel,hylsa,1981-83) + e(steel,hylsap,1981-83) + e(steel,tampico,1981-83) + e(steel,coatza,1981-83) =L= 0.2 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 18
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     eb  =L=  export bounds                                    (mill tpy)
+
+eb(1984-86)..  e(steel,ahmsa,1984-86) + e(steel,fundidora,1984-86) + e(steel,sicartsa,1984-86) + e(steel,hylsa,1984-86) + e(steel,hylsap,1984-86) + e(steel,tampico,1984-86) + e(steel,coatza,1984-86) =L= 0.2 ; (LHS = 0)
+     
+eb(1987-89)..  e(steel,ahmsa,1987-89) + e(steel,fundidora,1987-89) + e(steel,sicartsa,1987-89) + e(steel,hylsa,1987-89) + e(steel,hylsap,1987-89) + e(steel,tampico,1987-89) + e(steel,coatza,1987-89) =L= 0.2 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- zb  =L=  limit on steel production                        (mill tpy)
+
+zb(ahmsa,1981-83)..  z(pig-iron,ahmsa,1981-83) + z(sponge,ahmsa,1981-83) =L= 30 ; (LHS = 0)
+     
+zb(ahmsa,1984-86)..  z(pig-iron,ahmsa,1984-86) + z(sponge,ahmsa,1984-86) =L= 30 ; (LHS = 0)
+     
+zb(ahmsa,1987-89)..  z(pig-iron,ahmsa,1987-89) + z(sponge,ahmsa,1987-89) =L= 30 ; (LHS = 0)
+     
+REMAINING 32 ENTRIES SKIPPED
+
+
+---- obj  =E=  accounting: total discounted cost                (mill us$)
+
+obj..  phi - 2.25394440270473*phikap(1981-83) - 1.69342179016133*phikap(1984-86) - 1.27229285511745*phikap(1987-89) - 0.95589245313107*phikap(1990-92) - 0.71817614810749*phikap(1993-95) - 2.25394440270473*phipsi(1981-83) - 1.69342179016133*phipsi(1984-86)
+     
+      - 1.27229285511745*phipsi(1987-89) - 0.95589245313107*phipsi(1990-92) - 0.71817614810749*phipsi(1993-95) - 2.25394440270473*philam(1981-83) - 1.69342179016133*philam(1984-86) - 1.27229285511745*philam(1987-89) - 0.95589245313107*philam(1990-92)
+     
+      - 0.71817614810749*philam(1993-95) - 2.25394440270473*phipi(1981-83) - 1.69342179016133*phipi(1984-86) - 1.27229285511745*phipi(1987-89) - 0.95589245313107*phipi(1990-92) - 0.71817614810749*phipi(1993-95) + 2.25394440270473*phieps(1981-83)
+     
+      + 1.69342179016133*phieps(1984-86) + 1.27229285511745*phieps(1987-89) + 0.95589245313107*phieps(1990-92) + 0.71817614810749*phieps(1993-95) =E= 0 ; (LHS = 0)
+     
+
+---- akap  =E=  accounting: investment cost charges              (mill us$)
+
+akap(1981-83)..  phikap(1981-83) =E= 0 ; (LHS = 0)
+     
+akap(1984-86)..  - 9.38231982781105*s(blast-furn,1,ahmsa,1984-86) - 10.3205518105922*s(blast-furn,1,fundidora,1984-86) - 9.38231982781105*s(blast-furn,1,sicartsa,1984-86) - 10.3205518105922*s(blast-furn,1,hylsa,1984-86)
+     
+      - 9.38231982781105*s(blast-furn,1,hylsap,1984-86) - 11.2587837933733*s(blast-furn,1,tampico,1984-86) - 11.2587837933733*s(blast-furn,1,coatza,1984-86) - 29.3649061931364*s(blast-furn,2,ahmsa,1984-86)
+     
+      - 32.3013968124501*s(blast-furn,2,fundidora,1984-86) - 29.3649061931364*s(blast-furn,2,sicartsa,1984-86) - 32.3013968124501*s(blast-furn,2,hylsa,1984-86) - 29.3649061931364*s(blast-furn,2,hylsap,1984-86)
+     
+      - 35.2378874317637*s(blast-furn,2,tampico,1984-86) - 35.2378874317637*s(blast-furn,2,coatza,1984-86) - 88.0947185794093*s(blast-furn,3,ahmsa,1984-86) - 96.9041904373503*s(blast-furn,3,fundidora,1984-86)
+     
+      - 88.0947185794093*s(blast-furn,3,sicartsa,1984-86) - 96.9041904373503*s(blast-furn,3,hylsa,1984-86) - 88.0947185794093*s(blast-furn,3,hylsap,1984-86) - 105.713662295291*s(blast-furn,3,tampico,1984-86)
+     
+      - 105.713662295291*s(blast-furn,3,coatza,1984-86) - 220.236796448523*s(blast-furn,4,ahmsa,1984-86) - 242.260476093376*s(blast-furn,4,fundidora,1984-86) - 220.236796448523*s(blast-furn,4,sicartsa,1984-86)
+     
+      - 242.260476093376*s(blast-furn,4,hylsa,1984-86) - 220.236796448523*s(blast-furn,4,hylsap,1984-86) - 264.284155738228*s(blast-furn,4,tampico,1984-86) - 264.284155738228*s(blast-furn,4,coatza,1984-86) - 4.5035135173493*s(bof,1,ahmsa,1984-86)
+     
+      - 4.95386486908423*s(bof,1,fundidora,1984-86) - 4.5035135173493*s(bof,1,sicartsa,1984-86) - 4.95386486908423*s(bof,1,hylsa,1984-86) - 4.5035135173493*s(bof,1,hylsap,1984-86) - 5.40421622081916*s(bof,1,tampico,1984-86)
+     
+      - 5.40421622081916*s(bof,1,coatza,1984-86) - 14.0951549727055*s(bof,2,ahmsa,1984-86) - 15.504670469976*s(bof,2,fundidora,1984-86) - 14.0951549727055*s(bof,2,sicartsa,1984-86) - 15.504670469976*s(bof,2,hylsa,1984-86)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 19
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     akap  =E=  accounting: investment cost charges              (mill us$)     
+     
+      - 14.0951549727055*s(bof,2,hylsap,1984-86) - 16.9141859672466*s(bof,2,tampico,1984-86) - 16.9141859672466*s(bof,2,coatza,1984-86) - 42.2854649181165*s(bof,3,ahmsa,1984-86) - 46.5140114099281*s(bof,3,fundidora,1984-86)
+     
+      - 42.2854649181165*s(bof,3,sicartsa,1984-86) - 46.5140114099281*s(bof,3,hylsa,1984-86) - 42.2854649181165*s(bof,3,hylsap,1984-86) - 50.7425579017398*s(bof,3,tampico,1984-86) - 50.7425579017398*s(bof,3,coatza,1984-86)
+     
+      - 105.713662295291*s(bof,4,ahmsa,1984-86) - 116.28502852482*s(bof,4,fundidora,1984-86) - 105.713662295291*s(bof,4,sicartsa,1984-86) - 116.28502852482*s(bof,4,hylsa,1984-86) - 105.713662295291*s(bof,4,hylsap,1984-86)
+     
+      - 126.856394754349*s(bof,4,tampico,1984-86) - 126.856394754349*s(bof,4,coatza,1984-86) - 3.75292793112442*s(direct-red,1,ahmsa,1984-86) - 4.12822072423686*s(direct-red,1,fundidora,1984-86) - 3.75292793112442*s(direct-red,1,sicartsa,1984-86)
+     
+      - 4.12822072423686*s(direct-red,1,hylsa,1984-86) - 3.75292793112442*s(direct-red,1,hylsap,1984-86) - 4.5035135173493*s(direct-red,1,tampico,1984-86) - 4.5035135173493*s(direct-red,1,coatza,1984-86) - 11.7459624772546*s(direct-red,2,ahmsa,1984-86)
+     
+      - 12.92055872498*s(direct-red,2,fundidora,1984-86) - 11.7459624772546*s(direct-red,2,sicartsa,1984-86) - 12.92055872498*s(direct-red,2,hylsa,1984-86) - 11.7459624772546*s(direct-red,2,hylsap,1984-86)
+     
+      - 14.0951549727055*s(direct-red,2,tampico,1984-86) - 14.0951549727055*s(direct-red,2,coatza,1984-86) - 35.2378874317637*s(direct-red,3,ahmsa,1984-86) - 38.7616761749401*s(direct-red,3,fundidora,1984-86)
+     
+      - 35.2378874317637*s(direct-red,3,sicartsa,1984-86) - 38.7616761749401*s(direct-red,3,hylsa,1984-86) - 35.2378874317637*s(direct-red,3,hylsap,1984-86) - 42.2854649181165*s(direct-red,3,tampico,1984-86)
+     
+      - 42.2854649181165*s(direct-red,3,coatza,1984-86) - 88.0947185794093*s(direct-red,4,ahmsa,1984-86) - 96.9041904373503*s(direct-red,4,fundidora,1984-86) - 88.0947185794093*s(direct-red,4,sicartsa,1984-86)
+     
+      - 96.9041904373503*s(direct-red,4,hylsa,1984-86) - 88.0947185794093*s(direct-red,4,hylsap,1984-86) - 105.713662295291*s(direct-red,4,tampico,1984-86) - 105.713662295291*s(direct-red,4,coatza,1984-86) - 1.57622973107226*s(elec-arc,1,ahmsa,1984-86)
+     
+      - 1.73385270417948*s(elec-arc,1,fundidora,1984-86) - 1.57622973107226*s(elec-arc,1,sicartsa,1984-86) - 1.73385270417948*s(elec-arc,1,hylsa,1984-86) - 1.57622973107226*s(elec-arc,1,hylsap,1984-86) - 1.89147567728671*s(elec-arc,1,tampico,1984-86)
+     
+      - 1.89147567728671*s(elec-arc,1,coatza,1984-86) - 4.93330424044692*s(elec-arc,2,ahmsa,1984-86) - 5.42663466449161*s(elec-arc,2,fundidora,1984-86) - 4.93330424044692*s(elec-arc,2,sicartsa,1984-86) - 5.42663466449161*s(elec-arc,2,hylsa,1984-86)
+     
+      - 4.93330424044692*s(elec-arc,2,hylsap,1984-86) - 5.91996508853631*s(elec-arc,2,tampico,1984-86) - 5.91996508853631*s(elec-arc,2,coatza,1984-86) - 14.7999127213408*s(elec-arc,3,ahmsa,1984-86) - 16.2799039934748*s(elec-arc,3,fundidora,1984-86)
+     
+      - 14.7999127213408*s(elec-arc,3,sicartsa,1984-86) - 16.2799039934748*s(elec-arc,3,hylsa,1984-86) - 14.7999127213408*s(elec-arc,3,hylsap,1984-86) - 17.7598952656089*s(elec-arc,3,tampico,1984-86) - 17.7598952656089*s(elec-arc,3,coatza,1984-86)
+     
+      - 36.9997818033519*s(elec-arc,4,ahmsa,1984-86) - 40.6997599836871*s(elec-arc,4,fundidora,1984-86) - 36.9997818033519*s(elec-arc,4,sicartsa,1984-86) - 40.6997599836871*s(elec-arc,4,hylsa,1984-86) - 36.9997818033519*s(elec-arc,4,hylsap,1984-86)
+     
+      - 44.3997381640223*s(elec-arc,4,tampico,1984-86) - 44.3997381640223*s(elec-arc,4,coatza,1984-86) + phikap(1984-86) =E= 0 ; (LHS = 0)
+     
+akap(1987-89)..  - 9.38231982781105*s(blast-furn,1,ahmsa,1984-86) - 9.38231982781105*s(blast-furn,1,ahmsa,1987-89) - 10.3205518105922*s(blast-furn,1,fundidora,1984-86) - 10.3205518105922*s(blast-furn,1,fundidora,1987-89)
+     
+      - 9.38231982781105*s(blast-furn,1,sicartsa,1984-86) - 9.38231982781105*s(blast-furn,1,sicartsa,1987-89) - 10.3205518105922*s(blast-furn,1,hylsa,1984-86) - 10.3205518105922*s(blast-furn,1,hylsa,1987-89)
+     
+      - 9.38231982781105*s(blast-furn,1,hylsap,1984-86) - 9.38231982781105*s(blast-furn,1,hylsap,1987-89) - 11.2587837933733*s(blast-furn,1,tampico,1984-86) - 11.2587837933733*s(blast-furn,1,tampico,1987-89)
+     
+      - 11.2587837933733*s(blast-furn,1,coatza,1984-86) - 11.2587837933733*s(blast-furn,1,coatza,1987-89) - 29.3649061931364*s(blast-furn,2,ahmsa,1984-86) - 29.3649061931364*s(blast-furn,2,ahmsa,1987-89)
+     
+      - 32.3013968124501*s(blast-furn,2,fundidora,1984-86) - 32.3013968124501*s(blast-furn,2,fundidora,1987-89) - 29.3649061931364*s(blast-furn,2,sicartsa,1984-86) - 29.3649061931364*s(blast-furn,2,sicartsa,1987-89)
+     
+      - 32.3013968124501*s(blast-furn,2,hylsa,1984-86) - 32.3013968124501*s(blast-furn,2,hylsa,1987-89) - 29.3649061931364*s(blast-furn,2,hylsap,1984-86) - 29.3649061931364*s(blast-furn,2,hylsap,1987-89) - 35.2378874317637*s(blast-furn,2,tampico,1984-86)
+     
+      - 35.2378874317637*s(blast-furn,2,tampico,1987-89) - 35.2378874317637*s(blast-furn,2,coatza,1984-86) - 35.2378874317637*s(blast-furn,2,coatza,1987-89) - 88.0947185794093*s(blast-furn,3,ahmsa,1984-86) - 88.0947185794093*s(blast-furn,3,ahmsa,1987-89)
+     
+      - 96.9041904373503*s(blast-furn,3,fundidora,1984-86) - 96.9041904373503*s(blast-furn,3,fundidora,1987-89) - 88.0947185794093*s(blast-furn,3,sicartsa,1984-86) - 88.0947185794093*s(blast-furn,3,sicartsa,1987-89)
+     
+      - 96.9041904373503*s(blast-furn,3,hylsa,1984-86) - 96.9041904373503*s(blast-furn,3,hylsa,1987-89) - 88.0947185794093*s(blast-furn,3,hylsap,1984-86) - 88.0947185794093*s(blast-furn,3,hylsap,1987-89) - 105.713662295291*s(blast-furn,3,tampico,1984-86)
+     
+      - 105.713662295291*s(blast-furn,3,tampico,1987-89) - 105.713662295291*s(blast-furn,3,coatza,1984-86) - 105.713662295291*s(blast-furn,3,coatza,1987-89) - 220.236796448523*s(blast-furn,4,ahmsa,1984-86) - 220.236796448523*s(blast-furn,4,ahmsa,1987-89)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 20
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     akap  =E=  accounting: investment cost charges              (mill us$)     
+     
+      - 242.260476093376*s(blast-furn,4,fundidora,1984-86) - 242.260476093376*s(blast-furn,4,fundidora,1987-89) - 220.236796448523*s(blast-furn,4,sicartsa,1984-86) - 220.236796448523*s(blast-furn,4,sicartsa,1987-89)
+     
+      - 242.260476093376*s(blast-furn,4,hylsa,1984-86) - 242.260476093376*s(blast-furn,4,hylsa,1987-89) - 220.236796448523*s(blast-furn,4,hylsap,1984-86) - 220.236796448523*s(blast-furn,4,hylsap,1987-89) - 264.284155738228*s(blast-furn,4,tampico,1984-86)
+     
+      - 264.284155738228*s(blast-furn,4,tampico,1987-89) - 264.284155738228*s(blast-furn,4,coatza,1984-86) - 264.284155738228*s(blast-furn,4,coatza,1987-89) - 4.5035135173493*s(bof,1,ahmsa,1984-86) - 4.5035135173493*s(bof,1,ahmsa,1987-89)
+     
+      - 4.95386486908423*s(bof,1,fundidora,1984-86) - 4.95386486908423*s(bof,1,fundidora,1987-89) - 4.5035135173493*s(bof,1,sicartsa,1984-86) - 4.5035135173493*s(bof,1,sicartsa,1987-89) - 4.95386486908423*s(bof,1,hylsa,1984-86)
+     
+      - 4.95386486908423*s(bof,1,hylsa,1987-89) - 4.5035135173493*s(bof,1,hylsap,1984-86) - 4.5035135173493*s(bof,1,hylsap,1987-89) - 5.40421622081916*s(bof,1,tampico,1984-86) - 5.40421622081916*s(bof,1,tampico,1987-89)
+     
+      - 5.40421622081916*s(bof,1,coatza,1984-86) - 5.40421622081916*s(bof,1,coatza,1987-89) - 14.0951549727055*s(bof,2,ahmsa,1984-86) - 14.0951549727055*s(bof,2,ahmsa,1987-89) - 15.504670469976*s(bof,2,fundidora,1984-86)
+     
+      - 15.504670469976*s(bof,2,fundidora,1987-89) - 14.0951549727055*s(bof,2,sicartsa,1984-86) - 14.0951549727055*s(bof,2,sicartsa,1987-89) - 15.504670469976*s(bof,2,hylsa,1984-86) - 15.504670469976*s(bof,2,hylsa,1987-89)
+     
+      - 14.0951549727055*s(bof,2,hylsap,1984-86) - 14.0951549727055*s(bof,2,hylsap,1987-89) - 16.9141859672466*s(bof,2,tampico,1984-86) - 16.9141859672466*s(bof,2,tampico,1987-89) - 16.9141859672466*s(bof,2,coatza,1984-86)
+     
+      - 16.9141859672466*s(bof,2,coatza,1987-89) - 42.2854649181165*s(bof,3,ahmsa,1984-86) - 42.2854649181165*s(bof,3,ahmsa,1987-89) - 46.5140114099281*s(bof,3,fundidora,1984-86) - 46.5140114099281*s(bof,3,fundidora,1987-89)
+     
+      - 42.2854649181165*s(bof,3,sicartsa,1984-86) - 42.2854649181165*s(bof,3,sicartsa,1987-89) - 46.5140114099281*s(bof,3,hylsa,1984-86) - 46.5140114099281*s(bof,3,hylsa,1987-89) - 42.2854649181165*s(bof,3,hylsap,1984-86)
+     
+      - 42.2854649181165*s(bof,3,hylsap,1987-89) - 50.7425579017398*s(bof,3,tampico,1984-86) - 50.7425579017398*s(bof,3,tampico,1987-89) - 50.7425579017398*s(bof,3,coatza,1984-86) - 50.7425579017398*s(bof,3,coatza,1987-89)
+     
+      - 105.713662295291*s(bof,4,ahmsa,1984-86) - 105.713662295291*s(bof,4,ahmsa,1987-89) - 116.28502852482*s(bof,4,fundidora,1984-86) - 116.28502852482*s(bof,4,fundidora,1987-89) - 105.713662295291*s(bof,4,sicartsa,1984-86)
+     
+      - 105.713662295291*s(bof,4,sicartsa,1987-89) - 116.28502852482*s(bof,4,hylsa,1984-86) - 116.28502852482*s(bof,4,hylsa,1987-89) - 105.713662295291*s(bof,4,hylsap,1984-86) - 105.713662295291*s(bof,4,hylsap,1987-89)
+     
+      - 126.856394754349*s(bof,4,tampico,1984-86) - 126.856394754349*s(bof,4,tampico,1987-89) - 126.856394754349*s(bof,4,coatza,1984-86) - 126.856394754349*s(bof,4,coatza,1987-89) - 3.75292793112442*s(direct-red,1,ahmsa,1984-86)
+     
+      - 3.75292793112442*s(direct-red,1,ahmsa,1987-89) - 4.12822072423686*s(direct-red,1,fundidora,1984-86) - 4.12822072423686*s(direct-red,1,fundidora,1987-89) - 3.75292793112442*s(direct-red,1,sicartsa,1984-86)
+     
+      - 3.75292793112442*s(direct-red,1,sicartsa,1987-89) - 4.12822072423686*s(direct-red,1,hylsa,1984-86) - 4.12822072423686*s(direct-red,1,hylsa,1987-89) - 3.75292793112442*s(direct-red,1,hylsap,1984-86) - 3.75292793112442*s(direct-red,1,hylsap,1987-89)
+     
+      - 4.5035135173493*s(direct-red,1,tampico,1984-86) - 4.5035135173493*s(direct-red,1,tampico,1987-89) - 4.5035135173493*s(direct-red,1,coatza,1984-86) - 4.5035135173493*s(direct-red,1,coatza,1987-89) - 11.7459624772546*s(direct-red,2,ahmsa,1984-86)
+     
+      - 11.7459624772546*s(direct-red,2,ahmsa,1987-89) - 12.92055872498*s(direct-red,2,fundidora,1984-86) - 12.92055872498*s(direct-red,2,fundidora,1987-89) - 11.7459624772546*s(direct-red,2,sicartsa,1984-86)
+     
+      - 11.7459624772546*s(direct-red,2,sicartsa,1987-89) - 12.92055872498*s(direct-red,2,hylsa,1984-86) - 12.92055872498*s(direct-red,2,hylsa,1987-89) - 11.7459624772546*s(direct-red,2,hylsap,1984-86) - 11.7459624772546*s(direct-red,2,hylsap,1987-89)
+     
+      - 14.0951549727055*s(direct-red,2,tampico,1984-86) - 14.0951549727055*s(direct-red,2,tampico,1987-89) - 14.0951549727055*s(direct-red,2,coatza,1984-86) - 14.0951549727055*s(direct-red,2,coatza,1987-89)
+     
+      - 35.2378874317637*s(direct-red,3,ahmsa,1984-86) - 35.2378874317637*s(direct-red,3,ahmsa,1987-89) - 38.7616761749401*s(direct-red,3,fundidora,1984-86) - 38.7616761749401*s(direct-red,3,fundidora,1987-89)
+     
+      - 35.2378874317637*s(direct-red,3,sicartsa,1984-86) - 35.2378874317637*s(direct-red,3,sicartsa,1987-89) - 38.7616761749401*s(direct-red,3,hylsa,1984-86) - 38.7616761749401*s(direct-red,3,hylsa,1987-89)
+     
+      - 35.2378874317637*s(direct-red,3,hylsap,1984-86) - 35.2378874317637*s(direct-red,3,hylsap,1987-89) - 42.2854649181165*s(direct-red,3,tampico,1984-86) - 42.2854649181165*s(direct-red,3,tampico,1987-89)
+     
+      - 42.2854649181165*s(direct-red,3,coatza,1984-86) - 42.2854649181165*s(direct-red,3,coatza,1987-89) - 88.0947185794093*s(direct-red,4,ahmsa,1984-86) - 88.0947185794093*s(direct-red,4,ahmsa,1987-89)
+     
+      - 96.9041904373503*s(direct-red,4,fundidora,1984-86) - 96.9041904373503*s(direct-red,4,fundidora,1987-89) - 88.0947185794093*s(direct-red,4,sicartsa,1984-86) - 88.0947185794093*s(direct-red,4,sicartsa,1987-89)
+     
+      - 96.9041904373503*s(direct-red,4,hylsa,1984-86) - 96.9041904373503*s(direct-red,4,hylsa,1987-89) - 88.0947185794093*s(direct-red,4,hylsap,1984-86) - 88.0947185794093*s(direct-red,4,hylsap,1987-89) - 105.713662295291*s(direct-red,4,tampico,1984-86)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 21
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     akap  =E=  accounting: investment cost charges              (mill us$)     
+     
+      - 105.713662295291*s(direct-red,4,tampico,1987-89) - 105.713662295291*s(direct-red,4,coatza,1984-86) - 105.713662295291*s(direct-red,4,coatza,1987-89) - 1.57622973107226*s(elec-arc,1,ahmsa,1984-86) - 1.57622973107226*s(elec-arc,1,ahmsa,1987-89)
+     
+      - 1.73385270417948*s(elec-arc,1,fundidora,1984-86) - 1.73385270417948*s(elec-arc,1,fundidora,1987-89) - 1.57622973107226*s(elec-arc,1,sicartsa,1984-86) - 1.57622973107226*s(elec-arc,1,sicartsa,1987-89) - 1.73385270417948*s(elec-arc,1,hylsa,1984-86)
+     
+      - 1.73385270417948*s(elec-arc,1,hylsa,1987-89) - 1.57622973107226*s(elec-arc,1,hylsap,1984-86) - 1.57622973107226*s(elec-arc,1,hylsap,1987-89) - 1.89147567728671*s(elec-arc,1,tampico,1984-86) - 1.89147567728671*s(elec-arc,1,tampico,1987-89)
+     
+      - 1.89147567728671*s(elec-arc,1,coatza,1984-86) - 1.89147567728671*s(elec-arc,1,coatza,1987-89) - 4.93330424044692*s(elec-arc,2,ahmsa,1984-86) - 4.93330424044692*s(elec-arc,2,ahmsa,1987-89) - 5.42663466449161*s(elec-arc,2,fundidora,1984-86)
+     
+      - 5.42663466449161*s(elec-arc,2,fundidora,1987-89) - 4.93330424044692*s(elec-arc,2,sicartsa,1984-86) - 4.93330424044692*s(elec-arc,2,sicartsa,1987-89) - 5.42663466449161*s(elec-arc,2,hylsa,1984-86) - 5.42663466449161*s(elec-arc,2,hylsa,1987-89)
+     
+      - 4.93330424044692*s(elec-arc,2,hylsap,1984-86) - 4.93330424044692*s(elec-arc,2,hylsap,1987-89) - 5.91996508853631*s(elec-arc,2,tampico,1984-86) - 5.91996508853631*s(elec-arc,2,tampico,1987-89) - 5.91996508853631*s(elec-arc,2,coatza,1984-86)
+     
+      - 5.91996508853631*s(elec-arc,2,coatza,1987-89) - 14.7999127213408*s(elec-arc,3,ahmsa,1984-86) - 14.7999127213408*s(elec-arc,3,ahmsa,1987-89) - 16.2799039934748*s(elec-arc,3,fundidora,1984-86) - 16.2799039934748*s(elec-arc,3,fundidora,1987-89)
+     
+      - 14.7999127213408*s(elec-arc,3,sicartsa,1984-86) - 14.7999127213408*s(elec-arc,3,sicartsa,1987-89) - 16.2799039934748*s(elec-arc,3,hylsa,1984-86) - 16.2799039934748*s(elec-arc,3,hylsa,1987-89) - 14.7999127213408*s(elec-arc,3,hylsap,1984-86)
+     
+      - 14.7999127213408*s(elec-arc,3,hylsap,1987-89) - 17.7598952656089*s(elec-arc,3,tampico,1984-86) - 17.7598952656089*s(elec-arc,3,tampico,1987-89) - 17.7598952656089*s(elec-arc,3,coatza,1984-86) - 17.7598952656089*s(elec-arc,3,coatza,1987-89)
+     
+      - 36.9997818033519*s(elec-arc,4,ahmsa,1984-86) - 36.9997818033519*s(elec-arc,4,ahmsa,1987-89) - 40.6997599836871*s(elec-arc,4,fundidora,1984-86) - 40.6997599836871*s(elec-arc,4,fundidora,1987-89) - 36.9997818033519*s(elec-arc,4,sicartsa,1984-86)
+     
+      - 36.9997818033519*s(elec-arc,4,sicartsa,1987-89) - 40.6997599836871*s(elec-arc,4,hylsa,1984-86) - 40.6997599836871*s(elec-arc,4,hylsa,1987-89) - 36.9997818033519*s(elec-arc,4,hylsap,1984-86) - 36.9997818033519*s(elec-arc,4,hylsap,1987-89)
+     
+      - 44.3997381640223*s(elec-arc,4,tampico,1984-86) - 44.3997381640223*s(elec-arc,4,tampico,1987-89) - 44.3997381640223*s(elec-arc,4,coatza,1984-86) - 44.3997381640223*s(elec-arc,4,coatza,1987-89) + phikap(1987-89) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- apsi  =E=  accounting: raw materials                        (mill us$)
+
+apsi(1981-83)..  - 18.7*w(pellets,1,ore-north,1981-83) - 18.7*w(pellets,1,ore-south,1981-83) - 21.8833128347396*w(pellets,2,ore-north,1981-83) - 21.8833128347396*w(pellets,2,ore-south,1981-83) - 26.5382356248377*w(pellets,3,ore-north,1981-83)
+     
+      - 26.5382356248377*w(pellets,3,ore-south,1981-83) - 31.9781310734488*w(pellets,4,ore-north,1981-83) - 31.9781310734488*w(pellets,4,ore-south,1981-83) - 38*w(pellets,5,ore-north,1981-83) - 38*w(pellets,5,ore-south,1981-83)
+     
+      - 52*w(coke,1,coahuila,1981-83) - 59.9170474646374*w(coke,2,coahuila,1981-83) - 71.4940575125497*w(coke,3,coahuila,1981-83) - 85.0233311671265*w(coke,4,coahuila,1981-83) - 100*w(coke,5,coahuila,1981-83) - 14*u(nat-gas,ahmsa,1981-83)
+     
+      - 14*u(nat-gas,fundidora,1981-83) - 9.8*u(nat-gas,sicartsa,1981-83) - 14*u(nat-gas,hylsa,1981-83) - 14*u(nat-gas,hylsap,1981-83) - 9.8*u(nat-gas,tampico,1981-83) - 9.8*u(nat-gas,coatza,1981-83) - 26*u(electric,ahmsa,1981-83)
+     
+      - 26*u(electric,fundidora,1981-83) - 18.2*u(electric,sicartsa,1981-83) - 26*u(electric,hylsa,1981-83) - 26*u(electric,hylsap,1981-83) - 18.2*u(electric,tampico,1981-83) - 18.2*u(electric,coatza,1981-83) - 105*u(scrap,ahmsa,1981-83)
+     
+      - 105*u(scrap,fundidora,1981-83) - 105*u(scrap,sicartsa,1981-83) - 105*u(scrap,hylsa,1981-83) - 105*u(scrap,hylsap,1981-83) - 105*u(scrap,tampico,1981-83) - 105*u(scrap,coatza,1981-83) + phipsi(1981-83) =E= 0 ; (LHS = 0)
+     
+apsi(1984-86)..  - 18.7*w(pellets,1,ore-north,1984-86) - 18.7*w(pellets,1,ore-south,1984-86) - 21.8833128347396*w(pellets,2,ore-north,1984-86) - 21.8833128347396*w(pellets,2,ore-south,1984-86) - 26.5382356248377*w(pellets,3,ore-north,1984-86)
+     
+      - 26.5382356248377*w(pellets,3,ore-south,1984-86) - 31.9781310734488*w(pellets,4,ore-north,1984-86) - 31.9781310734488*w(pellets,4,ore-south,1984-86) - 38*w(pellets,5,ore-north,1984-86) - 38*w(pellets,5,ore-south,1984-86)
+     
+      - 52*w(coke,1,coahuila,1984-86) - 59.9170474646374*w(coke,2,coahuila,1984-86) - 71.4940575125497*w(coke,3,coahuila,1984-86) - 85.0233311671265*w(coke,4,coahuila,1984-86) - 100*w(coke,5,coahuila,1984-86) - 42.5*u(nat-gas,ahmsa,1984-86)
+     
+      - 42.5*u(nat-gas,fundidora,1984-86) - 29.75*u(nat-gas,sicartsa,1984-86) - 42.5*u(nat-gas,hylsa,1984-86) - 42.5*u(nat-gas,hylsap,1984-86) - 29.75*u(nat-gas,tampico,1984-86) - 29.75*u(nat-gas,coatza,1984-86) - 26*u(electric,ahmsa,1984-86)
+     
+      - 26*u(electric,fundidora,1984-86) - 18.2*u(electric,sicartsa,1984-86) - 26*u(electric,hylsa,1984-86) - 26*u(electric,hylsap,1984-86) - 18.2*u(electric,tampico,1984-86) - 18.2*u(electric,coatza,1984-86) - 105*u(scrap,ahmsa,1984-86)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 22
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     apsi  =E=  accounting: raw materials                        (mill us$)     
+     
+      - 105*u(scrap,fundidora,1984-86) - 105*u(scrap,sicartsa,1984-86) - 105*u(scrap,hylsa,1984-86) - 105*u(scrap,hylsap,1984-86) - 105*u(scrap,tampico,1984-86) - 105*u(scrap,coatza,1984-86) + phipsi(1984-86) =E= 0 ; (LHS = 0)
+     
+apsi(1987-89)..  - 18.7*w(pellets,1,ore-north,1987-89) - 18.7*w(pellets,1,ore-south,1987-89) - 21.8833128347396*w(pellets,2,ore-north,1987-89) - 21.8833128347396*w(pellets,2,ore-south,1987-89) - 26.5382356248377*w(pellets,3,ore-north,1987-89)
+     
+      - 26.5382356248377*w(pellets,3,ore-south,1987-89) - 31.9781310734488*w(pellets,4,ore-north,1987-89) - 31.9781310734488*w(pellets,4,ore-south,1987-89) - 38*w(pellets,5,ore-north,1987-89) - 38*w(pellets,5,ore-south,1987-89)
+     
+      - 52*w(coke,1,coahuila,1987-89) - 59.9170474646374*w(coke,2,coahuila,1987-89) - 71.4940575125497*w(coke,3,coahuila,1987-89) - 85.0233311671265*w(coke,4,coahuila,1987-89) - 100*w(coke,5,coahuila,1987-89) - 71*u(nat-gas,ahmsa,1987-89)
+     
+      - 71*u(nat-gas,fundidora,1987-89) - 49.7*u(nat-gas,sicartsa,1987-89) - 71*u(nat-gas,hylsa,1987-89) - 71*u(nat-gas,hylsap,1987-89) - 49.7*u(nat-gas,tampico,1987-89) - 49.7*u(nat-gas,coatza,1987-89) - 26*u(electric,ahmsa,1987-89)
+     
+      - 26*u(electric,fundidora,1987-89) - 18.2*u(electric,sicartsa,1987-89) - 26*u(electric,hylsa,1987-89) - 26*u(electric,hylsap,1987-89) - 18.2*u(electric,tampico,1987-89) - 18.2*u(electric,coatza,1987-89) - 105*u(scrap,ahmsa,1987-89)
+     
+      - 105*u(scrap,fundidora,1987-89) - 105*u(scrap,sicartsa,1987-89) - 105*u(scrap,hylsa,1987-89) - 105*u(scrap,hylsap,1987-89) - 105*u(scrap,tampico,1987-89) - 105*u(scrap,coatza,1987-89) + phipsi(1987-89) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- alam  =E=  accounting: transport                            (mill us$)
+
+alam(1981-83)..  - 12.5936*x(steel,ahmsa,mexico-df,1981-83) - 4.3112*x(steel,ahmsa,monterrey,1981-83) - 11.93*x(steel,ahmsa,guadalaja,1981-83) - 11.0228*x(steel,fundidora,mexico-df,1981-83) - 11.132*x(steel,fundidora,guadalaja,1981-83)
+     
+      - 9.3596*x(steel,sicartsa,mexico-df,1981-83) - 13.442*x(steel,sicartsa,monterrey,1981-83) - 8.3936*x(steel,sicartsa,guadalaja,1981-83) - 11.0228*x(steel,hylsa,mexico-df,1981-83) - 11.132*x(steel,hylsa,guadalaja,1981-83)
+     
+      - 4.034*x(steel,hylsap,mexico-df,1981-83) - 11.594*x(steel,hylsap,monterrey,1981-83) - 8.864*x(steel,hylsap,guadalaja,1981-83) - 10.3844*x(steel,tampico,mexico-df,1981-83) - 6.8564*x(steel,tampico,monterrey,1981-83)
+     
+      - 10.838*x(steel,tampico,guadalaja,1981-83) - 10.04*x(steel,coatza,mexico-df,1981-83) - 17.2304*x(steel,coatza,monterrey,1981-83) - 11.72*x(steel,coatza,guadalaja,1981-83) - 4.3112*xn(sponge,ahmsa,fundidora,1981-83)
+     
+      - 14.3744*xn(sponge,ahmsa,sicartsa,1981-83) - 4.3112*xn(sponge,ahmsa,hylsa,1981-83) - 13.4*xn(sponge,ahmsa,hylsap,1981-83) - 8.6876*xn(sponge,ahmsa,tampico,1981-83) - 18.02*xn(sponge,ahmsa,coatza,1981-83) - 4.3112*xn(sponge,fundidora,ahmsa,1981-83)
+     
+      - 13.5848*xn(sponge,fundidora,sicartsa,1981-83) - 2.564*xn(sponge,fundidora,hylsa,1981-83) - 12.2156*xn(sponge,fundidora,hylsap,1981-83) - 6.8564*xn(sponge,fundidora,tampico,1981-83) - 17.2304*xn(sponge,fundidora,coatza,1981-83)
+     
+      - 14.3744*xn(sponge,sicartsa,ahmsa,1981-83) - 13.5848*xn(sponge,sicartsa,fundidora,1981-83) - 13.6268*xn(sponge,sicartsa,hylsa,1981-83) - 10.838*xn(sponge,sicartsa,hylsap,1981-83) - 13.5596*xn(sponge,sicartsa,tampico,1981-83)
+     
+      - 16.2392*xn(sponge,sicartsa,coatza,1981-83) - 4.3112*xn(sponge,hylsa,ahmsa,1981-83) - 2.564*xn(sponge,hylsa,fundidora,1981-83) - 13.6268*xn(sponge,hylsa,sicartsa,1981-83) - 12.2156*xn(sponge,hylsa,hylsap,1981-83)
+     
+      - 6.8564*xn(sponge,hylsa,tampico,1981-83) - 17.2304*xn(sponge,hylsa,coatza,1981-83) - 13.4*xn(sponge,hylsap,ahmsa,1981-83) - 12.2156*xn(sponge,hylsap,fundidora,1981-83) - 10.838*xn(sponge,hylsap,sicartsa,1981-83)
+     
+      - 12.2156*xn(sponge,hylsap,hylsa,1981-83) - 11.8124*xn(sponge,hylsap,tampico,1981-83) - 8.1164*xn(sponge,hylsap,coatza,1981-83) - 8.6876*xn(sponge,tampico,ahmsa,1981-83) - 6.8564*xn(sponge,tampico,fundidora,1981-83)
+     
+      - 13.5596*xn(sponge,tampico,sicartsa,1981-83) - 6.8564*xn(sponge,tampico,hylsa,1981-83) - 11.8124*xn(sponge,tampico,hylsap,1981-83) - 16.7768*xn(sponge,tampico,coatza,1981-83) - 18.02*xn(sponge,coatza,ahmsa,1981-83)
+     
+      - 17.2304*xn(sponge,coatza,fundidora,1981-83) - 16.2392*xn(sponge,coatza,sicartsa,1981-83) - 17.2304*xn(sponge,coatza,hylsa,1981-83) - 8.1164*xn(sponge,coatza,hylsap,1981-83) - 16.7768*xn(sponge,coatza,tampico,1981-83)
+     
+      - 3.488*xm(pellets,coahuila,ahmsa,1981-83) - 5.84*xm(pellets,coahuila,fundidora,1981-83) - 15.08*xm(pellets,coahuila,sicartsa,1981-83) - 5.84*xm(pellets,coahuila,hylsa,1981-83) - 14.408*xm(pellets,coahuila,hylsap,1981-83)
+     
+      - 10.04*xm(pellets,coahuila,tampico,1981-83) - 20.12*xm(pellets,coahuila,coatza,1981-83) - 4.3196*xm(pellets,ore-north,ahmsa,1981-83) - 7.2092*xm(pellets,ore-north,fundidora,1981-83) - 16.0292*xm(pellets,ore-north,sicartsa,1981-83)
+     
+      - 7.2092*xm(pellets,ore-north,hylsa,1981-83) - 14.3324*xm(pellets,ore-north,hylsap,1981-83) - 11.2832*xm(pellets,ore-north,tampico,1981-83) - 20.918*xm(pellets,ore-north,coatza,1981-83) - 14.996*xm(pellets,ore-south,ahmsa,1981-83)
+     
+      - 14.2064*xm(pellets,ore-south,fundidora,1981-83) - 14.2064*xm(pellets,ore-south,hylsa,1981-83) - 11.8544*xm(pellets,ore-south,hylsap,1981-83) - 13.7192*xm(pellets,ore-south,tampico,1981-83) - 15.08*xm(pellets,ore-south,coatza,1981-83)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 23
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     alam  =E=  accounting: transport                            (mill us$)     
+     
+      - 3.488*xm(coke,coahuila,ahmsa,1981-83) - 5.84*xm(coke,coahuila,fundidora,1981-83) - 15.08*xm(coke,coahuila,sicartsa,1981-83) - 5.84*xm(coke,coahuila,hylsa,1981-83) - 14.408*xm(coke,coahuila,hylsap,1981-83) - 10.04*xm(coke,coahuila,tampico,1981-83)
+     
+      - 20.12*xm(coke,coahuila,coatza,1981-83) - 4.3196*xm(coke,ore-north,ahmsa,1981-83) - 7.2092*xm(coke,ore-north,fundidora,1981-83) - 16.0292*xm(coke,ore-north,sicartsa,1981-83) - 7.2092*xm(coke,ore-north,hylsa,1981-83)
+     
+      - 14.3324*xm(coke,ore-north,hylsap,1981-83) - 11.2832*xm(coke,ore-north,tampico,1981-83) - 20.918*xm(coke,ore-north,coatza,1981-83) - 14.996*xm(coke,ore-south,ahmsa,1981-83) - 14.2064*xm(coke,ore-south,fundidora,1981-83)
+     
+      - 14.2064*xm(coke,ore-south,hylsa,1981-83) - 11.8544*xm(coke,ore-south,hylsap,1981-83) - 13.7192*xm(coke,ore-south,tampico,1981-83) - 15.08*xm(coke,ore-south,coatza,1981-83) - 6.0752*v(steel,mexico-df,1981-83) - 6.8564*v(steel,monterrey,1981-83)
+     
+      - 5*v(steel,guadalaja,1981-83) - 8.6876*vr(pellets,ahmsa,1981-83) - 6.8564*vr(pellets,fundidora,1981-83) - 6.8564*vr(pellets,hylsa,1981-83) - 5.126*vr(pellets,hylsap,1981-83) - 8.6876*vr(coke,ahmsa,1981-83) - 6.8564*vr(coke,fundidora,1981-83)
+     
+      - 6.8564*vr(coke,hylsa,1981-83) - 5.126*vr(coke,hylsap,1981-83) - 8.6876*e(steel,ahmsa,1981-83) - 6.8564*e(steel,fundidora,1981-83) - 6.8564*e(steel,hylsa,1981-83) - 5.126*e(steel,hylsap,1981-83) + philam(1981-83) =E= 0 ; (LHS = 0)
+     
+alam(1984-86)..  - 12.5936*x(steel,ahmsa,mexico-df,1984-86) - 4.3112*x(steel,ahmsa,monterrey,1984-86) - 11.93*x(steel,ahmsa,guadalaja,1984-86) - 11.0228*x(steel,fundidora,mexico-df,1984-86) - 11.132*x(steel,fundidora,guadalaja,1984-86)
+     
+      - 9.3596*x(steel,sicartsa,mexico-df,1984-86) - 13.442*x(steel,sicartsa,monterrey,1984-86) - 8.3936*x(steel,sicartsa,guadalaja,1984-86) - 11.0228*x(steel,hylsa,mexico-df,1984-86) - 11.132*x(steel,hylsa,guadalaja,1984-86)
+     
+      - 4.034*x(steel,hylsap,mexico-df,1984-86) - 11.594*x(steel,hylsap,monterrey,1984-86) - 8.864*x(steel,hylsap,guadalaja,1984-86) - 10.3844*x(steel,tampico,mexico-df,1984-86) - 6.8564*x(steel,tampico,monterrey,1984-86)
+     
+      - 10.838*x(steel,tampico,guadalaja,1984-86) - 10.04*x(steel,coatza,mexico-df,1984-86) - 17.2304*x(steel,coatza,monterrey,1984-86) - 11.72*x(steel,coatza,guadalaja,1984-86) - 4.3112*xn(sponge,ahmsa,fundidora,1984-86)
+     
+      - 14.3744*xn(sponge,ahmsa,sicartsa,1984-86) - 4.3112*xn(sponge,ahmsa,hylsa,1984-86) - 13.4*xn(sponge,ahmsa,hylsap,1984-86) - 8.6876*xn(sponge,ahmsa,tampico,1984-86) - 18.02*xn(sponge,ahmsa,coatza,1984-86) - 4.3112*xn(sponge,fundidora,ahmsa,1984-86)
+     
+      - 13.5848*xn(sponge,fundidora,sicartsa,1984-86) - 2.564*xn(sponge,fundidora,hylsa,1984-86) - 12.2156*xn(sponge,fundidora,hylsap,1984-86) - 6.8564*xn(sponge,fundidora,tampico,1984-86) - 17.2304*xn(sponge,fundidora,coatza,1984-86)
+     
+      - 14.3744*xn(sponge,sicartsa,ahmsa,1984-86) - 13.5848*xn(sponge,sicartsa,fundidora,1984-86) - 13.6268*xn(sponge,sicartsa,hylsa,1984-86) - 10.838*xn(sponge,sicartsa,hylsap,1984-86) - 13.5596*xn(sponge,sicartsa,tampico,1984-86)
+     
+      - 16.2392*xn(sponge,sicartsa,coatza,1984-86) - 4.3112*xn(sponge,hylsa,ahmsa,1984-86) - 2.564*xn(sponge,hylsa,fundidora,1984-86) - 13.6268*xn(sponge,hylsa,sicartsa,1984-86) - 12.2156*xn(sponge,hylsa,hylsap,1984-86)
+     
+      - 6.8564*xn(sponge,hylsa,tampico,1984-86) - 17.2304*xn(sponge,hylsa,coatza,1984-86) - 13.4*xn(sponge,hylsap,ahmsa,1984-86) - 12.2156*xn(sponge,hylsap,fundidora,1984-86) - 10.838*xn(sponge,hylsap,sicartsa,1984-86)
+     
+      - 12.2156*xn(sponge,hylsap,hylsa,1984-86) - 11.8124*xn(sponge,hylsap,tampico,1984-86) - 8.1164*xn(sponge,hylsap,coatza,1984-86) - 8.6876*xn(sponge,tampico,ahmsa,1984-86) - 6.8564*xn(sponge,tampico,fundidora,1984-86)
+     
+      - 13.5596*xn(sponge,tampico,sicartsa,1984-86) - 6.8564*xn(sponge,tampico,hylsa,1984-86) - 11.8124*xn(sponge,tampico,hylsap,1984-86) - 16.7768*xn(sponge,tampico,coatza,1984-86) - 18.02*xn(sponge,coatza,ahmsa,1984-86)
+     
+      - 17.2304*xn(sponge,coatza,fundidora,1984-86) - 16.2392*xn(sponge,coatza,sicartsa,1984-86) - 17.2304*xn(sponge,coatza,hylsa,1984-86) - 8.1164*xn(sponge,coatza,hylsap,1984-86) - 16.7768*xn(sponge,coatza,tampico,1984-86)
+     
+      - 3.488*xm(pellets,coahuila,ahmsa,1984-86) - 5.84*xm(pellets,coahuila,fundidora,1984-86) - 15.08*xm(pellets,coahuila,sicartsa,1984-86) - 5.84*xm(pellets,coahuila,hylsa,1984-86) - 14.408*xm(pellets,coahuila,hylsap,1984-86)
+     
+      - 10.04*xm(pellets,coahuila,tampico,1984-86) - 20.12*xm(pellets,coahuila,coatza,1984-86) - 4.3196*xm(pellets,ore-north,ahmsa,1984-86) - 7.2092*xm(pellets,ore-north,fundidora,1984-86) - 16.0292*xm(pellets,ore-north,sicartsa,1984-86)
+     
+      - 7.2092*xm(pellets,ore-north,hylsa,1984-86) - 14.3324*xm(pellets,ore-north,hylsap,1984-86) - 11.2832*xm(pellets,ore-north,tampico,1984-86) - 20.918*xm(pellets,ore-north,coatza,1984-86) - 14.996*xm(pellets,ore-south,ahmsa,1984-86)
+     
+      - 14.2064*xm(pellets,ore-south,fundidora,1984-86) - 14.2064*xm(pellets,ore-south,hylsa,1984-86) - 11.8544*xm(pellets,ore-south,hylsap,1984-86) - 13.7192*xm(pellets,ore-south,tampico,1984-86) - 15.08*xm(pellets,ore-south,coatza,1984-86)
+     
+      - 3.488*xm(coke,coahuila,ahmsa,1984-86) - 5.84*xm(coke,coahuila,fundidora,1984-86) - 15.08*xm(coke,coahuila,sicartsa,1984-86) - 5.84*xm(coke,coahuila,hylsa,1984-86) - 14.408*xm(coke,coahuila,hylsap,1984-86) - 10.04*xm(coke,coahuila,tampico,1984-86)
+     
+      - 20.12*xm(coke,coahuila,coatza,1984-86) - 4.3196*xm(coke,ore-north,ahmsa,1984-86) - 7.2092*xm(coke,ore-north,fundidora,1984-86) - 16.0292*xm(coke,ore-north,sicartsa,1984-86) - 7.2092*xm(coke,ore-north,hylsa,1984-86)
+     
+      - 14.3324*xm(coke,ore-north,hylsap,1984-86) - 11.2832*xm(coke,ore-north,tampico,1984-86) - 20.918*xm(coke,ore-north,coatza,1984-86) - 14.996*xm(coke,ore-south,ahmsa,1984-86) - 14.2064*xm(coke,ore-south,fundidora,1984-86)
+     
+      - 14.2064*xm(coke,ore-south,hylsa,1984-86) - 11.8544*xm(coke,ore-south,hylsap,1984-86) - 13.7192*xm(coke,ore-south,tampico,1984-86) - 15.08*xm(coke,ore-south,coatza,1984-86) - 6.0752*v(steel,mexico-df,1984-86) - 6.8564*v(steel,monterrey,1984-86)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 24
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+     alam  =E=  accounting: transport                            (mill us$)     
+     
+      - 5*v(steel,guadalaja,1984-86) - 8.6876*vr(pellets,ahmsa,1984-86) - 6.8564*vr(pellets,fundidora,1984-86) - 6.8564*vr(pellets,hylsa,1984-86) - 5.126*vr(pellets,hylsap,1984-86) - 8.6876*vr(coke,ahmsa,1984-86) - 6.8564*vr(coke,fundidora,1984-86)
+     
+      - 6.8564*vr(coke,hylsa,1984-86) - 5.126*vr(coke,hylsap,1984-86) - 8.6876*e(steel,ahmsa,1984-86) - 6.8564*e(steel,fundidora,1984-86) - 6.8564*e(steel,hylsa,1984-86) - 5.126*e(steel,hylsap,1984-86) + philam(1984-86) =E= 0 ; (LHS = 0)
+     
+alam(1987-89)..  - 12.5936*x(steel,ahmsa,mexico-df,1987-89) - 4.3112*x(steel,ahmsa,monterrey,1987-89) - 11.93*x(steel,ahmsa,guadalaja,1987-89) - 11.0228*x(steel,fundidora,mexico-df,1987-89) - 11.132*x(steel,fundidora,guadalaja,1987-89)
+     
+      - 9.3596*x(steel,sicartsa,mexico-df,1987-89) - 13.442*x(steel,sicartsa,monterrey,1987-89) - 8.3936*x(steel,sicartsa,guadalaja,1987-89) - 11.0228*x(steel,hylsa,mexico-df,1987-89) - 11.132*x(steel,hylsa,guadalaja,1987-89)
+     
+      - 4.034*x(steel,hylsap,mexico-df,1987-89) - 11.594*x(steel,hylsap,monterrey,1987-89) - 8.864*x(steel,hylsap,guadalaja,1987-89) - 10.3844*x(steel,tampico,mexico-df,1987-89) - 6.8564*x(steel,tampico,monterrey,1987-89)
+     
+      - 10.838*x(steel,tampico,guadalaja,1987-89) - 10.04*x(steel,coatza,mexico-df,1987-89) - 17.2304*x(steel,coatza,monterrey,1987-89) - 11.72*x(steel,coatza,guadalaja,1987-89) - 4.3112*xn(sponge,ahmsa,fundidora,1987-89)
+     
+      - 14.3744*xn(sponge,ahmsa,sicartsa,1987-89) - 4.3112*xn(sponge,ahmsa,hylsa,1987-89) - 13.4*xn(sponge,ahmsa,hylsap,1987-89) - 8.6876*xn(sponge,ahmsa,tampico,1987-89) - 18.02*xn(sponge,ahmsa,coatza,1987-89) - 4.3112*xn(sponge,fundidora,ahmsa,1987-89)
+     
+      - 13.5848*xn(sponge,fundidora,sicartsa,1987-89) - 2.564*xn(sponge,fundidora,hylsa,1987-89) - 12.2156*xn(sponge,fundidora,hylsap,1987-89) - 6.8564*xn(sponge,fundidora,tampico,1987-89) - 17.2304*xn(sponge,fundidora,coatza,1987-89)
+     
+      - 14.3744*xn(sponge,sicartsa,ahmsa,1987-89) - 13.5848*xn(sponge,sicartsa,fundidora,1987-89) - 13.6268*xn(sponge,sicartsa,hylsa,1987-89) - 10.838*xn(sponge,sicartsa,hylsap,1987-89) - 13.5596*xn(sponge,sicartsa,tampico,1987-89)
+     
+      - 16.2392*xn(sponge,sicartsa,coatza,1987-89) - 4.3112*xn(sponge,hylsa,ahmsa,1987-89) - 2.564*xn(sponge,hylsa,fundidora,1987-89) - 13.6268*xn(sponge,hylsa,sicartsa,1987-89) - 12.2156*xn(sponge,hylsa,hylsap,1987-89)
+     
+      - 6.8564*xn(sponge,hylsa,tampico,1987-89) - 17.2304*xn(sponge,hylsa,coatza,1987-89) - 13.4*xn(sponge,hylsap,ahmsa,1987-89) - 12.2156*xn(sponge,hylsap,fundidora,1987-89) - 10.838*xn(sponge,hylsap,sicartsa,1987-89)
+     
+      - 12.2156*xn(sponge,hylsap,hylsa,1987-89) - 11.8124*xn(sponge,hylsap,tampico,1987-89) - 8.1164*xn(sponge,hylsap,coatza,1987-89) - 8.6876*xn(sponge,tampico,ahmsa,1987-89) - 6.8564*xn(sponge,tampico,fundidora,1987-89)
+     
+      - 13.5596*xn(sponge,tampico,sicartsa,1987-89) - 6.8564*xn(sponge,tampico,hylsa,1987-89) - 11.8124*xn(sponge,tampico,hylsap,1987-89) - 16.7768*xn(sponge,tampico,coatza,1987-89) - 18.02*xn(sponge,coatza,ahmsa,1987-89)
+     
+      - 17.2304*xn(sponge,coatza,fundidora,1987-89) - 16.2392*xn(sponge,coatza,sicartsa,1987-89) - 17.2304*xn(sponge,coatza,hylsa,1987-89) - 8.1164*xn(sponge,coatza,hylsap,1987-89) - 16.7768*xn(sponge,coatza,tampico,1987-89)
+     
+      - 3.488*xm(pellets,coahuila,ahmsa,1987-89) - 5.84*xm(pellets,coahuila,fundidora,1987-89) - 15.08*xm(pellets,coahuila,sicartsa,1987-89) - 5.84*xm(pellets,coahuila,hylsa,1987-89) - 14.408*xm(pellets,coahuila,hylsap,1987-89)
+     
+      - 10.04*xm(pellets,coahuila,tampico,1987-89) - 20.12*xm(pellets,coahuila,coatza,1987-89) - 4.3196*xm(pellets,ore-north,ahmsa,1987-89) - 7.2092*xm(pellets,ore-north,fundidora,1987-89) - 16.0292*xm(pellets,ore-north,sicartsa,1987-89)
+     
+      - 7.2092*xm(pellets,ore-north,hylsa,1987-89) - 14.3324*xm(pellets,ore-north,hylsap,1987-89) - 11.2832*xm(pellets,ore-north,tampico,1987-89) - 20.918*xm(pellets,ore-north,coatza,1987-89) - 14.996*xm(pellets,ore-south,ahmsa,1987-89)
+     
+      - 14.2064*xm(pellets,ore-south,fundidora,1987-89) - 14.2064*xm(pellets,ore-south,hylsa,1987-89) - 11.8544*xm(pellets,ore-south,hylsap,1987-89) - 13.7192*xm(pellets,ore-south,tampico,1987-89) - 15.08*xm(pellets,ore-south,coatza,1987-89)
+     
+      - 3.488*xm(coke,coahuila,ahmsa,1987-89) - 5.84*xm(coke,coahuila,fundidora,1987-89) - 15.08*xm(coke,coahuila,sicartsa,1987-89) - 5.84*xm(coke,coahuila,hylsa,1987-89) - 14.408*xm(coke,coahuila,hylsap,1987-89) - 10.04*xm(coke,coahuila,tampico,1987-89)
+     
+      - 20.12*xm(coke,coahuila,coatza,1987-89) - 4.3196*xm(coke,ore-north,ahmsa,1987-89) - 7.2092*xm(coke,ore-north,fundidora,1987-89) - 16.0292*xm(coke,ore-north,sicartsa,1987-89) - 7.2092*xm(coke,ore-north,hylsa,1987-89)
+     
+      - 14.3324*xm(coke,ore-north,hylsap,1987-89) - 11.2832*xm(coke,ore-north,tampico,1987-89) - 20.918*xm(coke,ore-north,coatza,1987-89) - 14.996*xm(coke,ore-south,ahmsa,1987-89) - 14.2064*xm(coke,ore-south,fundidora,1987-89)
+     
+      - 14.2064*xm(coke,ore-south,hylsa,1987-89) - 11.8544*xm(coke,ore-south,hylsap,1987-89) - 13.7192*xm(coke,ore-south,tampico,1987-89) - 15.08*xm(coke,ore-south,coatza,1987-89) - 6.0752*v(steel,mexico-df,1987-89) - 6.8564*v(steel,monterrey,1987-89)
+     
+      - 5*v(steel,guadalaja,1987-89) - 8.6876*vr(pellets,ahmsa,1987-89) - 6.8564*vr(pellets,fundidora,1987-89) - 6.8564*vr(pellets,hylsa,1987-89) - 5.126*vr(pellets,hylsap,1987-89) - 8.6876*vr(coke,ahmsa,1987-89) - 6.8564*vr(coke,fundidora,1987-89)
+     
+      - 6.8564*vr(coke,hylsa,1987-89) - 5.126*vr(coke,hylsap,1987-89) - 8.6876*e(steel,ahmsa,1987-89) - 6.8564*e(steel,fundidora,1987-89) - 6.8564*e(steel,hylsa,1987-89) - 5.126*e(steel,hylsap,1987-89) + philam(1987-89) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 25
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Equation Listing    SOLVE mexsd Using MIP From line 359
+
+
+---- api  =E=  accounting: import cost                          (mill us$)
+
+api(1981-83)..  - 150*v(steel,mexico-df,1981-83) - 150*v(steel,monterrey,1981-83) - 150*v(steel,guadalaja,1981-83) - 40*vr(pellets,ahmsa,1981-83) - 40*vr(pellets,fundidora,1981-83) - 40*vr(pellets,sicartsa,1981-83) - 40*vr(pellets,hylsa,1981-83)
+     
+      - 40*vr(pellets,hylsap,1981-83) - 40*vr(pellets,tampico,1981-83) - 40*vr(pellets,coatza,1981-83) - 60*vr(coke,ahmsa,1981-83) - 60*vr(coke,fundidora,1981-83) - 60*vr(coke,sicartsa,1981-83) - 60*vr(coke,hylsa,1981-83) - 60*vr(coke,hylsap,1981-83)
+     
+      - 60*vr(coke,tampico,1981-83) - 60*vr(coke,coatza,1981-83) + phipi(1981-83) =E= 0 ; (LHS = 0)
+     
+api(1984-86)..  - 150*v(steel,mexico-df,1984-86) - 150*v(steel,monterrey,1984-86) - 150*v(steel,guadalaja,1984-86) - 40*vr(pellets,ahmsa,1984-86) - 40*vr(pellets,fundidora,1984-86) - 40*vr(pellets,sicartsa,1984-86) - 40*vr(pellets,hylsa,1984-86)
+     
+      - 40*vr(pellets,hylsap,1984-86) - 40*vr(pellets,tampico,1984-86) - 40*vr(pellets,coatza,1984-86) - 60*vr(coke,ahmsa,1984-86) - 60*vr(coke,fundidora,1984-86) - 60*vr(coke,sicartsa,1984-86) - 60*vr(coke,hylsa,1984-86) - 60*vr(coke,hylsap,1984-86)
+     
+      - 60*vr(coke,tampico,1984-86) - 60*vr(coke,coatza,1984-86) + phipi(1984-86) =E= 0 ; (LHS = 0)
+     
+api(1987-89)..  - 150*v(steel,mexico-df,1987-89) - 150*v(steel,monterrey,1987-89) - 150*v(steel,guadalaja,1987-89) - 40*vr(pellets,ahmsa,1987-89) - 40*vr(pellets,fundidora,1987-89) - 40*vr(pellets,sicartsa,1987-89) - 40*vr(pellets,hylsa,1987-89)
+     
+      - 40*vr(pellets,hylsap,1987-89) - 40*vr(pellets,tampico,1987-89) - 40*vr(pellets,coatza,1987-89) - 60*vr(coke,ahmsa,1987-89) - 60*vr(coke,fundidora,1987-89) - 60*vr(coke,sicartsa,1987-89) - 60*vr(coke,hylsa,1987-89) - 60*vr(coke,hylsap,1987-89)
+     
+      - 60*vr(coke,tampico,1987-89) - 60*vr(coke,coatza,1987-89) + phipi(1987-89) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+
+---- aeps  =E=  accounting: export revenue                       (mill us$)
+
+aeps(1981-83)..  - 140*e(steel,ahmsa,1981-83) - 140*e(steel,fundidora,1981-83) - 140*e(steel,sicartsa,1981-83) - 140*e(steel,hylsa,1981-83) - 140*e(steel,hylsap,1981-83) - 140*e(steel,tampico,1981-83) - 140*e(steel,coatza,1981-83) + phieps(1981-83) =E= 0
+      ; (LHS = 0)
+     
+aeps(1984-86)..  - 140*e(steel,ahmsa,1984-86) - 140*e(steel,fundidora,1984-86) - 140*e(steel,sicartsa,1984-86) - 140*e(steel,hylsa,1984-86) - 140*e(steel,hylsap,1984-86) - 140*e(steel,tampico,1984-86) - 140*e(steel,coatza,1984-86) + phieps(1984-86) =E= 0
+      ; (LHS = 0)
+     
+aeps(1987-89)..  - 140*e(steel,ahmsa,1987-89) - 140*e(steel,fundidora,1987-89) - 140*e(steel,sicartsa,1987-89) - 140*e(steel,hylsa,1987-89) - 140*e(steel,hylsap,1987-89) - 140*e(steel,tampico,1987-89) - 140*e(steel,coatza,1987-89) + phieps(1987-89) =E= 0
+      ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 26
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+---- z  process level                                    (mill tpy)
+
+z(pig-iron,ahmsa,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.58    mb(pellets,ahmsa,1981-83)
+       -0.63    mb(coke,ahmsa,1981-83)
+        1       mb(pig-iron,ahmsa,1981-83)
+        1       cc(blast-furn,ahmsa,1981-83)
+        1       zb(ahmsa,1981-83)
+
+z(pig-iron,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.58    mb(pellets,ahmsa,1984-86)
+       -0.63    mb(coke,ahmsa,1984-86)
+        1       mb(pig-iron,ahmsa,1984-86)
+        1       cc(blast-furn,ahmsa,1984-86)
+        1       zb(ahmsa,1984-86)
+
+z(pig-iron,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.58    mb(pellets,ahmsa,1987-89)
+       -0.63    mb(coke,ahmsa,1987-89)
+        1       mb(pig-iron,ahmsa,1987-89)
+        1       cc(blast-furn,ahmsa,1987-89)
+        1       zb(ahmsa,1987-89)
+
+REMAINING 207 ENTRIES SKIPPED
+
+---- w  production of mining products                    (mill tpy)
+
+w(pellets,1,coahuila,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbm(pellets,coahuila,1981-83)
+        1       ccm(pellets,1,coahuila)
+
+w(pellets,1,coahuila,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbm(pellets,coahuila,1984-86)
+        1       ccm(pellets,1,coahuila)
+
+w(pellets,1,coahuila,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbm(pellets,coahuila,1987-89)
+        1       ccm(pellets,1,coahuila)
+
+REMAINING 147 ENTRIES SKIPPED
+
+---- x  shipment of final products                       (mill tpy)
+
+x(steel,ahmsa,mexico-df,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(steel,ahmsa,1981-83)
+        1       mr(steel,mexico-df,1981-83)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 27
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     x  shipment of final products                       (mill tpy)
+
+      -12.5936  alam(1981-83)
+
+x(steel,ahmsa,mexico-df,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(steel,ahmsa,1984-86)
+        1       mr(steel,mexico-df,1984-86)
+      -12.5936  alam(1984-86)
+
+x(steel,ahmsa,mexico-df,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(steel,ahmsa,1987-89)
+        1       mr(steel,mexico-df,1987-89)
+      -12.5936  alam(1987-89)
+
+REMAINING 102 ENTRIES SKIPPED
+
+---- xn  interplant shipments                             (mill tpy)
+
+xn(sponge,ahmsa,fundidora,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(sponge,ahmsa,1981-83)
+        1       mb(sponge,fundidora,1981-83)
+       -4.3112  alam(1981-83)
+
+xn(sponge,ahmsa,fundidora,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(sponge,ahmsa,1984-86)
+        1       mb(sponge,fundidora,1984-86)
+       -4.3112  alam(1984-86)
+
+xn(sponge,ahmsa,fundidora,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(sponge,ahmsa,1987-89)
+        1       mb(sponge,fundidora,1987-89)
+       -4.3112  alam(1987-89)
+
+REMAINING 207 ENTRIES SKIPPED
+
+---- xm  shipment of mining products                      (mill tpy)
+
+xm(pellets,coahuila,ahmsa,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(pellets,ahmsa,1981-83)
+       -1       mbm(pellets,coahuila,1981-83)
+       -3.488   alam(1981-83)
+
+xm(pellets,coahuila,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(pellets,ahmsa,1984-86)
+       -1       mbm(pellets,coahuila,1984-86)
+       -3.488   alam(1984-86)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 28
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     xm  shipment of mining products                      (mill tpy)
+
+
+xm(pellets,coahuila,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(pellets,ahmsa,1987-89)
+       -1       mbm(pellets,coahuila,1987-89)
+       -3.488   alam(1987-89)
+
+REMAINING 207 ENTRIES SKIPPED
+
+---- u  purchase of domestic materials        (mill units per year)
+
+u(nat-gas,ahmsa,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(nat-gas,ahmsa,1981-83)
+      -14       apsi(1981-83)
+
+u(nat-gas,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(nat-gas,ahmsa,1984-86)
+      -42.5     apsi(1984-86)
+
+u(nat-gas,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(nat-gas,ahmsa,1987-89)
+      -71       apsi(1987-89)
+
+REMAINING 102 ENTRIES SKIPPED
+
+---- h  capacity expansion                               (mill tpy)
+
+h(blast-furn,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cc(blast-furn,ahmsa,1984-86)
+       -1       cc(blast-furn,ahmsa,1987-89)
+       -1       cc(blast-furn,ahmsa,1990-92)
+       -1       cc(blast-furn,ahmsa,1993-95)
+        1       ih(blast-furn,ahmsa,1984-86)
+
+h(blast-furn,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cc(blast-furn,ahmsa,1987-89)
+       -1       cc(blast-furn,ahmsa,1990-92)
+       -1       cc(blast-furn,ahmsa,1993-95)
+        1       ih(blast-furn,ahmsa,1987-89)
+
+h(blast-furn,ahmsa,1990-92)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       cc(blast-furn,ahmsa,1990-92)
+       -1       cc(blast-furn,ahmsa,1993-95)
+        1       ih(blast-furn,ahmsa,1990-92)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 29
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     h  capacity expansion                               (mill tpy)
+
+REMAINING 109 ENTRIES SKIPPED
+
+---- s  investment function segment
+
+s(blast-furn,1,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ic(blast-furn,ahmsa,1984-86)
+       -9.3823  akap(1984-86)
+       -9.3823  akap(1987-89)
+       -9.3823  akap(1990-92)
+       -9.3823  akap(1993-95)
+
+s(blast-furn,1,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ic(blast-furn,ahmsa,1987-89)
+       -9.3823  akap(1987-89)
+       -9.3823  akap(1990-92)
+       -9.3823  akap(1993-95)
+
+s(blast-furn,1,ahmsa,1990-92)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       ic(blast-furn,ahmsa,1990-92)
+       -9.3823  akap(1990-92)
+       -9.3823  akap(1993-95)
+
+REMAINING 445 ENTRIES SKIPPED
+
+---- y  binary variable
+
+y(blast-furn,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       ic(blast-furn,ahmsa,1984-86)
+
+y(blast-furn,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       ic(blast-furn,ahmsa,1987-89)
+
+y(blast-furn,ahmsa,1990-92)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       ic(blast-furn,ahmsa,1990-92)
+
+REMAINING 109 ENTRIES SKIPPED
+
+---- v  imports                                          (mill tpy)
+
+v(steel,mexico-df,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mr(steel,mexico-df,1981-83)
+       -6.0752  alam(1981-83)
+     -150       api(1981-83)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 30
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     v  imports                                          (mill tpy)
+
+v(steel,mexico-df,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mr(steel,mexico-df,1984-86)
+       -6.0752  alam(1984-86)
+     -150       api(1984-86)
+
+v(steel,mexico-df,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mr(steel,mexico-df,1987-89)
+       -6.0752  alam(1987-89)
+     -150       api(1987-89)
+
+REMAINING 12 ENTRIES SKIPPED
+
+---- vr  imports of raw materials                         (mill tpy)
+
+vr(pellets,ahmsa,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(pellets,ahmsa,1981-83)
+       -8.6876  alam(1981-83)
+      -40       api(1981-83)
+
+vr(pellets,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(pellets,ahmsa,1984-86)
+       -8.6876  alam(1984-86)
+      -40       api(1984-86)
+
+vr(pellets,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(pellets,ahmsa,1987-89)
+       -8.6876  alam(1987-89)
+      -40       api(1987-89)
+
+REMAINING 67 ENTRIES SKIPPED
+
+---- e  exports                                          (mill tpy)
+
+e(steel,ahmsa,1981-83)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(steel,ahmsa,1981-83)
+        1       eb(1981-83)
+       -8.6876  alam(1981-83)
+     -140       aeps(1981-83)
+
+e(steel,ahmsa,1984-86)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(steel,ahmsa,1984-86)
+        1       eb(1984-86)
+       -8.6876  alam(1984-86)
+     -140       aeps(1984-86)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 31
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     e  exports                                          (mill tpy)
+
+
+e(steel,ahmsa,1987-89)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(steel,ahmsa,1987-89)
+        1       eb(1987-89)
+       -8.6876  alam(1987-89)
+     -140       aeps(1987-89)
+
+REMAINING 32 ENTRIES SKIPPED
+
+---- phi  total cost (discounted)                          (mill us$)
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+
+---- phikap  capital cost                                     (mill us$)
+
+phikap(1981-83)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -2.2539  obj
+        1       akap(1981-83)
+
+phikap(1984-86)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.6934  obj
+        1       akap(1984-86)
+
+phikap(1987-89)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.2723  obj
+        1       akap(1987-89)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- phipsi  raw material cost                                (mill us$)
+
+phipsi(1981-83)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -2.2539  obj
+        1       apsi(1981-83)
+
+phipsi(1984-86)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.6934  obj
+        1       apsi(1984-86)
+
+phipsi(1987-89)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.2723  obj
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 32
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     phipsi  raw material cost                                (mill us$)
+
+        1       apsi(1987-89)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- philam  transport cost                                   (mill us$)
+
+philam(1981-83)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -2.2539  obj
+        1       alam(1981-83)
+
+philam(1984-86)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.6934  obj
+        1       alam(1984-86)
+
+philam(1987-89)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.2723  obj
+        1       alam(1987-89)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- phipi  import cost                                      (mill us$)
+
+phipi(1981-83)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -2.2539  obj
+        1       api(1981-83)
+
+phipi(1984-86)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.6934  obj
+        1       api(1984-86)
+
+phipi(1987-89)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1.2723  obj
+        1       api(1987-89)
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- phieps  export revenue                                   (mill us$)
+
+phieps(1981-83)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        2.2539  obj
+        1       aeps(1981-83)
+
+phieps(1984-86)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 33
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Column Listing      SOLVE mexsd Using MIP From line 359
+
+
+     phieps  export revenue                                   (mill us$)
+
+        1.6934  obj
+        1       aeps(1984-86)
+
+phieps(1987-89)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1.2723  obj
+        1       aeps(1987-89)
+
+REMAINING 2 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 34
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Model Statistics    SOLVE mexsd Using MIP From line 359
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          15     SINGLE EQUATIONS          820
+BLOCKS OF VARIABLES          18     SINGLE VARIABLES        1,808
+NON ZERO ELEMENTS         5,859     DISCRETE VARIABLES        112
+
+
+GENERATION TIME      =        0.010 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.011 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:30 Page 35
+MEXICO Steel - Small Dynamic    (MEXSD,SEQ=16)
+Solution Report     SOLVE mexsd Using MIP From line 359
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   mexsd               OBJECTIVE  phi
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  359
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mexsd/convert.opt"
+>>  gams mexsd-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mexsd/convert.opt"
+Gams      : mexsd-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mexsd/mexsd.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mexsd/mexsd-scalar.gms.lst

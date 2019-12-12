@@ -1,0 +1,33 @@
+--- Job qp7.gms Start 12/13/18 11:23:22 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- qp7.gms(43) 2 Mb
+--- .qpdata.inc(16290) 4 Mb
+--- qp7.gms(94) 4 Mb
+--- Starting execution: elapsed 0:00:00.020
+--- qp7.gms(16350) 6 Mb
+--- Generating QCP model qp7
+--- qp7.gms(16381) 8 Mb
+---   34 rows  82 columns  1,585 non-zeroes
+---   93 nl-code  31 nl-non-zeroes
+--- qp7.gms(16381) 6 Mb
+--- Executing CONVERT: elapsed 0:00:00.030
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp7/convert.opt"
+>>  pyomo qp7-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp7/convert.opt"
+--- Writing Pyomo     : qp7-scalar.py
+
+--- Restarting execution
+--- qp7.gms(16381) 4 Mb
+--- Reading solution for model qp7
+--- qp7.gms(16383) 4 Mb
+*** Status: Normal completion
+--- Job qp7.gms Stop 12/13/18 11:23:22 elapsed 0:00:00.054

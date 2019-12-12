@@ -1,0 +1,760 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MCP=convert;
+   2  option MCP=convert;
+   3  option MCP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 2
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+C o m p i l a t i o n
+
+
+       
+       Formulate the QP as an LCP, ie write down the first order
+       conditions of QP4 and solve.
+       
+       
+      Kalvelagen, E, Model Building with GAMS. forthcoming
+       
+      de Wetering, A V, private communication.
+       
+  16   
+INCLUDE    /home/renigijus/gams/opt-mod-lib/gamslib/qp6/qpdata.inc
+  18  * From StockMaster at MIT
+  19   
+  20  sets       days    100 days from 95-11-27 to 96-04-29
+  21             stocks  170 selected stocks
+  22             upper(stocks,stocks)
+  23             lower(stocks,stocks);
+  24  alias (stocks,sstocks);
+  25   
+  26  parameters val(stocks,days)    closing value
+  27             return(stocks,days) daily returns - derived;
+  28   
+  29  set days days /
+  30    951127
+  31    951128
+ 133   
+ 134  set stocks /
+ 135    GAB
+ 136    GAP
+ 137    GDW
+ 298   
+ 299  parameter val(stocks,days) closing value /
+ 300    GAB  .951127                9.25
+ 301    GAB  .951128                9.25
+ 302    GAB  .951129                9.25
+ 303   
+16304  return(stocks,days-1) = val(stocks,days)-val(stocks,days-1);
+16305   
+16306  upper(stocks,sstocks) = ord(stocks) <= ord(sstocks);
+16307  lower(stocks,sstocks) = not upper(stocks,sstocks);
+16308   
+16309  set d(days)   selected days
+16310      s(stocks) selected stocks
+16311  alias(s,t);
+16312   
+16313  * select subset of stocks and periods
+16314  d(days)   = ord(days) >1 and ord(days) < 31;
+16315  s(stocks) = ord(stocks) < 51;
+16316   
+16317  parameter mean(stocks)           mean of daily return
+16318            dev(stocks,days)       deviations
+16319            totmean                total mean return;
+16320   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 3
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+C o m p i l a t i o n
+
+
+16321  mean(s)  = sum(d, return(s,d))/card(d);
+16322  dev(s,d) = return(s,d)-mean(s);
+16323  totmean  = sum(s, mean(s))/(card(s));
+16324   
+16325  variables x(stocks)  investments
+16326            w(days)    intermediate variables
+16327            ;
+16328  positive variables x;
+16329   
+16330  equations budget
+16331            retcon return constraint
+16332            wdef(days)
+16333            ;
+16334   
+16335   
+16336  wdef(d)..  w(d) =e= sum(s, x(s)*dev(s,d));
+16337  budget.. sum(s, x(s)) =e= 1.0;
+16338  retcon.. sum(s, mean(s)*x(s)) =g= totmean*1.25;
+16339   
+16340  equations
+16341      d_x(stocks),
+16342      d_w(days);
+16343   
+16344  variables
+16345      m_budget,
+16346      m_wdef(days);
+16347   
+16348  positive variables
+16349      m_retcon;
+16350   
+16351  m_wdef.fx(days)$(not d(days)) = 0;
+16352   
+16353  d_x(s).. sum(d,m_wdef(d)*dev(s,d)) =g= m_retcon*mean(s) + m_budget;
+16354   
+16355  d_w(d).. 2*w(d)/(card(d)-1)  =e= m_wdef(d);
+16356   
+16357  model qp6 /
+16358      d_x.x,
+16359      d_w.w,
+16360      retcon.m_retcon,
+16361      budget.m_budget,
+16362      wdef.m_wdef        /;
+16363   
+16364  solve qp6 using mcp;
+16365   
+16366  parameter z;
+16367  z = sum(d, sqr(w.l(d)))/(card(d)-1);
+16368  display x.l,z;
+16369   
+16370   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 4
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  /home/renigijus/gams/opt-mod-lib/gamslib/qp6/qp6.gms
+     2       17 INCLUDE        1      17  ./home/renigijus/gams/opt-mod-lib/gamslib/qp6/qpdata.inc
+
+
+COMPILATION TIME     =        0.021 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 5
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Equation Listing    SOLVE qp6 Using MCP From line 16364
+
+
+---- d_x  =G=  
+
+d_x(GAB)..  - m_budget + 0.25*m_wdef(951129) + 0.130000000000001*m_wdef(951201) - 0.130000000000001*m_wdef(951205) - 0.119999999999999*m_wdef(951206) + 0.119999999999999*m_wdef(951207) + 0.130000000000001*m_wdef(951208) - 0.130000000000001*m_wdef(951211)
+     
+      - 0.31*m_wdef(951212) - 0.0599999999999987*m_wdef(951213) - 0.380000000000001*m_wdef(951215) + 0.25*m_wdef(951218) + 0.25*m_wdef(951220) + 0.380000000000001*m_wdef(951221) - 0.130000000000001*m_wdef(951226) - 0.119999999999999*m_wdef(951227)
+     
+      - 0.130000000000001*m_wdef(951229) + 0.130000000000001*m_wdef(960102) - 0.130000000000001*m_wdef(960104) + 0.130000000000001*m_wdef(960108) - 0.130000000000001*m_wdef(960109) =G= 0 ; (LHS = 0)
+     
+d_x(GAP)..  - m_budget + 0.431724137931033*m_wdef(951128) + 0.0517241379310345*m_wdef(951129) - 0.0782758620689645*m_wdef(951130) - 0.198275862068966*m_wdef(951201) + 0.431724137931033*m_wdef(951204) + 0.171724137931035*m_wdef(951205)
+     
+      - 0.448275862068966*m_wdef(951206) + 0.551724137931034*m_wdef(951207) + 0.551724137931034*m_wdef(951208) - 0.0682758620689665*m_wdef(951211) - 0.0782758620689645*m_wdef(951212) + 0.301724137931034*m_wdef(951213) + 0.551724137931034*m_wdef(951214)
+     
+      - 0.198275862068966*m_wdef(951215) + 0.681724137931033*m_wdef(951218) + 0.301724137931034*m_wdef(951219) + 0.301724137931034*m_wdef(951220) + 0.0517241379310345*m_wdef(951221) - 0.198275862068966*m_wdef(951222) - 0.328275862068965*m_wdef(951226)
+     
+      - 0.0682758620689665*m_wdef(951227) - 0.0782758620689645*m_wdef(951228) + 0.0517241379310345*m_wdef(951229) + 0.0517241379310345*m_wdef(960102) + 0.0517241379310345*m_wdef(960103) - 0.698275862068966*m_wdef(960104) - 0.198275862068966*m_wdef(960105)
+     
+      - 0.698275862068966*m_wdef(960108) - 1.19827586206897*m_wdef(960109) + 0.0517241379310345*m_retcon =G= 0 ; (LHS = 0)
+     
+d_x(GDW)..  - m_budget - 0.68586206896552*m_wdef(951128) - 0.175862068965515*m_wdef(951129) + 1.06413793103448*m_wdef(951130) + 1.19413793103448*m_wdef(951201) - 0.305862068965517*m_wdef(951204) + 0.944137931034483*m_wdef(951205)
+     
+      - 0.805862068965517*m_wdef(951206) - 0.175862068965515*m_wdef(951207) + 0.194137931034483*m_wdef(951208) - 0.18586206896552*m_wdef(951211) + 0.194137931034483*m_wdef(951212) + 0.324137931034485*m_wdef(951213) - 0.0558620689655172*m_wdef(951214)
+     
+      + 0.0641379310344803*m_wdef(951215) + 0.444137931034483*m_wdef(951218) - 0.555862068965517*m_wdef(951219) + 0.824137931034485*m_wdef(951220) + 0.0641379310344803*m_wdef(951221) + 0.0741379310344854*m_wdef(951222) + 0.194137931034483*m_wdef(951226)
+     
+      + 0.194137931034483*m_wdef(951227) - 0.68586206896552*m_wdef(951228) + 0.324137931034485*m_wdef(951229) + 0.0641379310344803*m_wdef(960102) - 0.0558620689655172*m_wdef(960103) - 0.925862068965515*m_wdef(960104) - 0.0558620689655172*m_wdef(960105)
+     
+      - 0.43586206896552*m_wdef(960108) - 1.05586206896552*m_wdef(960109) - 0.0558620689655172*m_retcon =G= 0 ; (LHS = 0)
+     
+REMAINING 47 ENTRIES SKIPPED
+
+
+---- d_w  =E=  
+
+d_w(951128)..  0.0714285714285714*w(951128) - m_wdef(951128) =E= 0 ; (LHS = 0)
+     
+d_w(951129)..  0.0714285714285714*w(951129) - m_wdef(951129) =E= 0 ; (LHS = 0)
+     
+d_w(951130)..  0.0714285714285714*w(951130) - m_wdef(951130) =E= 0 ; (LHS = 0)
+     
+REMAINING 26 ENTRIES SKIPPED
+
+
+---- retcon  =G=  return constraint
+
+retcon..  - 0.0517241379310345*x(GAP) + 0.0558620689655172*x(GDW) + 0.116551724137931*x(GE) - 0.0172413793103448*x(GENZ) - 0.0496551724137931*x(GGUY) - 0.0644827586206896*x(GIS) + 0.00862068965517241*x(GME) + 0.0689655172413793*x(GNE)
+     
+      - 0.0172413793103448*x(GNTX) - 0.0948275862068965*x(GPS) - 0.0475862068965517*x(GPTA) + 0.344827586206897*x(GSTRF) + 0.0299999999999999*x(GT) + 0.0131034482758622*x(GTE) + 0.0562068965517241*x(GTR) - 0.0644827586206897*x(GWF)
+     
+      - 0.301724137931034*x(GYMB) - 0.241379310344828*x(AA) - 0.00206896551724138*x(AAA) - 0.0258620689655172*x(AALR) - 0.198275862068966*x(AAPL) - 0.0389655172413793*x(ABF) + 0.0775862068965517*x(ABX) - 0.206896551724138*x(ACAD)
+     
+      + 0.0562068965517242*x(ACN) - 0.0775862068965517*x(ACTL) + 0.0689655172413793*x(ADAC) - 1.04310344827586*x(ADBE) - 0.327586206896552*x(ADCT) - 0.0217241379310345*x(ADDR) - 0.155172413793103*x(ADPT) - 0.0172413793103448*x(ADV)
+     
+      - 0.28448275862069*x(AET) + 0.0558620689655173*x(AGN) + 0.163793103448276*x(AHP) - 0.370689655172414*x(AKLM) + 0.0172413793103448*x(ALD) - 0.03*x(ALEX) + 0.0475862068965517*x(ALRT) - 0.517241379310345*x(ALSC) - 0.21551724137931*x(ALTR)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 6
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Equation Listing    SOLVE qp6 Using MCP From line 16364
+
+
+     retcon  =G=  return constraint     
+     
+      + 0.00655172413793105*x(ALU) - 0.0537931034482758*x(AM) - 0.0148275862068966*x(AMA) - 0.417931034482759*x(AMAT) - 0.103448275862069*x(AMD) - 0.124827586206896*x(AMER) =G= -0.100241379310345 ; (LHS = 0)
+     
+
+---- budget  =E=  
+
+budget..  x(GAB) + x(GAP) + x(GDW) + x(GE) + x(GEN) + x(GENZ) + x(GGUY) + x(GIS) + x(GM) + x(GME) + x(GNE) + x(GNTX) + x(GPS) + x(GPTA) + x(GSTRF) + x(GT) + x(GTE) + x(GTR) + x(GWF) + x(GYMB) + x(AA) + x(AAA) + x(AALR) + x(AAPL) + x(ABF) + x(ABX)
+     
+      + x(ACAD) + x(ACN) + x(ACTL) + x(ADAC) + x(ADBE) + x(ADCT) + x(ADDR) + x(ADPT) + x(ADV) + x(AET) + x(AGN) + x(AHP) + x(AKLM) + x(ALD) + x(ALEX) + x(ALRT) + x(ALSC) + x(ALTR) + x(ALU) + x(AM) + x(AMA) + x(AMAT) + x(AMD) + x(AMER) =E= 1 ;
+     
+      (LHS = 0, INFES = 1 ****)
+     
+
+---- wdef  =E=  
+
+wdef(951128)..  - 0.431724137931033*x(GAP) + 0.68586206896552*x(GDW) - 0.513448275862065*x(GE) - 2.01724137931034*x(GENZ) - 0.0496551724137931*x(GGUY) - 0.56448275862069*x(GIS) - 0.75*x(GM) + 0.12862068965517*x(GME) + 0.0689655172413793*x(GNE)
+     
+      - 0.0172413793103448*x(GNTX) + 1.1551724137931*x(GPS) - 0.167586206896552*x(GPTA) - 2.6551724137931*x(GSTRF) + 0.53*x(GT) - 0.236896551724138*x(GTE) - 0.823793103448276*x(GTR) + 0.555517241379311*x(GWF) - 1.43172413793103*x(GYMB)
+     
+      - 1.12137931034483*x(AA) - 0.132068965517241*x(AAA) + 0.224137931034483*x(AALR) + 0.551724137931034*x(AAPL) - 0.40896551724138*x(ABF) + 0.577586206896552*x(ABX) - 0.956896551724138*x(ACAD) - 0.573793103448277*x(ACN) - 0.697586206896551*x(ACTL)
+     
+      - 0.181034482758621*x(ADAC) - 0.673103448275858*x(ADBE) - 2.57758620689655*x(ADCT) - 0.391724137931034*x(ADDR) - 1.6551724137931*x(ADPT) + 0.112758620689656*x(ADV) + 3.59551724137931*x(AET) - 0.444137931034483*x(AGN) + 0.53379310344828*x(AHP)
+     
+      - 0.370689655172414*x(AKLM) + 0.517241379310345*x(ALD) - 0.03*x(ALEX) - 0.952413793103448*x(ALRT) + 0.982758620689655*x(ALSC) - 4.52551724137931*x(ALTR) + 0.00655172413793105*x(ALU) + 0.00620689655172376*x(AM) + 0.0451724137931035*x(AMA)
+     
+      - 2.29793103448276*x(AMAT) - 0.603448275862069*x(AMD) - 2.5048275862069*x(AMER) + w(951128) =E= 0 ; (LHS = 0)
+     
+wdef(951129)..  - 0.25*x(GAB) - 0.0517241379310345*x(GAP) + 0.175862068965515*x(GDW) + 0.616551724137931*x(GE) - 0.380000000000001*x(GEN) - 1.76724137931034*x(GENZ) - 0.299655172413793*x(GGUY) + 0.305517241379308*x(GIS) + 0.630000000000003*x(GM)
+     
+      + 0.388620689655175*x(GME) - 0.181034482758621*x(GNE) - 0.0172413793103448*x(GNTX) + 1.46517241379311*x(GPS) + 0.452413793103448*x(GPTA) - 1.4051724137931*x(GSTRF) - 0.72*x(GT) + 0.88310344827586*x(GTE) + 0.436206896551724*x(GTR)
+     
+      - 0.184482758620691*x(GWF) + 0.948275862068966*x(GYMB) - 0.361379310344825*x(AA) + 0.0679310344827585*x(AAA) - 0.145862068965517*x(AALR) + 0.921724137931032*x(AAPL) + 0.331034482758622*x(ABF) + 0.0775862068965517*x(ABX) + 0.543103448275862*x(ACAD)
+     
+      - 0.063793103448275*x(ACN) - 0.827586206896552*x(ACTL) - 0.181034482758621*x(ADAC) - 0.293103448275862*x(ADBE) - 4.32758620689655*x(ADCT) + 0.288275862068966*x(ADDR) - 2.03517241379311*x(ADPT) - 0.0172413793103448*x(ADV) - 1.66448275862069*x(AET)
+     
+      - 0.314137931034484*x(AGN) - 0.456206896551729*x(AHP) + 0.0693103448275875*x(AKLM) - 0.482758620689655*x(ALD) - 0.28*x(ALEX) - 0.082413793103449*x(ALRT) + 0.232758620689655*x(ALSC) - 0.405517241379308*x(ALTR) + 0.12655172413793*x(ALU)
+     
+      - 0.0537931034482758*x(AM) + 0.175172413793103*x(AMA) - 0.917931034482758*x(AMAT) + 0.52655172413793*x(AMD) - 1.1248275862069*x(AMER) + w(951129) =E= 0 ; (LHS = 0)
+     
+wdef(951130)..  0.0782758620689645*x(GAP) - 1.06413793103448*x(GDW) - 1.38344827586207*x(GE) + 0.25*x(GEN) - 1.39724137931034*x(GENZ) + 0.140344827586208*x(GGUY) - 0.934482758620687*x(GIS) - 0.880000000000003*x(GM) - 0.37137931034483*x(GME)
+     
+      + 0.318965517241379*x(GNE) - 0.0172413793103448*x(GNTX) + 1.0351724137931*x(GPS) - 0.0475862068965517*x(GPTA) + 0.0948275862068966*x(GSTRF) - 0.47*x(GT) + 0.0131034482758622*x(GTE) + 0.0562068965517241*x(GTR) - 0.694482758620689*x(GWF)
+     
+      - 0.231724137931034*x(GYMB) + 0.87862068965517*x(AA) + 0.0579310344827587*x(AAA) - 0.335862068965517*x(AALR) + 0.301724137931034*x(AAPL) - 0.788965517241379*x(ABF) + 0.327586206896552*x(ABX) - 0.456896551724138*x(ACAD) - 0.0737931034482766*x(ACN)
+     
+      + 0.922413793103448*x(ACTL) + 0.318965517241379*x(ADAC) - 0.413103448275867*x(ADBE) + 2.04241379310345*x(ADCT) - 0.211724137931036*x(ADDR) + 0.164827586206897*x(ADPT) - 0.147241379310346*x(ADV) + 0.345517241379306*x(AET) + 0.305862068965517*x(AGN)
+     
+      - 0.336206896551724*x(AHP) + 0.689310344827585*x(AKLM) - 0.352758620689653*x(ALD) + 0.22*x(ALEX) + 0.177586206896553*x(ALRT) + 2.35275862068966*x(ALSC) + 0.974482758620687*x(ALTR) + 0.00655172413793105*x(ALU) - 0.0537931034482758*x(AM)
+     
+      + 0.0451724137931035*x(AMA) + 1.21206896551724*x(AMAT) + 0.896551724137931*x(AMD) + 0.755172413793106*x(AMER) + w(951130) =E= 0 ; (LHS = 0)
+     
+REMAINING 26 ENTRIES SKIPPED
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 7
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+---- x  investments
+
+x(GAB)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       budget
+       -0.25    wdef(951129)
+       -0.13    wdef(951201)
+        0.13    wdef(951205)
+        0.12    wdef(951206)
+       -0.12    wdef(951207)
+       -0.13    wdef(951208)
+        0.13    wdef(951211)
+        0.31    wdef(951212)
+        0.06    wdef(951213)
+        0.38    wdef(951215)
+       -0.25    wdef(951218)
+       -0.25    wdef(951220)
+       -0.38    wdef(951221)
+        0.13    wdef(951226)
+        0.12    wdef(951227)
+        0.13    wdef(951229)
+       -0.13    wdef(960102)
+        0.13    wdef(960104)
+       -0.13    wdef(960108)
+        0.13    wdef(960109)
+
+x(GAP)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.0517  retcon
+        1       budget
+       -0.4317  wdef(951128)
+       -0.0517  wdef(951129)
+        0.0783  wdef(951130)
+        0.1983  wdef(951201)
+       -0.4317  wdef(951204)
+       -0.1717  wdef(951205)
+        0.4483  wdef(951206)
+       -0.5517  wdef(951207)
+       -0.5517  wdef(951208)
+        0.0683  wdef(951211)
+        0.0783  wdef(951212)
+       -0.3017  wdef(951213)
+       -0.5517  wdef(951214)
+        0.1983  wdef(951215)
+       -0.6817  wdef(951218)
+       -0.3017  wdef(951219)
+       -0.3017  wdef(951220)
+       -0.0517  wdef(951221)
+        0.1983  wdef(951222)
+        0.3283  wdef(951226)
+        0.0683  wdef(951227)
+        0.0783  wdef(951228)
+       -0.0517  wdef(951229)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 8
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     x  investments
+
+       -0.0517  wdef(960102)
+       -0.0517  wdef(960103)
+        0.6983  wdef(960104)
+        0.1983  wdef(960105)
+        0.6983  wdef(960108)
+        1.1983  wdef(960109)
+
+x(GDW)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.0559  retcon
+        1       budget
+        0.6859  wdef(951128)
+        0.1759  wdef(951129)
+       -1.0641  wdef(951130)
+       -1.1941  wdef(951201)
+        0.3059  wdef(951204)
+       -0.9441  wdef(951205)
+        0.8059  wdef(951206)
+        0.1759  wdef(951207)
+       -0.1941  wdef(951208)
+        0.1859  wdef(951211)
+       -0.1941  wdef(951212)
+       -0.3241  wdef(951213)
+        0.0559  wdef(951214)
+       -0.0641  wdef(951215)
+       -0.4441  wdef(951218)
+        0.5559  wdef(951219)
+       -0.8241  wdef(951220)
+       -0.0641  wdef(951221)
+       -0.0741  wdef(951222)
+       -0.1941  wdef(951226)
+       -0.1941  wdef(951227)
+        0.6859  wdef(951228)
+       -0.3241  wdef(951229)
+       -0.0641  wdef(960102)
+        0.0559  wdef(960103)
+        0.9259  wdef(960104)
+        0.0559  wdef(960105)
+        0.4359  wdef(960108)
+        1.0559  wdef(960109)
+
+REMAINING 47 ENTRIES SKIPPED
+
+---- w  intermediate variables
+
+w(951128)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.0714  d_w(951128)
+        1       wdef(951128)
+
+w(951129)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:15 Page 9
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     w  intermediate variables
+
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.0714  d_w(951129)
+        1       wdef(951129)
+
+w(951130)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.0714  d_w(951130)
+        1       wdef(951130)
+
+REMAINING 26 ENTRIES SKIPPED
+
+---- m_budget  
+
+m_budget
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       d_x(GAB)
+       -1       d_x(GAP)
+       -1       d_x(GDW)
+       -1       d_x(GE)
+       -1       d_x(GEN)
+       -1       d_x(GENZ)
+       -1       d_x(GGUY)
+       -1       d_x(GIS)
+       -1       d_x(GM)
+       -1       d_x(GME)
+       -1       d_x(GNE)
+       -1       d_x(GNTX)
+       -1       d_x(GPS)
+       -1       d_x(GPTA)
+       -1       d_x(GSTRF)
+       -1       d_x(GT)
+       -1       d_x(GTE)
+       -1       d_x(GTR)
+       -1       d_x(GWF)
+       -1       d_x(GYMB)
+       -1       d_x(AA)
+       -1       d_x(AAA)
+       -1       d_x(AALR)
+       -1       d_x(AAPL)
+       -1       d_x(ABF)
+       -1       d_x(ABX)
+       -1       d_x(ACAD)
+       -1       d_x(ACN)
+       -1       d_x(ACTL)
+       -1       d_x(ADAC)
+       -1       d_x(ADBE)
+       -1       d_x(ADCT)
+       -1       d_x(ADDR)
+       -1       d_x(ADPT)
+       -1       d_x(ADV)
+       -1       d_x(AET)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 10
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     m_budget  
+
+       -1       d_x(AGN)
+       -1       d_x(AHP)
+       -1       d_x(AKLM)
+       -1       d_x(ALD)
+       -1       d_x(ALEX)
+       -1       d_x(ALRT)
+       -1       d_x(ALSC)
+       -1       d_x(ALTR)
+       -1       d_x(ALU)
+       -1       d_x(AM)
+       -1       d_x(AMA)
+       -1       d_x(AMAT)
+       -1       d_x(AMD)
+       -1       d_x(AMER)
+
+
+---- m_wdef  
+
+m_wdef(951128)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.4317  d_x(GAP)
+       -0.6859  d_x(GDW)
+        0.5134  d_x(GE)
+        2.0172  d_x(GENZ)
+        0.0497  d_x(GGUY)
+        0.5645  d_x(GIS)
+        0.75    d_x(GM)
+       -0.1286  d_x(GME)
+       -0.069   d_x(GNE)
+        0.0172  d_x(GNTX)
+       -1.1552  d_x(GPS)
+        0.1676  d_x(GPTA)
+        2.6552  d_x(GSTRF)
+       -0.53    d_x(GT)
+        0.2369  d_x(GTE)
+        0.8238  d_x(GTR)
+       -0.5555  d_x(GWF)
+        1.4317  d_x(GYMB)
+        1.1214  d_x(AA)
+        0.1321  d_x(AAA)
+       -0.2241  d_x(AALR)
+       -0.5517  d_x(AAPL)
+        0.409   d_x(ABF)
+       -0.5776  d_x(ABX)
+        0.9569  d_x(ACAD)
+        0.5738  d_x(ACN)
+        0.6976  d_x(ACTL)
+        0.181   d_x(ADAC)
+        0.6731  d_x(ADBE)
+        2.5776  d_x(ADCT)
+        0.3917  d_x(ADDR)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 11
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     m_wdef  
+
+        1.6552  d_x(ADPT)
+       -0.1128  d_x(ADV)
+       -3.5955  d_x(AET)
+        0.4441  d_x(AGN)
+       -0.5338  d_x(AHP)
+        0.3707  d_x(AKLM)
+       -0.5172  d_x(ALD)
+        0.03    d_x(ALEX)
+        0.9524  d_x(ALRT)
+       -0.9828  d_x(ALSC)
+        4.5255  d_x(ALTR)
+       -0.0066  d_x(ALU)
+       -0.0062  d_x(AM)
+       -0.0452  d_x(AMA)
+        2.2979  d_x(AMAT)
+        0.6034  d_x(AMD)
+        2.5048  d_x(AMER)
+       -1       d_w(951128)
+
+m_wdef(951129)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        0.25    d_x(GAB)
+        0.0517  d_x(GAP)
+       -0.1759  d_x(GDW)
+       -0.6166  d_x(GE)
+        0.38    d_x(GEN)
+        1.7672  d_x(GENZ)
+        0.2997  d_x(GGUY)
+       -0.3055  d_x(GIS)
+       -0.63    d_x(GM)
+       -0.3886  d_x(GME)
+        0.181   d_x(GNE)
+        0.0172  d_x(GNTX)
+       -1.4652  d_x(GPS)
+       -0.4524  d_x(GPTA)
+        1.4052  d_x(GSTRF)
+        0.72    d_x(GT)
+       -0.8831  d_x(GTE)
+       -0.4362  d_x(GTR)
+        0.1845  d_x(GWF)
+       -0.9483  d_x(GYMB)
+        0.3614  d_x(AA)
+       -0.0679  d_x(AAA)
+        0.1459  d_x(AALR)
+       -0.9217  d_x(AAPL)
+       -0.331   d_x(ABF)
+       -0.0776  d_x(ABX)
+       -0.5431  d_x(ACAD)
+        0.0638  d_x(ACN)
+        0.8276  d_x(ACTL)
+        0.181   d_x(ADAC)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 12
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     m_wdef  
+
+        0.2931  d_x(ADBE)
+        4.3276  d_x(ADCT)
+       -0.2883  d_x(ADDR)
+        2.0352  d_x(ADPT)
+        0.0172  d_x(ADV)
+        1.6645  d_x(AET)
+        0.3141  d_x(AGN)
+        0.4562  d_x(AHP)
+       -0.0693  d_x(AKLM)
+        0.4828  d_x(ALD)
+        0.28    d_x(ALEX)
+        0.0824  d_x(ALRT)
+       -0.2328  d_x(ALSC)
+        0.4055  d_x(ALTR)
+       -0.1266  d_x(ALU)
+        0.0538  d_x(AM)
+       -0.1752  d_x(AMA)
+        0.9179  d_x(AMAT)
+       -0.5266  d_x(AMD)
+        1.1248  d_x(AMER)
+       -1       d_w(951129)
+
+m_wdef(951130)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -0.0783  d_x(GAP)
+        1.0641  d_x(GDW)
+        1.3834  d_x(GE)
+       -0.25    d_x(GEN)
+        1.3972  d_x(GENZ)
+       -0.1403  d_x(GGUY)
+        0.9345  d_x(GIS)
+        0.88    d_x(GM)
+        0.3714  d_x(GME)
+       -0.319   d_x(GNE)
+        0.0172  d_x(GNTX)
+       -1.0352  d_x(GPS)
+        0.0476  d_x(GPTA)
+       -0.0948  d_x(GSTRF)
+        0.47    d_x(GT)
+       -0.0131  d_x(GTE)
+       -0.0562  d_x(GTR)
+        0.6945  d_x(GWF)
+        0.2317  d_x(GYMB)
+       -0.8786  d_x(AA)
+       -0.0579  d_x(AAA)
+        0.3359  d_x(AALR)
+       -0.3017  d_x(AAPL)
+        0.789   d_x(ABF)
+       -0.3276  d_x(ABX)
+        0.4569  d_x(ACAD)
+        0.0738  d_x(ACN)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 13
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     m_wdef  
+
+       -0.9224  d_x(ACTL)
+       -0.319   d_x(ADAC)
+        0.4131  d_x(ADBE)
+       -2.0424  d_x(ADCT)
+        0.2117  d_x(ADDR)
+       -0.1648  d_x(ADPT)
+        0.1472  d_x(ADV)
+       -0.3455  d_x(AET)
+       -0.3059  d_x(AGN)
+        0.3362  d_x(AHP)
+       -0.6893  d_x(AKLM)
+        0.3528  d_x(ALD)
+       -0.22    d_x(ALEX)
+       -0.1776  d_x(ALRT)
+       -2.3528  d_x(ALSC)
+       -0.9745  d_x(ALTR)
+       -0.0066  d_x(ALU)
+        0.0538  d_x(AM)
+       -0.0452  d_x(AMA)
+       -1.2121  d_x(AMAT)
+       -0.8966  d_x(AMD)
+       -0.7552  d_x(AMER)
+       -1       d_w(951130)
+
+REMAINING 26 ENTRIES SKIPPED
+
+---- m_retcon  
+
+m_retcon
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.0517  d_x(GAP)
+       -0.0559  d_x(GDW)
+       -0.1166  d_x(GE)
+        0.0172  d_x(GENZ)
+        0.0497  d_x(GGUY)
+        0.0645  d_x(GIS)
+       -0.0086  d_x(GME)
+       -0.069   d_x(GNE)
+        0.0172  d_x(GNTX)
+        0.0948  d_x(GPS)
+        0.0476  d_x(GPTA)
+       -0.3448  d_x(GSTRF)
+       -0.03    d_x(GT)
+       -0.0131  d_x(GTE)
+       -0.0562  d_x(GTR)
+        0.0645  d_x(GWF)
+        0.3017  d_x(GYMB)
+        0.2414  d_x(AA)
+        0.0021  d_x(AAA)
+        0.0259  d_x(AALR)
+        0.1983  d_x(AAPL)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 14
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Column Listing      SOLVE qp6 Using MCP From line 16364
+
+
+     m_retcon  
+
+        0.039   d_x(ABF)
+       -0.0776  d_x(ABX)
+        0.2069  d_x(ACAD)
+       -0.0562  d_x(ACN)
+        0.0776  d_x(ACTL)
+       -0.069   d_x(ADAC)
+        1.0431  d_x(ADBE)
+        0.3276  d_x(ADCT)
+        0.0217  d_x(ADDR)
+        0.1552  d_x(ADPT)
+        0.0172  d_x(ADV)
+        0.2845  d_x(AET)
+       -0.0559  d_x(AGN)
+       -0.1638  d_x(AHP)
+        0.3707  d_x(AKLM)
+       -0.0172  d_x(ALD)
+        0.03    d_x(ALEX)
+       -0.0476  d_x(ALRT)
+        0.5172  d_x(ALSC)
+        0.2155  d_x(ALTR)
+       -0.0066  d_x(ALU)
+        0.0538  d_x(AM)
+        0.0148  d_x(AMA)
+        0.4179  d_x(AMAT)
+        0.1034  d_x(AMD)
+        0.1248  d_x(AMER)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 15
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Model Statistics    SOLVE qp6 Using MCP From line 16364
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS          110
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES          110
+NON ZERO ELEMENTS         3,131     NON LINEAR N-Z              0
+DERIVATIVE POOL              20     CONSTANT POOL              16
+CODE LENGTH                   0
+
+
+GENERATION TIME      =        0.003 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.010 SECONDS      6 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 16
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+Solution Report     SOLVE qp6 Using MCP From line 16364
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   qp6                 
+     TYPE    MCP                 
+     SOLVER  CONVERT             FROM LINE  16364
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/qp6/convert.opt"
+>>  pyomo qp6-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/qp6/convert.opt"
+Pyomo     : qp6-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:32:15 Page 17
+Standard QP Model - QP4 expressed as MCP (QP6,SEQ=184)
+E x e c u t i o n
+
+
+----  16368 VARIABLE x.L  investments
+
+                      ( ALL       0.000 )
+
+
+----  16368 PARAMETER z                    =        0.000  
+
+
+EXECUTION TIME       =        0.000 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/qp6/qp6.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/qp6/qp6-scalar.py.lst

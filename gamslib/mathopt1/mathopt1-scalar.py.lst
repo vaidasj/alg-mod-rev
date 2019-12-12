@@ -1,0 +1,185 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+   3  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 2
+MathOptimizer Example 1 (MATHOPT1,SEQ=255)
+C o m p i l a t i o n
+
+
+   5  * A simple example model that illustrates the formulation structure for
+   6  * using LGO in the Mathematica environment.
+   7  *
+   8  * More information at http://www.wolfram.com/products/applications/mathoptimizer/
+   9  *
+  10  *
+  11  *  Mathematica, MathOptimizer - An Advanced Modeling and Optimization System
+  12  *  for Mathematica Users, http://www.wolfram.com/products/applications/mathoptimizer/
+  13  *
+  14  *  Janos D Pinter, Global Optimization in Action, Kluwer Academic Publishers,
+  15  *  Dordrecht/Boston/London, 1996.
+  16  *
+  17  *  Janos D Pinter, Computational Global Optimization in Nonlinear Systems,
+  18  *  Lionheart Publishing, Inc., Atlanta, GA, 2001
+  19  *
+  21   
+  22  variables x1, x2, obj;
+  23   
+  24  x1.lo = -10; x2.lo = -15;    // lower bounds
+  25  x1.l  =   8; x2.l  = -14;    // initial value
+  26  x1.up =  20; x2.up =  20;    // upper bounds
+  27   
+  28  equations objdef, eqs, ineqs;
+  29   
+  30   
+  31  objdef.. obj =e= 10*sqr(sqr(x1) - x2) + sqr(x1 - 1);
+  32   
+  33  eqs  ..    x1  =e= x1*x2;
+  34   
+  35  ineqs..  3*x1 + 4*x2 =l= 25;
+  36   
+  37  models m / all /;
+  38   
+  39   
+  40  *  x1.l = 1; x2.l = 1;    // optimal values
+  41   
+  42  solve m minimizing obj using nlp;
+  43   
+  44  parameter report solution summary report;
+  45   
+  46  report('x1','global') = 1;
+  47  report('x2','global') = 1;
+  48  report('x1','solver') = x1.l;
+  49  report('x2','solver') = x2.l;
+  50  report('x1','diff') = report('x1','global')  - report('x1','solver');
+  51  report('x2','diff') = report('x2','global')  - report('x2','solver');
+  52   
+  53  display report;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 3
+MathOptimizer Example 1 (MATHOPT1,SEQ=255)
+Equation Listing    SOLVE m Using NLP From line 42
+
+
+---- objdef  =E=  
+
+objdef..  - (24974)*x1 + (1560)*x2 + obj =E= 0 ; (LHS = -60889, INFES = 60889 ****)
+     
+
+---- eqs  =E=  
+
+eqs..  (15)*x1 - (8)*x2 =E= 0 ; (LHS = 120, INFES = 120 ****)
+     
+
+---- ineqs  =L=  
+
+ineqs..  3*x1 + 4*x2 =L= 25 ; (LHS = -32)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 4
+MathOptimizer Example 1 (MATHOPT1,SEQ=255)
+Column Listing      SOLVE m Using NLP From line 42
+
+
+---- x1  
+
+x1
+                (.LO, .L, .UP, .M = -10, 8, 20, 0)
+  (-24974)      objdef
+      (15)      eqs
+        3       ineqs
+
+
+---- x2  
+
+x2
+                (.LO, .L, .UP, .M = -15, -14, 20, 0)
+    (1560)      objdef
+      (-8)      eqs
+        4       ineqs
+
+
+---- obj  
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objdef
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 5
+MathOptimizer Example 1 (MATHOPT1,SEQ=255)
+Model Statistics    SOLVE m Using NLP From line 42
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            3
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            3
+NON ZERO ELEMENTS             7     NON LINEAR N-Z              4
+DERIVATIVE POOL              20     CONSTANT POOL              17
+CODE LENGTH                  18
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 6
+MathOptimizer Example 1 (MATHOPT1,SEQ=255)
+Solution Report     SOLVE m Using NLP From line 42
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   m                   OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  42
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt1/convert.opt"
+>>  pyomo mathopt1-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/mathopt1/convert.opt"
+Pyomo     : mathopt1-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 11:22:59 Page 7
+MathOptimizer Example 1 (MATHOPT1,SEQ=255)
+E x e c u t i o n
+
+
+----     53 PARAMETER report  solution summary report
+
+        global      solver        diff
+
+x1       1.000       8.000      -7.000
+x2       1.000     -14.000      15.000
+
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/mathopt1/mathopt1.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/mathopt1/mathopt1-scalar.py.lst

@@ -1,0 +1,33 @@
+--- Job openpit.gms Start 12/13/18 11:24:23 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- openpit.gms(107) 3 Mb
+--- Starting execution: elapsed 0:00:00.002
+--- openpit.gms(103) 4 Mb
+--- Generating MIP model extract
+--- openpit.gms(105) 5 Mb
+---   3,065 rows  2,633 columns  12,437 non-zeroes
+---   1,816 discrete-columns
+***
+***   16 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.013
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/openpit/convert.opt"
+>>  pyomo openpit-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/openpit/convert.opt"
+--- Writing Pyomo     : openpit-scalar.py
+
+--- Restarting execution
+--- openpit.gms(105) 2 Mb
+--- Reading solution for model extract
+--- openpit.gms(107) 3 Mb
+*** Status: Normal completion
+--- Job openpit.gms Stop 12/13/18 11:24:23 elapsed 0:00:00.040

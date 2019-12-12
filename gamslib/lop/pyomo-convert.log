@@ -1,0 +1,142 @@
+--- Job lop.gms Start 12/13/18 10:32:29 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- lop.gms(396) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- lop.gms(152) 4 Mb
+--- Generating LP model sp
+--- lop.gms(170) 4 Mb
+---   530 rows  1,381 columns  4,141 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.012
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+--- GAMS/Cplex licensed for continuous and discrete problems.
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/lop/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.04 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 139 rows and 415 columns.
+Aggregator did 138 substitutions.
+Reduced LP has 253 rows, 828 columns, and 1656 nonzeros.
+Presolve time = 0.00 sec. (0.69 ticks)
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         45306.000000
+Iteration:    80   Dual objective     =         73641.000000
+Iteration:   158   Dual objective     =         83467.000000
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 1.55 ticks)
+
+Optimal solution found.
+Objective :       85714.000000
+
+--- Restarting execution
+--- lop.gms(170) 2 Mb
+--- Reading solution for model sp
+--- lop.gms(277) 3 Mb
+--- Generating MIP model lopdt
+--- lop.gms(279) 4 Mb
+---   242 rows  495 columns  2,930 non-zeroes
+---   253 discrete-columns
+***
+***   253 Integer +INF Bounds have been reset to 100 (see Option IntVarUp)
+***
+--- Executing CONVERT: elapsed 0:00:00.063
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lop/convert.opt"
+>>  pyomo lop-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lop/convert.opt"
+--- Writing Pyomo     : lop-scalar.py
+
+--- Restarting execution
+--- lop.gms(279) 2 Mb
+--- Reading solution for model lopdt
+--- lop.gms(335) 3 Mb
+--- Generating MIP model ILP
+--- lop.gms(337) 4 Mb
+---   822 rows  1,044 columns  7,404 non-zeroes
+---   1,012 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.091
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/lop/convert.opt"
+>>  pyomo lop-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/lop/convert.opt"
+--- Writing Pyomo     : lop-scalar.py
+
+--- Restarting execution
+--- lop.gms(337) 3 Mb
+--- Reading solution for model ILP
+--- lop.gms(378) 3 Mb
+--- Generating LP model evaldt
+--- lop.gms(380) 3 Mb
+---   211 rows  211 columns  421 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.117
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/lop/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.01 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 211 rows and 211 columns.
+All rows and columns eliminated.
+Presolve time = 0.00 sec. (0.07 ticks)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.13 ticks)
+
+Optimal solution found.
+Objective :           0.000000
+
+--- Restarting execution
+--- lop.gms(380) 2 Mb
+--- Reading solution for model evaldt
+--- lop.gms(390) 3 Mb
+--- Generating LP model evaldt
+--- lop.gms(392) 3 Mb
+---   211 rows  211 columns  421 non-zeroes
+--- Executing CPLEX: elapsed 0:00:00.138
+
+IBM ILOG CPLEX   24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+Cplex 12.6.3.0
+
+*** Error Cannot open parameter file "/home/renigijus/gams/opt-mod-lib/gamslib/lop/cplex.opt"
+*** Error Error code = 2; No such file or directory
+Reading data...
+Starting Cplex...
+Space for names approximately 0.01 Mb
+Use option 'names no' to turn use of names off
+Tried aggregator 1 time.
+LP Presolve eliminated 211 rows and 211 columns.
+All rows and columns eliminated.
+Presolve time = 0.00 sec. (0.07 ticks)
+LP status(1): optimal
+Cplex Time: 0.00sec (det. 0.17 ticks)
+
+Optimal solution found.
+Objective :           0.000000
+
+--- Restarting execution
+--- lop.gms(392) 2 Mb
+--- Reading solution for model evaldt
+--- lop.gms(395) 3 Mb
+*** Status: Normal completion
+--- Job lop.gms Stop 12/13/18 10:32:29 elapsed 0:00:00.164

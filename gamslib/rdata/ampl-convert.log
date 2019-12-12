@@ -1,0 +1,30 @@
+--- Job rdata.gms Start 12/13/18 10:24:35 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- rdata.gms(174) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- rdata.gms(142) 4 Mb
+--- Generating MIP model david
+--- rdata.gms(172) 4 Mb
+---   51 rows  49 columns  178 non-zeroes
+---   5 discrete-columns
+--- Executing CONVERT: elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/rdata/convert.opt"
+>>  ampl rdata-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/rdata/convert.opt"
+--- Writing Ampl      : rdata-scalar.mod
+
+--- Restarting execution
+--- rdata.gms(172) 2 Mb
+--- Reading solution for model david
+--- rdata.gms(174) 3 Mb
+*** Status: Normal completion
+--- Job rdata.gms Stop 12/13/18 10:24:35 elapsed 0:00:00.018

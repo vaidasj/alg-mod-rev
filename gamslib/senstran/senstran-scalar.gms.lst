@@ -1,0 +1,762 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+   2  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 2
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+C o m p i l a t i o n
+
+
+   4   
+       
+        This problem performs sensitivity analysis on the TRNSPORT
+        problem. The basic model is taken from the GAMS model
+        library. A separate model is solved for each variation of the
+        transport cost matrix. The transport cost on each link is raised
+        and lowered by 30 percent and the shipment patterns are either
+        saved in a GAMS data table or written to file for further analysis
+        by a statistical system.
+       
+       
+      Dantzig, G B, Chapter 3.3. In Linear Programming and Extensions.
+      Princeton University Press, Princeton, New Jersey, 1963.
+       
+  20   
+  21   
+  22    Sets
+  23         i   canning plants   / seattle, san-diego /
+  24         j   markets          / new-york, chicago, topeka / ;
+  25   
+  26    Parameters
+  27   
+  28         a(i)  capacity of plant i in cases
+  29           /    seattle     350
+  30                san-diego   600 /
+  31   
+  32         b(j)  demand at market j in cases
+  33           /    new-york    325
+  34                chicago     300
+  35                topeka      275  /
+  36   
+  37   
+  38    Table d(i,j)  distance in thousands of miles
+  39                      new-york       chicago      topeka
+  40        seattle          2.5           1.7          1.8
+  41        san-diego        2.5           1.8          1.4  ;
+  42   
+  43    Scalar f  freight in dollars per case per thousand miles  /90/ ;
+  44   
+  45    Parameter c(i,j)  transport cost in thousands of dollars per case ;
+  46   
+  47              c(i,j) = f * d(i,j) / 1000 ;
+  48   
+  49    Variables
+  50         x(i,j)  shipment quantities in cases
+  51         z       total transportation costs in thousands of dollars ;
+  52   
+  53    Positive Variable x ;
+  54   
+  55    Equations
+  56         cost        define objective function
+  57         supply(i)   observe supply limit at plant i
+  58         demand(j)   satisfy demand at market j ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 3
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+C o m p i l a t i o n
+
+
+  59   
+  60    cost ..        z  =e=  sum((i,j), c(i,j)*x(i,j)) ;
+  61   
+  62    supply(i) ..   sum(j, x(i,j))  =l=  a(i) ;
+  63   
+  64    demand(j) ..   sum(i, x(i,j))  =g=  b(j) ;
+  65   
+  66    Model transport /all/ ;
+  67   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 4
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+sensitivity part for trnsport
+
+
+  70   
+  71  Alias (i,ip),(j,jp);
+  72   
+  73  Scalar    sens     sensitivity value                / .3 /
+  74            pors     put or save option save=0 put=1  / 0 /
+  75            counter  maximum number of problems       /  2 /
+  76  Parameter report(*,ip,jp,i,j)  summary results ;
+  77  File      repdat sensitivity data report file ;
+  78   
+  79  Option limcol=0,limrow=0,solprint=off;
+  80   
+  81  pors    = 1;    ! write file
+  82  counter = 2;    ! set to inf to run all problems
+  83   
+  84  If(pors,
+  85     repdat.nw = 5; repdat.nd = 0; repdat.lw=11;
+  86     Put repdat "low/high i          j                  x(i,j)" /);
+  87   
+  88  counter = 10;
+  89  Loop((ip,jp)$counter, counter = counter-1;
+  90     c(ip,jp) = c(ip,jp)*(1-sens);             ! reduce cell
+  91     Solve transport using lp minimizing z ;   ! solve model
+  92     If(pors,
+  93        Put / "low      ",ip.tl,jp.tl;         ! write
+  94        Loop((i,j),                            !    solution
+  95           Put x.l(i,j) );                     !       one solve per line
+  96     Else
+  97        report("low",ip,jp,i,j) = x.l(i,j));   ! save results
+  98     c(ip,jp) = c(ip,jp)/(1-sens)*(1+sens);    ! increase cell
+  99     Solve transport using lp minimizing z ;   ! solve model
+ 100     c(ip,jp) = c(ip,jp)/(1+sens);             ! reset cell
+ 101     If(pors,
+ 102        Put / "high     ",ip.tl,jp.tl;         ! write
+ 103        Loop((i,j),                            !    solution
+ 104           Put x.l(i,j) );                     !       one solve per line
+ 105     Else
+ 106        report("high",ip,jp,i,j) = x.l(i,j)) );! save results
+ 107   
+ 108  If(not pors,
+ 109     Option report:3:3:2;  Display report );
+ 110   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 5
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 91
+
+
+LOOPS                                   ip   seattle
+                                        jp   new-york
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip seattle
+                                         jp new-york
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 6
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 7
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 99
+
+
+LOOPS                                   ip   seattle
+                                        jp   new-york
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip seattle
+                                         jp new-york
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 8
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 9
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 91
+
+
+LOOPS                                   ip   seattle
+                                        jp   chicago
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip seattle
+                                         jp chicago
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 10
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 11
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 99
+
+
+LOOPS                                   ip   seattle
+                                        jp   chicago
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip seattle
+                                         jp chicago
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 12
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 13
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 91
+
+
+LOOPS                                   ip   seattle
+                                        jp   topeka
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip seattle
+                                         jp topeka
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 14
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 15
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 99
+
+
+LOOPS                                   ip   seattle
+                                        jp   topeka
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip seattle
+                                         jp topeka
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 16
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 17
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 91
+
+
+LOOPS                                   ip   san-diego
+                                        jp   new-york
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip san-diego
+                                         jp new-york
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 18
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 19
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 99
+
+
+LOOPS                                   ip   san-diego
+                                        jp   new-york
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip san-diego
+                                         jp new-york
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 20
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 21
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 91
+
+
+LOOPS                                   ip   san-diego
+                                        jp   chicago
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip san-diego
+                                         jp chicago
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 22
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 23
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 99
+
+
+LOOPS                                   ip   san-diego
+                                        jp   chicago
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip san-diego
+                                         jp chicago
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 24
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 25
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 91
+
+
+LOOPS                                   ip   san-diego
+                                        jp   topeka
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.013 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.013 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip san-diego
+                                         jp topeka
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 26
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 91
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  91
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 27
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Model Statistics    SOLVE transport Using LP From line 99
+
+
+LOOPS                                   ip   san-diego
+                                        jp   topeka
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            6
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            19
+
+
+GENERATION TIME      =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 ip san-diego
+                                         jp topeka
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 28
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+Solution Report     SOLVE transport Using LP From line 99
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   transport           OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  99
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+>>  gams senstran-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/senstran/convert.opt"
+Gams      : senstran-scalar.gms
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 29
+Sensitivity analysis using LOOPS (SENSTRAN,SEQ=106)
+E x e c u t i o n
+
+
+**** REPORT FILE SUMMARY
+
+repdat /home/renigijus/gams/opt-mod-lib/gamslib/senstran/repdat.put
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/senstran/senstran.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/senstran/senstran-scalar.gms.lst

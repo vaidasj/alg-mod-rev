@@ -1,0 +1,343 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 2
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+C o m p i l a t i o n
+
+
+      Minimizing Total Average Cycle Stock
+       
+       
+      Silver, E A, and Moon, I, A Fast Heuristic for Minimizing Total
+      Average Cycle Stock Subject to Practical Constraints. Journal
+      of the Operational Research Society 50 (1999), 789-796.
+       
+  14   
+  15   
+  16  set nn items  /n1*n48/
+  17      mm reorder intervals /i1*i9/;
+  18   
+  19  Scalar N max total number of replenishments /100/;
+  20   
+  21  Parameter Y(mm) possible number of orders /
+  22       i1   3, i2   6, i3   9, i4  12, i5  18,
+  23       i6  36, i7  52, i8  78, i9 156 /;
+  24   
+  25  Parameter Dv (nn) demand rate times unit cost of item nn /
+  26       n1      20.04,  n2      21.72,  n3      37.92,  n4      54.12,
+  27       n5      61.80,  n6      81.24,  n7      94.20,  n8     119.40,
+  28       n9     171.60, n10     208.80, n11     415.27, n12     470.23,
+  29      n13    1212   , n14    1393.2 , n15    1496.4 , n16    1600   ,
+  30      n17    1702.4 , n18    1714.5 , n19    1870.5 , n20    1977.8 ,
+  31      n21    2647.12, n22    3143.82, n23    4173   , n24    4347.78,
+  32      n25    4917   , n26    5048.3 , n27    5397.2 , n28    6692.4 ,
+  33      n29    6837.6 , n30    8003.1 , n31    8449.5 , n32    9152   ,
+  34      n33   13236.3 , n34   13970   , n35   15327.6 , n36   16368   ,
+  35      n37   19765   , n38   20470.3 , n39   23182.2 , n40   25026   ,
+  36      n41   31675.6 , n42   56734.2 , n43   69040.4 , n44   75192   ,
+  37      n45   97066.5 , n46   99803.2 , n47  105984   , n48  106465   /;
+  38   
+  39  Variable x(nn)    number of orders per unit time
+  40           z(nn,mm) discrete orders choices
+  41           obj objective variable;
+  42  Binary variable z;
+  43   
+  44  Equations  defobj
+  45             capacity
+  46             defx(nn)
+  47             defsos(nn);
+  48   
+  49  defobj.. obj =e= sum(nn, 1.5*Dv(nn)/x(nn));
+  50   
+  51  capacity..   sum(nn, x(nn)) =l= 3*N;
+  52   
+  53  defx(nn)..   sum(mm, z(nn,mm)*Y(mm)) =e= x(nn);
+  54   
+  55  defsos(nn).. sum(mm, z(nn,mm)) =e= 1;
+  56   
+  57  x.lo(nn) = Y('i1');
+  58  x.up(nn) = Y('i9');
+  59   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 3
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+C o m p i l a t i o n
+
+
+  60  model stock /all/;
+  61  *solve stock minimizing obj using minlp;
+  62   
+      This is the alternative formulation that becomes an easy to solve MIP
+      model.
+       
+      First we note that defsos means that exactly one nn index value is
+      matched with each mm index.
+       
+      Second, defx says that x(nn) must be equal to Y(mm) corresponding
+      to this match.
+       
+      Third, the objective term 1.5*Dv(nn)/x(nn) is therefore equal to
+      1.5*Dev(nn)/Y(mm) for the selected (nn,mm) match. Since the match
+      is defined by z, the objective can be redefined using z with the
+      coefficient 1.5*Dv(nn)/Y(mm), and x is no longer needed.
+  78   
+  79  Parameter CostZ(nn,mm) Cost for item nn with order schedule mm;
+  80  CostZ(nn,mm) = 1.5*Dv(nn) / Y(mm);
+  81   
+  82  Equation defobjmip;
+  83  defobjmip.. obj =e= sum((nn,mm), Costz(nn,mm)*z(nn,mm));
+  84   
+  85  model stockmip /defobjmip, capacity, defx, defsos/;
+  86   
+  87  solve stockmip miniminzing obj using mip;
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 4
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+Equation Listing    SOLVE stockmip Using MIP From line 87
+
+
+---- defobjmip  =E=  
+
+defobjmip..  - 10.02*z(n1,i1) - 5.01*z(n1,i2) - 3.34*z(n1,i3) - 2.505*z(n1,i4) - 1.67*z(n1,i5) - 0.835*z(n1,i6) - 0.578076923076923*z(n1,i7) - 0.385384615384615*z(n1,i8) - 0.192692307692308*z(n1,i9) - 10.86*z(n2,i1) - 5.43*z(n2,i2) - 3.62*z(n2,i3)
+     
+      - 2.715*z(n2,i4) - 1.81*z(n2,i5) - 0.905*z(n2,i6) - 0.626538461538461*z(n2,i7) - 0.417692307692308*z(n2,i8) - 0.208846153846154*z(n2,i9) - 18.96*z(n3,i1) - 9.48*z(n3,i2) - 6.32*z(n3,i3) - 4.74*z(n3,i4) - 3.16*z(n3,i5) - 1.58*z(n3,i6)
+     
+      - 1.09384615384615*z(n3,i7) - 0.729230769230769*z(n3,i8) - 0.364615384615385*z(n3,i9) - 27.06*z(n4,i1) - 13.53*z(n4,i2) - 9.02*z(n4,i3) - 6.765*z(n4,i4) - 4.51*z(n4,i5) - 2.255*z(n4,i6) - 1.56115384615385*z(n4,i7) - 1.04076923076923*z(n4,i8)
+     
+      - 0.520384615384615*z(n4,i9) - 30.9*z(n5,i1) - 15.45*z(n5,i2) - 10.3*z(n5,i3) - 7.725*z(n5,i4) - 5.15*z(n5,i5) - 2.575*z(n5,i6) - 1.78269230769231*z(n5,i7) - 1.18846153846154*z(n5,i8) - 0.594230769230769*z(n5,i9) - 40.62*z(n6,i1) - 20.31*z(n6,i2)
+     
+      - 13.54*z(n6,i3) - 10.155*z(n6,i4) - 6.77*z(n6,i5) - 3.385*z(n6,i6) - 2.34346153846154*z(n6,i7) - 1.56230769230769*z(n6,i8) - 0.781153846153846*z(n6,i9) - 47.1*z(n7,i1) - 23.55*z(n7,i2) - 15.7*z(n7,i3) - 11.775*z(n7,i4) - 7.85*z(n7,i5)
+     
+      - 3.925*z(n7,i6) - 2.71730769230769*z(n7,i7) - 1.81153846153846*z(n7,i8) - 0.905769230769231*z(n7,i9) - 59.7*z(n8,i1) - 29.85*z(n8,i2) - 19.9*z(n8,i3) - 14.925*z(n8,i4) - 9.95*z(n8,i5) - 4.975*z(n8,i6) - 3.44423076923077*z(n8,i7)
+     
+      - 2.29615384615385*z(n8,i8) - 1.14807692307692*z(n8,i9) - 85.8*z(n9,i1) - 42.9*z(n9,i2) - 28.6*z(n9,i3) - 21.45*z(n9,i4) - 14.3*z(n9,i5) - 7.15*z(n9,i6) - 4.95*z(n9,i7) - 3.3*z(n9,i8) - 1.65*z(n9,i9) - 104.4*z(n10,i1) - 52.2*z(n10,i2)
+     
+      - 34.8*z(n10,i3) - 26.1*z(n10,i4) - 17.4*z(n10,i5) - 8.7*z(n10,i6) - 6.02307692307692*z(n10,i7) - 4.01538461538462*z(n10,i8) - 2.00769230769231*z(n10,i9) - 207.635*z(n11,i1) - 103.8175*z(n11,i2) - 69.2116666666667*z(n11,i3) - 51.90875*z(n11,i4)
+     
+      - 34.6058333333333*z(n11,i5) - 17.3029166666667*z(n11,i6) - 11.9789423076923*z(n11,i7) - 7.98596153846154*z(n11,i8) - 3.99298076923077*z(n11,i9) - 235.115*z(n12,i1) - 117.5575*z(n12,i2) - 78.3716666666667*z(n12,i3) - 58.77875*z(n12,i4)
+     
+      - 39.1858333333333*z(n12,i5) - 19.5929166666667*z(n12,i6) - 13.5643269230769*z(n12,i7) - 9.04288461538462*z(n12,i8) - 4.52144230769231*z(n12,i9) - 606*z(n13,i1) - 303*z(n13,i2) - 202*z(n13,i3) - 151.5*z(n13,i4) - 101*z(n13,i5) - 50.5*z(n13,i6)
+     
+      - 34.9615384615385*z(n13,i7) - 23.3076923076923*z(n13,i8) - 11.6538461538462*z(n13,i9) - 696.6*z(n14,i1) - 348.3*z(n14,i2) - 232.2*z(n14,i3) - 174.15*z(n14,i4) - 116.1*z(n14,i5) - 58.05*z(n14,i6) - 40.1884615384615*z(n14,i7)
+     
+      - 26.7923076923077*z(n14,i8) - 13.3961538461538*z(n14,i9) - 748.2*z(n15,i1) - 374.1*z(n15,i2) - 249.4*z(n15,i3) - 187.05*z(n15,i4) - 124.7*z(n15,i5) - 62.35*z(n15,i6) - 43.1653846153846*z(n15,i7) - 28.7769230769231*z(n15,i8)
+     
+      - 14.3884615384615*z(n15,i9) - 800*z(n16,i1) - 400*z(n16,i2) - 266.666666666667*z(n16,i3) - 200*z(n16,i4) - 133.333333333333*z(n16,i5) - 66.6666666666667*z(n16,i6) - 46.1538461538462*z(n16,i7) - 30.7692307692308*z(n16,i8)
+     
+      - 15.3846153846154*z(n16,i9) - 851.2*z(n17,i1) - 425.6*z(n17,i2) - 283.733333333333*z(n17,i3) - 212.8*z(n17,i4) - 141.866666666667*z(n17,i5) - 70.9333333333333*z(n17,i6) - 49.1076923076923*z(n17,i7) - 32.7384615384615*z(n17,i8)
+     
+      - 16.3692307692308*z(n17,i9) - 857.25*z(n18,i1) - 428.625*z(n18,i2) - 285.75*z(n18,i3) - 214.3125*z(n18,i4) - 142.875*z(n18,i5) - 71.4375*z(n18,i6) - 49.4567307692308*z(n18,i7) - 32.9711538461538*z(n18,i8) - 16.4855769230769*z(n18,i9)
+     
+      - 935.25*z(n19,i1) - 467.625*z(n19,i2) - 311.75*z(n19,i3) - 233.8125*z(n19,i4) - 155.875*z(n19,i5) - 77.9375*z(n19,i6) - 53.9567307692308*z(n19,i7) - 35.9711538461538*z(n19,i8) - 17.9855769230769*z(n19,i9) - 988.9*z(n20,i1) - 494.45*z(n20,i2)
+     
+      - 329.633333333333*z(n20,i3) - 247.225*z(n20,i4) - 164.816666666667*z(n20,i5) - 82.4083333333333*z(n20,i6) - 57.0519230769231*z(n20,i7) - 38.0346153846154*z(n20,i8) - 19.0173076923077*z(n20,i9) - 1323.56*z(n21,i1) - 661.78*z(n21,i2)
+     
+      - 441.186666666667*z(n21,i3) - 330.89*z(n21,i4) - 220.593333333333*z(n21,i5) - 110.296666666667*z(n21,i6) - 76.3592307692308*z(n21,i7) - 50.9061538461538*z(n21,i8) - 25.4530769230769*z(n21,i9) - 1571.91*z(n22,i1) - 785.955*z(n22,i2)
+     
+      - 523.97*z(n22,i3) - 392.9775*z(n22,i4) - 261.985*z(n22,i5) - 130.9925*z(n22,i6) - 90.6871153846154*z(n22,i7) - 60.4580769230769*z(n22,i8) - 30.2290384615385*z(n22,i9) - 2086.5*z(n23,i1) - 1043.25*z(n23,i2) - 695.5*z(n23,i3) - 521.625*z(n23,i4)
+     
+      - 347.75*z(n23,i5) - 173.875*z(n23,i6) - 120.375*z(n23,i7) - 80.25*z(n23,i8) - 40.125*z(n23,i9) - 2173.89*z(n24,i1) - 1086.945*z(n24,i2) - 724.63*z(n24,i3) - 543.4725*z(n24,i4) - 362.315*z(n24,i5) - 181.1575*z(n24,i6) - 125.416730769231*z(n24,i7)
+     
+      - 83.6111538461538*z(n24,i8) - 41.8055769230769*z(n24,i9) - 2458.5*z(n25,i1) - 1229.25*z(n25,i2) - 819.5*z(n25,i3) - 614.625*z(n25,i4) - 409.75*z(n25,i5) - 204.875*z(n25,i6) - 141.836538461538*z(n25,i7) - 94.5576923076923*z(n25,i8)
+     
+      - 47.2788461538462*z(n25,i9) - 2524.15*z(n26,i1) - 1262.075*z(n26,i2) - 841.383333333333*z(n26,i3) - 631.0375*z(n26,i4) - 420.691666666667*z(n26,i5) - 210.345833333333*z(n26,i6) - 145.624038461538*z(n26,i7) - 97.0826923076923*z(n26,i8)
+     
+      - 48.5413461538462*z(n26,i9) - 2698.6*z(n27,i1) - 1349.3*z(n27,i2) - 899.533333333333*z(n27,i3) - 674.65*z(n27,i4) - 449.766666666667*z(n27,i5) - 224.883333333333*z(n27,i6) - 155.688461538462*z(n27,i7) - 103.792307692308*z(n27,i8)
+     
+      - 51.8961538461538*z(n27,i9) - 3346.2*z(n28,i1) - 1673.1*z(n28,i2) - 1115.4*z(n28,i3) - 836.55*z(n28,i4) - 557.7*z(n28,i5) - 278.85*z(n28,i6) - 193.05*z(n28,i7) - 128.7*z(n28,i8) - 64.35*z(n28,i9) - 3418.8*z(n29,i1) - 1709.4*z(n29,i2)
+     
+      - 1139.6*z(n29,i3) - 854.7*z(n29,i4) - 569.8*z(n29,i5) - 284.9*z(n29,i6) - 197.238461538462*z(n29,i7) - 131.492307692308*z(n29,i8) - 65.7461538461539*z(n29,i9) - 4001.55*z(n30,i1) - 2000.775*z(n30,i2) - 1333.85*z(n30,i3) - 1000.3875*z(n30,i4)
+     
+      - 666.925*z(n30,i5) - 333.4625*z(n30,i6) - 230.858653846154*z(n30,i7) - 153.905769230769*z(n30,i8) - 76.9528846153846*z(n30,i9) - 4224.75*z(n31,i1) - 2112.375*z(n31,i2) - 1408.25*z(n31,i3) - 1056.1875*z(n31,i4) - 704.125*z(n31,i5)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 5
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+Equation Listing    SOLVE stockmip Using MIP From line 87
+
+
+     defobjmip  =E=       
+     
+      - 352.0625*z(n31,i6) - 243.735576923077*z(n31,i7) - 162.490384615385*z(n31,i8) - 81.2451923076923*z(n31,i9) - 4576*z(n32,i1) - 2288*z(n32,i2) - 1525.33333333333*z(n32,i3) - 1144*z(n32,i4) - 762.666666666667*z(n32,i5) - 381.333333333333*z(n32,i6)
+     
+      - 264*z(n32,i7) - 176*z(n32,i8) - 88*z(n32,i9) - 6618.15*z(n33,i1) - 3309.075*z(n33,i2) - 2206.05*z(n33,i3) - 1654.5375*z(n33,i4) - 1103.025*z(n33,i5) - 551.5125*z(n33,i6) - 381.816346153846*z(n33,i7) - 254.544230769231*z(n33,i8)
+     
+      - 127.272115384615*z(n33,i9) - 6985*z(n34,i1) - 3492.5*z(n34,i2) - 2328.33333333333*z(n34,i3) - 1746.25*z(n34,i4) - 1164.16666666667*z(n34,i5) - 582.083333333333*z(n34,i6) - 402.980769230769*z(n34,i7) - 268.653846153846*z(n34,i8)
+     
+      - 134.326923076923*z(n34,i9) - 7663.8*z(n35,i1) - 3831.9*z(n35,i2) - 2554.6*z(n35,i3) - 1915.95*z(n35,i4) - 1277.3*z(n35,i5) - 638.65*z(n35,i6) - 442.142307692308*z(n35,i7) - 294.761538461538*z(n35,i8) - 147.380769230769*z(n35,i9) - 8184*z(n36,i1)
+     
+      - 4092*z(n36,i2) - 2728*z(n36,i3) - 2046*z(n36,i4) - 1364*z(n36,i5) - 682*z(n36,i6) - 472.153846153846*z(n36,i7) - 314.769230769231*z(n36,i8) - 157.384615384615*z(n36,i9) - 9882.5*z(n37,i1) - 4941.25*z(n37,i2) - 3294.16666666667*z(n37,i3)
+     
+      - 2470.625*z(n37,i4) - 1647.08333333333*z(n37,i5) - 823.541666666667*z(n37,i6) - 570.144230769231*z(n37,i7) - 380.096153846154*z(n37,i8) - 190.048076923077*z(n37,i9) - 10235.15*z(n38,i1) - 5117.575*z(n38,i2) - 3411.71666666667*z(n38,i3)
+     
+      - 2558.7875*z(n38,i4) - 1705.85833333333*z(n38,i5) - 852.929166666667*z(n38,i6) - 590.489423076923*z(n38,i7) - 393.659615384615*z(n38,i8) - 196.829807692308*z(n38,i9) - 11591.1*z(n39,i1) - 5795.55*z(n39,i2) - 3863.7*z(n39,i3) - 2897.775*z(n39,i4)
+     
+      - 1931.85*z(n39,i5) - 965.925*z(n39,i6) - 668.717307692308*z(n39,i7) - 445.811538461538*z(n39,i8) - 222.905769230769*z(n39,i9) - 12513*z(n40,i1) - 6256.5*z(n40,i2) - 4171*z(n40,i3) - 3128.25*z(n40,i4) - 2085.5*z(n40,i5) - 1042.75*z(n40,i6)
+     
+      - 721.903846153846*z(n40,i7) - 481.269230769231*z(n40,i8) - 240.634615384615*z(n40,i9) - 15837.8*z(n41,i1) - 7918.9*z(n41,i2) - 5279.26666666667*z(n41,i3) - 3959.45*z(n41,i4) - 2639.63333333333*z(n41,i5) - 1319.81666666667*z(n41,i6)
+     
+      - 913.719230769231*z(n41,i7) - 609.146153846154*z(n41,i8) - 304.573076923077*z(n41,i9) - 28367.1*z(n42,i1) - 14183.55*z(n42,i2) - 9455.7*z(n42,i3) - 7091.775*z(n42,i4) - 4727.85*z(n42,i5) - 2363.925*z(n42,i6) - 1636.56346153846*z(n42,i7)
+     
+      - 1091.04230769231*z(n42,i8) - 545.521153846154*z(n42,i9) - 34520.2*z(n43,i1) - 17260.1*z(n43,i2) - 11506.7333333333*z(n43,i3) - 8630.05*z(n43,i4) - 5753.36666666667*z(n43,i5) - 2876.68333333333*z(n43,i6) - 1991.55*z(n43,i7) - 1327.7*z(n43,i8)
+     
+      - 663.85*z(n43,i9) - 37596*z(n44,i1) - 18798*z(n44,i2) - 12532*z(n44,i3) - 9399*z(n44,i4) - 6266*z(n44,i5) - 3133*z(n44,i6) - 2169*z(n44,i7) - 1446*z(n44,i8) - 723*z(n44,i9) - 48533.25*z(n45,i1) - 24266.625*z(n45,i2) - 16177.75*z(n45,i3)
+     
+      - 12133.3125*z(n45,i4) - 8088.875*z(n45,i5) - 4044.4375*z(n45,i6) - 2799.99519230769*z(n45,i7) - 1866.66346153846*z(n45,i8) - 933.331730769231*z(n45,i9) - 49901.6*z(n46,i1) - 24950.8*z(n46,i2) - 16633.8666666667*z(n46,i3) - 12475.4*z(n46,i4)
+     
+      - 8316.93333333333*z(n46,i5) - 4158.46666666667*z(n46,i6) - 2878.93846153846*z(n46,i7) - 1919.29230769231*z(n46,i8) - 959.646153846154*z(n46,i9) - 52992*z(n47,i1) - 26496*z(n47,i2) - 17664*z(n47,i3) - 13248*z(n47,i4) - 8832*z(n47,i5)
+     
+      - 4416*z(n47,i6) - 3057.23076923077*z(n47,i7) - 2038.15384615385*z(n47,i8) - 1019.07692307692*z(n47,i9) - 53232.5*z(n48,i1) - 26616.25*z(n48,i2) - 17744.1666666667*z(n48,i3) - 13308.125*z(n48,i4) - 8872.08333333333*z(n48,i5)
+     
+      - 4436.04166666667*z(n48,i6) - 3071.10576923077*z(n48,i7) - 2047.40384615385*z(n48,i8) - 1023.70192307692*z(n48,i9) + obj =E= 0 ; (LHS = 0)
+     
+
+---- capacity  =L=  
+
+capacity..  x(n1) + x(n2) + x(n3) + x(n4) + x(n5) + x(n6) + x(n7) + x(n8) + x(n9) + x(n10) + x(n11) + x(n12) + x(n13) + x(n14) + x(n15) + x(n16) + x(n17) + x(n18) + x(n19) + x(n20) + x(n21) + x(n22) + x(n23) + x(n24) + x(n25) + x(n26) + x(n27) + x(n28)
+     
+      + x(n29) + x(n30) + x(n31) + x(n32) + x(n33) + x(n34) + x(n35) + x(n36) + x(n37) + x(n38) + x(n39) + x(n40) + x(n41) + x(n42) + x(n43) + x(n44) + x(n45) + x(n46) + x(n47) + x(n48) =L= 300 ; (LHS = 144)
+     
+
+---- defx  =E=  
+
+defx(n1)..  - x(n1) + 3*z(n1,i1) + 6*z(n1,i2) + 9*z(n1,i3) + 12*z(n1,i4) + 18*z(n1,i5) + 36*z(n1,i6) + 52*z(n1,i7) + 78*z(n1,i8) + 156*z(n1,i9) =E= 0 ; (LHS = -3, INFES = 3 ****)
+     
+defx(n2)..  - x(n2) + 3*z(n2,i1) + 6*z(n2,i2) + 9*z(n2,i3) + 12*z(n2,i4) + 18*z(n2,i5) + 36*z(n2,i6) + 52*z(n2,i7) + 78*z(n2,i8) + 156*z(n2,i9) =E= 0 ; (LHS = -3, INFES = 3 ****)
+     
+defx(n3)..  - x(n3) + 3*z(n3,i1) + 6*z(n3,i2) + 9*z(n3,i3) + 12*z(n3,i4) + 18*z(n3,i5) + 36*z(n3,i6) + 52*z(n3,i7) + 78*z(n3,i8) + 156*z(n3,i9) =E= 0 ; (LHS = -3, INFES = 3 ****)
+     
+REMAINING 45 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 6
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+Equation Listing    SOLVE stockmip Using MIP From line 87
+
+
+---- defsos  =E=  
+
+defsos(n1)..  z(n1,i1) + z(n1,i2) + z(n1,i3) + z(n1,i4) + z(n1,i5) + z(n1,i6) + z(n1,i7) + z(n1,i8) + z(n1,i9) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+defsos(n2)..  z(n2,i1) + z(n2,i2) + z(n2,i3) + z(n2,i4) + z(n2,i5) + z(n2,i6) + z(n2,i7) + z(n2,i8) + z(n2,i9) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+defsos(n3)..  z(n3,i1) + z(n3,i2) + z(n3,i3) + z(n3,i4) + z(n3,i5) + z(n3,i6) + z(n3,i7) + z(n3,i8) + z(n3,i9) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 45 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 7
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+Column Listing      SOLVE stockmip Using MIP From line 87
+
+
+---- x  number of orders per unit time
+
+x(n1)
+                (.LO, .L, .UP, .M = 3, 3, 156, 0)
+        1       capacity
+       -1       defx(n1)
+        0       (OLD LEVEL ****)
+
+x(n2)
+                (.LO, .L, .UP, .M = 3, 3, 156, 0)
+        1       capacity
+       -1       defx(n2)
+        0       (OLD LEVEL ****)
+
+x(n3)
+                (.LO, .L, .UP, .M = 3, 3, 156, 0)
+        1       capacity
+       -1       defx(n3)
+        0       (OLD LEVEL ****)
+
+REMAINING 45 ENTRIES SKIPPED
+
+---- z  discrete orders choices
+
+z(n1,i1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+      -10.02    defobjmip
+        3       defx(n1)
+        1       defsos(n1)
+
+z(n1,i2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5.01    defobjmip
+        6       defx(n1)
+        1       defsos(n1)
+
+z(n1,i3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -3.34    defobjmip
+        9       defx(n1)
+        1       defsos(n1)
+
+REMAINING 429 ENTRIES SKIPPED
+
+---- obj  objective variable
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       defobjmip
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 8
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+Model Statistics    SOLVE stockmip Using MIP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS           98
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          481  48 projected
+NON ZERO ELEMENTS         1,393     DISCRETE VARIABLES        432
+
+
+GENERATION TIME      =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.004 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:32:30 Page 9
+Minimizing Total Average Cycle Stock (STOCKCC,SEQ=225)
+Solution Report     SOLVE stockmip Using MIP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   stockmip            OBJECTIVE  obj
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CONVERT             FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/stockcc/convert.opt"
+>>  pyomo stockcc-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/stockcc/convert.opt"
+Pyomo     : stockcc-scalar.py
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/stockcc/stockcc.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/stockcc/stockcc-scalar.py.lst

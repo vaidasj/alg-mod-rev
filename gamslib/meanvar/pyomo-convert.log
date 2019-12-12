@@ -1,0 +1,186 @@
+--- Job meanvar.gms Start 12/13/18 10:24:51 24.7.4 r58773 LEX-LEG x86 64bit/Linux
+GAMS 24.7.4   Copyright (C) 1987-2016 GAMS Development. All rights reserved
+Licensee: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+          Imperial College London, Dept. of Chemical Engineering    DC13449
+          License for teaching and research at degree granting institutions
+          remigijus.paulavicius@imperial.ac.uk                             
+--- Starting compilation
+--- meanvar.gms(170) 3 Mb
+--- Starting execution: elapsed 0:00:00.003
+--- meanvar.gms(89) 4 Mb
+--- Generating NLP model var1
+--- meanvar.gms(89) 6 Mb
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(89) 4 Mb
+--- Executing CONVERT: elapsed 0:00:00.006
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(89) 2 Mb
+--- Reading solution for model var1
+--- Generating NLP model var2
+--- meanvar.gms(104) 5 Mb
+---   2 rows  8 columns  15 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(104) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.025
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(104) 2 Mb
+--- Reading solution for model var2
+--- meanvar.gms(129) 3 Mb
+--- Generating NLP model sharpe
+--- meanvar.gms(131) 5 Mb
+---   4 rows  10 columns  26 non-zeroes
+---   203 nl-code  9 nl-non-zeroes
+--- meanvar.gms(131) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.042
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(131) 2 Mb
+--- Reading solution for model sharpe
+--- meanvar.gms(144) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(145) 5 Mb
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(145) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.058
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(145) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(152) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(153) 5 Mb
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(153) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.072
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(153) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(160) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(162) 5 Mb
+--- LOOPS pp = p1
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(162) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.088
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(162) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(160) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(162) 5 Mb
+--- LOOPS pp = p2
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(162) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.099
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(162) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(160) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(162) 5 Mb
+--- LOOPS pp = p3
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(162) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.112
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(162) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(160) 3 Mb
+--- Generating NLP model var1
+--- meanvar.gms(162) 5 Mb
+--- LOOPS pp = p4
+---   3 rows  9 columns  23 non-zeroes
+---   196 nl-code  7 nl-non-zeroes
+--- meanvar.gms(162) 3 Mb
+--- Executing CONVERT: elapsed 0:00:00.125
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+>>  pyomo meanvar-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/meanvar/convert.opt"
+--- Writing Pyomo     : meanvar-scalar.py
+
+--- Restarting execution
+--- meanvar.gms(162) 2 Mb
+--- Reading solution for model var1
+--- meanvar.gms(168) 3 Mb
+*** Status: Normal completion
+--- Job meanvar.gms Stop 12/13/18 10:24:51 elapsed 0:00:00.139

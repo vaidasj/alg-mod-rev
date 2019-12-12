@@ -1,0 +1,975 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option LP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 2
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+C o m p i l a t i o n
+
+
+   3   
+       
+      This model describes the scheduling problem of a small
+      owner operated refinery.
+       
+       
+      Kendrick, D, Meeraus, A, and Suh, J S, Oil Refinery Modeling with the
+      GAMS language. Tech. rep., Center of Energy Studies, University of
+      Texas, 1981.
+       
+      Aronofsky, J S, Dutton, J M, and Tayyabkhan, M T, Managerial Planning
+      with Linear Programming. John Wiley and Sons, New York, 1978.
+       
+  18   
+  19   Sets c   all commodities / crude       crude oil (any)
+  20                              butane      purchased butane
+  21                              mid-c       mid continent crude
+  22                              w-tex       west texas crude
+  23   
+  24                              sr-gas      straight-run gasoline
+  25                              sr-naphtha  straight-run naphtha
+  26                              sr-dist     straight-run distillate
+  27                              sr-gas-oil  straight-run gas oil
+  28                              sr-res      straight-run residuum
+  29                              rf-gas      reformed gasoline
+  30                              fuel-gas
+  31                              cc-gas      cracked gasoline
+  32                              cc-gas-oil  cracked gas oil
+  33                              hydro-res   hydrotreated residuum
+  34                              premium     premium gasoline
+  35                              regular     regular gasoline
+  36                              distillate
+  37                              fuel-oil    blended fuel oil /
+  38   
+  39        cf(c) final product / premium, regular, distillate, fuel-oil, fuel-gas /
+  40   
+  41        cr(c)  crude oils   / mid-c, w-tex /
+  42   
+  43        ci(c) intermediates / butane, sr-gas, sr-naphtha, sr-dist, sr-gas-oil, sr-res, rf-gas
+  44                              fuel-gas, cc-gas, cc-gas-oil, hydro-res  /
+  45   
+  46        cd(ci) domestic products / butane /
+  47   
+  48        p   processes       / a-dist      atmospheric distillation
+  49                              n-reform    naphtha reforming
+  50                              cc-dist     catalytic cracking of distillates
+  51                              cc-gas-oil  catalytic cracking of gas oil
+  52                              hydro       hydrotreating of residuum /
+  53   
+  54        m   productive units/ a-still     atmospheric distillation
+  55                              reformer
+  56                              c-crack     catalytic cracker
+  57                              hydro       hydrotreater             /
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 3
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+C o m p i l a t i o n
+
+
+  58   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 4
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+technology and cost data
+
+
+  60   
+  61   Table a(cr,c,p)  input output coefficients
+  62   
+  63                     a-dist  n-reform  cc-dist  cc-gas-oil  hydro
+  64   mid-c.crude       -1.0
+  65   mid-c.sr-gas        .236
+  66   mid-c.sr-naphtha    .223  -1.0
+  67   mid-c.sr-dist       .087            -1.0
+  68   mid-c.sr-gas-oil    .111                     -1.0
+  69   mid-c.sr-res        .315
+  70   mid-c.rf-gas                .807
+  71   mid-c.fuel-gas      .029    .129      .30      .31
+  72   mid-c.cc-gas                          .59      .59
+  73   mid-c.cc-gas-oil                      .21      .22
+  74   
+  75   w-tex.crude       -1.0
+  76   w-tex.sr-gas        .180
+  77   w-tex.sr-naphtha    .196  -1.0
+  78   w-tex.sr-dist       .073            -1.0
+  79   w-tex.sr-gas-oil    .091                     -1.0
+  80   w-tex.sr-res        .443                                 -1.0
+  81   w-tex.rf-gas                .836
+  82   w-tex.fuel-gas      .017    .099      .36      .38
+  83   w-tex.cc-gas                          .58      .60
+  84   w-tex.cc-gas-oil                      .15      .15
+  85   w-tex.hydro-res                                            .97
+  86   
+  87   
+  88   Table  b(m,p)  capacity utilization
+  89   
+  90               a-dist  n-reform  cc-dist  cc-gas-oil
+  91   a-still      1.0
+  92   reformer             1.0
+  93   c-crack                        1.0      1.0
+  94   
+  95   Parameters
+  96   
+  97     k(m)   initial capacity (1000 bpd)        / a-still    100,  reformer   20,  c-crack   30 /
+  98     pd(cd) prices of domestic products ($ pb) / butane  6.75 /
+  99     pr(cr) prices of crude oils ($ pb)        / mid-c   7.50, w-tex   6.50 /
+ 100     pf(cf) prices of final products ($ pb)    / premium 10.5, regular 9.1, distillate 7.7, fuel-gas 1.5, fuel-oil 6.65 /
+ 101     ur(cr) upper bnd on crude oil (1000 bpd)  / (mid-c,w-tex)  200 /
+ 102     op(p)  operating cost ($ pb)              / a-dist  .1, n-reform  .15, cc-dist  .8, cc-gas-oil  .08, hydro  .1 /
+ 103   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 5
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+blending data
+
+
+ 105   
+ 106   Sets lim  upper and lower limits / lower, upper /
+ 107   
+ 108        bp(cf,ci)  blending possibility  /
+ 109   
+ 110                      (premium, regular).(butane, sr-gas, rf-gas, cc-gas, sr-naphtha)
+ 111                       distillate.(      sr-dist, sr-naphtha, sr-gas-oil, cc-gas-oil)
+ 112                       fuel-oil.(        sr-gas-oil, sr-res, cc-gas-oil, hydro-res )
+ 113                       fuel-gas.(        fuel-gas )   /
+ 114   
+ 115        q  quality attributes / octane   octane level
+ 116                                vapor-pr vapor pressure
+ 117                                density
+ 118                                sulfur   sulfur content  /
+ 119   
+ 120   Table  qs(lim,cf,q)  product quality specifications
+ 121   
+ 122                      octane  vapor-pr  density  sulfur
+ 123   lower.premium       90
+ 124   lower.regular       86
+ 125   upper.premium               12.7
+ 126   upper.regular               12.7
+ 127   upper.distillate                      306      0.5
+ 128   upper.fuel-oil                        352      3.5
+ 129   
+ 130   Table  at(ci,q)  attributes for blending
+ 131   
+ 132                octane   vapor-pr
+ 133   sr-gas        78.5     18.4
+ 134   sr-naphtha    65.0      6.54
+ 135   rf-gas       104.0      2.57
+ 136   cc-gas        93.7      6.9
+ 137   butane        91.8    199.2
+ 138   
+ 139   
+ 140   Table atc(cr,ci,q)  attributes for blending by crude
+ 141   
+ 142                      density   sulfur
+ 143   mid-c.sr-naphtha    272.0      .283
+ 144   mid-c.sr-dist       292.0      .526
+ 145   mid-c.sr-gas-oil    295.0      .980
+ 146   mid-c.cc-gas-oil    294.4      .353
+ 147   mid-c.sr-res        343.0     4.7
+ 148   w-tex.sr-naphtha    272.0     1.48
+ 149   w-tex.sr-dist       297.6     2.83
+ 150   w-tex.sr-gas-oil    303.3     5.05
+ 151   w-tex.sr-res        365.0    11.00
+ 152   w-tex.cc-gas-oil    299.1     1.31
+ 153   w-tex.hydro-res     365.0     6.00
+ 154   
+ 155   Display atc; atc(cr,ci,q)$at(ci,q) = at(ci,q); Display atc;
+ 156   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 6
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+model specification
+
+
+ 158   
+ 159   Variables  z(cr,p)     process level
+ 160              x(cf)       final sales
+ 161              u(cr)       purchase of crude oil
+ 162              ui(cr,ci)   purchases of intermediate materials
+ 163              w(cr,ci,cf) blending process level
+ 164   
+ 165              phi         total income
+ 166              phir        revenue from final product sales
+ 167              phip        input material cost
+ 168              phiw        operating cost
+ 169   
+ 170   Positive Variables z, x, u, ui, w;
+ 171   
+ 172   Equations  mb(cr,ci)   material balances for intermediates
+ 173              mbr(cr)     material balances for crudes
+ 174              cc(m)       capacity constraint
+ 175              lcp(cr)     limits on crude oil purchases
+ 176              bb(cf)      blending balance
+ 177              qlb(cf,q)   quality constraints lower bounds
+ 178              qub(cf,q)   quality constraints upper bounds
+ 179   
+ 180              aprof       profit accounting
+ 181              arev        revenue accounting
+ 182              amat        material cost accounting
+ 183              aoper       operating cost accounting;
+ 184   
+
+ 186   
+
+ 187   mbr(cr)..   sum(p, a(cr,"crude",p)*z(cr,p)) + u(cr) =g= 0 ;
+
+ 188   mb(cr,ci).. sum(p, a(cr,ci,p)*z(cr,p)) + ui(cr,ci)$cd(ci) =g= sum(cf$bp(cf,ci), w(cr,ci,cf));
+
+ 189   cc(m)..     sum(p, b(m,p)*sum(cr,z(cr,p))) =l= k(m) ;
+
+ 190   lcp(cr)..   u(cr) =l= ur(cr);
+
+ 191   bb(cf) ..   x(cf) =e= sum((cr,ci)$bp(cf,ci), w(cr,ci,cf)) ;
+
+ 192   qlb(cf,q)$qs("lower",cf,q)..  sum((cr,bp(cf,ci)), atc(cr,ci,q)*w(cr,ci,cf)) =g= qs("lower",cf,q)*x(cf);
+
+ 193   qub(cf,q)$qs("upper",cf,q)..  sum((cr,bp(cf,ci)), atc(cr,ci,q)*w(cr,ci,cf)) =l= qs("upper",cf,q)*x(cf);
+
+ 194   
+
+ 195   arev ..     phir =e= sum(cf, pf(cf)*x(cf)) ;
+
+ 196   amat ..     phip =e= sum(cr,pr(cr)*u(cr))+sum((cd,cr),pd(cd)*ui(cr,cd));
+
+ 197   aoper..     phiw =e= sum(p,op(p)*sum(cr, z(cr,p))) ;
+
+ 198   aprof..     phi  =e= phir - phip - phiw ;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 7
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+model specification
+
+
+
+ 199   
+ 201   
+ 202   Model oil marco oil refinery model / all /
+ 203   
+ 204   Solve oil using lp maximizing phi; Display z.l, w.l, x.l, u.l;
+ 205   
+ 206   qs("upper","fuel-oil","sulfur") = 3.4;
+ 207   Solve oil using lp maximizing phi; Display z.l, w.l, x.l, u.l;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 8
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+E x e c u t i o n
+
+
+----    155 PARAMETER atc  attributes for blending by crude
+
+                     density      sulfur
+
+mid-c.sr-naphtha     272.000       0.283
+mid-c.sr-dist        292.000       0.526
+mid-c.sr-gas-oil     295.000       0.980
+mid-c.sr-res         343.000       4.700
+mid-c.cc-gas-oil     294.400       0.353
+w-tex.sr-naphtha     272.000       1.480
+w-tex.sr-dist        297.600       2.830
+w-tex.sr-gas-oil     303.300       5.050
+w-tex.sr-res         365.000      11.000
+w-tex.cc-gas-oil     299.100       1.310
+w-tex.hydro-res      365.000       6.000
+
+
+----    155 PARAMETER atc  attributes for blending by crude
+
+                      octane    vapor-pr     density      sulfur
+
+mid-c.butane          91.800     199.200
+mid-c.sr-gas          78.500      18.400
+mid-c.sr-naphtha      65.000       6.540     272.000       0.283
+mid-c.sr-dist                                292.000       0.526
+mid-c.sr-gas-oil                             295.000       0.980
+mid-c.sr-res                                 343.000       4.700
+mid-c.rf-gas         104.000       2.570
+mid-c.cc-gas          93.700       6.900
+mid-c.cc-gas-oil                             294.400       0.353
+w-tex.butane          91.800     199.200
+w-tex.sr-gas          78.500      18.400
+w-tex.sr-naphtha      65.000       6.540     272.000       1.480
+w-tex.sr-dist                                297.600       2.830
+w-tex.sr-gas-oil                             303.300       5.050
+w-tex.sr-res                                 365.000      11.000
+w-tex.rf-gas         104.000       2.570
+w-tex.cc-gas          93.700       6.900
+w-tex.cc-gas-oil                             299.100       1.310
+w-tex.hydro-res                              365.000       6.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:35 Page 9
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Equation Listing    SOLVE oil Using LP From line 204
+
+
+---- mb  =G=  material balances for intermediates
+
+mb(mid-c,butane)..  ui(mid-c,butane) - w(mid-c,butane,premium) - w(mid-c,butane,regular) =G= 0 ; (LHS = 0)
+     
+mb(mid-c,sr-gas)..  0.236*z(mid-c,a-dist) - w(mid-c,sr-gas,premium) - w(mid-c,sr-gas,regular) =G= 0 ; (LHS = 0)
+     
+mb(mid-c,sr-naphtha)..  0.223*z(mid-c,a-dist) - z(mid-c,n-reform) - w(mid-c,sr-naphtha,premium) - w(mid-c,sr-naphtha,regular) - w(mid-c,sr-naphtha,distillate) =G= 0 ; (LHS = 0)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+
+---- mbr  =G=  material balances for crudes
+
+mbr(mid-c)..  - z(mid-c,a-dist) + u(mid-c) =G= 0 ; (LHS = 0)
+     
+mbr(w-tex)..  - z(w-tex,a-dist) + u(w-tex) =G= 0 ; (LHS = 0)
+     
+
+---- cc  =L=  capacity constraint
+
+cc(a-still)..  z(mid-c,a-dist) + z(w-tex,a-dist) =L= 100 ; (LHS = 0)
+     
+cc(reformer)..  z(mid-c,n-reform) + z(w-tex,n-reform) =L= 20 ; (LHS = 0)
+     
+cc(c-crack)..  z(mid-c,cc-gas-oil) + z(mid-c,cc-dist) + z(w-tex,cc-gas-oil) + z(w-tex,cc-dist) =L= 30 ; (LHS = 0)
+     
+
+---- lcp  =L=  limits on crude oil purchases
+
+lcp(mid-c)..  u(mid-c) =L= 200 ; (LHS = 0)
+     
+lcp(w-tex)..  u(w-tex) =L= 200 ; (LHS = 0)
+     
+
+---- bb  =E=  blending balance
+
+bb(fuel-gas)..  x(fuel-gas) - w(mid-c,fuel-gas,fuel-gas) - w(w-tex,fuel-gas,fuel-gas) =E= 0 ; (LHS = 0)
+     
+bb(premium)..  x(premium) - w(mid-c,butane,premium) - w(mid-c,sr-gas,premium) - w(mid-c,sr-naphtha,premium) - w(mid-c,rf-gas,premium) - w(mid-c,cc-gas,premium) - w(w-tex,butane,premium) - w(w-tex,sr-gas,premium) - w(w-tex,sr-naphtha,premium)
+     
+      - w(w-tex,rf-gas,premium) - w(w-tex,cc-gas,premium) =E= 0 ; (LHS = 0)
+     
+bb(regular)..  x(regular) - w(mid-c,butane,regular) - w(mid-c,sr-gas,regular) - w(mid-c,sr-naphtha,regular) - w(mid-c,rf-gas,regular) - w(mid-c,cc-gas,regular) - w(w-tex,butane,regular) - w(w-tex,sr-gas,regular) - w(w-tex,sr-naphtha,regular)
+     
+      - w(w-tex,rf-gas,regular) - w(w-tex,cc-gas,regular) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 10
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Equation Listing    SOLVE oil Using LP From line 204
+
+
+---- qlb  =G=  quality constraints lower bounds
+
+qlb(premium,octane)..  - 90*x(premium) + 91.8*w(mid-c,butane,premium) + 78.5*w(mid-c,sr-gas,premium) + 65*w(mid-c,sr-naphtha,premium) + 104*w(mid-c,rf-gas,premium) + 93.7*w(mid-c,cc-gas,premium) + 91.8*w(w-tex,butane,premium)
+     
+      + 78.5*w(w-tex,sr-gas,premium) + 65*w(w-tex,sr-naphtha,premium) + 104*w(w-tex,rf-gas,premium) + 93.7*w(w-tex,cc-gas,premium) =G= 0 ; (LHS = 0)
+     
+qlb(regular,octane)..  - 86*x(regular) + 91.8*w(mid-c,butane,regular) + 78.5*w(mid-c,sr-gas,regular) + 65*w(mid-c,sr-naphtha,regular) + 104*w(mid-c,rf-gas,regular) + 93.7*w(mid-c,cc-gas,regular) + 91.8*w(w-tex,butane,regular)
+     
+      + 78.5*w(w-tex,sr-gas,regular) + 65*w(w-tex,sr-naphtha,regular) + 104*w(w-tex,rf-gas,regular) + 93.7*w(w-tex,cc-gas,regular) =G= 0 ; (LHS = 0)
+     
+
+---- qub  =L=  quality constraints upper bounds
+
+qub(premium,vapor-pr)..  - 12.7*x(premium) + 199.2*w(mid-c,butane,premium) + 18.4*w(mid-c,sr-gas,premium) + 6.54*w(mid-c,sr-naphtha,premium) + 2.57*w(mid-c,rf-gas,premium) + 6.9*w(mid-c,cc-gas,premium) + 199.2*w(w-tex,butane,premium)
+     
+      + 18.4*w(w-tex,sr-gas,premium) + 6.54*w(w-tex,sr-naphtha,premium) + 2.57*w(w-tex,rf-gas,premium) + 6.9*w(w-tex,cc-gas,premium) =L= 0 ; (LHS = 0)
+     
+qub(regular,vapor-pr)..  - 12.7*x(regular) + 199.2*w(mid-c,butane,regular) + 18.4*w(mid-c,sr-gas,regular) + 6.54*w(mid-c,sr-naphtha,regular) + 2.57*w(mid-c,rf-gas,regular) + 6.9*w(mid-c,cc-gas,regular) + 199.2*w(w-tex,butane,regular)
+     
+      + 18.4*w(w-tex,sr-gas,regular) + 6.54*w(w-tex,sr-naphtha,regular) + 2.57*w(w-tex,rf-gas,regular) + 6.9*w(w-tex,cc-gas,regular) =L= 0 ; (LHS = 0)
+     
+qub(distillate,density)..  - 306*x(distillate) + 272*w(mid-c,sr-naphtha,distillate) + 292*w(mid-c,sr-dist,distillate) + 295*w(mid-c,sr-gas-oil,distillate) + 294.4*w(mid-c,cc-gas-oil,distillate) + 272*w(w-tex,sr-naphtha,distillate)
+     
+      + 297.6*w(w-tex,sr-dist,distillate) + 303.3*w(w-tex,sr-gas-oil,distillate) + 299.1*w(w-tex,cc-gas-oil,distillate) =L= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- aprof  =E=  profit accounting
+
+aprof..  phi - phir + phip + phiw =E= 0 ; (LHS = 0)
+     
+
+---- arev  =E=  revenue accounting
+
+arev..  - 1.5*x(fuel-gas) - 10.5*x(premium) - 9.1*x(regular) - 7.7*x(distillate) - 6.65*x(fuel-oil) + phir =E= 0 ; (LHS = 0)
+     
+
+---- amat  =E=  material cost accounting
+
+amat..  - 7.5*u(mid-c) - 6.5*u(w-tex) - 6.75*ui(mid-c,butane) - 6.75*ui(w-tex,butane) + phip =E= 0 ; (LHS = 0)
+     
+
+---- aoper  =E=  operating cost accounting
+
+aoper..  - 0.08*z(mid-c,cc-gas-oil) - 0.1*z(mid-c,a-dist) - 0.15*z(mid-c,n-reform) - 0.8*z(mid-c,cc-dist) - 0.1*z(mid-c,hydro) - 0.08*z(w-tex,cc-gas-oil) - 0.1*z(w-tex,a-dist) - 0.15*z(w-tex,n-reform) - 0.8*z(w-tex,cc-dist) - 0.1*z(w-tex,hydro) + phiw
+      =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 11
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Column Listing      SOLVE oil Using LP From line 204
+
+
+---- z  process level
+
+z(mid-c,cc-gas-oil)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,sr-gas-oil)
+        0.31    mb(mid-c,fuel-gas)
+        0.59    mb(mid-c,cc-gas)
+        0.22    mb(mid-c,cc-gas-oil)
+        1       cc(c-crack)
+       -0.08    aoper
+
+z(mid-c,a-dist)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.236   mb(mid-c,sr-gas)
+        0.223   mb(mid-c,sr-naphtha)
+        0.087   mb(mid-c,sr-dist)
+        0.111   mb(mid-c,sr-gas-oil)
+        0.315   mb(mid-c,sr-res)
+        0.029   mb(mid-c,fuel-gas)
+       -1       mbr(mid-c)
+        1       cc(a-still)
+       -0.1     aoper
+
+z(mid-c,n-reform)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,sr-naphtha)
+        0.807   mb(mid-c,rf-gas)
+        0.129   mb(mid-c,fuel-gas)
+        1       cc(reformer)
+       -0.15    aoper
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- x  final sales
+
+x(fuel-gas)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bb(fuel-gas)
+       -1.5     arev
+
+x(premium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bb(premium)
+      -90       qlb(premium,octane)
+      -12.7     qub(premium,vapor-pr)
+      -10.5     arev
+
+x(regular)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bb(regular)
+      -86       qlb(regular,octane)
+      -12.7     qub(regular,vapor-pr)
+       -9.1     arev
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 12
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Column Listing      SOLVE oil Using LP From line 204
+
+
+     x  final sales
+
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- u  purchase of crude oil
+
+u(mid-c)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(mid-c)
+        1       lcp(mid-c)
+       -7.5     amat
+
+u(w-tex)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(w-tex)
+        1       lcp(w-tex)
+       -6.5     amat
+
+
+---- ui  purchases of intermediate materials
+
+ui(mid-c,butane)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(mid-c,butane)
+       -6.75    amat
+
+ui(w-tex,butane)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(w-tex,butane)
+       -6.75    amat
+
+
+---- w  blending process level
+
+w(mid-c,butane,premium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,butane)
+       -1       bb(premium)
+       91.8     qlb(premium,octane)
+      199.2     qub(premium,vapor-pr)
+
+w(mid-c,butane,regular)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,butane)
+       -1       bb(regular)
+       91.8     qlb(regular,octane)
+      199.2     qub(regular,vapor-pr)
+
+w(mid-c,sr-gas,premium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,sr-gas)
+       -1       bb(premium)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 13
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Column Listing      SOLVE oil Using LP From line 204
+
+
+     w  blending process level
+
+       78.5     qlb(premium,octane)
+       18.4     qub(premium,vapor-pr)
+
+REMAINING 35 ENTRIES SKIPPED
+
+---- phi  total income
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aprof
+
+
+---- phir  revenue from final product sales
+
+phir
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       aprof
+        1       arev
+
+
+---- phip  input material cost
+
+phip
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aprof
+        1       amat
+
+
+---- phiw  operating cost
+
+phiw
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aprof
+        1       aoper
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 14
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Model Statistics    SOLVE oil Using LP From line 204
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          11     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           9     SINGLE VARIABLES           61
+NON ZERO ELEMENTS           237
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 15
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Solution Report     SOLVE oil Using LP From line 204
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   oil                 OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  204
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/marco/convert.opt"
+>>  ampl marco-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/marco/convert.opt"
+Ampl      : marco-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 16
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+E x e c u t i o n
+
+
+----    204 VARIABLE z.L  process level
+
+                      ( ALL       0.000 )
+
+
+----    204 VARIABLE w.L  blending process level
+
+                      ( ALL       0.000 )
+
+
+----    204 VARIABLE x.L  final sales
+
+                      ( ALL       0.000 )
+
+
+----    204 VARIABLE u.L  purchase of crude oil
+
+                      ( ALL       0.000 )
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 17
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Equation Listing    SOLVE oil Using LP From line 207
+
+
+---- mb  =G=  material balances for intermediates
+
+mb(mid-c,butane)..  ui(mid-c,butane) - w(mid-c,butane,premium) - w(mid-c,butane,regular) =G= 0 ; (LHS = 0)
+     
+mb(mid-c,sr-gas)..  0.236*z(mid-c,a-dist) - w(mid-c,sr-gas,premium) - w(mid-c,sr-gas,regular) =G= 0 ; (LHS = 0)
+     
+mb(mid-c,sr-naphtha)..  0.223*z(mid-c,a-dist) - z(mid-c,n-reform) - w(mid-c,sr-naphtha,premium) - w(mid-c,sr-naphtha,regular) - w(mid-c,sr-naphtha,distillate) =G= 0 ; (LHS = 0)
+     
+REMAINING 19 ENTRIES SKIPPED
+
+
+---- mbr  =G=  material balances for crudes
+
+mbr(mid-c)..  - z(mid-c,a-dist) + u(mid-c) =G= 0 ; (LHS = 0)
+     
+mbr(w-tex)..  - z(w-tex,a-dist) + u(w-tex) =G= 0 ; (LHS = 0)
+     
+
+---- cc  =L=  capacity constraint
+
+cc(a-still)..  z(mid-c,a-dist) + z(w-tex,a-dist) =L= 100 ; (LHS = 0)
+     
+cc(reformer)..  z(mid-c,n-reform) + z(w-tex,n-reform) =L= 20 ; (LHS = 0)
+     
+cc(c-crack)..  z(mid-c,cc-gas-oil) + z(mid-c,cc-dist) + z(w-tex,cc-gas-oil) + z(w-tex,cc-dist) =L= 30 ; (LHS = 0)
+     
+
+---- lcp  =L=  limits on crude oil purchases
+
+lcp(mid-c)..  u(mid-c) =L= 200 ; (LHS = 0)
+     
+lcp(w-tex)..  u(w-tex) =L= 200 ; (LHS = 0)
+     
+
+---- bb  =E=  blending balance
+
+bb(fuel-gas)..  x(fuel-gas) - w(mid-c,fuel-gas,fuel-gas) - w(w-tex,fuel-gas,fuel-gas) =E= 0 ; (LHS = 0)
+     
+bb(premium)..  x(premium) - w(mid-c,butane,premium) - w(mid-c,sr-gas,premium) - w(mid-c,sr-naphtha,premium) - w(mid-c,rf-gas,premium) - w(mid-c,cc-gas,premium) - w(w-tex,butane,premium) - w(w-tex,sr-gas,premium) - w(w-tex,sr-naphtha,premium)
+     
+      - w(w-tex,rf-gas,premium) - w(w-tex,cc-gas,premium) =E= 0 ; (LHS = 0)
+     
+bb(regular)..  x(regular) - w(mid-c,butane,regular) - w(mid-c,sr-gas,regular) - w(mid-c,sr-naphtha,regular) - w(mid-c,rf-gas,regular) - w(mid-c,cc-gas,regular) - w(w-tex,butane,regular) - w(w-tex,sr-gas,regular) - w(w-tex,sr-naphtha,regular)
+     
+      - w(w-tex,rf-gas,regular) - w(w-tex,cc-gas,regular) =E= 0 ; (LHS = 0)
+     
+REMAINING 2 ENTRIES SKIPPED
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 18
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Equation Listing    SOLVE oil Using LP From line 207
+
+
+---- qlb  =G=  quality constraints lower bounds
+
+qlb(premium,octane)..  - 90*x(premium) + 91.8*w(mid-c,butane,premium) + 78.5*w(mid-c,sr-gas,premium) + 65*w(mid-c,sr-naphtha,premium) + 104*w(mid-c,rf-gas,premium) + 93.7*w(mid-c,cc-gas,premium) + 91.8*w(w-tex,butane,premium)
+     
+      + 78.5*w(w-tex,sr-gas,premium) + 65*w(w-tex,sr-naphtha,premium) + 104*w(w-tex,rf-gas,premium) + 93.7*w(w-tex,cc-gas,premium) =G= 0 ; (LHS = 0)
+     
+qlb(regular,octane)..  - 86*x(regular) + 91.8*w(mid-c,butane,regular) + 78.5*w(mid-c,sr-gas,regular) + 65*w(mid-c,sr-naphtha,regular) + 104*w(mid-c,rf-gas,regular) + 93.7*w(mid-c,cc-gas,regular) + 91.8*w(w-tex,butane,regular)
+     
+      + 78.5*w(w-tex,sr-gas,regular) + 65*w(w-tex,sr-naphtha,regular) + 104*w(w-tex,rf-gas,regular) + 93.7*w(w-tex,cc-gas,regular) =G= 0 ; (LHS = 0)
+     
+
+---- qub  =L=  quality constraints upper bounds
+
+qub(premium,vapor-pr)..  - 12.7*x(premium) + 199.2*w(mid-c,butane,premium) + 18.4*w(mid-c,sr-gas,premium) + 6.54*w(mid-c,sr-naphtha,premium) + 2.57*w(mid-c,rf-gas,premium) + 6.9*w(mid-c,cc-gas,premium) + 199.2*w(w-tex,butane,premium)
+     
+      + 18.4*w(w-tex,sr-gas,premium) + 6.54*w(w-tex,sr-naphtha,premium) + 2.57*w(w-tex,rf-gas,premium) + 6.9*w(w-tex,cc-gas,premium) =L= 0 ; (LHS = 0)
+     
+qub(regular,vapor-pr)..  - 12.7*x(regular) + 199.2*w(mid-c,butane,regular) + 18.4*w(mid-c,sr-gas,regular) + 6.54*w(mid-c,sr-naphtha,regular) + 2.57*w(mid-c,rf-gas,regular) + 6.9*w(mid-c,cc-gas,regular) + 199.2*w(w-tex,butane,regular)
+     
+      + 18.4*w(w-tex,sr-gas,regular) + 6.54*w(w-tex,sr-naphtha,regular) + 2.57*w(w-tex,rf-gas,regular) + 6.9*w(w-tex,cc-gas,regular) =L= 0 ; (LHS = 0)
+     
+qub(distillate,density)..  - 306*x(distillate) + 272*w(mid-c,sr-naphtha,distillate) + 292*w(mid-c,sr-dist,distillate) + 295*w(mid-c,sr-gas-oil,distillate) + 294.4*w(mid-c,cc-gas-oil,distillate) + 272*w(w-tex,sr-naphtha,distillate)
+     
+      + 297.6*w(w-tex,sr-dist,distillate) + 303.3*w(w-tex,sr-gas-oil,distillate) + 299.1*w(w-tex,cc-gas-oil,distillate) =L= 0 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- aprof  =E=  profit accounting
+
+aprof..  phi - phir + phip + phiw =E= 0 ; (LHS = 0)
+     
+
+---- arev  =E=  revenue accounting
+
+arev..  - 1.5*x(fuel-gas) - 10.5*x(premium) - 9.1*x(regular) - 7.7*x(distillate) - 6.65*x(fuel-oil) + phir =E= 0 ; (LHS = 0)
+     
+
+---- amat  =E=  material cost accounting
+
+amat..  - 7.5*u(mid-c) - 6.5*u(w-tex) - 6.75*ui(mid-c,butane) - 6.75*ui(w-tex,butane) + phip =E= 0 ; (LHS = 0)
+     
+
+---- aoper  =E=  operating cost accounting
+
+aoper..  - 0.08*z(mid-c,cc-gas-oil) - 0.1*z(mid-c,a-dist) - 0.15*z(mid-c,n-reform) - 0.8*z(mid-c,cc-dist) - 0.1*z(mid-c,hydro) - 0.08*z(w-tex,cc-gas-oil) - 0.1*z(w-tex,a-dist) - 0.15*z(w-tex,n-reform) - 0.8*z(w-tex,cc-dist) - 0.1*z(w-tex,hydro) + phiw
+      =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 19
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Column Listing      SOLVE oil Using LP From line 207
+
+
+---- z  process level
+
+z(mid-c,cc-gas-oil)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,sr-gas-oil)
+        0.31    mb(mid-c,fuel-gas)
+        0.59    mb(mid-c,cc-gas)
+        0.22    mb(mid-c,cc-gas-oil)
+        1       cc(c-crack)
+       -0.08    aoper
+
+z(mid-c,a-dist)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.236   mb(mid-c,sr-gas)
+        0.223   mb(mid-c,sr-naphtha)
+        0.087   mb(mid-c,sr-dist)
+        0.111   mb(mid-c,sr-gas-oil)
+        0.315   mb(mid-c,sr-res)
+        0.029   mb(mid-c,fuel-gas)
+       -1       mbr(mid-c)
+        1       cc(a-still)
+       -0.1     aoper
+
+z(mid-c,n-reform)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,sr-naphtha)
+        0.807   mb(mid-c,rf-gas)
+        0.129   mb(mid-c,fuel-gas)
+        1       cc(reformer)
+       -0.15    aoper
+
+REMAINING 7 ENTRIES SKIPPED
+
+---- x  final sales
+
+x(fuel-gas)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bb(fuel-gas)
+       -1.5     arev
+
+x(premium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bb(premium)
+      -90       qlb(premium,octane)
+      -12.7     qub(premium,vapor-pr)
+      -10.5     arev
+
+x(regular)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bb(regular)
+      -86       qlb(regular,octane)
+      -12.7     qub(regular,vapor-pr)
+       -9.1     arev
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 20
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Column Listing      SOLVE oil Using LP From line 207
+
+
+     x  final sales
+
+
+REMAINING 2 ENTRIES SKIPPED
+
+---- u  purchase of crude oil
+
+u(mid-c)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(mid-c)
+        1       lcp(mid-c)
+       -7.5     amat
+
+u(w-tex)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mbr(w-tex)
+        1       lcp(w-tex)
+       -6.5     amat
+
+
+---- ui  purchases of intermediate materials
+
+ui(mid-c,butane)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(mid-c,butane)
+       -6.75    amat
+
+ui(w-tex,butane)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       mb(w-tex,butane)
+       -6.75    amat
+
+
+---- w  blending process level
+
+w(mid-c,butane,premium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,butane)
+       -1       bb(premium)
+       91.8     qlb(premium,octane)
+      199.2     qub(premium,vapor-pr)
+
+w(mid-c,butane,regular)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,butane)
+       -1       bb(regular)
+       91.8     qlb(regular,octane)
+      199.2     qub(regular,vapor-pr)
+
+w(mid-c,sr-gas,premium)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       mb(mid-c,sr-gas)
+       -1       bb(premium)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 21
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Column Listing      SOLVE oil Using LP From line 207
+
+
+     w  blending process level
+
+       78.5     qlb(premium,octane)
+       18.4     qub(premium,vapor-pr)
+
+REMAINING 35 ENTRIES SKIPPED
+
+---- phi  total income
+
+phi
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aprof
+
+
+---- phir  revenue from final product sales
+
+phir
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       -1       aprof
+        1       arev
+
+
+---- phip  input material cost
+
+phip
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aprof
+        1       amat
+
+
+---- phiw  operating cost
+
+phiw
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       aprof
+        1       aoper
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 22
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Model Statistics    SOLVE oil Using LP From line 207
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          11     SINGLE EQUATIONS           46
+BLOCKS OF VARIABLES           9     SINGLE VARIABLES           61
+NON ZERO ELEMENTS           237
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 23
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+Solution Report     SOLVE oil Using LP From line 207
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   oil                 OBJECTIVE  phi
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  207
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/marco/convert.opt"
+>>  ampl marco-scalar.mod
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/marco/convert.opt"
+Ampl      : marco-scalar.mod
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:35 Page 24
+Mini Oil Refinery Model    (MARCO,SEQ=32)
+E x e c u t i o n
+
+
+----    207 VARIABLE z.L  process level
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE w.L  blending process level
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE x.L  final sales
+
+                      ( ALL       0.000 )
+
+
+----    207 VARIABLE u.L  purchase of crude oil
+
+                      ( ALL       0.000 )
+
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/marco/marco.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/marco/marco-scalar.mod.lst

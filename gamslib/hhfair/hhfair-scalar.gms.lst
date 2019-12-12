@@ -1,0 +1,484 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option NLP=convert;
+   2  option NLP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 2
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+C o m p i l a t i o n
+
+
+   4   
+       
+         This is a theoretical optimizing model of a typical household.
+         a detailed description can be found in Chapter 3 of Ray Fair's book.
+       
+       
+      Fair, R, Specification, Estimation, and Analysis of Macroeconomic
+      Models. Harvard University Press, Cambridge, Mass, 1984.
+       
+  15   
+  16  Sets  tl     long time horizon  / 0, 1, 2, 3 /
+  17        t(tl)  optimizing horizon /    1, 2, 3 /
+  18        tt(t)  terminal year      /          3 /
+  19   
+  20  Scalars
+  21    p       price of goods                              /    1.0     /
+  22    r       one period interest rate                    /     .07    /
+  23    tr      transfer payment                            /    0       /
+  24    th      total number of hours in the period         / 1004.72366 /
+  25    w       wage rate                                   /    1.0     /
+  26    d       income tax rate                             /     .2     /
+  27    a1      distribution coefficient in ces function    /     .5     /
+  28    a2      elasticity coefficient in ces function      /    -.5     /
+  29    am      terminal assets target                      / 1100       /
+  30    lambda  discount rate                               /     .944   /
+  31    lstar   maximum labor available in each time period /  400       /
+  32    gamma1  coefficient 1 in money holding function     /     .255905/
+  33    gamma2  coefficient 2 in money holding function     /    1.0     /
+  34   
+  35  Parameter ufact(t) utility function factor ;
+  36   
+  37            ufact(t) = power(lambda,ord(t)-1) ; Display ufact;
+  38   
+  39  Variables
+  40    a(tl)       assets
+  41    c(t)        consumption
+  42    l(t)        labor supplied
+  43    m(tl)       money holdings
+  44    n(t)        time spent on money holdings
+  45    obj         objective function value
+  46    s(tl)       savings
+  47    tax(t)      net taxes paid
+  48    u(t)        utility
+  49    y(t)        income
+  50   
+  51  Equations
+  52    objective     objective function
+  53    utility(t)    utility in each period
+  54    income(t)     before tax income
+  55    taxes(t)      net taxes
+  56    savings(t)    savings
+  57    budget(tl)    budget constraint
+  58    timemoney(t)  time spent taking care of money holdings
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 3
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+C o m p i l a t i o n
+
+
+  59    terminal(t)   terminal condition for assets
+  60    dom1(t)       domain constraint on timemoney equation
+  61    dom2(t)       domain constraint on utility equation ;
+  62   
+  63  objective..   obj =e= prod(t, u(t)**ufact(t)) ;
+  64   
+  65  utility(t)..
+  66   
+  67  u(t) =e= (a1*c(t)**(-a2) + (1-a1)*(th-l(t)-n(t))**(-a2))**(-1/a2)/100 ;
+  68   
+  69  income(t)..    y(t) =e= w*l(t) + r*a(t) ;
+  70   
+  71  taxes(t)..     tax(t) =e= d*y(t) - tr;
+  72   
+  73  savings(t)..   s(t) =e= y(t) - tax(t) - p*c(t) ;
+  74   
+  75  budget(tl-1).. s(tl) =e= a(tl) - a(tl-1) + m(tl) - m(tl-1) ;
+  76   
+  77  timemoney(t).. n(t)*(m(t) - gamma1*p*c(t)) =e= gamma2 ;
+  78   
+  79  terminal(tt).. a(tt) + m(tt) =e=  am ;
+  80   
+  81  dom1(t).. m(t) =g= 1.01*gamma1*p*c(t) ;
+  82   
+  83  dom2(t).. l(t) + n(t) =l= .9*th ;
+  84   
+  85   
+  86  Model hh household optimization model / all / ;
+  87   
+  88  l.up(t) = lstar;   a.fx("0") = 1000;   m.fx("0") = 100;
+  89  c.lo(t) = 100;     l.lo(t) = 100;      u.lo(t)   = .01;
+  90   
+  91  a.l(t) = 1000; m.l(t) = 100; l.l(t) = 400;  u.l(t) = 1;
+  92   
+  93  Solve hh maximizing obj using nlp;
+  94   
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 4
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+E x e c u t i o n
+
+
+----     37 PARAMETER ufact  utility function factor
+
+1 1.000,    2 0.944,    3 0.891
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 5
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Equation Listing    SOLVE hh Using NLP From line 93
+
+
+---- objective  =E=  objective function
+
+objective..  obj - (1)*u(1) - (0.944)*u(2) - (0.891136)*u(3) =E= 0 ; (LHS = -1, INFES = 1 ****)
+     
+
+---- utility  =E=  utility in each period
+
+utility(1)..  - (0.00864778242539536)*c(1) + (0.00351662673912831)*l(1) + (0.00351662673912831)*n(1) + u(1) =E= 0 ; (LHS = -1.99136563507907, INFES = 1.99136563507907 ****)
+     
+utility(2)..  - (0.00864778242539536)*c(2) + (0.00351662673912831)*l(2) + (0.00351662673912831)*n(2) + u(2) =E= 0 ; (LHS = -1.99136563507907, INFES = 1.99136563507907 ****)
+     
+utility(3)..  - (0.00864778242539536)*c(3) + (0.00351662673912831)*l(3) + (0.00351662673912831)*n(3) + u(3) =E= 0 ; (LHS = -1.99136563507907, INFES = 1.99136563507907 ****)
+     
+
+---- income  =E=  before tax income
+
+income(1)..  - 0.07*a(1) - l(1) + y(1) =E= 0 ; (LHS = -470, INFES = 470 ****)
+     
+income(2)..  - 0.07*a(2) - l(2) + y(2) =E= 0 ; (LHS = -470, INFES = 470 ****)
+     
+income(3)..  - 0.07*a(3) - l(3) + y(3) =E= 0 ; (LHS = -470, INFES = 470 ****)
+     
+
+---- taxes  =E=  net taxes
+
+taxes(1)..  tax(1) - 0.2*y(1) =E= 0 ; (LHS = 0)
+     
+taxes(2)..  tax(2) - 0.2*y(2) =E= 0 ; (LHS = 0)
+     
+taxes(3)..  tax(3) - 0.2*y(3) =E= 0 ; (LHS = 0)
+     
+
+---- savings  =E=  savings
+
+savings(1)..  c(1) + s(1) + tax(1) - y(1) =E= 0 ; (LHS = 100, INFES = 100 ****)
+     
+savings(2)..  c(2) + s(2) + tax(2) - y(2) =E= 0 ; (LHS = 100, INFES = 100 ****)
+     
+savings(3)..  c(3) + s(3) + tax(3) - y(3) =E= 0 ; (LHS = 100, INFES = 100 ****)
+     
+
+---- budget  =E=  budget constraint
+
+budget(0)..  a(0) - a(1) + m(0) - m(1) + s(1) =E= 0 ; (LHS = 0)
+     
+budget(1)..  a(1) - a(2) + m(1) - m(2) + s(2) =E= 0 ; (LHS = 0)
+     
+budget(2)..  a(2) - a(3) + m(2) - m(3) + s(3) =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 6
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Equation Listing    SOLVE hh Using NLP From line 93
+
+
+---- timemoney  =E=  time spent taking care of money holdings
+
+timemoney(1)..  (0)*c(1) + (0)*m(1) + (74.4095)*n(1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+timemoney(2)..  (0)*c(2) + (0)*m(2) + (74.4095)*n(2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+timemoney(3)..  (0)*c(3) + (0)*m(3) + (74.4095)*n(3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- terminal  =E=  terminal condition for assets
+
+terminal(3)..  a(3) + m(3) =E= 1100 ; (LHS = 1100)
+     
+
+---- dom1  =G=  domain constraint on timemoney equation
+
+dom1(1)..  - 0.25846405*c(1) + m(1) =G= 0 ; (LHS = 74.153595)
+     
+dom1(2)..  - 0.25846405*c(2) + m(2) =G= 0 ; (LHS = 74.153595)
+     
+dom1(3)..  - 0.25846405*c(3) + m(3) =G= 0 ; (LHS = 74.153595)
+     
+
+---- dom2  =L=  domain constraint on utility equation
+
+dom2(1)..  l(1) + n(1) =L= 904.251294 ; (LHS = 400)
+     
+dom2(2)..  l(2) + n(2) =L= 904.251294 ; (LHS = 400)
+     
+dom2(3)..  l(3) + n(3) =L= 904.251294 ; (LHS = 400)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 7
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Column Listing      SOLVE hh Using NLP From line 93
+
+
+---- a  assets
+
+a(0)
+                (.LO, .L, .UP, .M = 1000, 1000, 1000, 0)
+        1       budget(0)
+
+a(1)
+                (.LO, .L, .UP, .M = -INF, 1000, +INF, 0)
+       -0.07    income(1)
+       -1       budget(0)
+        1       budget(1)
+
+a(2)
+                (.LO, .L, .UP, .M = -INF, 1000, +INF, 0)
+       -0.07    income(2)
+       -1       budget(1)
+        1       budget(2)
+
+REMAINING ENTRY SKIPPED
+
+---- c  consumption
+
+c(1)
+                (.LO, .L, .UP, .M = 100, 100, +INF, 0)
+      (-0.0086) utility(1)
+        1       savings(1)
+       (0)      timemoney(1)
+       -0.2585  dom1(1)
+        0       (OLD LEVEL ****)
+
+c(2)
+                (.LO, .L, .UP, .M = 100, 100, +INF, 0)
+      (-0.0086) utility(2)
+        1       savings(2)
+       (0)      timemoney(2)
+       -0.2585  dom1(2)
+        0       (OLD LEVEL ****)
+
+c(3)
+                (.LO, .L, .UP, .M = 100, 100, +INF, 0)
+      (-0.0086) utility(3)
+        1       savings(3)
+       (0)      timemoney(3)
+       -0.2585  dom1(3)
+        0       (OLD LEVEL ****)
+
+
+---- l  labor supplied
+
+l(1)
+                (.LO, .L, .UP, .M = 100, 400, 400, 0)
+       (0.0035) utility(1)
+       -1       income(1)
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 8
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Column Listing      SOLVE hh Using NLP From line 93
+
+
+     l  labor supplied
+
+        1       dom2(1)
+
+l(2)
+                (.LO, .L, .UP, .M = 100, 400, 400, 0)
+       (0.0035) utility(2)
+       -1       income(2)
+        1       dom2(2)
+
+l(3)
+                (.LO, .L, .UP, .M = 100, 400, 400, 0)
+       (0.0035) utility(3)
+       -1       income(3)
+        1       dom2(3)
+
+
+---- m  money holdings
+
+m(0)
+                (.LO, .L, .UP, .M = 100, 100, 100, 0)
+        1       budget(0)
+
+m(1)
+                (.LO, .L, .UP, .M = -INF, 100, +INF, 0)
+       -1       budget(0)
+        1       budget(1)
+       (0)      timemoney(1)
+        1       dom1(1)
+
+m(2)
+                (.LO, .L, .UP, .M = -INF, 100, +INF, 0)
+       -1       budget(1)
+        1       budget(2)
+       (0)      timemoney(2)
+        1       dom1(2)
+
+REMAINING ENTRY SKIPPED
+
+---- n  time spent on money holdings
+
+n(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0.0035) utility(1)
+      (74.4095) timemoney(1)
+        1       dom2(1)
+
+n(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0.0035) utility(2)
+      (74.4095) timemoney(2)
+        1       dom2(2)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:42 Page 9
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Column Listing      SOLVE hh Using NLP From line 93
+
+
+     n  time spent on money holdings
+
+n(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+       (0.0035) utility(3)
+      (74.4095) timemoney(3)
+        1       dom2(3)
+
+
+---- obj  objective function value
+
+obj
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       objective
+
+
+---- s  savings
+
+s(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       savings(1)
+        1       budget(0)
+
+s(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       savings(2)
+        1       budget(1)
+
+s(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       savings(3)
+        1       budget(2)
+
+
+---- tax  net taxes paid
+
+tax(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       taxes(1)
+        1       savings(1)
+
+tax(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       taxes(2)
+        1       savings(2)
+
+tax(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       taxes(3)
+        1       savings(3)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:42 Page 10
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Column Listing      SOLVE hh Using NLP From line 93
+
+
+---- u  utility
+
+u(1)
+                (.LO, .L, .UP, .M = 0.01, 1, +INF, 0)
+      (-1)      objective
+        1       utility(1)
+
+u(2)
+                (.LO, .L, .UP, .M = 0.01, 1, +INF, 0)
+      (-0.944)  objective
+        1       utility(2)
+
+u(3)
+                (.LO, .L, .UP, .M = 0.01, 1, +INF, 0)
+      (-0.8911) objective
+        1       utility(3)
+
+
+---- y  income
+
+y(1)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income(1)
+       -0.2     taxes(1)
+       -1       savings(1)
+
+y(2)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income(2)
+       -0.2     taxes(2)
+       -1       savings(2)
+
+y(3)
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       income(3)
+       -0.2     taxes(3)
+       -1       savings(3)
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:42 Page 11
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Model Statistics    SOLVE hh Using NLP From line 93
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           26
+BLOCKS OF VARIABLES          10     SINGLE VARIABLES           30  3 projected
+NON ZERO ELEMENTS            81     NON LINEAR N-Z             21
+DERIVATIVE POOL              20     CONSTANT POOL              21
+CODE LENGTH                  83
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:42 Page 12
+Household Optimization Model by Fair (HHFAIR,SEQ=69)
+Solution Report     SOLVE hh Using NLP From line 93
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   hh                  OBJECTIVE  obj
+     TYPE    NLP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  93
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+ EVALUATION ERRORS              0             0
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/hhfair/convert.opt"
+>>  gams hhfair-scalar.gms
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/hhfair/convert.opt"
+Gams      : hhfair-scalar.gms
+
+
+No solution returned
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/hhfair/hhfair.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/hhfair/hhfair-scalar.gms.lst

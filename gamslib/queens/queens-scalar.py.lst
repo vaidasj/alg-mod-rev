@@ -1,0 +1,386 @@
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  option MIP=convert;
+   2  option MIP=convert;
+   3  option MIP=convert;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 2
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+C o m p i l a t i o n
+
+
+   6   
+       
+         This model finds all possible ways to arrange eight queens on a chess
+         board in such a way that no two queens check against any other queen.
+         The solution proceeds in two steps. In the first step, we find any
+         solution. In the second step we find all solutions by adding cuts to
+         to the original problem set. Finally, a reporting step is added
+         to print all solutions found. This problem has a long history. In 1850
+         it was investigated by C.F. Gauss, but he was unable to solve it
+         completely. There are 92 possible solutions.
+       
+       
+      Dudeney, H E, Amusements in Mathematics. Dover, New York, 1970.
+       
+      Beauvais, J, Solving the Maximum Queens Chess Problem with OSL. IBM
+      Kingston, EKKNEWS 2 (1991).
+       
+  25   
+  26  Sets i  size of chess board     / 1*8 /
+  27       s  diagonal offsets        / 1*13 /   ! 2i-3 diagonals
+  28  Alias (i,j)
+  29   
+  30  Parameter sh(s) shift values for diagonals
+  31            rev(i) reverse order;
+  32   
+  33  sh(s)  = ord(s) - card(i) + 1 ;
+  34  rev(i) = card(i) + 1 - 2*ord(i);
+  35  Display sh, rev;
+  36   
+  37  Binary Variable x(i,j) square occupied by Queen
+  38         Variable tot    total squares occupied by queens
+  39   
+  40  Equations a(i)  no to queens may be in the same rank
+  41            b(j)  no to queens may be in the same file
+  42            c(s)  no to queens may be in the same diagonal (forward)
+  43            d(s)  no to queens may be in the same diagonal (backward)
+  44            obj   objective definition ;
+  45   
+  46  a(i).. sum(j, x(i,j)) =e= 1;
+  47   
+  48  b(j).. sum(i, x(i,j)) =e= 1;
+  49   
+  50  c(s).. sum(i, x(i,i+sh(s))) =l= 1;
+  51   
+  52  d(s).. sum(i, x(i,i+(rev(i)+sh(s)))) =l= 1;
+  53   
+  54  obj..  tot =e= sum((i,j), x(i,j));
+  55   
+  56  Model queen1 first model for queens / all /;
+  57   
+  58  Option optcr = 0;
+  59   
+  60  Solve queen1 maximizing tot using mip;
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 3
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+C o m p i l a t i o n
+
+
+  61   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 4
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Find all remaining solutions
+
+
+  63   
+  64  Sets nn    max number of solutions groups / 1*20 /
+  65       n(nn) dynamic set for solution groups
+  66       t     multiple solutions via rotations and reflections /
+  67             found       original solution
+  68             rot-90      original solution rotated  90 degrees
+  69             rot-180     original solution rotated 180 degrees
+  70             rot-270     original solution rotated 270 degrees
+  71             ref-h       original solution reflected horizontally
+  72             ref-v       original solution reflected vertically
+  73             ref-r       original solution reflected diagonally main
+  74             ref-l       original solution reflected diagonally back   /
+  75   
+  76  Scalar    saverow, coloff;
+  77  Parameter cutval all possible solutions for cut generation;
+  78   
+  79  Equation cut(nn,t)  known solutions to be eliminated;
+  80   
+  81  cut(n,t).. sum((i,j), cutval(n,t,i,j)*x(i,j)) =l= card(i)-1;
+  82   
+  83  Model queens queens model with cuts / all /;
+  84   
+  85  Option limrow=0, limcol=0, solprint=off;
+  86   
+  87   
+  88  n(nn) = no;  ! clear set of cuts
+  89   
+  90  queens.solvestat = 1;
+  91  queens.modelstat = 1;
+  92   
+  93  Loop(nn$(queens.solvestat=1 and
+  94           queens.modelstat=1),
+  95   
+  96     n(nn) = yes;   ! add element to set
+  97   
+  98     cutval(nn,'found'   ,i,j) = x.l(i       ,j       );
+  99     cutval(nn,'rot-90'  ,i,j) = x.l(j+rev(j),i       );
+ 100     cutval(nn,'rot-180' ,i,j) = x.l(i+rev(i),j+rev(j));
+ 101     cutval(nn,'rot-270' ,i,j) = x.l(j       ,i+rev(i));
+ 102     cutval(nn,'ref-h'   ,i,j) = x.l(i+rev(i),j       );
+ 103     cutval(nn,'ref-v'   ,i,j) = x.l(i       ,j+rev(j));
+ 104     cutval(nn,'ref-r'   ,i,j) = x.l(j       ,i       );
+ 105     cutval(nn,'ref-l'   ,i,j) = x.l(j+rev(j),i+rev(i));
+ 106   
+ 107     Solve queens maximizing tot using mip;    )
+ 108   
+ 109  Option cutval:0:3:1; display cutval;
+ 110   
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 5
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Write solution report to PUT file
+
+
+ 112   
+ 113  File   queen report file for solution groups ; put queen; queen.pc=3;
+ 114  Scalar saverow  row position to start second report column
+ 115         coloff   column offset for board displays;
+ 116   
+ 117  Puttl 'Queens Solution Summary        ' system.date ' ' system.time
+ 118  Loop(n(nn),
+ 119     Putpage;
+ 120     Put @12 // 'Solution Number ' ord(nn):3:0 ' of ' card(n):<3:0 ;
+ 121     saverow = file.cr; coloff = 1;
+ 122     Loop(t,
+ 123        if(ord(t)=5,
+ 124           file.cr = saverow;
+ 125           coloff  = 31);
+ 126        Put // @coloff 'Type = ' t.tl // @(coloff+2) ;
+ 127        Loop(j,
+ 128           Put j.tl:>2);
+ 129        Loop(i,
+ 130           Put / @coloff i.tl:>2;
+ 131           Loop(j,
+ 132              If(cutval(n,t,i,j),
+ 133                 Put ' x'
+ 134               Else Put '  ' ) ) ) ) );
+ 135   
+
+
+COMPILATION TIME     =        0.001 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 6
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+E x e c u t i o n
+
+
+----     35 PARAMETER sh  shift values for diagonals
+
+1  -6.000,    2  -5.000,    3  -4.000,    4  -3.000,    5  -2.000,    6  -1.000,    8   1.000,    9   2.000,    10  3.000,    11  4.000,    12  5.000,    13  6.000
+
+
+----     35 PARAMETER rev  reverse order
+
+1  7.000,    2  5.000,    3  3.000,    4  1.000,    5 -1.000,    6 -3.000,    7 -5.000,    8 -7.000
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 7
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Equation Listing    SOLVE queen1 Using MIP From line 60
+
+
+---- a  =E=  no to queens may be in the same rank
+
+a(1)..  x(1,1) + x(1,2) + x(1,3) + x(1,4) + x(1,5) + x(1,6) + x(1,7) + x(1,8) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+a(2)..  x(2,1) + x(2,2) + x(2,3) + x(2,4) + x(2,5) + x(2,6) + x(2,7) + x(2,8) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+a(3)..  x(3,1) + x(3,2) + x(3,3) + x(3,4) + x(3,5) + x(3,6) + x(3,7) + x(3,8) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- b  =E=  no to queens may be in the same file
+
+b(1)..  x(1,1) + x(2,1) + x(3,1) + x(4,1) + x(5,1) + x(6,1) + x(7,1) + x(8,1) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+b(2)..  x(1,2) + x(2,2) + x(3,2) + x(4,2) + x(5,2) + x(6,2) + x(7,2) + x(8,2) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+b(3)..  x(1,3) + x(2,3) + x(3,3) + x(4,3) + x(5,3) + x(6,3) + x(7,3) + x(8,3) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- c  =L=  no to queens may be in the same diagonal (forward)
+
+c(1)..  x(7,1) + x(8,2) =L= 1 ; (LHS = 0)
+     
+c(2)..  x(6,1) + x(7,2) + x(8,3) =L= 1 ; (LHS = 0)
+     
+c(3)..  x(5,1) + x(6,2) + x(7,3) + x(8,4) =L= 1 ; (LHS = 0)
+     
+REMAINING 10 ENTRIES SKIPPED
+
+
+---- d  =L=  no to queens may be in the same diagonal (backward)
+
+d(1)..  x(1,2) + x(2,1) =L= 1 ; (LHS = 0)
+     
+d(2)..  x(1,3) + x(2,2) + x(3,1) =L= 1 ; (LHS = 0)
+     
+d(3)..  x(1,4) + x(2,3) + x(3,2) + x(4,1) =L= 1 ; (LHS = 0)
+     
+REMAINING 10 ENTRIES SKIPPED
+
+
+---- obj  =E=  objective definition
+
+obj..  - x(1,1) - x(1,2) - x(1,3) - x(1,4) - x(1,5) - x(1,6) - x(1,7) - x(1,8) - x(2,1) - x(2,2) - x(2,3) - x(2,4) - x(2,5) - x(2,6) - x(2,7) - x(2,8) - x(3,1) - x(3,2) - x(3,3) - x(3,4) - x(3,5) - x(3,6) - x(3,7) - x(3,8) - x(4,1) - x(4,2) - x(4,3)
+     
+      - x(4,4) - x(4,5) - x(4,6) - x(4,7) - x(4,8) - x(5,1) - x(5,2) - x(5,3) - x(5,4) - x(5,5) - x(5,6) - x(5,7) - x(5,8) - x(6,1) - x(6,2) - x(6,3) - x(6,4) - x(6,5) - x(6,6) - x(6,7) - x(6,8) - x(7,1) - x(7,2) - x(7,3) - x(7,4) - x(7,5) - x(7,6)
+     
+      - x(7,7) - x(7,8) - x(8,1) - x(8,2) - x(8,3) - x(8,4) - x(8,5) - x(8,6) - x(8,7) - x(8,8) + tot =E= 0 ; (LHS = 0)
+     
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 8
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Column Listing      SOLVE queen1 Using MIP From line 60
+
+
+---- x  square occupied by Queen
+
+x(1,1)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       a(1)
+        1       b(1)
+        1       c(7)
+       -1       obj
+
+x(1,2)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       a(1)
+        1       b(2)
+        1       c(8)
+        1       d(1)
+       -1       obj
+
+x(1,3)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+        1       a(1)
+        1       b(3)
+        1       c(9)
+        1       d(2)
+       -1       obj
+
+REMAINING 61 ENTRIES SKIPPED
+
+---- tot  total squares occupied by queens
+
+tot
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                      12/13/18 10:24:48 Page 9
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Model Statistics    SOLVE queen1 Using MIP From line 60
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS           43
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           65
+NON ZERO ELEMENTS           317     DISCRETE VARIABLES         64
+
+
+GENERATION TIME      =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.003 SECONDS      4 MB  24.7.4 r58773 LEX-LEG
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 10
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Solution Report     SOLVE queen1 Using MIP From line 60
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   queen1              OBJECTIVE  tot
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  60
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/queens/convert.opt"
+>>  pyomo queens-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/queens/convert.opt"
+Pyomo     : queens-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 11
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Model Statistics    SOLVE queens Using MIP From line 107
+
+
+LOOPS                                   nn   1
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           43
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           65
+NON ZERO ELEMENTS           317     DISCRETE VARIABLES         64
+
+
+GENERATION TIME      =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+EXECUTION TIME       =        0.002 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+               L O O P S                 nn 1
+
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 12
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+Solution Report     SOLVE queens Using MIP From line 107
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   queens              OBJECTIVE  tot
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CONVERT             FROM LINE  107
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      14 No Solution Returned     
+**** OBJECTIVE VALUE                0.0000
+
+ RESOURCE USAGE, LIMIT          0.000      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+Convert 2.0      24.7.4 r58773 Released Sep 19, 2016 LEG x86 64bit/Linux      
+
+--- Using Option File
+Reading parameter(s) from "/home/renigijus/gams/opt-mod-lib/gamslib/queens/convert.opt"
+>>  pyomo queens-scalar.py
+Finished reading from "/home/renigijus/gams/opt-mod-lib/gamslib/queens/convert.opt"
+Pyomo     : queens-scalar.py
+
+
+No solution returned
+GAMS 24.7.4  r58773 Released Sep 19, 2016 LEX-LEG x86 64bit/Linux                                                                                                                                                                     12/13/18 10:24:48 Page 13
+Maximum Queens Chess Problem  (QUEENS,SEQ=103)
+E x e c u t i o n
+
+
+----    109 PARAMETER cutval  all possible solutions for cut generation
+
+                      ( ALL          0. )
+
+
+**** REPORT FILE SUMMARY
+
+queen /home/renigijus/gams/opt-mod-lib/gamslib/queens/queen.put
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  24.7.4 r58773 LEX-LEG
+
+
+USER: Remigijus Paulavicius, Single User License     S170731:0859AO-LNX
+      Imperial College London, Dept. of Chemical Engineering    DC13449
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      /home/renigijus/gams/opt-mod-lib/gamslib/queens/queens.gms
+Output     /home/renigijus/gams/opt-mod-lib/gamslib/queens/queens-scalar.py.lst
