@@ -1,3 +1,15 @@
+# Models Library
+
+Currently library consists of 298 scalar models in AMPL, GAMS and Pyomo formats. It is built using sample models available in the [GAMS Model Library](https://www.gams.com/latest/gamslib_ml/libhtml/index.html). 
+
+Main characteristics of a models:
+
+- number of equations;
+- number of variables;
+- number of discrete variables;
+- number of nonzero elements;
+- number of nonlinear nonzero elements.
+
 |ID|Model|Type|Description|Files|Eq|Vars|Vars Disc|Non zero|Non zero NL|
 |---|---|---|---|---|---|---|---|---|---|
 |1|[trnsport](https://www.gams.com/latest/gamslib_ml/libhtml/gamslib_trnsport.html)|LP|A Transportation Problem|[mod](trnsport/trnsport-scalar.mod) [gms](trnsport/trnsport-scalar.gms) [py](trnsport/trnsport-scalar.py)|6|7|0|19|0|
