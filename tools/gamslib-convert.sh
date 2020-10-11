@@ -122,12 +122,16 @@ convert_model()
   echo "Converting $MODELNAME model to scalar Pyomo model"
   convert_to_scalar $MODELNAME $MODELTYPE pyomo py
   write_stats
+  # Convert to JuMP
+  echo "Converting $MODELNAME model to scalar JuMP model"
+  convert_to_scalar $MODELNAME $MODELTYPE jump jl
+  write_stats
   
 }
 
 if [ "$#" -ne 1 ] && [ "$#" -ne 2 ]; then
   echo "Usage: $0 [modelname] [modeltype] # converts single model" >&2
-  echo "       $0 [md table file] # converts all models listed in the md file" >&2
+  echo "       $0 [csv file] # converts all models listed in the md file" >&2
   exit 1
 fi
 
@@ -184,6 +188,11 @@ else
         # Convert to Pyomo
         echo "Converting $MODELNAME model to scalar Pyomo model" >> $MNAME-stats.log
         convert_to_scalar $MNAME $MTYPE pyomo py
+        write_stats >> $MNAME-stats.log
+
+        # Convert to JuMP
+        echo "Converting $MODELNAME model to scalar JuMP model" >> $MNAME-stats.log
+        convert_to_scalar $MNAME $MTYPE jump jl
         write_stats >> $MNAME-stats.log
         
         # Create library entry
