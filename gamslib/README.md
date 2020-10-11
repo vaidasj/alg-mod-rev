@@ -11,7 +11,7 @@ Main characteristics of a models:
 - number of nonlinear nonzero elements.
 
 |ID|Model|Type|Description|Files|Eq|Vars|Vars Disc|Non zero|Non zero NL|
-|---|---|---|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|
 |1|[trnsport](https://www.gams.com/latest/gamslib_ml/libhtml/gamslib_trnsport.html)|LP|A Transportation Problem|[mod](trnsport/trnsport-scalar.mod) [gms](trnsport/trnsport-scalar.gms) [py](trnsport/trnsport-scalar.py) [jl](trnsport/trnsport-scalar.jl)|6|7|0|19|0|
 |2|[blend](https://www.gams.com/latest/gamslib_ml/libhtml/gamslib_blend.html)|LP|Blending Problem I|[mod](blend/blend-scalar.mod) [gms](blend/blend-scalar.gms) [py](blend/blend-scalar.py) [jl](blend/blend-scalar.jl)|4|10|0|37|0|
 |3|[prodmix](https://www.gams.com/latest/gamslib_ml/libhtml/gamslib_prodmix.html)|LP|A Production Mix Problem|[mod](prodmix/prodmix-scalar.mod) [gms](prodmix/prodmix-scalar.gms) [py](prodmix/prodmix-scalar.py) [jl](prodmix/prodmix-scalar.jl)|3|5|0|13|0|
