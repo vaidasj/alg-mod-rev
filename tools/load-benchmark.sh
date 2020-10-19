@@ -26,6 +26,59 @@ load_pyomo()
   echo $TIMEDIFF
 }
 
+# Requires tmx shell to be started in the background: 
+#   tmux new
+#   julia 
+# Cold run with single model to precompile dependencies:
+#   using JuMP
+#   using MathOptInterface
+#   using AmplNLWriter
+#   using Printf
+# NL_FILE variable must point to AmplNLWriter solverdata path
+
+load_jump()
+{
+  MODEL=$1
+  JUMP_FILE="$MODEL.jl"
+  NL_FILE="/Users/vju/.julia/packages/AmplNLWriter/cqDNr/.solverdata/jump.nl"
+  TIME_FILE=`pwd`/time.txt
+
+  echo "AmplNLWriter.setdebug(true)" >> $JUMP_FILE
+  echo "set_optimizer(model, () -> AmplNLWriter.Optimizer(\"dummy_writer\", filename=\"jump\"))" >> $JUMP_FILE
+  echo "optimize!(model)" >> $JUMP_FILE
+  JUMP_FILE_PATH=`realpath $JUMP_FILE`
+  
+  tmux send-keys "timing = \"\"" ENTER &> error
+  tmux send-keys "try timing = @elapsed include(\"$JUMP_FILE_PATH\") catch e timing = e end" ENTER &> error
+  tmux send-keys "f = open(\"$TIME_FILE\",\"w\")" ENTER &> error
+  tmux send-keys "isa(timing, Number) ? @printf(f,\"%.0f\",timing*1000) : @printf(f,\"%s\",timing)" ENTER &> error
+  tmux send-keys "close(f)" ENTER &> error
+  
+  while [ ! -f $TIME_FILE ]
+  do
+    sleep 1 
+  done
+
+  sleep 2 
+
+  if [ ! -f $NL_FILE ];
+  then
+    TIMEDIFF="model error"
+    echo "=======Error loading $MODEL==========" >> jump-errors.log 
+    cat $TIME_FILE >> jump-errors.log 
+    echo "" >> jump-errors.log 
+    echo "=====================================================" >> jump-errors.log 
+  else
+    TIMEDIFF=`cat $TIME_FILE`
+    rm $NL_FILE
+  fi
+
+  rm $TIME_FILE
+  rm -f error
+  
+  echo $TIMEDIFF
+}
+
 load_gams()
 {
   MODEL=$1
@@ -171,7 +224,7 @@ load_ampl()
 }
 
 if [ "$#" -ne 1 ] && [ "$#" -ne 2 ]; then
-  echo "Usage: $0 [aml] [modelname]  # loads single model; [aml]: ampl, gams, pyomo" >&2
+  echo "Usage: $0 [aml] [modelname]  # loads single model; [aml]: ampl, gams, pyomo, jump" >&2
   echo "       $0 [directory path]   # loads all models in the gamslib directory" >&2
   exit 1
 fi
@@ -188,6 +241,9 @@ if [ "$#" -eq 2 ]; then
   elif [ "$1" == "pyomo" ];
   then
     LOAD_TIME=$(load_pyomo $2)
+  elif [ "$1" == "jump" ];
+  then
+    LOAD_TIME=$(load_jump $2)
   fi
   
   echo "Loading $1 model $2 took $LOAD_TIME ms"
@@ -195,13 +251,14 @@ if [ "$#" -eq 2 ]; then
 # Load all models in provided gamslib directory
 else
     # Create results file
-    echo "|Model|Type|AMPL|GAMS|Pyomo|" > MODEL_LOADING_TIME.md
-    echo "|---|---|---|---|---|" >> MODEL_LOADING_TIME.md
+    echo "|Model|Type|AMPL|GAMS|Pyomo|JuMP|" > MODEL_LOADING_TIME.md
+    echo "|---|---|---|---|---|---|" >> MODEL_LOADING_TIME.md
     
     # Create error logs
     echo > ampl-errors.log
     echo > gams-errors.log
     echo > pyomo-errors.log
+    echo > jump-errors.log
     echo "|Model|Type|Presolved|Constraints excl|Variables excl|Constraints adj|Variables adj|Other|" > ampl-presolve-stats.md
     echo "|---|---|---|---|---|---|---|---|" >> ampl-presolve-stats.md
 
@@ -215,6 +272,7 @@ else
       LOAD_TIME_AMPL="-"
       LOAD_TIME_GAMS="-"
       LOAD_TIME_PYMO="-"
+      LOAD_TIME_JUMP="-"
 
       # Load models
       cp "$DIR_PATH/$MODELNAME"-scalar.mod .
@@ -222,10 +280,12 @@ else
       cp "$DIR_PATH/$MODELNAME"-scalar.gms .
       LOAD_TIME_GAMS=$(load_gams "$MODELNAME-scalar")
       cp "$DIR_PATH/$MODELNAME"-scalar.py .
-      LOAD_TIME_PYMO=$(load_pyomo "$MODELNAME-scalar")
+      LOAD_TIME_PYOMO=$(load_pyomo "$MODELNAME-scalar")
+      cp "$DIR_PATH/$MODELNAME"-scalar.jl .
+      LOAD_TIME_JUMP=$(load_jump "$MODELNAME-scalar")
       
       # Write results
-      echo "|$MODELNAME|$MODELTYPE|$LOAD_TIME_AMPL|$LOAD_TIME_GAMS|$LOAD_TIME_PYMO|" >> MODEL_LOADING_TIME.md
+      echo "|$MODELNAME|$MODELTYPE|$LOAD_TIME_AMPL|$LOAD_TIME_GAMS|$LOAD_TIME_PYOMO|$LOAD_TIME_JUMP|" >> MODEL_LOADING_TIME.md
       
       # Remove scalar models
       rm -f *-scalar*

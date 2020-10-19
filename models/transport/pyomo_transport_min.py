@@ -1,3 +1,4 @@
+from pyomo.environ import *
 model = ConcreteModel()
 model.i = Set(initialize=['seattle','san-diego'])
 model.j = Set(initialize=['new-york','chicago', 'topeka'])

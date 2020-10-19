@@ -3,11 +3,11 @@
 ## Model Library Generation
 
 The optimization problems model library is built using sample models available in the [GAMS Model Library](https://www.gams.com/latest/gamslib_ml/libhtml/index.html). 
-Library will be built by using [GAMS CONVERT](https://www.gams.com/latest/docs/S_CONVERT.html) utility to convert GAMS native models to scalar models for **AMPL**, **GAMS** and **Pyomo** algebraic modeling languages. 
+Library will be built by using [GAMS CONVERT](https://www.gams.com/latest/docs/S_CONVERT.html) utility to convert GAMS native models to scalar models for **AMPL**, **GAMS**, **JuMP** and **Pyomo** algebraic modeling languages. 
 
 ### Current Status
 
-Library consists of **298** models out of total 423 models available in the [GAMS Model Library](https://www.gams.com/latest/gamslib_ml/libhtml/index.html). 
+Library consists of **296** models out of total 423 models available in the [GAMS Model Library](https://www.gams.com/latest/gamslib_ml/libhtml/index.html). 
 
 Some part of the models in GAMS Model Library could not be converted to scalar formats due to:
 
@@ -38,6 +38,7 @@ The list includes links for specific AML models:
 
 - `mod`, AMPL scalar model;
 - `gms`, GAMS scalar model;
+- `jl`, JuMP scalar model;
 - `py`, Pyomo scalar model.
 
 and main characteristics of a model:
@@ -55,7 +56,7 @@ Each model is placed under separate directory `LIBRARY_DIRECTORY/MODEL_NAME`. Ap
 - `[MODEL_NAME]-scalar.[AML_NAME].lst`, verbose GAMS CONVERT output;
 - `[AML_NAME]-convert.log`, standard GAMS CONVERT output.
 
-> `AML_NAME`: ampl, gams, pyomo.
+> `AML_NAME`: ampl, gams, jump, pyomo.
 
 ### Building Library
 
@@ -97,7 +98,7 @@ sh gamslib-convert.sh MODEL_NAME MODEL_TYPE
 
 ### Running the Benchmark
 
-- Load single model, where `aml`: _ampl, gams, pyomo_
+- Load single model, where `aml`: _ampl, gams, jump, pyomo_
 
 ```
 load-benchmark.sh [aml] [modelname]  
@@ -110,7 +111,7 @@ load-benchmark.sh [directory path]
 
 ### Model Loading Principles
 
-1. Load model instance of a problem written in the native algebraic modeling language (_AMPL, GAMS, Pyomo_) of the modeling system.
+1. Load model instance of a problem written in the native algebraic modeling language (_AMPL, GAMS, JuMP, Pyomo_) of the modeling system.
 2. Export loaded model instance to the solver compatible input format. [NL](https://en.wikipedia.org/wiki/Nl_(format)) or NLC formats are used.
 3. Measure total (loading and exporting) execution time.
 
@@ -136,6 +137,16 @@ AmplNLC gams.nlc
 
 ```
 option MODEL_TYPE=convert;
+```
+
+#### JuMP
+
+JuMP *AmplNLWriter* package is used by providing dummy solver and turning debug mode on which results in writing NL file:
+
+```
+AmplNLWriter.setdebug(true)
+set_optimizer(model, () -> AmplNLWriter.Optimize("dummy",filename="jump_nl_file"))
+optimize!(model)
 ```
 
 #### Pyomo

@@ -154,7 +154,7 @@ if [ "$#" -eq 2 ]; then
 # Convert all library provided in the csv file
 else
     echo "|ID|Model|Type|Description|Files|Eq|Vars|Vars Disc|Non zero|Non zero NL|" > README.md
-    echo "|---|---|---|---|---|---|---|---|---|---|---|---|" >> README.md
+    echo "|---|---|---|---|---|---|---|---|---|---|" >> README.md
 
     TOTAL_MODELS=0
     CONVERTED=0
